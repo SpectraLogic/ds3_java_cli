@@ -1,9 +1,12 @@
 apply plugin: 'java'
 apply plugin: 'maven'
-//apply plugin: 'application'
+apply plugin: 'idea'
+apply plugin: 'application'
 
 version = '0.0.1-SNAPSHOT'
 group = 'com.spectralogic'
+
+mainClassName = 'com.spectralogic.ds3cli.Main'
 
 repositories {
   mavenCentral()
