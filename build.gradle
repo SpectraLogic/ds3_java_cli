@@ -14,6 +14,7 @@ repositories {
 }
 
 dependencies {
+  compile fileTree(dir: 'lib', include: '*.jar')
   compile 'commons-cli:commons-cli:1.2'
   compile 'com.google.guava:guava:16.0.1'
   compile 'com.google.inject:guice:3.0'
