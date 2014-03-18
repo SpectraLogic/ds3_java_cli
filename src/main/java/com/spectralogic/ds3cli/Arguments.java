@@ -124,32 +124,16 @@ public class Arguments {
             missingArgs.add("c");
         }
 
-        if (getBucket() == null && !bucketsCommand()) {
+        if (getBucket() != null && bucketsCommand()) {
             missingArgs.add("b");
         }
 
-        /*
-        if (getDestDir() == null && !listCommand()) {
-            missingArgs.add("o");
-        }
-
-        if (getSrcDir() == null && getCommand() == CommandValue.PUT) {
-            missingArgs.add("i");
-        }
-        */
         return missingArgs;
     }
 
-
     private boolean bucketsCommand() {
-        return getCommand() == CommandValue.GET_SERVICE;
+        return getCommand() == CommandValue.GET_BUCKET;
     }
-
-    /*
-    private boolean listCommand() {
-        return getCommand() == Command.JOBS || getCommand() == Command.OBJECTS || bucketsCommand();
-    }
-    */
 
     public void printHelp() {
         final HelpFormatter helpFormatter = new HelpFormatter();

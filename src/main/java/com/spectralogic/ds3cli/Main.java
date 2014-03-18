@@ -1,30 +1,50 @@
 package com.spectralogic.ds3cli;
 
-
+import com.spectralogic.ds3cli.command.CliCommand;
 import com.spectralogic.ds3cli.command.GetService;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.Ds3ClientBuilder;
 import com.spectralogic.ds3client.models.Credentials;
 
-public class Main {
+public class Main implements Runnable {
 
-    private static Ds3Client createClient(final Arguments arguments) {
+    private final Arguments args;
+    private final Ds3Client client;
+
+    public Main(final Arguments args)  {
+        this.args = args;
+        this.client = createClient(args);
+    }
+
+    private Ds3Client createClient(final Arguments arguments) {
 
         return new Ds3ClientBuilder(arguments.getEndpoint(),
-                new Credentials(arguments.getAccessKey(), arguments.getSecretKey())).build();
+                new Credentials(arguments.getAccessKey(), arguments.getSecretKey())).withHttpSecure(false).build();
+    }
+
+    @Override
+    public void run() {
+        try {
+            System.out.println(getCommandExecutor().call());
+        }
+        catch (final Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    private CliCommand getCommandExecutor() {
+        final CommandValue command = args.getCommand();
+        switch(command) {
+            case GET_SERVICE:
+            default: {
+                return new GetService(client);
+            }
+        }
     }
 
     public static void main(final String[] args) throws Exception {
         final Arguments arguments = new Arguments(args);
-        final CommandValue command = arguments.getCommand();
-        final Ds3Client client = createClient(arguments);
-        switch(command) {
-            case GET_SERVICE: {
-                final GetService service = new GetService(client);
-
-                System.out.println(service.call());
-                break;
-            }
-        }
+        final Main runner = new Main(arguments);
+        runner.run();
     }
 }
