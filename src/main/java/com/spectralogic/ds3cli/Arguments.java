@@ -11,13 +11,13 @@ public class Arguments {
 
     private String bucket;
     private String srcDir;
-    private String destDir;
     private String endpoint;
     private String accessKey;
     private String secretKey;
     private CommandValue command;
     private String prefix;
     private final String[] args;
+    private String objectName;
 
     public Arguments(final String[] args) throws BadArgumentException, ParseException {
         this.args = args;
@@ -27,8 +27,6 @@ public class Arguments {
         ds3Endpoint.setArgName("endpoint");
         final Option sourceDirectory = new Option("i", true, "The directory to copy to ds3");
         sourceDirectory.setArgName("directory");
-        final Option destDirectory = new Option("o", true, "The output directory where any errors will be reported");
-        destDirectory.setArgName("directory");
         final Option bucket = new Option("b", true, "The ds3 bucket to copy to");
         bucket.setArgName("bucket");
         final Option accessKey = new Option("a", true, "Access Key ID or have \"DS3_ACCESS_KEY\" set as an environment variable");
@@ -38,16 +36,18 @@ public class Arguments {
         final Option command = new Option("c", true, "The Command to execute.  Possible values: [" + CommandValue.valuesString() + "]");
         command.setArgName("command");
         final Option prefix = new Option("p", true, "Specify a prefix to restore a bucket to.  This is an optional argument");
-        command.setArgName("prefix");
+        prefix.setArgName("prefix");
+        final Option objectName = new Option("f", true, "The name of the object to be retrieved or stored");
+        objectName.setArgName("objectFileName");
         final Option help = new Option("h", "Print Help Menu");
 
         options.addOption(ds3Endpoint);
         options.addOption(sourceDirectory);
-        options.addOption(destDirectory);
         options.addOption(bucket);
         options.addOption(accessKey);
         options.addOption(secretKey);
         options.addOption(command);
+        options.addOption(objectName);
         options.addOption(prefix);
         options.addOption(help);
 
@@ -76,12 +76,13 @@ public class Arguments {
         }
 
         this.setBucket(cmd.getOptionValue("b"));
-        this.setDestDir(cmd.getOptionValue("o"));
         this.setSrcDir(cmd.getOptionValue("i"));
         this.setEndpoint(cmd.getOptionValue("e"));
         this.setAccessKey(cmd.getOptionValue("a"));
         this.setSecretKey(cmd.getOptionValue("k"));
         this.setPrefix(cmd.getOptionValue("p"));
+        this.setObjectName(cmd.getOptionValue("f"));
+
 
         final List<String> missingArgs = new ArrayList<>();
 
@@ -138,14 +139,6 @@ public class Arguments {
         this.srcDir = srcDir;
     }
 
-    public String getDestDir() {
-        return destDir;
-    }
-
-    private void setDestDir(String destDir) {
-        this.destDir = destDir;
-    }
-
     public String getEndpoint() {
         return endpoint;
     }
@@ -184,5 +177,13 @@ public class Arguments {
 
     public String getPrefix() {
         return prefix;
+    }
+
+    private void setObjectName(final String objectName) {
+        this.objectName = objectName;
+    }
+
+    public String getObjectName() {
+        return objectName;
     }
 }

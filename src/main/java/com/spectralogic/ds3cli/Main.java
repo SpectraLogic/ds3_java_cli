@@ -2,6 +2,7 @@ package com.spectralogic.ds3cli;
 
 import com.spectralogic.ds3cli.command.CliCommand;
 import com.spectralogic.ds3cli.command.GetBucket;
+import com.spectralogic.ds3cli.command.GetObject;
 import com.spectralogic.ds3cli.command.GetService;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.Ds3ClientBuilder;
@@ -18,7 +19,6 @@ public class Main implements Runnable {
     }
 
     private Ds3Client createClient(final Arguments arguments) {
-
         return new Ds3ClientBuilder(arguments.getEndpoint(),
                 new Credentials(arguments.getAccessKey(), arguments.getSecretKey())).withHttpSecure(false).build();
     }
@@ -36,6 +36,9 @@ public class Main implements Runnable {
     private CliCommand getCommandExecutor() {
         final CommandValue command = args.getCommand();
         switch(command) {
+            case GET_OBJECT: {
+                return new GetObject(client);
+            }
             case GET_BUCKET: {
                 return new GetBucket(client);
             }

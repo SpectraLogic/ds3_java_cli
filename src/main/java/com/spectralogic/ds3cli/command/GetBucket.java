@@ -22,7 +22,7 @@ public class GetBucket extends CliCommand {
     public CliCommand init(final Arguments args) throws Exception {
         bucketName = args.getBucket();
         if (bucketName == null) {
-            throw new MissingOptionException("The bucket command requires '-b' to be set.");
+            throw new MissingOptionException("The get bucket command requires '-b' to be set.");
         }
         return this;
     }
