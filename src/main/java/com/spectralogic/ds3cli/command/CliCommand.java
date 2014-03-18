@@ -17,5 +17,5 @@ public abstract class CliCommand implements Callable<String> {
         return client;
     }
 
-    public abstract void init(final Arguments args) throws Exception;
+    public abstract CliCommand init(final Arguments args) throws Exception;
 }

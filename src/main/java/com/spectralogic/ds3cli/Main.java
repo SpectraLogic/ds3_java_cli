@@ -1,6 +1,7 @@
 package com.spectralogic.ds3cli;
 
 import com.spectralogic.ds3cli.command.CliCommand;
+import com.spectralogic.ds3cli.command.GetBucket;
 import com.spectralogic.ds3cli.command.GetService;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.Ds3ClientBuilder;
@@ -25,16 +26,19 @@ public class Main implements Runnable {
     @Override
     public void run() {
         try {
-            System.out.println(getCommandExecutor().call());
+            System.out.println(getCommandExecutor().init(args).call());
         }
         catch (final Exception e) {
-            System.out.println(e.getMessage());
+            System.out.println("ERROR: " + e.getMessage());
         }
     }
 
     private CliCommand getCommandExecutor() {
         final CommandValue command = args.getCommand();
         switch(command) {
+            case GET_BUCKET: {
+                return new GetBucket(client);
+            }
             case GET_SERVICE:
             default: {
                 return new GetService(client);

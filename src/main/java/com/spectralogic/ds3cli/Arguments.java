@@ -83,7 +83,7 @@ public class Arguments {
         this.setSecretKey(cmd.getOptionValue("k"));
         this.setPrefix(cmd.getOptionValue("p"));
 
-        final List<String> missingArgs = getMissingArgs();
+        final List<String> missingArgs = new ArrayList<>();
 
         if (getEndpoint() == null) {
             final String endpoint = System.getenv("DS3_ENDPOINT");
@@ -115,24 +115,6 @@ public class Arguments {
         if (!missingArgs.isEmpty()) {
             throw new MissingOptionException(missingArgs);
         }
-    }
-
-    private List<String> getMissingArgs() {
-        final List<String> missingArgs = new ArrayList<>();
-
-        if (getCommand() == null) {
-            missingArgs.add("c");
-        }
-
-        if (getBucket() != null && bucketsCommand()) {
-            missingArgs.add("b");
-        }
-
-        return missingArgs;
-    }
-
-    private boolean bucketsCommand() {
-        return getCommand() == CommandValue.GET_BUCKET;
     }
 
     public void printHelp() {

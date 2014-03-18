@@ -21,8 +21,8 @@ public class GetService extends CliCommand {
     }
 
     @Override
-    public void init(final Arguments args) throws Exception {
-
+    public CliCommand init(final Arguments args) throws Exception {
+        return this;
     }
 
     @Override
