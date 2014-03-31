@@ -1,7 +1,9 @@
-build
-out
 *.log
 .gradle
 *.iml
 *.ipr
 *.iws
+.idea/
+classes/
+build/
+out/
