@@ -18,6 +18,7 @@ public class Arguments {
     private String prefix;
     private final String[] args;
     private String objectName;
+    private String proxy;
 
     public Arguments(final String[] args) throws BadArgumentException, ParseException {
         this.args = args;
@@ -39,6 +40,8 @@ public class Arguments {
         prefix.setArgName("prefix");
         final Option objectName = new Option("f", true, "The name of the object to be retrieved or stored");
         objectName.setArgName("objectFileName");
+        final Option proxy = new Option("x", true, "The URL of the proxy server to use.");
+        proxy.setArgName("proxy");
         final Option help = new Option("h", "Print Help Menu");
 
         options.addOption(ds3Endpoint);
@@ -49,6 +52,7 @@ public class Arguments {
         options.addOption(command);
         options.addOption(objectName);
         options.addOption(prefix);
+        options.addOption(proxy);
         options.addOption(help);
 
         processCommandLine();
@@ -82,6 +86,7 @@ public class Arguments {
         this.setSecretKey(cmd.getOptionValue("k"));
         this.setPrefix(cmd.getOptionValue("p"));
         this.setObjectName(cmd.getOptionValue("f"));
+        this.setProxy(cmd.getOptionValue("x"));
 
 
         final List<String> missingArgs = new ArrayList<>();
@@ -185,5 +190,13 @@ public class Arguments {
 
     public String getObjectName() {
         return objectName;
+    }
+
+    private void setProxy(String proxy) {
+        this.proxy = proxy;
+    }
+
+    public String getProxy() {
+        return this.proxy;
     }
 }
