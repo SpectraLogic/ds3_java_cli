@@ -15,8 +15,16 @@ public class Main implements Runnable {
     }
 
     private Ds3Client createClient(final Arguments arguments) {
-        return Ds3Client.builder(arguments.getEndpoint(),
-                new Credentials(arguments.getAccessKey(), arguments.getSecretKey())).withHttpSecure(false).build();
+        Ds3Client.Builder builder = Ds3Client
+            .builder(
+                arguments.getEndpoint(),
+                new Credentials(arguments.getAccessKey(), arguments.getSecretKey())
+            )
+            .withHttpSecure(false);
+        if (arguments.getProxy() != null) {
+            builder.withProxy(arguments.getProxy());
+        }
+        return builder.build();
     }
 
     @Override
@@ -25,7 +33,7 @@ public class Main implements Runnable {
             System.out.println(getCommandExecutor().init(args).call());
         }
         catch (final Exception e) {
-            System.out.println("ERROR: " + e.getMessage());
+            System.err.println("ERROR: " + e.getMessage());
         }
     }
 
