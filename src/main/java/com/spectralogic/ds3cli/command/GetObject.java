@@ -17,6 +17,7 @@ public class GetObject extends CliCommand {
     private String bucketName;
     private String objectName;
     private String prefix;
+    private GetObjectRequest.Range byteRange;
 
     public GetObject(Ds3Client client) {
         super(client);
@@ -36,13 +37,20 @@ public class GetObject extends CliCommand {
         if (prefix == null) {
             prefix = "";
         }
+        if (args.getEnd() != 0) {
+            byteRange = new GetObjectRequest.Range(args.getStart(), args.getEnd());
+        }
         return this;
     }
 
     @Override
     public String call() throws Exception {
         try {
-            final GetObjectResponse response = getClient().getObject(new GetObjectRequest(bucketName, objectName));
+            final GetObjectRequest request = new GetObjectRequest(bucketName, objectName);
+            if (byteRange != null) {
+                request.withByteRange(byteRange);
+            }
+            final GetObjectResponse response = getClient().getObject(request);
 
             final String filePath = NetUtils.buildPath(prefix, objectName);
 
