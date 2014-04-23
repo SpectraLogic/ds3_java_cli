@@ -20,7 +20,7 @@ public class Arguments {
     private String objectName;
     private String proxy;
 
-    public Arguments(final String[] args) throws BadArgumentException, ParseException {
+    Arguments(final String[] args) throws BadArgumentException, ParseException {
         this.args = args;
         options = new Options();
 

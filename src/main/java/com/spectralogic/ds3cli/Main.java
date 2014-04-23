@@ -71,9 +71,15 @@ public class Main implements Runnable {
         }
     }
 
-    public static void main(final String[] args) throws Exception {
-        final Arguments arguments = new Arguments(args);
-        final Main runner = new Main(arguments);
-        runner.run();
+    public static void main(final String[] args) {
+        try {
+            final Arguments arguments = new Arguments(args);
+            final Main runner = new Main(arguments);
+            runner.run();
+        }
+        catch(final Exception e) {
+            System.out.print("ERROR: " + e.getMessage());
+            System.exit(1);
+        }
     }
 }
