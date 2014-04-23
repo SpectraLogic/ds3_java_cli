@@ -30,6 +30,10 @@ public class GetService extends CliCommand {
         final GetServiceResponse response = getClient().getService(new GetServiceRequest());
         final ListAllMyBucketsResult result = response.getResult();
 
+        if(result.getBuckets() == null) {
+            return "You do not have any buckets";
+        }
+
         return "Owner: " + result.getOwner().getDisplayName() + "\n" +
                 ASCIITable.getInstance().getTable(getHeaders(), formatBucketList(result));
     }

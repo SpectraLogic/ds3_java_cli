@@ -63,6 +63,8 @@ public class Arguments {
         final CommandLineParser parser = new BasicParser();
         final CommandLine cmd = parser.parse(options, args);
 
+        final List<String> missingArgs = new ArrayList<>();
+
         if (cmd.hasOption('h')) {
             printHelp();
             System.exit(0);
@@ -72,6 +74,7 @@ public class Arguments {
             final String commandString = cmd.getOptionValue("c");
             if (commandString == null) {
                 this.setCommand(null);
+                missingArgs.add("c");
             } else {
                 this.setCommand(CommandValue.valueOf(commandString.toUpperCase()));
             }
@@ -89,7 +92,6 @@ public class Arguments {
         this.setProxy(cmd.getOptionValue("x"));
 
 
-        final List<String> missingArgs = new ArrayList<>();
 
         if (getEndpoint() == null) {
             final String endpoint = System.getenv("DS3_ENDPOINT");
