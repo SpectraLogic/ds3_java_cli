@@ -4,6 +4,10 @@
 *.ipr
 *.iws
 .idea/
+.project
+.classpath
+.settings
+bin/
 classes/
 build/
 out/

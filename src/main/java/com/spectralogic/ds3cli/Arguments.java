@@ -19,6 +19,8 @@ public class Arguments {
     private final String[] args;
     private String objectName;
     private String proxy;
+    private int start;
+    private int end;
 
     public Arguments(final String[] args) throws BadArgumentException, ParseException {
         this.args = args;
@@ -42,6 +44,10 @@ public class Arguments {
         objectName.setArgName("objectFileName");
         final Option proxy = new Option("x", true, "The URL of the proxy server to use.");
         proxy.setArgName("proxy");
+        final Option start = new Option("s", true, "The starting byte for a get_object command.");
+        start.setArgName("start");
+        final Option end = new Option("n", true, "The ending byte for a get_object command.");
+        end.setArgName("end");
         final Option help = new Option("h", "Print Help Menu");
 
         options.addOption(ds3Endpoint);
@@ -53,6 +59,8 @@ public class Arguments {
         options.addOption(objectName);
         options.addOption(prefix);
         options.addOption(proxy);
+        options.addOption(start);
+        options.addOption(end);
         options.addOption(help);
 
         processCommandLine();
@@ -87,6 +95,14 @@ public class Arguments {
         this.setPrefix(cmd.getOptionValue("p"));
         this.setObjectName(cmd.getOptionValue("f"));
         this.setProxy(cmd.getOptionValue("x"));
+        final String start = cmd.getOptionValue("s");
+        if (start != "" && start != null) {
+            this.setStart(Integer.parseInt(start));
+        }
+        final String end = cmd.getOptionValue("n");
+        if (start != "" && start != null) {
+            this.setEnd(Integer.parseInt(end));
+        }
 
 
         final List<String> missingArgs = new ArrayList<>();
@@ -132,7 +148,7 @@ public class Arguments {
         return bucket;
     }
 
-    private void setBucket(String bucket) {
+    private void setBucket(final String bucket) {
         this.bucket = bucket;
     }
 
@@ -140,7 +156,7 @@ public class Arguments {
         return srcDir;
     }
 
-    private void setSrcDir(String srcDir) {
+    private void setSrcDir(final String srcDir) {
         this.srcDir = srcDir;
     }
 
@@ -148,7 +164,7 @@ public class Arguments {
         return endpoint;
     }
 
-    private void setEndpoint(String endpoint) {
+    private void setEndpoint(final String endpoint) {
         this.endpoint = endpoint;
     }
 
@@ -156,7 +172,7 @@ public class Arguments {
         return accessKey;
     }
 
-    private void setAccessKey(String accessKey) {
+    private void setAccessKey(final String accessKey) {
         this.accessKey = accessKey;
     }
 
@@ -164,7 +180,7 @@ public class Arguments {
         return secretKey;
     }
 
-    private void setSecretKey(String secretKey) {
+    private void setSecretKey(final String secretKey) {
         this.secretKey = secretKey;
     }
 
@@ -172,7 +188,7 @@ public class Arguments {
         return command;
     }
 
-    private void setCommand(CommandValue command) {
+    private void setCommand(final CommandValue command) {
         this.command = command;
     }
 
@@ -192,11 +208,27 @@ public class Arguments {
         return objectName;
     }
 
-    private void setProxy(String proxy) {
+    private void setProxy(final String proxy) {
         this.proxy = proxy;
     }
 
     public String getProxy() {
         return this.proxy;
+    }
+
+    public int getStart() {
+        return start;
+    }
+
+    public void setStart(final int start) {
+        this.start = start;
+    }
+
+    public int getEnd() {
+        return end;
+    }
+
+    public void setEnd(final int end) {
+        this.end = end;
     }
 }
