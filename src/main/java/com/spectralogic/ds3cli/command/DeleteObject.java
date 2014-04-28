@@ -27,12 +27,12 @@ public class DeleteObject extends CliCommand {
     private String bucketName;
     private String objectName;
 
-    public DeleteObject(Ds3Client client) {
+    public DeleteObject(final Ds3Client client) {
         super(client);
     }
 
     @Override
-    public CliCommand init(Arguments args) throws Exception {
+    public CliCommand init(final Arguments args) throws Exception {
         bucketName = args.getBucket();
         if (bucketName == null) {
             throw new MissingOptionException("The get object command requires '-b' to be set.");

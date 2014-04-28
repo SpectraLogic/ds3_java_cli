@@ -26,12 +26,12 @@ public class DeleteBucket extends CliCommand {
     
     private String bucketName;
 
-    public DeleteBucket(Ds3Client client) {
+    public DeleteBucket(final Ds3Client client) {
         super(client);
     }
 
     @Override
-    public CliCommand init(Arguments args) throws Exception {
+    public CliCommand init(final Arguments args) throws Exception {
         bucketName = args.getBucket();
         if (bucketName == null) {
             throw new MissingOptionException("The delete bucket command requires '-b' to be set.");

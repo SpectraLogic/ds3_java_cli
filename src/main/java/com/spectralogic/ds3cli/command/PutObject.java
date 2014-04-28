@@ -32,12 +32,12 @@ public class PutObject extends CliCommand {
     private File objectFile;
     private String objectName;
 
-    public PutObject(Ds3Client client) {
+    public PutObject(final Ds3Client client) {
         super(client);
     }
 
     @Override
-    public CliCommand init(Arguments args) throws Exception {
+    public CliCommand init(final Arguments args) throws Exception {
         bucketName = args.getBucket();
         if (bucketName == null) {
             throw new MissingOptionException("The get object command requires '-b' to be set.");

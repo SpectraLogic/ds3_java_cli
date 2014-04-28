@@ -29,7 +29,7 @@ import java.util.List;
 
 public class GetBucket extends CliCommand {
     private String bucketName;
-    public GetBucket(Ds3Client client) {
+    public GetBucket(final Ds3Client client) {
         super(client);
     }
 

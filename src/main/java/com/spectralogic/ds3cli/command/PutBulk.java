@@ -24,7 +24,7 @@ public class PutBulk extends CliCommand {
     }
 
     @Override
-    public CliCommand init(Arguments args) throws Exception {
+    public CliCommand init(final Arguments args) throws Exception {
         return this;
     }
 

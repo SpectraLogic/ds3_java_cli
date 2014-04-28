@@ -33,7 +33,7 @@ public class GetObject extends CliCommand {
     private String objectName;
     private String prefix;
 
-    public GetObject(Ds3Client client) {
+    public GetObject(final Ds3Client client) {
         super(client);
     }
 

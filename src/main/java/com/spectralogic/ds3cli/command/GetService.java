@@ -31,7 +31,7 @@ import java.util.List;
 public class GetService extends CliCommand {
 
 
-    public GetService(Ds3Client client) {
+    public GetService(final Ds3Client client) {
         super(client);
     }
 
