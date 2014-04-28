@@ -149,7 +149,7 @@ public class Arguments {
         return bucket;
     }
 
-    private void setBucket(String bucket) {
+    private void setBucket(final String bucket) {
         this.bucket = bucket;
     }
 
@@ -157,7 +157,7 @@ public class Arguments {
         return srcDir;
     }
 
-    private void setSrcDir(String srcDir) {
+    private void setSrcDir(final String srcDir) {
         this.srcDir = srcDir;
     }
 
@@ -165,7 +165,7 @@ public class Arguments {
         return endpoint;
     }
 
-    private void setEndpoint(String endpoint) {
+    private void setEndpoint(final String endpoint) {
         this.endpoint = endpoint;
     }
 
@@ -173,7 +173,7 @@ public class Arguments {
         return accessKey;
     }
 
-    private void setAccessKey(String accessKey) {
+    private void setAccessKey(final String accessKey) {
         this.accessKey = accessKey;
     }
 
@@ -181,7 +181,7 @@ public class Arguments {
         return secretKey;
     }
 
-    private void setSecretKey(String secretKey) {
+    private void setSecretKey(final String secretKey) {
         this.secretKey = secretKey;
     }
 
@@ -189,7 +189,7 @@ public class Arguments {
         return command;
     }
 
-    private void setCommand(CommandValue command) {
+    private void setCommand(final CommandValue command) {
         this.command = command;
     }
 
@@ -209,7 +209,7 @@ public class Arguments {
         return objectName;
     }
 
-    private void setProxy(String proxy) {
+    private void setProxy(final String proxy) {
         this.proxy = proxy;
     }
 
