@@ -44,7 +44,7 @@ public class PutObject extends CliCommand {
         }
         objectName = args.getObjectName();
         if (objectName == null) {
-            throw new MissingOptionException("The get object command requires '-o' to be set.");
+            throw new MissingOptionException("The get object command requires '-f' to be set.");
         }
 
         objectFile = new File(objectName);
