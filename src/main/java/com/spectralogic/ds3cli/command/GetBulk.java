@@ -17,20 +17,47 @@ package com.spectralogic.ds3cli.command;
 
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3client.Ds3Client;
+import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
+import com.spectralogic.ds3client.helpers.FileObjectGetter;
+import org.apache.commons.cli.MissingOptionException;
+
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
 
 public class GetBulk extends CliCommand {
+    private String bucketName;
+    private Path outputPath;
     public GetBulk(final Ds3Client client) {
         super(client);
     }
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
-        
+        bucketName = args.getBucket();
+        if (bucketName == null) {
+            throw new MissingOptionException("The bulk get command requires '-b' to be set.");
+        }
+
+        final String prefix = getPrefix(args);
+
+        outputPath = FileSystems.getDefault().getPath(".", prefix);
         return this;
+    }
+
+    private String getPrefix(final Arguments args) {
+        final String prefix = args.getPrefix();
+        if (prefix == null) {
+            return "";
+        }
+        return prefix;
     }
 
     @Override
     public String call() throws Exception {
-        return null;
+        final Ds3ClientHelpers helper = Ds3ClientHelpers.wrap(getClient());
+        final Ds3ClientHelpers.ReadJob job = helper.startReadAllJob(bucketName);
+        job.read(new FileObjectGetter(outputPath));
+
+        return "SUCCESS: Wrote all the objects from " + bucketName + " to " + outputPath.toString();
     }
 }

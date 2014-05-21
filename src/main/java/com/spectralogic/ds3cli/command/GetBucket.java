@@ -75,7 +75,7 @@ public class GetBucket extends CliCommand {
             final Contents content = contentList.get(i);
             final String[] arrayEntry = new String[5];
             arrayEntry[0] = content.getKey();
-            arrayEntry[1] = Integer.toString(content.getSize());
+            arrayEntry[1] = Long.toString(content.getSize());
             arrayEntry[2] = content.getOwner().getDisplayName();
             arrayEntry[3] = nullGuard(content.getLastModified());
             arrayEntry[4] = nullGuard(content.geteTag());
