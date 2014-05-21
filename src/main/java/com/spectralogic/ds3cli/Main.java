@@ -32,7 +32,7 @@ public class Main implements Callable<String> {
     }
 
     private Ds3Client createClient(final Arguments arguments) {
-        Ds3Client.Builder builder = Ds3Client
+        final Ds3Client.Builder builder = Ds3Client
             .builder(
                 arguments.getEndpoint(),
                 new Credentials(arguments.getAccessKey(), arguments.getSecretKey())
