@@ -56,6 +56,7 @@ public class GetObject extends CliCommand {
         return this;
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public String call() throws Exception {
         try {
