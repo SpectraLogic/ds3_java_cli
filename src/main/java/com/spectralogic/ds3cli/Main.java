@@ -19,7 +19,9 @@ import com.spectralogic.ds3cli.command.*;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.models.Credentials;
 
-public class Main implements Runnable {
+import java.util.concurrent.Callable;
+
+public class Main implements Callable<String> {
 
     private final Arguments args;
     private final Ds3Client client;
@@ -43,13 +45,8 @@ public class Main implements Runnable {
     }
 
     @Override
-    public void run() {
-        try {
-            System.out.println(getCommandExecutor().init(args).call());
-        }
-        catch (final Exception e) {
-            System.err.println("ERROR: " + e.getMessage());
-        }
+    public String call() throws Exception {
+        return getCommandExecutor().init(args).call();
     }
 
     private CliCommand getCommandExecutor() {
@@ -90,10 +87,10 @@ public class Main implements Runnable {
         try {
             final Arguments arguments = new Arguments(args);
             final Main runner = new Main(arguments);
-            runner.run();
+            System.out.println(runner.call());
         }
         catch(final Exception e) {
-            System.out.print("ERROR: " + e.getMessage());
+            System.out.println("ERROR: " + e.getMessage());
             System.exit(1);
         }
     }
