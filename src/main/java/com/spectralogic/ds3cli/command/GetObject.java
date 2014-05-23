@@ -44,11 +44,13 @@ public class GetObject extends CliCommand {
         if (bucketName == null) {
             throw new MissingOptionException("The get object command requires '-b' to be set.");
         }
+
         objectName = args.getObjectName();
         if (objectName == null) {
             throw new MissingOptionException("The get object command requires '-o' to be set.");
         }
-        prefix = args.getPrefix();
+
+        prefix = args.getDirectory();
         if (prefix == null) {
             prefix = "";
         }
@@ -58,6 +60,7 @@ public class GetObject extends CliCommand {
         return this;
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public String call() throws Exception {
         try {

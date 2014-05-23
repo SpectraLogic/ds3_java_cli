@@ -47,8 +47,8 @@ public class GetBucket extends CliCommand {
 
         try {
             final ListBucketResult fileList = getClient().getBucket(new GetBucketRequest(bucketName)).getResult();
-            if(fileList.getContentsList() == null) {
-                return "No objects were reported in the bucket.";
+            if(fileList.getContentsList() == null || fileList.getContentsList().isEmpty()) {
+                return "No objects were reported in the bucket '" + bucketName + "'";
             }
             else {
                 return ASCIITable.getInstance().getTable(getHeaders(), formatBucketList(fileList));
@@ -74,9 +74,9 @@ public class GetBucket extends CliCommand {
         for(int i = 0; i < contentList.size(); i++) {
             final Contents content = contentList.get(i);
             final String[] arrayEntry = new String[5];
-            arrayEntry[0] = content.getKey();
-            arrayEntry[1] = Integer.toString(content.getSize());
-            arrayEntry[2] = content.getOwner().getDisplayName();
+            arrayEntry[0] = nullGuard(content.getKey());
+            arrayEntry[1] = nullGuard(Long.toString(content.getSize()));
+            arrayEntry[2] = nullGuard(content.getOwner().getDisplayName());
             arrayEntry[3] = nullGuard(content.getLastModified());
             arrayEntry[4] = nullGuard(content.geteTag());
             formatArray[i] = arrayEntry;
