@@ -49,7 +49,7 @@ public class GetObject extends CliCommand {
             throw new MissingOptionException("The get object command requires '-o' to be set.");
         }
 
-        prefix = args.getPrefix();
+        prefix = args.getDirectory();
         if (prefix == null) {
             prefix = "";
         }

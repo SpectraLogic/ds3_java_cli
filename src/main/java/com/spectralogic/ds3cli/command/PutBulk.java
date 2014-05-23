@@ -39,9 +39,9 @@ public class PutBulk extends CliCommand {
             throw new MissingOptionException("The bulk put command requires '-b' to be set.");
         }
 
-        final String srcDir = args.getSrcDir();
+        final String srcDir = args.getDirectory();
         if (srcDir == null) {
-            throw new MissingOptionException("The bulk put command required '-i' to be set.");
+            throw new MissingOptionException("The bulk put command required '-d' to be set.");
         }
 
         inputDirectory = FileSystems.getDefault().getPath(srcDir);

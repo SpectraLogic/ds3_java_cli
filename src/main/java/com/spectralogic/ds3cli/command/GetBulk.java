@@ -38,19 +38,15 @@ public class GetBulk extends CliCommand {
             throw new MissingOptionException("The bulk get command requires '-b' to be set.");
         }
 
-        final String prefix = getPrefix(args);
+        final String prefix = args.getDirectory();
+        if (prefix == null) {
+            throw new MissingOptionException("The bulk get command requires '-d' to be set.");
+        }
 
         outputPath = FileSystems.getDefault().getPath(".", prefix);
         return this;
     }
 
-    private String getPrefix(final Arguments args) {
-        final String prefix = args.getPrefix();
-        if (prefix == null) {
-            return "";
-        }
-        return prefix;
-    }
 
     @Override
     public String call() throws Exception {

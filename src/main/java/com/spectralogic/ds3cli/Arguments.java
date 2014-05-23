@@ -25,12 +25,11 @@ public class Arguments {
     private final Options options;
 
     private String bucket;
-    private String srcDir;
+    private String directory;
     private String endpoint;
     private String accessKey;
     private String secretKey;
     private CommandValue command;
-    private String prefix;
     private final String[] args;
     private String objectName;
     private String proxy;
@@ -41,8 +40,6 @@ public class Arguments {
 
         final Option ds3Endpoint = new Option("e", true, "The ds3 endpoint to connect to or have \"DS3_ENDPOINT\" set as an environment variable.");
         ds3Endpoint.setArgName("endpoint");
-        final Option sourceDirectory = new Option("i", true, "The directory to copy to ds3");
-        sourceDirectory.setArgName("directory");
         final Option bucket = new Option("b", true, "The ds3 bucket to copy to");
         bucket.setArgName("bucket");
         final Option accessKey = new Option("a", true, "Access Key ID or have \"DS3_ACCESS_KEY\" set as an environment variable");
@@ -51,22 +48,21 @@ public class Arguments {
         secretKey.setArgName("secretKey");
         final Option command = new Option("c", true, "The Command to execute.  Possible values: [" + CommandValue.valuesString() + "]");
         command.setArgName("command");
-        final Option prefix = new Option("p", true, "Specify a prefix to restore a bucket to.  This is an optional argument");
-        prefix.setArgName("prefix");
-        final Option objectName = new Option("f", true, "The name of the object to be retrieved or stored");
+        final Option directory = new Option("d", true, "Specify a directory to interact with if required.");
+        directory.setArgName("directory");
+        final Option objectName = new Option("o", true, "The name of the object to be retrieved or stored");
         objectName.setArgName("objectFileName");
         final Option proxy = new Option("x", true, "The URL of the proxy server to use.");
         proxy.setArgName("proxy");
         final Option help = new Option("h", "Print Help Menu");
 
         options.addOption(ds3Endpoint);
-        options.addOption(sourceDirectory);
         options.addOption(bucket);
+        options.addOption(directory);
         options.addOption(accessKey);
         options.addOption(secretKey);
         options.addOption(command);
         options.addOption(objectName);
-        options.addOption(prefix);
         options.addOption(proxy);
         options.addOption(help);
 
@@ -98,13 +94,12 @@ public class Arguments {
         }
 
         this.setBucket(cmd.getOptionValue("b"));
-        this.setSrcDir(cmd.getOptionValue("i"));
         this.setEndpoint(cmd.getOptionValue("e"));
         this.setAccessKey(cmd.getOptionValue("a"));
         this.setSecretKey(cmd.getOptionValue("k"));
-        this.setPrefix(cmd.getOptionValue("p"));
-        this.setObjectName(cmd.getOptionValue("f"));
+        this.setObjectName(cmd.getOptionValue("o"));
         this.setProxy(cmd.getOptionValue("x"));
+        this.setDirectory(cmd.getOptionValue("d"));
 
 
 
@@ -153,12 +148,12 @@ public class Arguments {
         this.bucket = bucket;
     }
 
-    public String getSrcDir() {
-        return srcDir;
+    public String getDirectory() {
+        return directory;
     }
 
-    private void setSrcDir(final String srcDir) {
-        this.srcDir = srcDir;
+    private void setDirectory(final String directory) {
+        this.directory = directory;
     }
 
     public String getEndpoint() {
@@ -191,14 +186,6 @@ public class Arguments {
 
     private void setCommand(final CommandValue command) {
         this.command = command;
-    }
-
-    private void setPrefix(final String prefix) {
-        this.prefix = prefix;
-    }
-
-    public String getPrefix() {
-        return prefix;
     }
 
     private void setObjectName(final String objectName) {
