@@ -19,6 +19,7 @@ import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.BadArgumentException;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.PutObjectRequest;
+import com.spectralogic.ds3client.helpers.ResettableFileInputStream;
 import com.spectralogic.ds3client.networking.FailedRequestException;
 import org.apache.commons.cli.MissingOptionException;
 
@@ -44,7 +45,11 @@ public class PutObject extends CliCommand {
         }
         objectName = args.getObjectName();
         if (objectName == null) {
-            throw new MissingOptionException("The get object command requires '-f' to be set.");
+            throw new MissingOptionException("The get object command requires '-o' to be set.");
+        }
+
+        if (args.getDirectory() != null) {
+            throw new BadArgumentException("'-d' should not be used with the command 'put_object'.  If you want to move an entire directory, use 'put_bulk' instead.");
         }
 
         objectFile = new File(objectName);
@@ -61,8 +66,8 @@ public class PutObject extends CliCommand {
     @Override
     public String call() throws Exception {
 
-        try {
-            getClient().putObject(new PutObjectRequest(bucketName, objectName, objectFile.length(), new FileInputStream(objectFile)));
+        try(final ResettableFileInputStream stream = new ResettableFileInputStream(new FileInputStream(objectFile))) {
+            getClient().putObject(new PutObjectRequest(bucketName, objectName, objectFile.length(), stream)).close();
         }
         catch(final FailedRequestException e) {
             return "ERROR: " + e.getMessage();
