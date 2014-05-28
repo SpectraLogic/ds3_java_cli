@@ -20,11 +20,14 @@ import com.bethecoder.ascii_table.ASCIITableHeader;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.GetBucketRequest;
+import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.models.Contents;
 import com.spectralogic.ds3client.models.ListBucketResult;
 import com.spectralogic.ds3client.networking.FailedRequestException;
 import org.apache.commons.cli.MissingOptionException;
 
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 public class GetBucket extends CliCommand {
@@ -46,12 +49,16 @@ public class GetBucket extends CliCommand {
     public String call() throws Exception {
 
         try {
-            final ListBucketResult fileList = getClient().getBucket(new GetBucketRequest(bucketName)).getResult();
-            if(fileList.getContentsList() == null || fileList.getContentsList().isEmpty()) {
+            final Ds3ClientHelpers helper = Ds3ClientHelpers.wrap(getClient());
+
+            final Iterable<Contents> objects = helper.listObjects(bucketName);
+            final Iterator<Contents> objIterator = objects.iterator();
+
+            if(!objIterator.hasNext()) {
                 return "No objects were reported in the bucket '" + bucketName + "'";
             }
             else {
-                return ASCIITable.getInstance().getTable(getHeaders(), formatBucketList(fileList));
+                return ASCIITable.getInstance().getTable(getHeaders(), formatBucketList(objIterator));
             }
         }
         catch(final FailedRequestException e) {
@@ -67,22 +74,22 @@ public class GetBucket extends CliCommand {
         }
     }
 
-    private String[][] formatBucketList(final ListBucketResult listBucketResult) {
-        final List<Contents> contentList = listBucketResult.getContentsList();
-        final String[][] formatArray = new String[contentList.size()][];
+    private String[][] formatBucketList(final Iterator<Contents> iterator) {
+        final ArrayList<String[]> contents = new ArrayList<>();
 
-        for(int i = 0; i < contentList.size(); i++) {
-            final Contents content = contentList.get(i);
+        while(iterator.hasNext()) {
+
+            final Contents content = iterator.next();
             final String[] arrayEntry = new String[5];
             arrayEntry[0] = nullGuard(content.getKey());
             arrayEntry[1] = nullGuard(Long.toString(content.getSize()));
             arrayEntry[2] = nullGuard(content.getOwner().getDisplayName());
             arrayEntry[3] = nullGuard(content.getLastModified());
             arrayEntry[4] = nullGuard(content.geteTag());
-            formatArray[i] = arrayEntry;
+            contents.add(arrayEntry);
         }
 
-        return formatArray;
+        return contents.toArray(new String[contents.size()][]);
     }
 
     private ASCIITableHeader[] getHeaders() {
