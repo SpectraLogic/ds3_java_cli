@@ -109,12 +109,12 @@ public class Arguments {
         this.setProxy(cmd.getOptionValue("x"));
         this.setDirectory(cmd.getOptionValue("d"));
         
-	final String start = cmd.getOptionValue("s");
-        if (start != "" && start != null) {
+        final String start = cmd.getOptionValue("s");
+        if (!(start == null || start.isEmpty())) {
             this.setStart(Integer.parseInt(start));
         }
         final String end = cmd.getOptionValue("n");
-        if (start != "" && start != null) {
+        if (!(end == null || end.isEmpty())) {
             this.setEnd(Integer.parseInt(end));
         }
 

@@ -17,6 +17,7 @@ package com.spectralogic.ds3cli;
 
 import com.spectralogic.ds3cli.command.*;
 import com.spectralogic.ds3client.Ds3Client;
+import com.spectralogic.ds3client.Ds3ClientBuilder;
 import com.spectralogic.ds3client.models.Credentials;
 
 import java.util.concurrent.Callable;
@@ -32,8 +33,7 @@ public class Main implements Callable<String> {
     }
 
     private Ds3Client createClient(final Arguments arguments) {
-        final Ds3Client.Builder builder = Ds3Client
-            .builder(
+        final Ds3ClientBuilder builder = Ds3ClientBuilder.create(
                 arguments.getEndpoint(),
                 new Credentials(arguments.getAccessKey(), arguments.getSecretKey())
             )

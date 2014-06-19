@@ -39,11 +39,12 @@ public class GetBulk extends CliCommand {
         }
 
         final String prefix = args.getDirectory();
-        if (prefix == null) {
-            throw new MissingOptionException("The bulk get command requires '-d' to be set.");
+        if (prefix == null || prefix.equals(".")) {
+            outputPath = FileSystems.getDefault().getPath(".");
+        } else {
+            final Path dirPath = FileSystems.getDefault().getPath(prefix);
+            outputPath = FileSystems.getDefault().getPath(".").resolve(dirPath);
         }
-
-        outputPath = FileSystems.getDefault().getPath(".", prefix);
         return this;
     }
 

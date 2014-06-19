@@ -18,7 +18,7 @@ apply plugin: 'maven'
 apply plugin: 'idea'
 apply plugin: 'application'
 
-version = '0.0.3-SNAPSHOT'
+version = '0.0.4-SNAPSHOT'
 group = 'com.spectralogic'
 
 mainClassName = 'com.spectralogic.ds3cli.Main'
@@ -32,7 +32,7 @@ dependencies {
   compile fileTree(dir: 'lib', include: '*.jar')
   compile 'commons-cli:commons-cli:1.2'
   compile 'com.google.guava:guava:16.0.1'
-  compile 'com.spectralogic:ds3_java_sdk:0.2.5-SNAPSHOT'
+  compile 'com.spectralogic:ds3_java_sdk:0.3.0-SNAPSHOT'
   testCompile 'com.googlecode.jmockit:jmockit:1.4'
   testCompile 'junit:junit:4.11'
 }
