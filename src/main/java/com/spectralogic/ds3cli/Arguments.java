@@ -54,7 +54,7 @@ public class Arguments {
         directory.setArgName("directory");
         final Option objectName = new Option("o", true, "The name of the object to be retrieved or stored");
         objectName.setArgName("objectFileName");
-        final Option proxy = new Option("x", true, "The URL of the proxy server to use.");
+        final Option proxy = new Option("x", true, "The URL of the proxy server to use or have \"http_proxy\" set as an environment variable");
         proxy.setArgName("proxy");
         final Option start = new Option("s", true, "The starting byte for a get_object command.");
         start.setArgName("start");
@@ -109,12 +109,12 @@ public class Arguments {
         this.setProxy(cmd.getOptionValue("x"));
         this.setDirectory(cmd.getOptionValue("d"));
         
-	final String start = cmd.getOptionValue("s");
-        if (start != "" && start != null) {
+        final String start = cmd.getOptionValue("s");
+        if (!(start == null || start.isEmpty())) {
             this.setStart(Integer.parseInt(start));
         }
         final String end = cmd.getOptionValue("n");
-        if (start != "" && start != null) {
+        if (!(end == null || end.isEmpty())) {
             this.setEnd(Integer.parseInt(end));
         }
 
@@ -144,6 +144,12 @@ public class Arguments {
             } else {
                 setAccessKey(key);
             }
+        }
+
+        // check for the http_proxy env var
+        final String proxy = System.getenv("http_proxy");
+        if (proxy != null) {
+            setProxy(proxy);
         }
 
         if (!missingArgs.isEmpty()) {

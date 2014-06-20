@@ -53,6 +53,7 @@ public class PutBulk extends CliCommand {
     public String call() throws Exception {
         final Ds3ClientHelpers helper = Ds3ClientHelpers.wrap(getClient());
         final Iterable<Ds3Object> objects = helper.listObjectsForDirectory(inputDirectory);
+        helper.ensureBucketExists(bucketName);
         final Ds3ClientHelpers.WriteJob job = helper.startWriteJob(bucketName, objects);
         job.write(new FileObjectPutter(inputDirectory));
         return "SUCCESS: Wrote all the files in " + inputDirectory.toString() + " to bucket " + bucketName;
