@@ -186,7 +186,7 @@ public class Arguments {
             props.load(input);
             System.out.println("Version: " + props.get("version"));
         } catch (final IOException e) {
-            System.out.println("Failed to load property file due to: " + e.getMessage());
+            System.err.println("Failed to load property file due to: " + e.getMessage());
         }
     }
 
