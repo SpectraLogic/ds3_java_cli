@@ -35,6 +35,7 @@ public class Arguments {
     private String proxy;
     private int start;
     private int end;
+    private boolean clearBucket = false;
 
     Arguments(final String[] args) throws BadArgumentException, ParseException {
         this.args = args;
@@ -60,6 +61,8 @@ public class Arguments {
         start.setArgName("start");
         final Option end = new Option("n", true, "The ending byte for a get_object command.");
         end.setArgName("end");
+        final Option clearBucket = new Option("a", false, "Used with the command `delete_bucket`.  If this is set then the `delete_bucket` command will also delete all the objects in the bucket.");
+        clearBucket.setArgName("all");
         final Option help = new Option("h", "Print Help Menu");
 
         options.addOption(ds3Endpoint);
@@ -73,6 +76,7 @@ public class Arguments {
         options.addOption(start);
         options.addOption(end);
         options.addOption(help);
+        options.addOption(clearBucket);
 
         processCommandLine();
     }
@@ -99,6 +103,10 @@ public class Arguments {
             }
         } catch (IllegalArgumentException e) {
             throw new BadArgumentException("Unknown command", e);
+        }
+
+        if (cmd.hasOption("a")) {
+            this.setClearBucket(true);
         }
 
         this.setBucket(cmd.getOptionValue("b"));
@@ -230,7 +238,7 @@ public class Arguments {
         return start;
     }
 
-    public void setStart(final int start) {
+    private void setStart(final int start) {
         this.start = start;
     }
 
@@ -238,7 +246,15 @@ public class Arguments {
         return end;
     }
 
-    public void setEnd(final int end) {
+    private void setEnd(final int end) {
         this.end = end;
+    }
+
+    private void setClearBucket(boolean clearBucket) {
+        this.clearBucket = clearBucket;
+    }
+
+    public boolean isClearBucket() {
+        return this.clearBucket;
     }
 }
