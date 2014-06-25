@@ -17,10 +17,15 @@ package com.spectralogic.ds3cli;
 
 import org.apache.commons.cli.*;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 public class Arguments {
+
+    private final static String PROPERTY_FILE = "config.properties";
 
     private final Options options;
 
@@ -64,6 +69,9 @@ public class Arguments {
         final Option clearBucket = new Option("a", false, "Used with the command `delete_bucket`.  If this is set then the `delete_bucket` command will also delete all the objects in the bucket.");
         clearBucket.setArgName("all");
         final Option help = new Option("h", "Print Help Menu");
+        help.setArgName("help");
+        final Option version = new Option("v", "Print version information");
+        version.setArgName("version");
 
         options.addOption(ds3Endpoint);
         options.addOption(bucket);
@@ -75,8 +83,9 @@ public class Arguments {
         options.addOption(proxy);
         options.addOption(start);
         options.addOption(end);
-        options.addOption(help);
         options.addOption(clearBucket);
+        options.addOption(help);
+        options.addOption(version);
 
         processCommandLine();
     }
@@ -90,6 +99,11 @@ public class Arguments {
 
         if (cmd.hasOption('h')) {
             printHelp();
+            System.exit(0);
+        }
+
+        if (cmd.hasOption('v')) {
+            printVersion();
             System.exit(0);
         }
 
@@ -162,6 +176,17 @@ public class Arguments {
 
         if (!missingArgs.isEmpty()) {
             throw new MissingOptionException(missingArgs);
+        }
+    }
+
+    private void printVersion() {
+        final Properties props = new Properties();
+        final InputStream input = Arguments.class.getClassLoader().getResourceAsStream(PROPERTY_FILE);
+        try {
+            props.load(input);
+            System.out.println("Version: " + props.get("version"));
+        } catch (final IOException e) {
+            System.err.println("Failed to load property file due to: " + e.getMessage());
         }
     }
 

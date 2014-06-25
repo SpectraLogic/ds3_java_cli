@@ -47,7 +47,7 @@ public class DeleteObject extends CliCommand {
     @Override
     public String call() throws Exception {
         try {
-            getClient().deleteObject(new DeleteObjectRequest(bucketName, objectName));
+            getClient().deleteObject(new DeleteObjectRequest(bucketName, objectName)).close();
         }
         catch (final IOException e) {
             return "Error: Request failed with the following error: " + e.getMessage();
