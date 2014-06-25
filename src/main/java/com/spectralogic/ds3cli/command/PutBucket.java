@@ -42,7 +42,7 @@ public class PutBucket extends CliCommand {
     @Override
     public String call() throws Exception {
         try {
-            getClient().putBucket(new PutBucketRequest(bucketName));
+            getClient().putBucket(new PutBucketRequest(bucketName)).close();
         }
         catch (final IOException e) {
              return "Error: Request failed with the following error: " + e.getMessage();

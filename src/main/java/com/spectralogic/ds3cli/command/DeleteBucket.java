@@ -58,7 +58,7 @@ public class DeleteBucket extends CliCommand {
 
     private String deleteBucket() throws SignatureException {
         try {
-            getClient().deleteBucket(new DeleteBucketRequest(bucketName));
+            getClient().deleteBucket(new DeleteBucketRequest(bucketName)).close();
         }
         catch (final IOException e) {
             return "Error: Request failed with the following error: " + e.getMessage();
@@ -78,7 +78,7 @@ public class DeleteBucket extends CliCommand {
                 client.deleteObject(new DeleteObjectRequest(bucketName, content.getKey())).close();
             }
 
-            getClient().deleteBucket(new DeleteBucketRequest(bucketName));
+            getClient().deleteBucket(new DeleteBucketRequest(bucketName)).close();
 
         } catch (final IOException e) {
             return "Error: Request failed with the following error: " + e.getMessage();
