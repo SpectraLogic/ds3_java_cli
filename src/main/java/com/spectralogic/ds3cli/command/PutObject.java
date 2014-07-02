@@ -83,6 +83,9 @@ public class PutObject extends CliCommand {
         if (colonIndex != -1) {
             path = objectName.substring(colonIndex + 2);
         }
+        else if (objectName.startsWith("/")) {
+            return objectName.substring(1);
+        }
         else {
             path = objectName;
         }
