@@ -106,6 +106,7 @@ public class Arguments {
         final List<String> missingArgs = new ArrayList<>();
         if (cmd.hasOption("verbose")) {
             Logging.setVerbose(true);
+            Logging.log("Verbose output has been enabled");
         }
 
         if (cmd.hasOption('h')) {

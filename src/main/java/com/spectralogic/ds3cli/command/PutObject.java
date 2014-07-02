@@ -17,6 +17,7 @@ package com.spectralogic.ds3cli.command;
 
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.BadArgumentException;
+import com.spectralogic.ds3cli.logging.Logging;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.PutObjectRequest;
 import com.spectralogic.ds3client.helpers.ResettableFileInputStream;
@@ -70,9 +71,27 @@ public class PutObject extends CliCommand {
     public String call() throws Exception {
 
         try(final ResettableFileInputStream stream = new ResettableFileInputStream(new FileInputStream(objectPath.toFile()))) {
-            getClient().putObject(new PutObjectRequest(bucketName, objectName, Files.size(objectPath), stream)).close();
+            getClient().putObject(new PutObjectRequest(bucketName, normalizeObjectName(objectName), Files.size(objectPath), stream)).close();
         }
 
         return "Success: Finished writing file to ds3 appliance.";
+    }
+
+    private static String normalizeObjectName(final String objectName) {
+        final String path;
+        final int colonIndex = objectName.indexOf(':');
+        if (colonIndex != -1) {
+            path = objectName.substring(colonIndex + 2);
+        }
+        else {
+            path = objectName;
+        }
+        if (!path.contains("\\")) {
+            return path;
+        }
+
+        final String normalizedPath = path.replace("\\", "/");
+        Logging.log("Normalized Path: " + normalizedPath);
+        return normalizedPath;
     }
 }
