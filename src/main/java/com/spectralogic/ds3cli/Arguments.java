@@ -68,16 +68,16 @@ public class Arguments {
         start.setArgName("start");
         final Option end = new Option("n", true, "The ending byte for a get_object command.");
         end.setArgName("end");
-        final Option clearBucket = new Option("A", false, "Used with the command `delete_bucket`.  If this is set then the `delete_bucket` command will also delete all the objects in the bucket.");
-        clearBucket.setArgName("all");
+        final Option clearBucket = new Option(null, false, "Used with the command `delete_bucket`.  If this is set then the `delete_bucket` command will also delete all the objects in the bucket.");
+        clearBucket.setLongOpt("force");
         final Option retries = new Option("r", true, "Specifies how many times puts and gets will be attempted before failing the request.  The default is 5");
         retries.setArgName("retries");
         final Option help = new Option("h", "Print Help Menu");
-        help.setArgName("help");
-        final Option version = new Option("v", "Print version information");
-        version.setArgName("version");
-        final Option verbose = new Option("V", "Verbose output");
-        verbose.setArgName("Verbose");
+        help.setLongOpt("help");
+        final Option version = new Option(null, "Print version information");
+        version.setLongOpt("version");
+        final Option verbose = new Option(null, "Verbose output");
+        verbose.setLongOpt("verbose");
 
         options.addOption(ds3Endpoint);
         options.addOption(bucket);
@@ -104,7 +104,7 @@ public class Arguments {
         final CommandLine cmd = parser.parse(options, args);
 
         final List<String> missingArgs = new ArrayList<>();
-        if (cmd.hasOption('V')) {
+        if (cmd.hasOption("verbose")) {
             Logging.setVerbose(true);
         }
 
@@ -113,7 +113,7 @@ public class Arguments {
             System.exit(0);
         }
 
-        if (cmd.hasOption('v')) {
+        if (cmd.hasOption("version")) {
             printVersion();
             System.exit(0);
         }
@@ -141,7 +141,7 @@ public class Arguments {
             throw new BadArgumentException("Unknown command", e);
         }
 
-        if (cmd.hasOption("a")) {
+        if (cmd.hasOption("force")) {
             this.setClearBucket(true);
         }
 
