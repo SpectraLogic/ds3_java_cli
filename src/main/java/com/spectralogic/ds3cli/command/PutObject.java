@@ -26,11 +26,14 @@ import org.apache.commons.cli.MissingOptionException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 public class PutObject extends CliCommand {
 
     private String bucketName;
-    private File objectFile;
+    private Path objectPath;
     private String objectName;
 
     public PutObject(final Ds3Client client) {
@@ -52,11 +55,11 @@ public class PutObject extends CliCommand {
             throw new BadArgumentException("'-d' should not be used with the command 'put_object'.  If you want to move an entire directory, use 'put_bulk' instead.");
         }
 
-        objectFile = new File(objectName);
-        if(!objectFile.exists()) {
+        objectPath = FileSystems.getDefault().getPath(args.getObjectName());
+        if(!Files.exists(objectPath)) {
             throw new BadArgumentException("File '"+ objectName +"' does not exist.");
         }
-        if (!objectFile.isFile()) {
+        if (!Files.isRegularFile(objectPath)) {
             throw new BadArgumentException("The '-o' command must be a file and not a directory.");
         }
         return this;
@@ -66,14 +69,8 @@ public class PutObject extends CliCommand {
     @Override
     public String call() throws Exception {
 
-        try(final ResettableFileInputStream stream = new ResettableFileInputStream(new FileInputStream(objectFile))) {
-            getClient().putObject(new PutObjectRequest(bucketName, objectName, objectFile.length(), stream)).close();
-        }
-        catch(final FailedRequestException e) {
-            return "ERROR: " + e.getMessage();
-        }
-        catch(final IOException e) {
-            return "ERROR: Encountered an error when communicating with the ds3 appliance.  The error was: " + e.getMessage();
+        try(final ResettableFileInputStream stream = new ResettableFileInputStream(new FileInputStream(objectPath.toFile()))) {
+            getClient().putObject(new PutObjectRequest(bucketName, objectName, Files.size(objectPath), stream)).close();
         }
 
         return "Success: Finished writing file to ds3 appliance.";

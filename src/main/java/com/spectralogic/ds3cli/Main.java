@@ -16,9 +16,11 @@
 package com.spectralogic.ds3cli;
 
 import com.spectralogic.ds3cli.command.*;
+import com.spectralogic.ds3cli.logging.Logging;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.Ds3ClientBuilder;
 import com.spectralogic.ds3client.models.Credentials;
+import com.spectralogic.ds3client.networking.FailedRequestException;
 
 import java.util.concurrent.Callable;
 
@@ -91,6 +93,13 @@ public class Main implements Callable<String> {
         }
         catch(final Exception e) {
             System.out.println("ERROR: " + e.getMessage());
+            if (Logging.isVerbose()) {
+                e.printStackTrace();
+                if (e instanceof FailedRequestException) {
+                    Logging.log("Printing out the response from the server:");
+                    Logging.log(((FailedRequestException)e).getResponseString());
+                }
+            }
             System.exit(1);
         }
     }
