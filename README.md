@@ -22,6 +22,8 @@ export DS3_ENDPOINT="hostname:8080"
 
 To use the rc file use `source my_rc_file.rc` which will export all of the environment variables into the current bash shell and will be picked up by the CLI.  The help menu describes all the arguments that can be specified from the command line.
 
+### Example BAT File
+
 On Windows you can create a resource `bat` file to do the same thing.  Here is the same example from above, but as a `bat` file:
 
 ```bat
