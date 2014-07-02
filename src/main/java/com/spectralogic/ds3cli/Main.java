@@ -37,7 +37,7 @@ public class Main implements Callable<String> {
                 arguments.getEndpoint(),
                 new Credentials(arguments.getAccessKey(), arguments.getSecretKey())
             )
-            .withHttpSecure(false);
+            .withHttpSecure(false).withRedirectRetries(arguments.getRetries());
         if (arguments.getProxy() != null) {
             builder.withProxy(arguments.getProxy());
         }

@@ -40,6 +40,7 @@ public class Arguments {
     private String proxy;
     private int start;
     private int end;
+    private int retries = 5;
     private boolean clearBucket = false;
 
     Arguments(final String[] args) throws BadArgumentException, ParseException {
@@ -68,6 +69,8 @@ public class Arguments {
         end.setArgName("end");
         final Option clearBucket = new Option("a", false, "Used with the command `delete_bucket`.  If this is set then the `delete_bucket` command will also delete all the objects in the bucket.");
         clearBucket.setArgName("all");
+        final Option retries = new Option("r", true, "Specifies how many times puts and gets will be attempted before failing the request.  The default is 5");
+        retries.setArgName("retries");
         final Option help = new Option("h", "Print Help Menu");
         help.setArgName("help");
         final Option version = new Option("v", "Print version information");
@@ -84,6 +87,7 @@ public class Arguments {
         options.addOption(start);
         options.addOption(end);
         options.addOption(clearBucket);
+        options.addOption(retries);
         options.addOption(help);
         options.addOption(version);
 
@@ -107,6 +111,17 @@ public class Arguments {
             System.exit(0);
         }
 
+        final String retryString = cmd.getOptionValue("r");
+        try {
+            if (retryString != null) {
+                setRetries(Integer.parseInt(retryString));
+            }
+
+        } catch (final NumberFormatException e) {
+            System.err.printf("Error: Argument (%s) to '-r' was not a number\n", retryString);
+            System.exit(1);
+        }
+
         try {
             final String commandString = cmd.getOptionValue("c");
             if (commandString == null) {
@@ -115,7 +130,7 @@ public class Arguments {
             } else {
                 this.setCommand(CommandValue.valueOf(commandString.toUpperCase()));
             }
-        } catch (IllegalArgumentException e) {
+        } catch (final IllegalArgumentException e) {
             throw new BadArgumentException("Unknown command", e);
         }
 
@@ -281,5 +296,13 @@ public class Arguments {
 
     public boolean isClearBucket() {
         return this.clearBucket;
+    }
+
+    private void setRetries(int retries) {
+        this.retries = retries;
+    }
+
+    public int getRetries() {
+        return this.retries;
     }
 }
