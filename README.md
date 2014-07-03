@@ -9,7 +9,7 @@ To install the latest ds3_java_cli download the latest release(either a zip or t
 
 After the release bundle has been extracted you can then execute `bin/ds3_java_cli -h` on Linux or `bin/ds3_java_cli.bat -h` on Windows to get the help menu.
 
-### Example RC File
+### Example Linux Configuration
 
 On Linux you can create a RC or resource file that you use to store common configurations without having to specify those arguments from the command line each time the cli is executed.  The following is an example of a resource file in linux:
 
@@ -22,7 +22,7 @@ export DS3_ENDPOINT="hostname:8080"
 
 To use the rc file use `source my_rc_file.rc` which will export all of the environment variables into the current bash shell and will be picked up by the CLI.  The help menu describes all the arguments that can be specified from the command line.
 
-### Example BAT File
+### Example Windows Configuration
 
 On Windows you can create a resource `bat` file to do the same thing.  Here is the same example from above, but as a `bat` file:
 
