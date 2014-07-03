@@ -16,16 +16,19 @@
 package com.spectralogic.ds3cli.command;
 
 import com.spectralogic.ds3cli.Arguments;
+import com.spectralogic.ds3cli.logging.Logging;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.GetObjectRequest;
 import com.spectralogic.ds3client.commands.GetObjectResponse;
 import com.spectralogic.ds3client.networking.FailedRequestException;
-import com.spectralogic.ds3client.networking.NetUtils;
 import org.apache.commons.cli.MissingOptionException;
 import org.apache.commons.io.IOUtils;
 
-import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 public class GetObject extends CliCommand {
 
@@ -52,7 +55,7 @@ public class GetObject extends CliCommand {
 
         prefix = args.getDirectory();
         if (prefix == null) {
-            prefix = "";
+            prefix = ".";
         }
         if (args.getEnd() != 0) {
             byteRange = new GetObjectRequest.Range(args.getStart(), args.getEnd());
@@ -70,9 +73,10 @@ public class GetObject extends CliCommand {
             }
             final GetObjectResponse response = getClient().getObject(request);
 
-            final String filePath = NetUtils.buildPath(prefix, objectName);
+            final Path filePath = FileSystems.getDefault().getPath(prefix, objectName);
+            Logging.log("Output path: " + filePath.toString());
 
-            try (final InputStream stream = response.getContent();final FileOutputStream fOut = new FileOutputStream(filePath)) {
+            try (final InputStream stream = response.getContent();final OutputStream fOut = Files.newOutputStream(filePath)) {
                 IOUtils.copy(stream, fOut);
             }
 
@@ -80,12 +84,22 @@ public class GetObject extends CliCommand {
         }
         catch(final FailedRequestException e) {
             if(e.getStatusCode() == 500) {
+                Logging.log(e.getMessage());
+                if (Logging.isVerbose()) {
+                    e.printStackTrace();
+                }
                 return "Error: Cannot communicate with the remote DS3 appliance.";
             }
             else if(e.getStatusCode() == 404) {
-                return "Error: Unknown bucket.";
+                if (Logging.isVerbose()) {
+                    e.printStackTrace();
+                }
+                return "Error: " + e.getMessage();
             }
             else {
+                if (Logging.isVerbose()) {
+                    e.printStackTrace();
+                }
                 return "Error: Encountered an unknown error of ("+ e.getStatusCode() +") while accessing the remote DS3 appliance.";
             }
         }

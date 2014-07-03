@@ -15,6 +15,7 @@
 
 package com.spectralogic.ds3cli;
 
+import com.spectralogic.ds3cli.logging.Logging;
 import org.apache.commons.cli.*;
 
 import java.io.IOException;
@@ -40,6 +41,7 @@ public class Arguments {
     private String proxy;
     private int start;
     private int end;
+    private int retries = 5;
     private boolean clearBucket = false;
 
     Arguments(final String[] args) throws BadArgumentException, ParseException {
@@ -66,12 +68,16 @@ public class Arguments {
         start.setArgName("start");
         final Option end = new Option("n", true, "The ending byte for a get_object command.");
         end.setArgName("end");
-        final Option clearBucket = new Option("a", false, "Used with the command `delete_bucket`.  If this is set then the `delete_bucket` command will also delete all the objects in the bucket.");
-        clearBucket.setArgName("all");
+        final Option clearBucket = new Option(null, false, "Used with the command `delete_bucket`.  If this is set then the `delete_bucket` command will also delete all the objects in the bucket.");
+        clearBucket.setLongOpt("force");
+        final Option retries = new Option("r", true, "Specifies how many times puts and gets will be attempted before failing the request.  The default is 5");
+        retries.setArgName("retries");
         final Option help = new Option("h", "Print Help Menu");
-        help.setArgName("help");
-        final Option version = new Option("v", "Print version information");
-        version.setArgName("version");
+        help.setLongOpt("help");
+        final Option version = new Option(null, "Print version information");
+        version.setLongOpt("version");
+        final Option verbose = new Option(null, "Verbose output");
+        verbose.setLongOpt("verbose");
 
         options.addOption(ds3Endpoint);
         options.addOption(bucket);
@@ -84,8 +90,10 @@ public class Arguments {
         options.addOption(start);
         options.addOption(end);
         options.addOption(clearBucket);
+        options.addOption(retries);
         options.addOption(help);
         options.addOption(version);
+        options.addOption(verbose);
 
         processCommandLine();
     }
@@ -96,15 +104,30 @@ public class Arguments {
         final CommandLine cmd = parser.parse(options, args);
 
         final List<String> missingArgs = new ArrayList<>();
+        if (cmd.hasOption("verbose")) {
+            Logging.setVerbose(true);
+            Logging.log("Verbose output has been enabled");
+        }
 
         if (cmd.hasOption('h')) {
             printHelp();
             System.exit(0);
         }
 
-        if (cmd.hasOption('v')) {
+        if (cmd.hasOption("version")) {
             printVersion();
             System.exit(0);
+        }
+
+        final String retryString = cmd.getOptionValue("r");
+        try {
+            if (retryString != null) {
+                setRetries(Integer.parseInt(retryString));
+            }
+
+        } catch (final NumberFormatException e) {
+            System.err.printf("Error: Argument (%s) to '-r' was not a number\n", retryString);
+            System.exit(1);
         }
 
         try {
@@ -115,11 +138,11 @@ public class Arguments {
             } else {
                 this.setCommand(CommandValue.valueOf(commandString.toUpperCase()));
             }
-        } catch (IllegalArgumentException e) {
+        } catch (final IllegalArgumentException e) {
             throw new BadArgumentException("Unknown command", e);
         }
 
-        if (cmd.hasOption("a")) {
+        if (cmd.hasOption("force")) {
             this.setClearBucket(true);
         }
 
@@ -168,23 +191,31 @@ public class Arguments {
             }
         }
 
+
         // check for the http_proxy env var
         final String proxy = System.getenv("http_proxy");
         if (proxy != null) {
             setProxy(proxy);
+            Logging.logf("Proxy: %s", getProxy());
         }
 
         if (!missingArgs.isEmpty()) {
             throw new MissingOptionException(missingArgs);
         }
+        Logging.logf("Access Key: %s | Secret Key: %s | Endpoint: %s", getAccessKey(), getSecretKey(), getEndpoint());
     }
 
     private void printVersion() {
         final Properties props = new Properties();
         final InputStream input = Arguments.class.getClassLoader().getResourceAsStream(PROPERTY_FILE);
+        if (input == null) {
+            System.err.println("Could not find property file.");
+            return;
+        }
         try {
             props.load(input);
             System.out.println("Version: " + props.get("version"));
+            System.out.println("Build Date: " + props.get("build.date"));
         } catch (final IOException e) {
             System.err.println("Failed to load property file due to: " + e.getMessage());
         }
@@ -281,5 +312,13 @@ public class Arguments {
 
     public boolean isClearBucket() {
         return this.clearBucket;
+    }
+
+    private void setRetries(int retries) {
+        this.retries = retries;
+    }
+
+    public int getRetries() {
+        return this.retries;
     }
 }
