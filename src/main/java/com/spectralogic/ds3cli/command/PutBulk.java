@@ -19,7 +19,7 @@ import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.helpers.FileObjectPutter;
-import com.spectralogic.ds3client.models.Ds3Object;
+import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import org.apache.commons.cli.MissingOptionException;
 
 import java.nio.file.FileSystems;

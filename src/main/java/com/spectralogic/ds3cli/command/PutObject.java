@@ -21,12 +21,9 @@ import com.spectralogic.ds3cli.logging.Logging;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.PutObjectRequest;
 import com.spectralogic.ds3client.helpers.ResettableFileInputStream;
-import com.spectralogic.ds3client.networking.FailedRequestException;
 import org.apache.commons.cli.MissingOptionException;
 
-import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;

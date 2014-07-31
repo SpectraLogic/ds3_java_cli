@@ -22,7 +22,6 @@ import com.spectralogic.ds3client.commands.DeleteBucketRequest;
 import com.spectralogic.ds3client.commands.DeleteObjectRequest;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.models.Contents;
-import com.spectralogic.ds3client.models.Ds3Object;
 import org.apache.commons.cli.MissingOptionException;
 
 import java.io.IOException;

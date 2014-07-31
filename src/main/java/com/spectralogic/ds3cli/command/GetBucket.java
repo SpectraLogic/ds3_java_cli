@@ -19,16 +19,13 @@ import com.bethecoder.ascii_table.ASCIITable;
 import com.bethecoder.ascii_table.ASCIITableHeader;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3client.Ds3Client;
-import com.spectralogic.ds3client.commands.GetBucketRequest;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.models.Contents;
-import com.spectralogic.ds3client.models.ListBucketResult;
 import com.spectralogic.ds3client.networking.FailedRequestException;
 import org.apache.commons.cli.MissingOptionException;
 
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 
 public class GetBucket extends CliCommand {
     private String bucketName;

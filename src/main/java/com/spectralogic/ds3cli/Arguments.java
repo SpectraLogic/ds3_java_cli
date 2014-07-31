@@ -35,6 +35,7 @@ public class Arguments {
     private String endpoint;
     private String accessKey;
     private String secretKey;
+    private String prefix;
     private CommandValue command;
     private final String[] args;
     private String objectName;
@@ -58,17 +59,19 @@ public class Arguments {
         secretKey.setArgName("secretKey");
         final Option command = new Option("c", true, "The Command to execute.  Possible values: [" + CommandValue.valuesString() + "]");
         command.setArgName("command");
-        final Option directory = new Option("d", true, "Specify a directory to interact with if required.");
+        final Option directory = new Option("d", true, "Specify a directory to interact with if required");
         directory.setArgName("directory");
         final Option objectName = new Option("o", true, "The name of the object to be retrieved or stored");
         objectName.setArgName("objectFileName");
+        final Option prefix = new Option("p", true, "Restores only objects who's names start with prefix.  Used with `get_bulk`");
+        prefix.setArgName("prefix");
         final Option proxy = new Option("x", true, "The URL of the proxy server to use or have \"http_proxy\" set as an environment variable");
         proxy.setArgName("proxy");
-        final Option start = new Option("s", true, "The starting byte for a get_object command.");
+        final Option start = new Option("s", true, "The starting byte for a get_object command");
         start.setArgName("start");
-        final Option end = new Option("n", true, "The ending byte for a get_object command.");
+        final Option end = new Option("n", true, "The ending byte for a get_object command");
         end.setArgName("end");
-        final Option clearBucket = new Option(null, false, "Used with the command `delete_bucket`.  If this is set then the `delete_bucket` command will also delete all the objects in the bucket.");
+        final Option clearBucket = new Option(null, false, "Used with the command `delete_bucket`.  If this is set then the `delete_bucket` command will also delete all the objects in the bucket");
         clearBucket.setLongOpt("force");
         final Option retries = new Option("r", true, "Specifies how many times puts and gets will be attempted before failing the request.  The default is 5");
         retries.setArgName("retries");
@@ -86,6 +89,7 @@ public class Arguments {
         options.addOption(secretKey);
         options.addOption(command);
         options.addOption(objectName);
+        options.addOption(prefix);
         options.addOption(proxy);
         options.addOption(start);
         options.addOption(end);
@@ -153,6 +157,7 @@ public class Arguments {
         this.setObjectName(cmd.getOptionValue("o"));
         this.setProxy(cmd.getOptionValue("x"));
         this.setDirectory(cmd.getOptionValue("d"));
+        this.setPrefix(cmd.getOptionValue("p"));
         
         final String start = cmd.getOptionValue("s");
         if (!(start == null || start.isEmpty())) {
@@ -320,5 +325,13 @@ public class Arguments {
 
     public int getRetries() {
         return this.retries;
+    }
+
+    public String getPrefix() {
+        return prefix;
+    }
+
+    private void setPrefix(final String prefix) {
+        this.prefix = prefix;
     }
 }
