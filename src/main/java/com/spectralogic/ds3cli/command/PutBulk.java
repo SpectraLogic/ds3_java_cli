@@ -16,18 +16,23 @@
 package com.spectralogic.ds3cli.command;
 
 import com.spectralogic.ds3cli.Arguments;
+import com.spectralogic.ds3cli.logging.Logging;
 import com.spectralogic.ds3client.Ds3Client;
+import com.spectralogic.ds3client.helpers.ComputedChecksumModifier;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.helpers.FileObjectPutter;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import org.apache.commons.cli.MissingOptionException;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 
 public class PutBulk extends CliCommand {
     private String bucketName;
     private Path inputDirectory;
+    private boolean crc;
     public PutBulk(final Ds3Client client) {
         super(client);
     }
@@ -46,6 +51,8 @@ public class PutBulk extends CliCommand {
 
         inputDirectory = FileSystems.getDefault().getPath(srcDir);
 
+        this.crc = args.isCrc();
+
         return this;
     }
 
@@ -55,7 +62,28 @@ public class PutBulk extends CliCommand {
         final Iterable<Ds3Object> objects = helper.listObjectsForDirectory(inputDirectory);
         helper.ensureBucketExists(bucketName);
         final Ds3ClientHelpers.WriteJob job = helper.startWriteJob(bucketName, objects);
-        job.write(new FileObjectPutter(inputDirectory));
+        if (crc) {
+            Logging.log("Performing bulk put with crc computation enabled");
+            job.withRequestModifier(new ComputedChecksumModifier());
+        }
+
+        job.write(new LoggingFileObjectPutter(inputDirectory));
+
         return "SUCCESS: Wrote all the files in " + inputDirectory.toString() + " to bucket " + bucketName;
+    }
+
+    class LoggingFileObjectPutter implements Ds3ClientHelpers.ObjectPutter {
+
+        final private FileObjectPutter objectPutter;
+
+        public LoggingFileObjectPutter(final Path inputDirectory) {
+            this.objectPutter = new FileObjectPutter(inputDirectory);
+        }
+
+        @Override
+        public InputStream getContent(final String s) throws IOException {
+            Logging.logf("Putting %s to ds3 endpoint", s);
+            return this.objectPutter.getContent(s);
+        }
     }
 }

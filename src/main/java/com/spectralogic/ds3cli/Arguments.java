@@ -44,6 +44,7 @@ public class Arguments {
     private int end;
     private int retries = 5;
     private boolean clearBucket = false;
+    private boolean crc = false;
 
     Arguments(final String[] args) throws BadArgumentException, ParseException {
         this.args = args;
@@ -75,6 +76,8 @@ public class Arguments {
         clearBucket.setLongOpt("force");
         final Option retries = new Option("r", true, "Specifies how many times puts and gets will be attempted before failing the request.  The default is 5");
         retries.setArgName("retries");
+        final Option crc = new Option(null, "Validate CRC codes");
+        crc.setLongOpt("crc");
         final Option help = new Option("h", "Print Help Menu");
         help.setLongOpt("help");
         final Option version = new Option(null, "Print version information");
@@ -95,6 +98,7 @@ public class Arguments {
         options.addOption(end);
         options.addOption(clearBucket);
         options.addOption(retries);
+        options.addOption(crc);
         options.addOption(help);
         options.addOption(version);
         options.addOption(verbose);
@@ -150,6 +154,10 @@ public class Arguments {
             this.setClearBucket(true);
         }
 
+        if (cmd.hasOption("crc")) {
+            this.setCrc(true);
+        }
+
         this.setBucket(cmd.getOptionValue("b"));
         this.setEndpoint(cmd.getOptionValue("e"));
         this.setAccessKey(cmd.getOptionValue("a"));
@@ -158,7 +166,7 @@ public class Arguments {
         this.setProxy(cmd.getOptionValue("x"));
         this.setDirectory(cmd.getOptionValue("d"));
         this.setPrefix(cmd.getOptionValue("p"));
-        
+
         final String start = cmd.getOptionValue("s");
         if (!(start == null || start.isEmpty())) {
             this.setStart(Integer.parseInt(start));
@@ -334,4 +342,13 @@ public class Arguments {
     private void setPrefix(final String prefix) {
         this.prefix = prefix;
     }
+
+    public boolean isCrc() {
+        return crc;
+    }
+
+    private void setCrc(final boolean crc) {
+        this.crc = crc;
+    }
+
 }
