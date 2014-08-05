@@ -38,7 +38,7 @@ public class GetBulk extends CliCommand {
     private String bucketName;
     private Path outputPath;
     private String prefix;
-    private boolean crc;
+    private boolean checksum;
     public GetBulk(final Ds3Client client) {
         super(client);
     }
@@ -58,7 +58,7 @@ public class GetBulk extends CliCommand {
             outputPath = FileSystems.getDefault().getPath(".").resolve(dirPath);
         }
 
-        this.crc = args.isCrc();
+        this.checksum = args.isChecksum();
 
         this.prefix = args.getPrefix();
         return this;
@@ -68,8 +68,8 @@ public class GetBulk extends CliCommand {
     @Override
     public String call() throws Exception {
         final Ds3ClientHelpers.ObjectGetter getter;
-        if (crc) {
-            Logging.log("Performing get_bulk with crc verification");
+        if (checksum) {
+            Logging.log("Performing get_bulk with checksum verification");
             getter = new VerifyingFileObjectGetter(this.outputPath);
         }
         else {

@@ -44,7 +44,7 @@ public class Arguments {
     private int end;
     private int retries = 5;
     private boolean clearBucket = false;
-    private boolean crc = false;
+    private boolean checksum = false;
 
     Arguments(final String[] args) throws BadArgumentException, ParseException {
         this.args = args;
@@ -76,8 +76,8 @@ public class Arguments {
         clearBucket.setLongOpt("force");
         final Option retries = new Option("r", true, "Specifies how many times puts and gets will be attempted before failing the request.  The default is 5");
         retries.setArgName("retries");
-        final Option crc = new Option(null, "Validate CRC codes");
-        crc.setLongOpt("crc");
+        final Option checksum = new Option(null, "Validate checksum values");
+        checksum.setLongOpt("checksum");
         final Option help = new Option("h", "Print Help Menu");
         help.setLongOpt("help");
         final Option version = new Option(null, "Print version information");
@@ -98,7 +98,7 @@ public class Arguments {
         options.addOption(end);
         options.addOption(clearBucket);
         options.addOption(retries);
-        options.addOption(crc);
+        options.addOption(checksum);
         options.addOption(help);
         options.addOption(version);
         options.addOption(verbose);
@@ -154,8 +154,8 @@ public class Arguments {
             this.setClearBucket(true);
         }
 
-        if (cmd.hasOption("crc")) {
-            this.setCrc(true);
+        if (cmd.hasOption("checksum")) {
+            this.setChecksum(true);
         }
 
         this.setBucket(cmd.getOptionValue("b"));
@@ -343,12 +343,12 @@ public class Arguments {
         this.prefix = prefix;
     }
 
-    public boolean isCrc() {
-        return crc;
+    public boolean isChecksum() {
+        return checksum;
     }
 
-    private void setCrc(final boolean crc) {
-        this.crc = crc;
+    private void setChecksum(final boolean checksum) {
+        this.checksum = checksum;
     }
 
 }

@@ -32,7 +32,7 @@ import java.nio.file.Path;
 public class PutBulk extends CliCommand {
     private String bucketName;
     private Path inputDirectory;
-    private boolean crc;
+    private boolean checksum;
     public PutBulk(final Ds3Client client) {
         super(client);
     }
@@ -51,7 +51,7 @@ public class PutBulk extends CliCommand {
 
         inputDirectory = FileSystems.getDefault().getPath(srcDir);
 
-        this.crc = args.isCrc();
+        this.checksum = args.isChecksum();
 
         return this;
     }
@@ -62,8 +62,8 @@ public class PutBulk extends CliCommand {
         final Iterable<Ds3Object> objects = helper.listObjectsForDirectory(inputDirectory);
         helper.ensureBucketExists(bucketName);
         final Ds3ClientHelpers.WriteJob job = helper.startWriteJob(bucketName, objects);
-        if (crc) {
-            Logging.log("Performing bulk put with crc computation enabled");
+        if (checksum) {
+            Logging.log("Performing bulk put with checksum computation enabled");
             job.withRequestModifier(new ComputedChecksumModifier());
         }
 
