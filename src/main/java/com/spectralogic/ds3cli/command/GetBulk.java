@@ -26,6 +26,7 @@ import com.spectralogic.ds3client.helpers.VerifyingFileObjectGetter;
 import com.spectralogic.ds3client.models.Contents;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.serializer.XmlProcessingException;
+import com.spectralogic.ds3client.utils.Md5Hash;
 import org.apache.commons.cli.MissingOptionException;
 
 import java.io.IOException;
@@ -122,7 +123,7 @@ public class GetBulk extends CliCommand {
         }
 
         @Override
-        public void writeContents(final String s, final InputStream inputStream, final String md5) throws IOException {
+        public void writeContents(final String s, final InputStream inputStream, final Md5Hash md5) throws IOException {
             Logging.logf("Getting object %s", s);
             this.objectGetter.writeContents(s, inputStream, md5);
         }
