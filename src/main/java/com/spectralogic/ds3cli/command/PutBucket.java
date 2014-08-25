@@ -16,8 +16,11 @@
 package com.spectralogic.ds3cli.command;
 
 import com.spectralogic.ds3cli.Arguments;
+import com.spectralogic.ds3cli.logging.Logging;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.PutBucketRequest;
+import com.spectralogic.ds3client.models.bulk.Priority;
+import com.spectralogic.ds3client.models.bulk.WriteOptimization;
 import org.apache.commons.cli.MissingOptionException;
 
 import java.io.IOException;
@@ -25,6 +28,9 @@ import java.io.IOException;
 public class PutBucket extends CliCommand {
 
     private String bucketName;
+    private Priority defaultPutPriority;
+    private Priority defaultGetPriority;
+    private WriteOptimization defaultWriteOptimization;
 
     public PutBucket(final Ds3Client client) {
         super(client);
@@ -32,17 +38,35 @@ public class PutBucket extends CliCommand {
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
-        bucketName = args.getBucket();
+        this.bucketName = args.getBucket();
         if (bucketName == null) {
             throw new MissingOptionException("The put bucket command requires '-b' to be set.");
         }
+
+        this.defaultGetPriority = args.getDefaultGetPriority();
+        this.defaultPutPriority = args.getDefaultPutPriority();
+        this.defaultWriteOptimization = args.getDefaultWriteOptimization();
+
         return this;
     }
 
     @Override
     public String call() throws Exception {
         try {
-            getClient().putBucket(new PutBucketRequest(bucketName)).close();
+            final PutBucketRequest request = new PutBucketRequest(bucketName);
+            if (this.defaultGetPriority != null) {
+                Logging.logf("Adding a default get priority (%s) to the create bucket", this.defaultGetPriority.toString());
+                request.withDefaultGetJobPriority(defaultGetPriority);
+            }
+            if (this.defaultPutPriority != null) {
+                Logging.logf("Adding a default put priority (%s) to the create bucket", this.defaultPutPriority.toString());
+                request.withDefaultPutJobPriority(defaultPutPriority);
+            }
+            if (this.defaultWriteOptimization != null) {
+                Logging.logf("Adding a default write optimization (%s) to the create bucket", this.defaultWriteOptimization.toString());
+                request.withDefaultWriteOptimization(defaultWriteOptimization);
+            }
+            getClient().putBucket(request).close();
         }
         catch (final IOException e) {
              return "Error: Request failed with the following error: " + e.getMessage();

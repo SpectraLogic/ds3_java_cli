@@ -23,8 +23,11 @@ import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.helpers.FileObjectGetter;
 import com.spectralogic.ds3client.helpers.VerifyingFileObjectGetter;
+import com.spectralogic.ds3client.helpers.options.ReadJobOptions;
 import com.spectralogic.ds3client.models.Contents;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
+import com.spectralogic.ds3client.models.bulk.Priority;
+import com.spectralogic.ds3client.models.bulk.WriteOptimization;
 import com.spectralogic.ds3client.serializer.XmlProcessingException;
 import com.spectralogic.ds3client.utils.Md5Hash;
 import org.apache.commons.cli.MissingOptionException;
@@ -40,27 +43,29 @@ public class GetBulk extends CliCommand {
     private Path outputPath;
     private String prefix;
     private boolean checksum;
+    private Priority priority;
+
     public GetBulk(final Ds3Client client) {
         super(client);
     }
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
-        bucketName = args.getBucket();
-        if (bucketName == null) {
+        this.bucketName = args.getBucket();
+        if (this.bucketName == null) {
             throw new MissingOptionException("The bulk get command requires '-b' to be set.");
         }
 
         final String directory = args.getDirectory();
         if (directory == null || directory.equals(".")) {
-            outputPath = FileSystems.getDefault().getPath(".");
+            this.outputPath = FileSystems.getDefault().getPath(".");
         } else {
             final Path dirPath = FileSystems.getDefault().getPath(directory);
-            outputPath = FileSystems.getDefault().getPath(".").resolve(dirPath);
+            this.outputPath = FileSystems.getDefault().getPath(".").resolve(dirPath);
         }
 
+        this.priority = args.getPriority();
         this.checksum = args.isChecksum();
-
         this.prefix = args.getPrefix();
         return this;
     }
@@ -97,7 +102,9 @@ public class GetBulk extends CliCommand {
             }
         });
 
-        final Ds3ClientHelpers.ReadJob job = helper.startReadJob(this.bucketName, objects);
+        final Ds3ClientHelpers.ReadJob job = helper.startReadJob(this.bucketName, objects,
+                ReadJobOptions.create()
+                .withPriority(this.priority));
 
         job.read(new LoggingFileObjectGetter(getter));
 
@@ -106,7 +113,9 @@ public class GetBulk extends CliCommand {
 
     private String restoreAll(final Ds3ClientHelpers.ObjectGetter getter) throws XmlProcessingException, SignatureException, IOException {
         final Ds3ClientHelpers helper = Ds3ClientHelpers.wrap(getClient());
-        final Ds3ClientHelpers.ReadJob job = helper.startReadAllJob(this.bucketName);
+        final Ds3ClientHelpers.ReadJob job = helper.startReadAllJob(this.bucketName,
+                ReadJobOptions.create()
+                .withPriority(this.priority));
 
         job.read(new LoggingFileObjectGetter(getter));
 
