@@ -16,6 +16,8 @@
 package com.spectralogic.ds3cli;
 
 import com.spectralogic.ds3cli.logging.Logging;
+import com.spectralogic.ds3client.models.bulk.Priority;
+import com.spectralogic.ds3client.models.bulk.WriteOptimization;
 import org.apache.commons.cli.*;
 
 import java.io.IOException;
@@ -42,7 +44,12 @@ public class Arguments {
     private String proxy;
     private int start;
     private int end;
-    private int retries = 5;
+    private int retries = 20;
+    private Priority priority;
+    private Priority defaultPutPriority;
+    private Priority defaultGetPriority;
+    private WriteOptimization writeOptimization;
+    private WriteOptimization defaultWriteOptimization;
     private boolean clearBucket = false;
     private boolean checksum = false;
 
@@ -78,6 +85,21 @@ public class Arguments {
         retries.setArgName("retries");
         final Option checksum = new Option(null, "Validate checksum values");
         checksum.setLongOpt("checksum");
+        final Option priority = new Option(null, true, "Set the bulk job priority.  Possible values: [" + Priority.valuesString() + "]");
+        priority.setLongOpt("priority");
+        priority.setArgName("priority");
+        final Option defaultPutPriority = new Option(null, true, "Set the default bulk put job priority.  Possible values: [" + Priority.valuesString() + "]");
+        defaultPutPriority.setLongOpt("defaultPutPriority");
+        defaultPutPriority.setArgName("priority");
+        final Option defaultGetPriority = new Option(null, true, "Set the default bulk get job priority.  Possible values: [" + Priority.valuesString() + "]");
+        defaultGetPriority.setLongOpt("defaultGetPriority");
+        defaultGetPriority.setArgName("priority");
+        final Option writeOptimization = new Option(null, true, "Set the job write optimization.  Possible values: ["+ WriteOptimization.valuesString() +"]");
+        writeOptimization.setLongOpt("writeOptimization");
+        writeOptimization.setArgName("writeOptimization");
+        final Option defaultWriteOptimization = new Option(null, true, "Set the default job write optimization for a bucket.  Possible values: ["+ WriteOptimization.valuesString() +"]");
+        defaultWriteOptimization.setLongOpt("defaultWriteOptimization");
+        defaultWriteOptimization.setArgName("writeOptimization");
         final Option help = new Option("h", "Print Help Menu");
         help.setLongOpt("help");
         final Option version = new Option(null, "Print version information");
@@ -99,9 +121,16 @@ public class Arguments {
         options.addOption(clearBucket);
         options.addOption(retries);
         options.addOption(checksum);
+        options.addOption(priority);
+        options.addOption(writeOptimization);
         options.addOption(help);
         options.addOption(version);
         options.addOption(verbose);
+
+        // Disabled until they are enabled in DS3.
+        // options.addOption(defaultGetPriority);
+        // options.addOption(defaultPutPriority);
+        // options.addOption(defaultWriteOptimization);
 
         processCommandLine();
     }
@@ -149,6 +178,13 @@ public class Arguments {
         } catch (final IllegalArgumentException e) {
             throw new BadArgumentException("Unknown command", e);
         }
+
+        this.setPriority(processPriorityType(cmd, "priority"));
+        this.setDefaultGetPriority(processPriorityType(cmd, "defaultGetPriority"));
+        this.setDefaultPutPriority(processPriorityType(cmd, "defaultPutPriority"));
+
+        this.setDefaultWriteOptimization(processWriteOptimization(cmd, "defaultWriteOptimization"));
+        this.setWriteOptimization(processWriteOptimization(cmd, "writeOptimization"));
 
         if (cmd.hasOption("force")) {
             this.setClearBucket(true);
@@ -204,7 +240,6 @@ public class Arguments {
             }
         }
 
-
         // check for the http_proxy env var
         final String proxy = System.getenv("http_proxy");
         if (proxy != null) {
@@ -216,6 +251,34 @@ public class Arguments {
             throw new MissingOptionException(missingArgs);
         }
         Logging.logf("Access Key: %s | Secret Key: %s | Endpoint: %s", getAccessKey(), getSecretKey(), getEndpoint());
+    }
+
+    private WriteOptimization processWriteOptimization(final CommandLine cmd, final String writeOptimization) throws BadArgumentException {
+        final String writeOptimizationString = cmd.getOptionValue(writeOptimization);
+        try {
+            if (writeOptimizationString == null) {
+                return null;
+            }
+            else {
+                return WriteOptimization.valueOf(writeOptimizationString.toUpperCase());
+            }
+        } catch (final IllegalArgumentException e) {
+            throw new BadArgumentException("Unknown writeOptimization: " + writeOptimizationString, e);
+        }
+    }
+
+    private Priority processPriorityType(final CommandLine cmd, final String priority) throws BadArgumentException {
+        final String priorityString = cmd.getOptionValue(priority);
+        try {
+            if (priorityString == null) {
+                return null;
+            }
+            else {
+                return Priority.valueOf(priorityString.toUpperCase());
+            }
+        } catch (final IllegalArgumentException e) {
+            throw new BadArgumentException("Unknown priority: " + priorityString, e);
+        }
     }
 
     private void printVersion() {
@@ -351,4 +414,43 @@ public class Arguments {
         this.checksum = checksum;
     }
 
+    public Priority getPriority() {
+        return priority;
+    }
+
+    private void setPriority(final Priority priority) {
+        this.priority = priority;
+    }
+
+    public WriteOptimization getWriteOptimization() {
+        return writeOptimization;
+    }
+
+    private void setWriteOptimization(final WriteOptimization writeOptimization) {
+        this.writeOptimization = writeOptimization;
+    }
+
+    public Priority getDefaultPutPriority() {
+        return defaultPutPriority;
+    }
+
+    private void setDefaultPutPriority(final Priority defaultPutPriority) {
+        this.defaultPutPriority = defaultPutPriority;
+    }
+
+    public Priority getDefaultGetPriority() {
+        return defaultGetPriority;
+    }
+
+    private void setDefaultGetPriority(final Priority defaultGetPriority) {
+        this.defaultGetPriority = defaultGetPriority;
+    }
+
+    public WriteOptimization getDefaultWriteOptimization() {
+        return defaultWriteOptimization;
+    }
+
+    private void setDefaultWriteOptimization(final WriteOptimization defaultWriteOptimization) {
+        this.defaultWriteOptimization = defaultWriteOptimization;
+    }
 }

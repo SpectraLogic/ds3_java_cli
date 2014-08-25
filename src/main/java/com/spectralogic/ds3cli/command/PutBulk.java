@@ -17,11 +17,15 @@ package com.spectralogic.ds3cli.command;
 
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.logging.Logging;
+import com.spectralogic.ds3cli.util.TransferCalculationUtils;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.helpers.ComputedChecksumModifier;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.helpers.FileObjectPutter;
+import com.spectralogic.ds3client.helpers.options.WriteJobOptions;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
+import com.spectralogic.ds3client.models.bulk.Priority;
+import com.spectralogic.ds3client.models.bulk.WriteOptimization;
 import org.apache.commons.cli.MissingOptionException;
 
 import java.io.IOException;
@@ -33,14 +37,17 @@ public class PutBulk extends CliCommand {
     private String bucketName;
     private Path inputDirectory;
     private boolean checksum;
+    private Priority priority;
+    private WriteOptimization writeOptimization;
+
     public PutBulk(final Ds3Client client) {
         super(client);
     }
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
-        bucketName = args.getBucket();
-        if (bucketName == null) {
+        this.bucketName = args.getBucket();
+        if (this.bucketName == null) {
             throw new MissingOptionException("The bulk put command requires '-b' to be set.");
         }
 
@@ -49,8 +56,9 @@ public class PutBulk extends CliCommand {
             throw new MissingOptionException("The bulk put command required '-d' to be set.");
         }
 
-        inputDirectory = FileSystems.getDefault().getPath(srcDir);
-
+        this.priority = args.getPriority();
+        this.writeOptimization = args.getWriteOptimization();
+        this.inputDirectory = FileSystems.getDefault().getPath(srcDir);
         this.checksum = args.isChecksum();
 
         return this;
@@ -59,17 +67,24 @@ public class PutBulk extends CliCommand {
     @Override
     public String call() throws Exception {
         final Ds3ClientHelpers helper = Ds3ClientHelpers.wrap(getClient());
-        final Iterable<Ds3Object> objects = helper.listObjectsForDirectory(inputDirectory);
-        helper.ensureBucketExists(bucketName);
-        final Ds3ClientHelpers.WriteJob job = helper.startWriteJob(bucketName, objects);
-        if (checksum) {
+        final Iterable<Ds3Object> objects = helper.listObjectsForDirectory(this.inputDirectory);
+
+        helper.ensureBucketExists(this.bucketName);
+        final Ds3ClientHelpers.WriteJob job = helper.startWriteJob(this.bucketName, objects,
+                WriteJobOptions.create()
+                .withPriority(this.priority)
+                .withWriteOptimization(this.writeOptimization));
+        if (this.checksum) {
             Logging.log("Performing bulk put with checksum computation enabled");
             job.withRequestModifier(new ComputedChecksumModifier());
         }
+        final long startTime = System.currentTimeMillis();
+        job.write(new LoggingFileObjectPutter(this.inputDirectory));
+        final long endTime = System.currentTimeMillis();
 
-        job.write(new LoggingFileObjectPutter(inputDirectory));
+        TransferCalculationUtils.logTransferSpeed(endTime - startTime, TransferCalculationUtils.sum(objects));
 
-        return "SUCCESS: Wrote all the files in " + inputDirectory.toString() + " to bucket " + bucketName;
+        return "SUCCESS: Wrote all the files in " + this.inputDirectory.toString() + " to bucket " + this.bucketName;
     }
 
     class LoggingFileObjectPutter implements Ds3ClientHelpers.ObjectPutter {
@@ -86,4 +101,5 @@ public class PutBulk extends CliCommand {
             return this.objectPutter.getContent(s);
         }
     }
+
 }
