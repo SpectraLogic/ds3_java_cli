@@ -37,3 +37,19 @@ To use the `bat` file just run it from the Windows CLI and the `ds3_java_cli.bat
 ## Proxy Support
 
 The cli supports connecting to DS3 via a HTTP Proxy.  To automatically connect to the proxy from the cli set `http_proxy` as an environment variable and the `ds3_java_cli` will pick up the configuration.  The proxy setting it not required to be set, but if you work in an environment where a proxy is present and the `http_proxy` environment variable is already set, you should not have to do anything.
+
+## Build
+
+To build the CLI, you need to make sure that the [ds3_java_sdk](https://github.com/SpectraLogic/ds3_java_sdk) is installed and accessable via maven (see [Installing ds3_java_sdk](https://github.com/SpectraLogic/ds3_java_sdk#install)).  You must also have cloned the latest version of the CLI source.  Then run `gradlew` from the root of the project:
+
+    ./gradlew clean distTar
+    
+Or:
+
+    ./gradlew clean distZip
+    
+Both `distZip` and `distTar` will build the bundle and place it in `build/distributions` in the root of the project directory.  To build both versions at the same time run:
+
+    ./gradlew clean distTar distZip
+
+`distZip` will create a zip version of the bundle, and `distTar` will create a tar version of the bundle.  The bundles contain the same exact binaries.
