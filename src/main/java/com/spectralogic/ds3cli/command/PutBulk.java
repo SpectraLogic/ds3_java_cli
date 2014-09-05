@@ -78,11 +78,14 @@ public class PutBulk extends CliCommand {
             Logging.log("Performing bulk put with checksum computation enabled");
             job.withRequestModifier(new ComputedChecksumModifier());
         }
+
+        /* TODO add back in for next release
         final long startTime = System.currentTimeMillis();
         job.write(new LoggingFileObjectPutter(this.inputDirectory));
         final long endTime = System.currentTimeMillis();
 
         TransferCalculationUtils.logTransferSpeed(endTime - startTime, TransferCalculationUtils.sum(objects));
+        */
 
         return "SUCCESS: Wrote all the files in " + this.inputDirectory.toString() + " to bucket " + this.bucketName;
     }
