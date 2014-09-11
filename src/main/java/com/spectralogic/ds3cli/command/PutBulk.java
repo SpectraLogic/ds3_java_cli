@@ -17,7 +17,6 @@ package com.spectralogic.ds3cli.command;
 
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.logging.Logging;
-import com.spectralogic.ds3cli.util.TransferCalculationUtils;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.helpers.ComputedChecksumModifier;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
@@ -26,6 +25,7 @@ import com.spectralogic.ds3client.helpers.options.WriteJobOptions;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.models.bulk.Priority;
 import com.spectralogic.ds3client.models.bulk.WriteOptimization;
+
 import org.apache.commons.cli.MissingOptionException;
 
 import java.io.IOException;
