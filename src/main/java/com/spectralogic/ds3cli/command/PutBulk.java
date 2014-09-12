@@ -29,7 +29,7 @@ import com.spectralogic.ds3client.models.bulk.WriteOptimization;
 import org.apache.commons.cli.MissingOptionException;
 
 import java.io.IOException;
-import java.io.InputStream;
+import java.nio.channels.SeekableByteChannel;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 
@@ -91,7 +91,6 @@ public class PutBulk extends CliCommand {
     }
 
     class LoggingFileObjectPutter implements Ds3ClientHelpers.ObjectPutter {
-
         final private FileObjectPutter objectPutter;
 
         public LoggingFileObjectPutter(final Path inputDirectory) {
@@ -99,10 +98,9 @@ public class PutBulk extends CliCommand {
         }
 
         @Override
-        public InputStream getContent(final String s) throws IOException {
+        public SeekableByteChannel getContent(final String s) throws IOException {
             Logging.logf("Putting %s to ds3 endpoint", s);
             return this.objectPutter.getContent(s);
         }
     }
-
 }

@@ -20,13 +20,14 @@ import com.spectralogic.ds3cli.BadArgumentException;
 import com.spectralogic.ds3cli.logging.Logging;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.PutObjectRequest;
-import com.spectralogic.ds3client.helpers.ResettableFileInputStream;
+
 import org.apache.commons.cli.MissingOptionException;
 
-import java.io.FileInputStream;
+import java.nio.channels.FileChannel;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 
 public class PutObject extends CliCommand {
 
@@ -66,11 +67,9 @@ public class PutObject extends CliCommand {
     @SuppressWarnings("deprecation")
     @Override
     public String call() throws Exception {
-
-        try(final ResettableFileInputStream stream = new ResettableFileInputStream(new FileInputStream(objectPath.toFile()))) {
-            getClient().putObject(new PutObjectRequest(bucketName, normalizeObjectName(objectName), Files.size(objectPath), stream)).close();
+        try (final FileChannel channel = FileChannel.open(objectPath, StandardOpenOption.READ)) {
+            getClient().putObject(new PutObjectRequest(bucketName, normalizeObjectName(objectName), Files.size(objectPath), channel)).close();
         }
-
         return "Success: Finished writing file to ds3 appliance.";
     }
 
