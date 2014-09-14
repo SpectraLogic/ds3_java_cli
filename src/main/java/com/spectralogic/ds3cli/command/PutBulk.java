@@ -18,7 +18,6 @@ package com.spectralogic.ds3cli.command;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.logging.Logging;
 import com.spectralogic.ds3client.Ds3Client;
-import com.spectralogic.ds3client.helpers.ComputedChecksumModifier;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.helpers.FileObjectPutter;
 import com.spectralogic.ds3client.helpers.options.WriteJobOptions;
@@ -70,15 +69,16 @@ public class PutBulk extends CliCommand {
         final Iterable<Ds3Object> objects = helper.listObjectsForDirectory(this.inputDirectory);
 
         helper.ensureBucketExists(this.bucketName);
-        final Ds3ClientHelpers.WriteJob job = helper.startWriteJob(this.bucketName, objects,
+        final Ds3ClientHelpers.Job job = helper.startWriteJob(this.bucketName, objects,
                 WriteJobOptions.create()
                 .withPriority(this.priority)
                 .withWriteOptimization(this.writeOptimization));
         if (this.checksum) {
-            Logging.log("Performing bulk put with checksum computation enabled");
-            job.withRequestModifier(new ComputedChecksumModifier());
+            throw new java.lang.RuntimeException("Checksum calculation is not implemented in this release.");//TODO
+//            Logging.log("Performing bulk put with checksum computation enabled");
+//            job.withRequestModifier(new ComputedChecksumModifier());
         }
-        job.write(new LoggingFileObjectPutter(this.inputDirectory));
+        job.transfer(new LoggingFileObjectPutter(this.inputDirectory));
 
         /* TODO add back in for next release
         final long startTime = System.currentTimeMillis();
@@ -90,7 +90,7 @@ public class PutBulk extends CliCommand {
         return "SUCCESS: Wrote all the files in " + this.inputDirectory.toString() + " to bucket " + this.bucketName;
     }
 
-    class LoggingFileObjectPutter implements Ds3ClientHelpers.ObjectPutter {
+    class LoggingFileObjectPutter implements Ds3ClientHelpers.ObjectTransferrer {
         final private FileObjectPutter objectPutter;
 
         public LoggingFileObjectPutter(final Path inputDirectory) {
@@ -98,9 +98,9 @@ public class PutBulk extends CliCommand {
         }
 
         @Override
-        public SeekableByteChannel getContent(final String s) throws IOException {
+        public SeekableByteChannel buildChannel(final String s) throws IOException {
             Logging.logf("Putting %s to ds3 endpoint", s);
-            return this.objectPutter.getContent(s);
+            return this.objectPutter.buildChannel(s);
         }
     }
 }
