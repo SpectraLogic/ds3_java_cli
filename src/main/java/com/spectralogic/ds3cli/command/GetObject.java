@@ -19,16 +19,14 @@ import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.logging.Logging;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.GetObjectRequest;
-import com.spectralogic.ds3client.commands.GetObjectResponse;
 import com.spectralogic.ds3client.networking.FailedRequestException;
-import org.apache.commons.cli.MissingOptionException;
-import org.apache.commons.io.IOUtils;
 
-import java.io.InputStream;
-import java.io.OutputStream;
+import org.apache.commons.cli.MissingOptionException;
+
+import java.nio.channels.FileChannel;
 import java.nio.file.FileSystems;
-import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 
 public class GetObject extends CliCommand {
 
@@ -67,18 +65,20 @@ public class GetObject extends CliCommand {
     @Override
     public String call() throws Exception {
         try {
-            final GetObjectRequest request = new GetObjectRequest(bucketName, objectName);
-            if (byteRange != null) {
-                request.withByteRange(byteRange);
-            }
-            final GetObjectResponse response = getClient().getObject(request);
-
             final Path filePath = FileSystems.getDefault().getPath(prefix, objectName);
             Logging.log("Output path: " + filePath.toString());
 
-            try (final InputStream stream = response.getContent();final OutputStream fOut = Files.newOutputStream(filePath)) {
-                IOUtils.copy(stream, fOut);
+            final FileChannel fileChannel = FileChannel.open(
+                filePath,
+                StandardOpenOption.WRITE,
+                StandardOpenOption.CREATE,
+                StandardOpenOption.TRUNCATE_EXISTING
+            );
+            final GetObjectRequest request = new GetObjectRequest(bucketName, objectName, fileChannel);
+            if (byteRange != null) {
+                request.withByteRange(byteRange);
             }
+            getClient().getObject(request).close();
 
             return "SUCCESS: Finished downloading object.  The object was written out to: " + filePath;
         }

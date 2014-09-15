@@ -22,18 +22,16 @@ import com.spectralogic.ds3cli.logging.Logging;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.helpers.FileObjectGetter;
-import com.spectralogic.ds3client.helpers.VerifyingFileObjectGetter;
 import com.spectralogic.ds3client.helpers.options.ReadJobOptions;
 import com.spectralogic.ds3client.models.Contents;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.models.bulk.Priority;
 import com.spectralogic.ds3client.serializer.XmlProcessingException;
-import com.spectralogic.ds3client.utils.Md5Hash;
 
 import org.apache.commons.cli.MissingOptionException;
 
 import java.io.IOException;
-import java.io.InputStream;
+import java.nio.channels.SeekableByteChannel;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.security.SignatureException;
@@ -73,10 +71,11 @@ public class GetBulk extends CliCommand {
 
     @Override
     public String call() throws Exception {
-        final Ds3ClientHelpers.ObjectGetter getter;
+        final Ds3ClientHelpers.ObjectTransferrer getter;
         if (checksum) {
-            Logging.log("Performing get_bulk with checksum verification");
-            getter = new VerifyingFileObjectGetter(this.outputPath);
+            throw new RuntimeException("Checksumming is currently not implemented.");//TODO
+//            Logging.log("Performing get_bulk with checksum verification");
+//            getter = new VerifyingFileObjectGetter(this.outputPath);
         }
         else {
             getter = new FileObjectGetter(this.outputPath);
@@ -92,7 +91,7 @@ public class GetBulk extends CliCommand {
         }
     }
 
-    private String restoreSome(final Ds3ClientHelpers.ObjectGetter getter) throws IOException, SignatureException, XmlProcessingException {
+    private String restoreSome(final Ds3ClientHelpers.ObjectTransferrer getter) throws IOException, SignatureException, XmlProcessingException {
         final Ds3ClientHelpers helper = Ds3ClientHelpers.wrap(getClient());
         final Iterable<Contents> contents = helper.listObjects(this.bucketName, this.prefix);
         final Iterable<Ds3Object> objects = Iterables.transform(contents, new Function<Contents, Ds3Object>() {
@@ -102,39 +101,39 @@ public class GetBulk extends CliCommand {
             }
         });
 
-        final Ds3ClientHelpers.ReadJob job = helper.startReadJob(this.bucketName, objects,
+        final Ds3ClientHelpers.Job job = helper.startReadJob(this.bucketName, objects,
                 ReadJobOptions.create()
                 .withPriority(this.priority));
 
-        job.read(new LoggingFileObjectGetter(getter));
+        job.transfer(new LoggingFileObjectGetter(getter));
 
         return "SUCCESS: Wrote all the objects that start with '"+ this.prefix +"' from " + this.bucketName + " to " + this.outputPath.toString();
     }
 
-    private String restoreAll(final Ds3ClientHelpers.ObjectGetter getter) throws XmlProcessingException, SignatureException, IOException {
+    private String restoreAll(final Ds3ClientHelpers.ObjectTransferrer getter) throws XmlProcessingException, SignatureException, IOException {
         final Ds3ClientHelpers helper = Ds3ClientHelpers.wrap(getClient());
-        final Ds3ClientHelpers.ReadJob job = helper.startReadAllJob(this.bucketName,
+        final Ds3ClientHelpers.Job job = helper.startReadAllJob(this.bucketName,
                 ReadJobOptions.create()
                 .withPriority(this.priority));
 
-        job.read(new LoggingFileObjectGetter(getter));
+        job.transfer(new LoggingFileObjectGetter(getter));
 
         return "SUCCESS: Wrote all the objects from " + this.bucketName + " to " + this.outputPath.toString();
     }
 
 
-    class LoggingFileObjectGetter implements Ds3ClientHelpers.ObjectGetter {
+    class LoggingFileObjectGetter implements Ds3ClientHelpers.ObjectTransferrer {
 
-        final private Ds3ClientHelpers.ObjectGetter objectGetter;
+        final private Ds3ClientHelpers.ObjectTransferrer objectGetter;
 
-        public LoggingFileObjectGetter(final Ds3ClientHelpers.ObjectGetter getter) {
+        public LoggingFileObjectGetter(final Ds3ClientHelpers.ObjectTransferrer getter) {
             this.objectGetter = getter;
         }
 
         @Override
-        public void writeContents(final String s, final InputStream inputStream, final Md5Hash md5) throws IOException {
+        public SeekableByteChannel buildChannel(final String s) throws IOException {
             Logging.logf("Getting object %s", s);
-            this.objectGetter.writeContents(s, inputStream, md5);
+            return this.objectGetter.buildChannel(s);
         }
     }
 }
