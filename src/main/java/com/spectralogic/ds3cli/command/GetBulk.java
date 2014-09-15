@@ -73,7 +73,7 @@ public class GetBulk extends CliCommand {
     public String call() throws Exception {
         final Ds3ClientHelpers.ObjectTransferrer getter;
         if (checksum) {
-            throw new java.lang.RuntimeException("Checksumming is currently not implemented.");//TODO
+            throw new RuntimeException("Checksumming is currently not implemented.");//TODO
 //            Logging.log("Performing get_bulk with checksum verification");
 //            getter = new VerifyingFileObjectGetter(this.outputPath);
         }

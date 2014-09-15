@@ -74,7 +74,7 @@ public class PutBulk extends CliCommand {
                 .withPriority(this.priority)
                 .withWriteOptimization(this.writeOptimization));
         if (this.checksum) {
-            throw new java.lang.RuntimeException("Checksum calculation is not implemented in this release.");//TODO
+            throw new RuntimeException("Checksum calculation is not implemented in this release.");//TODO
 //            Logging.log("Performing bulk put with checksum computation enabled");
 //            job.withRequestModifier(new ComputedChecksumModifier());
         }
