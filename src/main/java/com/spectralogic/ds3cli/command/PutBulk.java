@@ -90,7 +90,7 @@ public class PutBulk extends CliCommand {
         return "SUCCESS: Wrote all the files in " + this.inputDirectory.toString() + " to bucket " + this.bucketName;
     }
 
-    class LoggingFileObjectPutter implements Ds3ClientHelpers.ObjectTransferrer {
+    class LoggingFileObjectPutter implements Ds3ClientHelpers.ObjectChannelBuilder {
         final private FileObjectPutter objectPutter;
 
         public LoggingFileObjectPutter(final Path inputDirectory) {

@@ -68,7 +68,7 @@ public class PutObject extends CliCommand {
     @Override
     public String call() throws Exception {
         try (final FileChannel channel = FileChannel.open(objectPath, StandardOpenOption.READ)) {
-            getClient().putObject(new PutObjectRequest(bucketName, normalizeObjectName(objectName), Files.size(objectPath), channel)).close();
+            getClient().putObject(new PutObjectRequest(bucketName, normalizeObjectName(objectName), Files.size(objectPath), channel));
         }
         return "Success: Finished writing file to ds3 appliance.";
     }

@@ -22,6 +22,7 @@ import com.spectralogic.ds3client.commands.DeleteBucketRequest;
 import com.spectralogic.ds3client.commands.DeleteObjectRequest;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.models.Contents;
+
 import org.apache.commons.cli.MissingOptionException;
 
 import java.io.IOException;
@@ -58,7 +59,7 @@ public class DeleteBucket extends CliCommand {
 
     private String deleteBucket() throws SignatureException {
         try {
-            getClient().deleteBucket(new DeleteBucketRequest(bucketName)).close();
+            getClient().deleteBucket(new DeleteBucketRequest(bucketName));
         }
         catch (final IOException e) {
             return "Error: Request failed with the following error: " + e.getMessage();
@@ -76,10 +77,10 @@ public class DeleteBucket extends CliCommand {
         try {
             final Iterable<Contents> fileList = helper.listObjects(bucketName);
             for (final Contents content : fileList) {
-                client.deleteObject(new DeleteObjectRequest(bucketName, content.getKey())).close();
+                client.deleteObject(new DeleteObjectRequest(bucketName, content.getKey()));
             }
             Logging.log("Deleting bucket");
-            getClient().deleteBucket(new DeleteBucketRequest(bucketName)).close();
+            getClient().deleteBucket(new DeleteBucketRequest(bucketName));
 
         } catch (final IOException e) {
             return "Error: Request failed with the following error: " + e.getMessage();

@@ -78,7 +78,7 @@ public class GetObject extends CliCommand {
             if (byteRange != null) {
                 request.withByteRange(byteRange);
             }
-            getClient().getObject(request).close();
+            getClient().getObject(request);
 
             return "SUCCESS: Finished downloading object.  The object was written out to: " + filePath;
         }
