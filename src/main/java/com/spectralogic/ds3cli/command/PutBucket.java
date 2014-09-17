@@ -21,6 +21,7 @@ import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.PutBucketRequest;
 import com.spectralogic.ds3client.models.bulk.Priority;
 import com.spectralogic.ds3client.models.bulk.WriteOptimization;
+
 import org.apache.commons.cli.MissingOptionException;
 
 import java.io.IOException;
@@ -66,7 +67,7 @@ public class PutBucket extends CliCommand {
                 Logging.logf("Adding a default write optimization (%s) to the create bucket", this.defaultWriteOptimization.toString());
                 request.withDefaultWriteOptimization(defaultWriteOptimization);
             }
-            getClient().putBucket(request).close();
+            getClient().putBucket(request);
         }
         catch (final IOException e) {
              return "Error: Request failed with the following error: " + e.getMessage();

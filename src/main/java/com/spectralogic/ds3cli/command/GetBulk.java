@@ -71,7 +71,7 @@ public class GetBulk extends CliCommand {
 
     @Override
     public String call() throws Exception {
-        final Ds3ClientHelpers.ObjectTransferrer getter;
+        final Ds3ClientHelpers.ObjectChannelBuilder getter;
         if (checksum) {
             throw new RuntimeException("Checksumming is currently not implemented.");//TODO
 //            Logging.log("Performing get_bulk with checksum verification");
@@ -91,7 +91,7 @@ public class GetBulk extends CliCommand {
         }
     }
 
-    private String restoreSome(final Ds3ClientHelpers.ObjectTransferrer getter) throws IOException, SignatureException, XmlProcessingException {
+    private String restoreSome(final Ds3ClientHelpers.ObjectChannelBuilder getter) throws IOException, SignatureException, XmlProcessingException {
         final Ds3ClientHelpers helper = Ds3ClientHelpers.wrap(getClient());
         final Iterable<Contents> contents = helper.listObjects(this.bucketName, this.prefix);
         final Iterable<Ds3Object> objects = Iterables.transform(contents, new Function<Contents, Ds3Object>() {
@@ -110,7 +110,7 @@ public class GetBulk extends CliCommand {
         return "SUCCESS: Wrote all the objects that start with '"+ this.prefix +"' from " + this.bucketName + " to " + this.outputPath.toString();
     }
 
-    private String restoreAll(final Ds3ClientHelpers.ObjectTransferrer getter) throws XmlProcessingException, SignatureException, IOException {
+    private String restoreAll(final Ds3ClientHelpers.ObjectChannelBuilder getter) throws XmlProcessingException, SignatureException, IOException {
         final Ds3ClientHelpers helper = Ds3ClientHelpers.wrap(getClient());
         final Ds3ClientHelpers.Job job = helper.startReadAllJob(this.bucketName,
                 ReadJobOptions.create()
@@ -122,11 +122,11 @@ public class GetBulk extends CliCommand {
     }
 
 
-    class LoggingFileObjectGetter implements Ds3ClientHelpers.ObjectTransferrer {
+    class LoggingFileObjectGetter implements Ds3ClientHelpers.ObjectChannelBuilder {
 
-        final private Ds3ClientHelpers.ObjectTransferrer objectGetter;
+        final private Ds3ClientHelpers.ObjectChannelBuilder objectGetter;
 
-        public LoggingFileObjectGetter(final Ds3ClientHelpers.ObjectTransferrer getter) {
+        public LoggingFileObjectGetter(final Ds3ClientHelpers.ObjectChannelBuilder getter) {
             this.objectGetter = getter;
         }
 

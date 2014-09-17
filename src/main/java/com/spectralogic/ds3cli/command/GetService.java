@@ -42,16 +42,15 @@ public class GetService extends CliCommand {
 
     @Override
     public String call() throws IOException, SignatureException {
-        try (final GetServiceResponse response = getClient().getService(new GetServiceRequest())) {
+        final GetServiceResponse response = getClient().getService(new GetServiceRequest());
 
-            final ListAllMyBucketsResult result = response.getResult();
-            if (result.getBuckets() == null) {
-                return "You do not have any buckets";
-            }
-
-            return "Owner: " + result.getOwner().getDisplayName() + "\n" +
-                    ASCIITable.getInstance().getTable(getHeaders(), formatBucketList(result));
+        final ListAllMyBucketsResult result = response.getResult();
+        if (result.getBuckets() == null) {
+            return "You do not have any buckets";
         }
+
+        return "Owner: " + result.getOwner().getDisplayName() + "\n" +
+                ASCIITable.getInstance().getTable(getHeaders(), formatBucketList(result));
     }
 
     private String[][] formatBucketList(final ListAllMyBucketsResult result) {
