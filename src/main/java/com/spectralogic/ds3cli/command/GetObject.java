@@ -25,6 +25,7 @@ import org.apache.commons.cli.MissingOptionException;
 
 import java.nio.channels.FileChannel;
 import java.nio.file.FileSystems;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 
@@ -67,6 +68,8 @@ public class GetObject extends CliCommand {
         try {
             final Path filePath = FileSystems.getDefault().getPath(prefix, objectName);
             Logging.log("Output path: " + filePath.toString());
+
+            Files.createDirectories(filePath.getParent());
 
             final FileChannel fileChannel = FileChannel.open(
                 filePath,
