@@ -24,7 +24,6 @@ import com.spectralogic.ds3client.helpers.options.WriteJobOptions;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.models.bulk.Priority;
 import com.spectralogic.ds3client.models.bulk.WriteOptimization;
-
 import org.apache.commons.cli.MissingOptionException;
 
 import java.io.IOException;
@@ -96,7 +95,7 @@ public class PutBulk extends CliCommand {
         return "SUCCESS: Wrote all the files in " + this.inputDirectory.toString() + " to bucket " + this.bucketName;
     }
 
-    public static class PrefixedFileObjectPutter implements Ds3ClientHelpers.ObjectChannelBuilder {
+    static class PrefixedFileObjectPutter implements Ds3ClientHelpers.ObjectChannelBuilder {
 
         final private LoggingFileObjectPutter objectPutter;
         final private String prefix;
@@ -128,7 +127,7 @@ public class PutBulk extends CliCommand {
         }
     }
 
-    public static class LoggingFileObjectPutter implements Ds3ClientHelpers.ObjectChannelBuilder {
+    static class LoggingFileObjectPutter implements Ds3ClientHelpers.ObjectChannelBuilder {
         final private FileObjectPutter objectPutter;
 
         public LoggingFileObjectPutter(final Path inputDirectory) {
