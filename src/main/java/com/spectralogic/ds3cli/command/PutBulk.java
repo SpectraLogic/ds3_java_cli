@@ -35,6 +35,7 @@ import java.nio.file.Path;
 public class PutBulk extends CliCommand {
     private String bucketName;
     private Path inputDirectory;
+    private String prefix;
     private boolean checksum;
     private Priority priority;
     private WriteOptimization writeOptimization;
@@ -55,6 +56,11 @@ public class PutBulk extends CliCommand {
             throw new MissingOptionException("The bulk put command required '-d' to be set.");
         }
 
+        if (args.getObjectName() != null) {
+            System.out.println("Warning: '-o' is not used with bulk put and is ignored.");
+        }
+
+        this.prefix = args.getPrefix();
         this.priority = args.getPriority();
         this.writeOptimization = args.getWriteOptimization();
         this.inputDirectory = FileSystems.getDefault().getPath(srcDir);
@@ -68,29 +74,61 @@ public class PutBulk extends CliCommand {
         final Ds3ClientHelpers helper = Ds3ClientHelpers.wrap(getClient());
         final Iterable<Ds3Object> objects = helper.listObjectsForDirectory(this.inputDirectory);
 
+        if (prefix != null) {
+            Logging.logf("Pre-appending %s to all object names", prefix);
+            for(final Ds3Object obj : objects) {
+                obj.setName(prefix + obj.getName());
+            }
+        }
+
         helper.ensureBucketExists(this.bucketName);
         final Ds3ClientHelpers.Job job = helper.startWriteJob(this.bucketName, objects,
                 WriteJobOptions.create()
                 .withPriority(this.priority)
                 .withWriteOptimization(this.writeOptimization));
         if (this.checksum) {
-            throw new RuntimeException("Checksum calculation is not implemented in this release.");//TODO
+            throw new RuntimeException("Checksum calculation is not currently supported."); //TODO
 //            Logging.log("Performing bulk put with checksum computation enabled");
 //            job.withRequestModifier(new ComputedChecksumModifier());
         }
-        job.transfer(new LoggingFileObjectPutter(this.inputDirectory));
-
-        /* TODO add back in for next release
-        final long startTime = System.currentTimeMillis();
-        final long endTime = System.currentTimeMillis();
-
-        TransferCalculationUtils.logTransferSpeed(endTime - startTime, TransferCalculationUtils.sum(objects));
-        */
+        job.transfer(new PrefixedFileObjectPutter(this.inputDirectory, prefix));
 
         return "SUCCESS: Wrote all the files in " + this.inputDirectory.toString() + " to bucket " + this.bucketName;
     }
 
-    class LoggingFileObjectPutter implements Ds3ClientHelpers.ObjectChannelBuilder {
+    public static class PrefixedFileObjectPutter implements Ds3ClientHelpers.ObjectChannelBuilder {
+
+        final private LoggingFileObjectPutter objectPutter;
+        final private String prefix;
+
+        public PrefixedFileObjectPutter(final Path inputDirectory, final String prefix) {
+            this.objectPutter = new LoggingFileObjectPutter(inputDirectory);
+            this.prefix = prefix;
+        }
+
+        @Override
+        public SeekableByteChannel buildChannel(final String s) throws IOException {
+
+            final String objectName;
+
+            if (prefix == null) {
+                objectName = s;
+            }
+            else {
+                if (!s.startsWith(prefix)) {
+                    Logging.logf("The object (%s) does not begin with prefix %s.  Ignoring adding the prefix.", s, prefix);
+                    objectName = s;
+                }
+                else {
+                    objectName = s.substring(prefix.length());
+                }
+            }
+
+            return objectPutter.buildChannel(objectName);
+        }
+    }
+
+    public static class LoggingFileObjectPutter implements Ds3ClientHelpers.ObjectChannelBuilder {
         final private FileObjectPutter objectPutter;
 
         public LoggingFileObjectPutter(final Path inputDirectory) {

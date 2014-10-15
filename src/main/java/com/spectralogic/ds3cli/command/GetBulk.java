@@ -28,6 +28,7 @@ import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.models.bulk.Priority;
 import com.spectralogic.ds3client.serializer.XmlProcessingException;
 
+import com.spectralogic.ds3client.utils.SSLSetupException;
 import org.apache.commons.cli.MissingOptionException;
 
 import java.io.IOException;
@@ -52,6 +53,10 @@ public class GetBulk extends CliCommand {
         this.bucketName = args.getBucket();
         if (this.bucketName == null) {
             throw new MissingOptionException("The bulk get command requires '-b' to be set.");
+        }
+
+        if (args.getObjectName() != null) {
+            System.out.println("Warning: '-o' is not used with bulk get and is ignored.");
         }
 
         final String directory = args.getDirectory();
@@ -91,7 +96,7 @@ public class GetBulk extends CliCommand {
         }
     }
 
-    private String restoreSome(final Ds3ClientHelpers.ObjectChannelBuilder getter) throws IOException, SignatureException, XmlProcessingException {
+    private String restoreSome(final Ds3ClientHelpers.ObjectChannelBuilder getter) throws IOException, SignatureException, XmlProcessingException, SSLSetupException {
         final Ds3ClientHelpers helper = Ds3ClientHelpers.wrap(getClient());
         final Iterable<Contents> contents = helper.listObjects(this.bucketName, this.prefix);
         final Iterable<Ds3Object> objects = Iterables.transform(contents, new Function<Contents, Ds3Object>() {
@@ -110,7 +115,7 @@ public class GetBulk extends CliCommand {
         return "SUCCESS: Wrote all the objects that start with '"+ this.prefix +"' from " + this.bucketName + " to " + this.outputPath.toString();
     }
 
-    private String restoreAll(final Ds3ClientHelpers.ObjectChannelBuilder getter) throws XmlProcessingException, SignatureException, IOException {
+    private String restoreAll(final Ds3ClientHelpers.ObjectChannelBuilder getter) throws XmlProcessingException, SignatureException, IOException, SSLSetupException {
         final Ds3ClientHelpers helper = Ds3ClientHelpers.wrap(getClient());
         final Ds3ClientHelpers.Job job = helper.startReadAllJob(this.bucketName,
                 ReadJobOptions.create()
