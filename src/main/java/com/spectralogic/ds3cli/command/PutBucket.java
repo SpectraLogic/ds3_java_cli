@@ -21,7 +21,6 @@ import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.PutBucketRequest;
 import com.spectralogic.ds3client.models.bulk.Priority;
 import com.spectralogic.ds3client.models.bulk.WriteOptimization;
-
 import org.apache.commons.cli.MissingOptionException;
 
 import java.io.IOException;

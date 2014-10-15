@@ -20,7 +20,6 @@ import com.spectralogic.ds3cli.logging.Logging;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.GetObjectRequest;
 import com.spectralogic.ds3client.networking.FailedRequestException;
-
 import org.apache.commons.cli.MissingOptionException;
 
 import java.nio.channels.FileChannel;

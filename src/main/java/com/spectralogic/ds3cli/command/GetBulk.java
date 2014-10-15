@@ -27,7 +27,6 @@ import com.spectralogic.ds3client.models.Contents;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.models.bulk.Priority;
 import com.spectralogic.ds3client.serializer.XmlProcessingException;
-
 import com.spectralogic.ds3client.utils.SSLSetupException;
 import org.apache.commons.cli.MissingOptionException;
 
