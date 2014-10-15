@@ -22,7 +22,7 @@ import com.spectralogic.ds3client.commands.DeleteBucketRequest;
 import com.spectralogic.ds3client.commands.DeleteObjectRequest;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.models.Contents;
-
+import com.spectralogic.ds3client.utils.SSLSetupException;
 import org.apache.commons.cli.MissingOptionException;
 
 import java.io.IOException;
@@ -57,7 +57,7 @@ public class DeleteBucket extends CliCommand {
         }
     }
 
-    private String deleteBucket() throws SignatureException {
+    private String deleteBucket() throws SignatureException, SSLSetupException {
         try {
             getClient().deleteBucket(new DeleteBucketRequest(bucketName));
         }
@@ -67,7 +67,7 @@ public class DeleteBucket extends CliCommand {
         return "Success: Deleted bucket '" + bucketName + "'.";
     }
 
-    private String clearObjects() throws SignatureException {
+    private String clearObjects() throws SignatureException, SSLSetupException {
         // TODO when the multi object delete command has been added to DS3
         // Get the list of objects from the bucket
         Logging.log("Deleting objects in bucket first");

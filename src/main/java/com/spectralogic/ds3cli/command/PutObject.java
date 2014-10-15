@@ -20,7 +20,6 @@ import com.spectralogic.ds3cli.BadArgumentException;
 import com.spectralogic.ds3cli.logging.Logging;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.PutObjectRequest;
-
 import org.apache.commons.cli.MissingOptionException;
 
 import java.nio.channels.FileChannel;

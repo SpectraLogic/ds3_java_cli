@@ -52,8 +52,14 @@ public class Arguments {
     private WriteOptimization defaultWriteOptimization;
     private boolean clearBucket = false;
     private boolean checksum = false;
+    private boolean certificateVerification = true;
+    private boolean https = true;
+
+    private String version = "N/a";
+    private String buildDate = "N/a";
 
     Arguments(final String[] args) throws BadArgumentException, ParseException {
+        loadProperties();
         this.args = args;
         options = new Options();
 
@@ -102,6 +108,10 @@ public class Arguments {
         defaultWriteOptimization.setArgName("writeOptimization");
         final Option help = new Option("h", "Print Help Menu");
         help.setLongOpt("help");
+        final Option http = new Option(null, "Send all requests over standard http");
+        http.setLongOpt("http");
+        final Option insecure = new Option(null, "Ignore ssl certificate verification");
+        insecure.setLongOpt("insecure");
         final Option version = new Option(null, "Print version information");
         version.setLongOpt("version");
         final Option verbose = new Option(null, "Verbose output");
@@ -124,6 +134,8 @@ public class Arguments {
         options.addOption(priority);
         options.addOption(writeOptimization);
         options.addOption(help);
+        options.addOption(insecure);
+        options.addOption(http);
         options.addOption(version);
         options.addOption(verbose);
 
@@ -136,7 +148,6 @@ public class Arguments {
     }
 
     private void processCommandLine() throws ParseException, BadArgumentException {
-
         final CommandLineParser parser = new BasicParser();
         final CommandLine cmd = parser.parse(options, args);
 
@@ -144,6 +155,7 @@ public class Arguments {
         if (cmd.hasOption("verbose")) {
             Logging.setVerbose(true);
             Logging.log("Verbose output has been enabled");
+            Logging.logf("Version: %s", this.version);
         }
 
         if (cmd.hasOption('h')) {
@@ -154,6 +166,14 @@ public class Arguments {
         if (cmd.hasOption("version")) {
             printVersion();
             System.exit(0);
+        }
+
+        if (cmd.hasOption("insecure")) {
+            setCertificateVerification(false);
+        }
+
+        if (cmd.hasOption("http")) {
+            setHttps(false);
         }
 
         final String retryString = cmd.getOptionValue("r");
@@ -281,20 +301,38 @@ public class Arguments {
         }
     }
 
-    private void printVersion() {
+    public String getVersion() {
+        return version;
+    }
+
+    public String getBuildDate() {
+        return buildDate;
+    }
+
+    private void loadProperties() {
         final Properties props = new Properties();
         final InputStream input = Arguments.class.getClassLoader().getResourceAsStream(PROPERTY_FILE);
         if (input == null) {
             System.err.println("Could not find property file.");
-            return;
         }
-        try {
-            props.load(input);
-            System.out.println("Version: " + props.get("version"));
-            System.out.println("Build Date: " + props.get("build.date"));
-        } catch (final IOException e) {
-            System.err.println("Failed to load property file due to: " + e.getMessage());
+        else {
+            try {
+                props.load(input);
+            this.version = (String) props.get("version");
+            this.buildDate = (String) props.get("build.date");
+            } catch (final IOException e) {
+                System.err.println("Failed to load version property file.");
+                if (Logging.isVerbose()) {
+                    e.printStackTrace();
+                }
+
+            }
         }
+
+    }
+    private void printVersion() {
+        System.out.println("Version: " + getVersion() );
+        System.out.println("Build Date: " + getBuildDate());
     }
 
     public void printHelp() {
@@ -452,5 +490,21 @@ public class Arguments {
 
     private void setDefaultWriteOptimization(final WriteOptimization defaultWriteOptimization) {
         this.defaultWriteOptimization = defaultWriteOptimization;
+    }
+
+    public boolean isCertificateVerification() {
+        return certificateVerification;
+    }
+
+    private void setCertificateVerification(final boolean certificateVerification) {
+        this.certificateVerification = certificateVerification;
+    }
+
+    public boolean isHttps() {
+        return https;
+    }
+
+    private void setHttps(final boolean https) {
+        this.https = https;
     }
 }

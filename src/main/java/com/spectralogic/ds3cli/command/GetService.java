@@ -23,6 +23,7 @@ import com.spectralogic.ds3client.commands.GetServiceRequest;
 import com.spectralogic.ds3client.commands.GetServiceResponse;
 import com.spectralogic.ds3client.models.Bucket;
 import com.spectralogic.ds3client.models.ListAllMyBucketsResult;
+import com.spectralogic.ds3client.utils.SSLSetupException;
 
 import java.io.IOException;
 import java.security.SignatureException;
@@ -41,7 +42,7 @@ public class GetService extends CliCommand {
     }
 
     @Override
-    public String call() throws IOException, SignatureException {
+    public String call() throws IOException, SignatureException, SSLSetupException {
         final GetServiceResponse response = getClient().getService(new GetServiceRequest());
 
         final ListAllMyBucketsResult result = response.getResult();
