@@ -1,6 +1,10 @@
 ds3_java_cli
 ============
 
+## Contact Us
+
+Join us at our [Google Groups](https://groups.google.com/d/forum/spectralogicds3-sdks) forum to ask questions, or see frequently asked questions.
+
 ## Install
 
 To install the latest ds3_java_cli download the latest release(either a zip or tar) from the [Releases](../../releases) page.  Inside of the release download there is a `bin` directory and a `lib` directory.  The `bin` directory contains all the excutable files for both Linux and Windows.  The `lib` directory contains all the jar files that are needed for the cli.  There should be no need to modify anything inside of the `lib` directory.  The only external dependency is the latest [Java 7 or 8 JRE](http://www.oracle.com/technetwork/java/javase/downloads/index.html)
