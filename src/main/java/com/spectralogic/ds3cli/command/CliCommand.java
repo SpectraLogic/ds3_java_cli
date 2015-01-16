@@ -20,7 +20,7 @@ import com.spectralogic.ds3client.Ds3Client;
 
 import java.util.concurrent.Callable;
 
-public abstract class CliCommand implements Callable<String> {
+public abstract class CliCommand<T> implements Callable<T> {
 
     private final Ds3Client client;
 

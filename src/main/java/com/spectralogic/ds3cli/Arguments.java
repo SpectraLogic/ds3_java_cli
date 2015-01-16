@@ -54,6 +54,7 @@ public class Arguments {
     private boolean checksum = false;
     private boolean certificateVerification = true;
     private boolean https = true;
+    private ViewType outputFormat = ViewType.CLI;
 
     private String version = "N/a";
     private String buildDate = "N/a";
@@ -116,7 +117,8 @@ public class Arguments {
         version.setLongOpt("version");
         final Option verbose = new Option(null, "Verbose output");
         verbose.setLongOpt("verbose");
-
+        final Option viewType = new Option(null, true, "Configure how the output should be displayed.  Possible values: ["+ ViewType.valuesString() +"]");
+        verbose.setLongOpt("output-format");
         options.addOption(ds3Endpoint);
         options.addOption(bucket);
         options.addOption(directory);
@@ -138,6 +140,7 @@ public class Arguments {
         options.addOption(http);
         options.addOption(version);
         options.addOption(verbose);
+        options.addOption(viewType);
 
         // Disabled until they are enabled in DS3.
         // options.addOption(defaultGetPriority);
@@ -167,6 +170,17 @@ public class Arguments {
             printVersion();
             System.exit(0);
         }
+
+        if (cmd.hasOption("output-format")) {
+            try {
+                final String commandString = cmd.getOptionValue("c");
+                this.setOutputFormat(ViewType.valueOf(commandString.toUpperCase()));
+            } catch (final IllegalArgumentException e) {
+                throw new BadArgumentException("Unknown command", e);
+            }
+
+        }
+
 
         if (cmd.hasOption("insecure")) {
             setCertificateVerification(false);
@@ -506,5 +520,13 @@ public class Arguments {
 
     private void setHttps(final boolean https) {
         this.https = https;
+    }
+
+    public ViewType getOutputFormat() {
+        return this.outputFormat;
+    }
+
+    private void setOutputFormat(final ViewType outputFormat) {
+        this.outputFormat = outputFormat;
     }
 }

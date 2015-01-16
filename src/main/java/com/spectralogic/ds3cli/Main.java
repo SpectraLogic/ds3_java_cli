@@ -17,14 +17,21 @@ package com.spectralogic.ds3cli;
 
 import com.spectralogic.ds3cli.command.*;
 import com.spectralogic.ds3cli.logging.Logging;
+import com.spectralogic.ds3cli.views.cli.GetServiceView;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.Ds3ClientBuilder;
 import com.spectralogic.ds3client.models.Credentials;
+import com.spectralogic.ds3client.models.ListAllMyBucketsResult;
 import com.spectralogic.ds3client.networking.FailedRequestException;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.Callable;
 
 public class Main implements Callable<String> {
+
+    private final Map<ViewType, Map<Class, View>> views;
+
 
     private final Arguments args;
     private final Ds3Client client;
@@ -32,6 +39,11 @@ public class Main implements Callable<String> {
     public Main(final Arguments args)  {
         this.args = args;
         this.client = createClient(args);
+
+        this.views = new HashMap<>();
+        final Map<Class, View> cliViews = new HashMap<>();
+        cliViews.put(ListAllMyBucketsResult.class, new GetServiceView());
+        views.put(ViewType.CLI, cliViews);
     }
 
     private Ds3Client createClient(final Arguments arguments) {
@@ -50,11 +62,14 @@ public class Main implements Callable<String> {
 
     @Override
     public String call() throws Exception {
-        return getCommandExecutor().init(args).call();
+        final CliCommand command = getCommandExecutor();
+        final View view = views.get(this.args.getOutputFormat()).get(command.getClass());
+
+        return view.render(command.init(this.args).call());
     }
 
     private CliCommand getCommandExecutor() {
-        final CommandValue command = args.getCommand();
+        final CommandValue command = this.args.getCommand();
         switch(command) {
             case GET_OBJECT: {
                 return new GetObject(client);

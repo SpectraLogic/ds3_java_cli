@@ -27,7 +27,7 @@ import org.apache.commons.cli.MissingOptionException;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-public class GetBucket extends CliCommand {
+public class GetBucket extends CliCommand<String> {
     private String bucketName;
     public GetBucket(final Ds3Client client) {
         super(client);
