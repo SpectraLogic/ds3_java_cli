@@ -17,12 +17,12 @@ package com.spectralogic.ds3cli;
 
 import com.spectralogic.ds3cli.command.*;
 import com.spectralogic.ds3cli.logging.Logging;
-import com.spectralogic.ds3cli.views.cli.GetServiceView;
+import com.spectralogic.ds3cli.views.cli.*;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.Ds3ClientBuilder;
 import com.spectralogic.ds3client.models.Credentials;
-import com.spectralogic.ds3client.models.ListAllMyBucketsResult;
 import com.spectralogic.ds3client.networking.FailedRequestException;
+
 
 import java.util.HashMap;
 import java.util.Map;
@@ -30,9 +30,7 @@ import java.util.concurrent.Callable;
 
 public class Main implements Callable<String> {
 
-    private final Map<ViewType, Map<Class, View>> views;
-
-
+    private final Map<ViewType, Map<CommandValue, View>> views;
     private final Arguments args;
     private final Ds3Client client;
 
@@ -41,8 +39,12 @@ public class Main implements Callable<String> {
         this.client = createClient(args);
 
         this.views = new HashMap<>();
-        final Map<Class, View> cliViews = new HashMap<>();
-        cliViews.put(ListAllMyBucketsResult.class, new GetServiceView());
+        final Map<CommandValue, View> cliViews = new HashMap<>();
+        cliViews.put( CommandValue.GET_SERVICE, new GetServiceView() );
+        cliViews.put( CommandValue.GET_BUCKET, new GetBucketView() );
+
+        // TODO fill in all View types
+
         views.put(ViewType.CLI, cliViews);
     }
 
@@ -63,9 +65,14 @@ public class Main implements Callable<String> {
     @Override
     public String call() throws Exception {
         final CliCommand command = getCommandExecutor();
-        final View view = views.get(this.args.getOutputFormat()).get(command.getClass());
+        final View view = views.get(this.args.getOutputFormat()).get(this.args.getCommand());
 
-        return view.render(command.init(this.args).call());
+        try {
+            return view.render(command.init(this.args).call());
+        }
+        catch(final CommandException e) {
+            return e.getMessage();
+        }
     }
 
     private CliCommand getCommandExecutor() {

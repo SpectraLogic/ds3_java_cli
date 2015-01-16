@@ -15,8 +15,8 @@ public class GetServiceView implements View<ListAllMyBucketsResult> {
             return "You do not have any buckets";
         }
 
-    return "Owner: " + obj.getOwner().getDisplayName() + "\n" +
-        ASCIITable.getInstance().getTable(getHeaders(), formatBucketList(obj));
+        return "Owner: " + obj.getOwner().getDisplayName() + "\n" +
+            ASCIITable.getInstance().getTable(getHeaders(), formatBucketList(obj));
     }
 
     private String[][] formatBucketList(final ListAllMyBucketsResult result) {
