@@ -39,13 +39,16 @@ public class Main implements Callable<String> {
         this.client = createClient(args);
 
         this.views = new HashMap<>();
+        views.put(ViewType.CLI, getCliViews());
+    }
+
+    // TODO fill in all View types
+    private Map getCliViews(){
         final Map<CommandValue, View> cliViews = new HashMap<>();
         cliViews.put( CommandValue.GET_SERVICE, new GetServiceView() );
         cliViews.put( CommandValue.GET_BUCKET, new GetBucketView() );
-
-        // TODO fill in all View types
-
-        views.put(ViewType.CLI, cliViews);
+        cliViews.put( CommandValue.GET_OBJECT, new GetObjectView() );
+        return cliViews;
     }
 
     private Ds3Client createClient(final Arguments arguments) {

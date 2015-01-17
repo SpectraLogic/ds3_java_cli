@@ -18,7 +18,7 @@ package com.spectralogic.ds3cli.command;
 
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.CommandException;
-import com.spectralogic.ds3cli.models.BucketResult;
+import com.spectralogic.ds3cli.models.GetBucketResult;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.models.Contents;
@@ -27,7 +27,7 @@ import org.apache.commons.cli.MissingOptionException;
 
 import java.util.Iterator;
 
-public class GetBucket extends CliCommand<BucketResult> {
+public class GetBucket extends CliCommand<GetBucketResult> {
     private String bucketName;
     public GetBucket(final Ds3Client client) {
         super(client);
@@ -43,7 +43,7 @@ public class GetBucket extends CliCommand<BucketResult> {
     }
 
     @Override
-    public BucketResult call() throws Exception {
+    public GetBucketResult call() throws Exception {
 
         try {
             final Ds3ClientHelpers helper = Ds3ClientHelpers.wrap(getClient());
@@ -52,10 +52,12 @@ public class GetBucket extends CliCommand<BucketResult> {
             final Iterator<Contents> objIterator = objects.iterator();
 
             if(!objIterator.hasNext()) {
+                //DM TODO is this really an exceptional situation?
                 throw new CommandException("No objects were reported in the bucket '" + bucketName + "'" );
+                // return new GetBucketResult( "No objects were reported in the bucket '" + bucketName + "'", null );
             }
 
-            return new BucketResult( bucketName, objIterator);
+            return new GetBucketResult( bucketName, objIterator);
 
         }
         catch(final FailedRequestException e) {

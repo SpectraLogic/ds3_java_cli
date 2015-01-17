@@ -16,7 +16,9 @@
 package com.spectralogic.ds3cli.command;
 
 import com.spectralogic.ds3cli.Arguments;
+import com.spectralogic.ds3cli.CommandException;
 import com.spectralogic.ds3cli.logging.Logging;
+import com.spectralogic.ds3cli.models.GetObjectResult;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.GetObjectRequest;
 import com.spectralogic.ds3client.networking.FailedRequestException;
@@ -63,7 +65,7 @@ public class GetObject extends CliCommand {
 
     @SuppressWarnings("deprecation")
     @Override
-    public String call() throws Exception {
+    public GetObjectResult call() throws Exception {
         try {
             final Path filePath = FileSystems.getDefault().getPath(prefix, objectName);
             Logging.log("Output path: " + filePath.toString());
@@ -82,7 +84,7 @@ public class GetObject extends CliCommand {
             }
             getClient().getObject(request);
 
-            return "SUCCESS: Finished downloading object.  The object was written out to: " + filePath;
+            return new GetObjectResult("SUCCESS: Finished downloading object.  The object was written out to: " + filePath);
         }
         catch(final FailedRequestException e) {
             if(e.getStatusCode() == 500) {
@@ -90,19 +92,19 @@ public class GetObject extends CliCommand {
                 if (Logging.isVerbose()) {
                     e.printStackTrace();
                 }
-                return "Error: Cannot communicate with the remote DS3 appliance.";
+                throw new CommandException( "Error: Cannot communicate with the remote DS3 appliance.", e);
             }
             else if(e.getStatusCode() == 404) {
                 if (Logging.isVerbose()) {
                     e.printStackTrace();
                 }
-                return "Error: " + e.getMessage();
+                throw new CommandException( "Error: " + e.getMessage(), e);
             }
             else {
                 if (Logging.isVerbose()) {
                     e.printStackTrace();
                 }
-                return "Error: Encountered an unknown error of ("+ e.getStatusCode() +") while accessing the remote DS3 appliance.";
+                throw new CommandException( "Error: Encountered an unknown error of ("+ e.getStatusCode() +") while accessing the remote DS3 appliance.", e);
             }
         }
     }

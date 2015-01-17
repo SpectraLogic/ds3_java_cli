@@ -14,7 +14,7 @@
  */
 package com.spectralogic.ds3cli.logging;
 
-public class Logging {
+public class  Logging {
     private Logging() {/* Logging should not be created. */}
     private final static Logger logger = new StdoutLoggerImpl();
 

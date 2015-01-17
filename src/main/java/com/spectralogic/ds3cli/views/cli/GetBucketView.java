@@ -3,16 +3,16 @@ package com.spectralogic.ds3cli.views.cli;
 import com.bethecoder.ascii_table.ASCIITable;
 import com.bethecoder.ascii_table.ASCIITableHeader;
 import com.spectralogic.ds3cli.View;
-import com.spectralogic.ds3cli.models.BucketResult;
+import com.spectralogic.ds3cli.models.GetBucketResult;
 import com.spectralogic.ds3client.models.Contents;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 
-public class GetBucketView implements View<BucketResult> {
+public class GetBucketView implements View<GetBucketResult> {
 
     @Override
-    public String render(final BucketResult br) {
+    public String render(final GetBucketResult br) {
         if( !br.getObjIterator().hasNext()) {
             return "No objects were reported in the bucket '" + br.getBucketName() + "'";
         }
@@ -51,6 +51,7 @@ public class GetBucketView implements View<BucketResult> {
         if(message == null) {
             return "N/A";
         }
+
         return message;
     }
 }

@@ -4,7 +4,7 @@ import com.spectralogic.ds3client.models.Contents;
 
 import java.util.Iterator;
 
-public class BucketResult {
+public class GetBucketResult {
     final private String bucketName;
     final private Iterator<Contents> objIterator;
 
@@ -16,7 +16,7 @@ public class BucketResult {
         return objIterator;
     }
 
-    public BucketResult( final String bucketName, final Iterator<Contents> objIterator) {
+    public GetBucketResult(final String bucketName, final Iterator<Contents> objIterator) {
         this.bucketName = bucketName;
         this.objIterator = objIterator;
     }
