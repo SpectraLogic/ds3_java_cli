@@ -48,6 +48,7 @@ public class Main implements Callable<String> {
         cliViews.put( CommandValue.GET_SERVICE, new GetServiceView() );
         cliViews.put( CommandValue.GET_BUCKET, new GetBucketView() );
         cliViews.put( CommandValue.GET_OBJECT, new GetObjectView() );
+        cliViews.put( CommandValue.DELETE_BUCKET, new DeleteBucketView() );
         return cliViews;
     }
 

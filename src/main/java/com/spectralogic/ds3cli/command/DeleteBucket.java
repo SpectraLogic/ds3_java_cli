@@ -16,7 +16,9 @@
 package com.spectralogic.ds3cli.command;
 
 import com.spectralogic.ds3cli.Arguments;
+import com.spectralogic.ds3cli.CommandException;
 import com.spectralogic.ds3cli.logging.Logging;
+import com.spectralogic.ds3cli.models.DeleteBucketResult;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.DeleteBucketRequest;
 import com.spectralogic.ds3client.commands.DeleteObjectRequest;
@@ -47,7 +49,7 @@ public class DeleteBucket extends CliCommand {
     }
 
     @Override
-    public String call() throws Exception {
+    public DeleteBucketResult call() throws Exception {
 
         if (clearBucket) {
             return clearObjects();
@@ -57,17 +59,17 @@ public class DeleteBucket extends CliCommand {
         }
     }
 
-    private String deleteBucket() throws SignatureException, SSLSetupException {
+    private DeleteBucketResult deleteBucket() throws SignatureException, SSLSetupException, CommandException {
         try {
             getClient().deleteBucket(new DeleteBucketRequest(bucketName));
         }
         catch (final IOException e) {
-            return "Error: Request failed with the following error: " + e.getMessage();
+            throw new CommandException("Error: Request failed with the following error: " + e.getMessage(), e);
         }
-        return "Success: Deleted bucket '" + bucketName + "'.";
+        return new DeleteBucketResult("Success: Deleted bucket '" + bucketName + "'.");
     }
 
-    private String clearObjects() throws SignatureException, SSLSetupException {
+    private DeleteBucketResult clearObjects() throws SignatureException, SSLSetupException, CommandException {
         // TODO when the multi object delete command has been added to DS3
         // Get the list of objects from the bucket
         Logging.log("Deleting objects in bucket first");
@@ -83,8 +85,8 @@ public class DeleteBucket extends CliCommand {
             getClient().deleteBucket(new DeleteBucketRequest(bucketName));
 
         } catch (final IOException e) {
-            return "Error: Request failed with the following error: " + e.getMessage();
+            throw new CommandException("Error: Request failed with the following error: " + e.getMessage(), e);
         }
-        return "Success: Deleted " + bucketName + " and all the objects contained in it.";
+        return new DeleteBucketResult("Success: Deleted " + bucketName + " and all the objects contained in it.");
     }
 }
