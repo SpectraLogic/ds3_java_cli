@@ -52,24 +52,24 @@ public class DeleteBucket extends CliCommand {
     public DeleteBucketResult call() throws Exception {
 
         if (clearBucket) {
-            return clearObjects();
+            return new DeleteBucketResult( clearObjects() );
         }
         else {
-            return deleteBucket();
+            return new DeleteBucketResult( deleteBucket() );
         }
     }
 
-    private DeleteBucketResult deleteBucket() throws SignatureException, SSLSetupException, CommandException {
+    private String deleteBucket() throws SignatureException, SSLSetupException, CommandException {
         try {
             getClient().deleteBucket(new DeleteBucketRequest(bucketName));
         }
         catch (final IOException e) {
             throw new CommandException("Error: Request failed with the following error: " + e.getMessage(), e);
         }
-        return new DeleteBucketResult("Success: Deleted bucket '" + bucketName + "'.");
+        return "Success: Deleted bucket '" + bucketName + "'.";
     }
 
-    private DeleteBucketResult clearObjects() throws SignatureException, SSLSetupException, CommandException {
+    private String clearObjects() throws SignatureException, SSLSetupException, CommandException {
         // TODO when the multi object delete command has been added to DS3
         // Get the list of objects from the bucket
         Logging.log("Deleting objects in bucket first");
@@ -87,6 +87,6 @@ public class DeleteBucket extends CliCommand {
         } catch (final IOException e) {
             throw new CommandException("Error: Request failed with the following error: " + e.getMessage(), e);
         }
-        return new DeleteBucketResult("Success: Deleted " + bucketName + " and all the objects contained in it.");
+        return "Success: Deleted " + bucketName + " and all the objects contained in it.";
     }
 }

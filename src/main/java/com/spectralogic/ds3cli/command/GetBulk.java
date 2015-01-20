@@ -19,6 +19,7 @@ import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.logging.Logging;
+import com.spectralogic.ds3cli.models.GetBulkResult;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.helpers.FileObjectGetter;
@@ -74,7 +75,7 @@ public class GetBulk extends CliCommand {
 
 
     @Override
-    public String call() throws Exception {
+    public GetBulkResult call() throws Exception {
         final Ds3ClientHelpers.ObjectChannelBuilder getter;
         if (checksum) {
             throw new RuntimeException("Checksumming is currently not implemented.");//TODO
@@ -87,11 +88,11 @@ public class GetBulk extends CliCommand {
 
         if (this.prefix == null) {
             Logging.log("Getting all objects from " + this.bucketName);
-            return restoreAll(getter);
+            return new GetBulkResult(restoreAll(getter));
         }
         else {
             Logging.log("Getting only those objects that start with " + this.prefix);
-            return restoreSome(getter);
+            return new GetBulkResult(restoreSome(getter));
         }
     }
 

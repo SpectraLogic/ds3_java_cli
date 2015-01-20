@@ -50,6 +50,7 @@ public class Main implements Callable<String> {
         cliViews.put( CommandValue.GET_OBJECT, new GetObjectView() );
         cliViews.put( CommandValue.DELETE_BUCKET, new DeleteBucketView() );
         cliViews.put( CommandValue.DELETE_OBJECT, new DeleteObjectView() );
+        cliViews.put( CommandValue.GET_BULK, new GetBulkView() );
         return cliViews;
     }
 
