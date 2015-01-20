@@ -33,6 +33,7 @@ public class Ds3Cli implements Callable<String> {
         cliViews.put( CommandValue.DELETE_OBJECT, new DeleteObjectView() );
         cliViews.put( CommandValue.GET_BULK, new GetBulkView() );
         cliViews.put( CommandValue.PUT_BUCKET, new PutBucketView() );
+        cliViews.put( CommandValue.PUT_BULK, new PutBulkView() );
         return cliViews;
     }
 
