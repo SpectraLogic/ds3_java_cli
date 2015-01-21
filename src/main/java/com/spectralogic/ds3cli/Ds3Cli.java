@@ -19,37 +19,37 @@ public class Ds3Cli implements Callable<String> {
     Ds3Cli(final Arguments args)  {
         this.args = args;
         this.client = createClient(args);
-        this.views = new HashMap<>();
-        views.put(ViewType.CLI, getCliViews());
+        this.views = getViews();
     }
 
-    // TODO fill in all View types
+    private Map getViews(){
+        Map allViews = new HashMap<>();
+        allViews.put( ViewType.CLI, getCliViews() );
+        allViews.put( ViewType.JSON, getJsonViews() );
+        //TODO XML
+        return allViews;
+    }
+
     private Map getCliViews(){
         final Map<CommandValue, View> cliViews = new HashMap<>();
-        cliViews.put( CommandValue.GET_SERVICE, new GetServiceView() );
-        cliViews.put( CommandValue.GET_BUCKET, new GetBucketView() );
-        cliViews.put( CommandValue.GET_OBJECT, new GetObjectView() );
-        cliViews.put( CommandValue.DELETE_BUCKET, new DeleteBucketView() );
-        cliViews.put( CommandValue.DELETE_OBJECT, new DeleteObjectView() );
-        cliViews.put( CommandValue.GET_BULK, new GetBulkView() );
-        cliViews.put( CommandValue.PUT_BUCKET, new PutBucketView() );
-        cliViews.put( CommandValue.PUT_BULK, new PutBulkView() );
-        cliViews.put( CommandValue.PUT_OBJECT, new PutObjectView() );
+        cliViews.put( CommandValue.GET_SERVICE, new com.spectralogic.ds3cli.views.cli.GetServiceView() );
+        cliViews.put( CommandValue.GET_BUCKET, new com.spectralogic.ds3cli.views.cli.GetBucketView() );
+        cliViews.put( CommandValue.GET_OBJECT, new com.spectralogic.ds3cli.views.cli.GetObjectView() );
+        cliViews.put( CommandValue.DELETE_BUCKET, new com.spectralogic.ds3cli.views.cli.DeleteBucketView() );
+        cliViews.put( CommandValue.DELETE_OBJECT, new com.spectralogic.ds3cli.views.cli.DeleteObjectView() );
+        cliViews.put( CommandValue.GET_BULK, new com.spectralogic.ds3cli.views.cli.GetBulkView() );
+        cliViews.put( CommandValue.PUT_BUCKET, new com.spectralogic.ds3cli.views.cli.PutBucketView() );
+        cliViews.put( CommandValue.PUT_BULK, new com.spectralogic.ds3cli.views.cli.PutBulkView() );
+        cliViews.put( CommandValue.PUT_OBJECT, new com.spectralogic.ds3cli.views.cli.PutObjectView() );
         return cliViews;
     }
 
-    // TODO
-    /*private Map getJsonViews(){
+    // TODO fill in all Commands
+    private Map getJsonViews(){
         final Map<CommandValue, View> jsonViews = new HashMap<>();
-        jsonViews.put( CommandValue.GET_SERVICE, new GetServiceView() );
-        jsonViews.put( CommandValue.GET_BUCKET, new GetBucketView() );
-        jsonViews.put( CommandValue.GET_OBJECT, new GetObjectView() );
-        jsonViews.put( CommandValue.DELETE_BUCKET, new DeleteBucketView() );
-        jsonViews.put( CommandValue.DELETE_OBJECT, new DeleteObjectView() );
-        jsonViews.put( CommandValue.GET_BULK, new GetBulkView() );
-        jsonViews.put( CommandValue.PUT_BUCKET, new PutBucketView() );
+        jsonViews.put( CommandValue.GET_SERVICE, new com.spectralogic.ds3cli.views.json.GetServiceView() );
         return jsonViews;
-    }*/
+    }
 
     private Ds3Client createClient(final Arguments arguments) {
         final Ds3ClientBuilder builder = Ds3ClientBuilder.create(
@@ -68,6 +68,7 @@ public class Ds3Cli implements Callable<String> {
     @Override
     public String call() throws Exception {
         final CliCommand command = getCommandExecutor();
+
         final View view = views.get(this.args.getOutputFormat()).get(this.args.getCommand());
 
         try {

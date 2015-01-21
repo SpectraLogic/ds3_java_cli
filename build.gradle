@@ -43,6 +43,11 @@ dependencies {
   compile 'commons-cli:commons-cli:1.2'
   compile 'com.google.guava:guava:16.0.1'
   compile 'com.spectralogic.ds3:ds3-sdk:0.7.7-SNAPSHOT'
+  compile (
+    [group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.5.0'],
+    [group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: '2.5.0'],
+    [group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.5.0']
+  )
   testCompile 'com.googlecode.jmockit:jmockit:1.4'
   testCompile 'junit:junit:4.11'
 }

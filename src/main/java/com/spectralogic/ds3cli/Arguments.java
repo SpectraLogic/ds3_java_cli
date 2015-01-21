@@ -118,7 +118,7 @@ public class Arguments {
         final Option verbose = new Option(null, "Verbose output");
         verbose.setLongOpt("verbose");
         final Option viewType = new Option(null, true, "Configure how the output should be displayed.  Possible values: ["+ ViewType.valuesString() +"]");
-        verbose.setLongOpt("output-format");
+        viewType.setLongOpt("output-format");
         options.addOption(ds3Endpoint);
         options.addOption(bucket);
         options.addOption(directory);
@@ -173,7 +173,7 @@ public class Arguments {
 
         if (cmd.hasOption("output-format")) {
             try {
-                final String commandString = cmd.getOptionValue("c");
+                final String commandString = cmd.getOptionValue("output-format");
                 this.setOutputFormat(ViewType.valueOf(commandString.toUpperCase()));
             } catch (final IllegalArgumentException e) {
                 throw new BadArgumentException("Unknown command", e);
