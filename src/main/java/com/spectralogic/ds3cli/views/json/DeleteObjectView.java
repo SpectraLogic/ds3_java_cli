@@ -1,5 +1,5 @@
 /*
- * ******************************************************************************
+ * *****************************************************************************
  *   Copyright 2014 Spectra Logic Corporation. All Rights Reserved.
  *   Licensed under the Apache License, Version 2.0 (the "License"). You may not use
  *   this file except in compliance with the License. A copy of the License is located at
@@ -10,17 +10,20 @@
  *   This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
  *   CONDITIONS OF ANY KIND, either express or implied. See the License for the
  *   specific language governing permissions and limitations under the License.
- * ****************************************************************************
+ * ***************************************************************************
  */
 
-package com.spectralogic.ds3cli.views.cli;
+package com.spectralogic.ds3cli.views.json;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.spectralogic.ds3cli.View;
-import com.spectralogic.ds3cli.models.PutObjectResult;
+import com.spectralogic.ds3cli.models.StatusResult;
 
-public class PutObjectView implements View<PutObjectResult> {
+public class DeleteObjectView implements View<StatusResult> {
     @Override
-    public String render(final PutObjectResult result) {
-        return result.getResult();
+    public String render( StatusResult result ) throws JsonProcessingException {
+        ObjectMapper mapper = new ObjectMapper();
+        return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(result);
     }
 }

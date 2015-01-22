@@ -13,14 +13,31 @@
  * ****************************************************************************
  */
 
-package com.spectralogic.ds3cli.views.cli;
+package com.spectralogic.ds3cli.models;
 
-import com.spectralogic.ds3cli.View;
-import com.spectralogic.ds3cli.models.PutObjectResult;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class PutObjectView implements View<PutObjectResult> {
-    @Override
-    public String render(final PutObjectResult result) {
-        return result.getResult();
+public class StatusResult {
+    @JsonProperty("status_message")
+    final private String    result;
+    @JsonProperty("status_code")
+    final private int       status;
+
+    final public String getResult(){
+        return this.result;
+    }
+
+    final public int getStatus(){
+        return this.status;
+    }
+
+    public StatusResult(final String result){
+        this.result = result;
+        this.status = 0;
+    }
+
+    public StatusResult(final String result, final int status){
+        this.result = result;
+        this.status = status;
     }
 }

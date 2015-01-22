@@ -13,14 +13,17 @@
  * ****************************************************************************
  */
 
-package com.spectralogic.ds3cli.views.cli;
+package com.spectralogic.ds3cli.views.json;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.spectralogic.ds3cli.View;
-import com.spectralogic.ds3cli.models.PutObjectResult;
+import com.spectralogic.ds3cli.models.DeleteBucketResult;
 
-public class PutObjectView implements View<PutObjectResult> {
+public class DeleteBucketView implements View<DeleteBucketResult> {
     @Override
-    public String render(final PutObjectResult result) {
-        return result.getResult();
+    public String render( DeleteBucketResult result ) throws JsonProcessingException {
+        ObjectMapper mapper = new ObjectMapper();
+        return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(result);
     }
 }
