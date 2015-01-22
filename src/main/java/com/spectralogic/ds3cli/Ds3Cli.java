@@ -49,8 +49,13 @@ public class Ds3Cli implements Callable<String> {
         final Map<CommandValue, View> jsonViews = new HashMap<>();
         jsonViews.put( CommandValue.GET_SERVICE,    new com.spectralogic.ds3cli.views.json.GetServiceView() );
         jsonViews.put( CommandValue.GET_BUCKET,     new com.spectralogic.ds3cli.views.json.GetBucketView() );
+        jsonViews.put( CommandValue.GET_BULK,       new com.spectralogic.ds3cli.views.json.GetBulkView() );
+        jsonViews.put( CommandValue.GET_OBJECT,     new com.spectralogic.ds3cli.views.json.GetObjectView() );
         jsonViews.put( CommandValue.DELETE_BUCKET,  new com.spectralogic.ds3cli.views.json.DeleteBucketView() );
         jsonViews.put( CommandValue.DELETE_OBJECT,  new com.spectralogic.ds3cli.views.json.DeleteObjectView() );
+        jsonViews.put( CommandValue.PUT_BUCKET,     new com.spectralogic.ds3cli.views.json.PutBucketView() );
+        jsonViews.put( CommandValue.PUT_BULK,       new com.spectralogic.ds3cli.views.json.PutBulkView() );
+        jsonViews.put( CommandValue.PUT_OBJECT,     new com.spectralogic.ds3cli.views.json.PutObjectView() );
         return jsonViews;
     }
 
