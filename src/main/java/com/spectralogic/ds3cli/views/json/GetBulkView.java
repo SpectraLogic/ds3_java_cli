@@ -23,8 +23,8 @@ import com.spectralogic.ds3cli.models.GetObjectResult;
 
 public class GetBulkView implements View<GetBulkResult> {
     @Override
-    public String render( GetBulkResult result ) throws JsonProcessingException {
-        ObjectMapper mapper = new ObjectMapper();
+    public String render( final GetBulkResult result ) throws JsonProcessingException {
+        final ObjectMapper mapper = new ObjectMapper();
         return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(result);
     }
 }

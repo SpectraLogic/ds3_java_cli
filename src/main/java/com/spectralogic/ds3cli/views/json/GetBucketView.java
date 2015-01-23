@@ -23,7 +23,7 @@ import com.spectralogic.ds3cli.models.GetBucketResult;
 public class GetBucketView implements View<GetBucketResult> {
     @Override
     public String render(final GetBucketResult result) throws JsonProcessingException {
-        ObjectMapper mapper = new ObjectMapper();
+        final ObjectMapper mapper = new ObjectMapper();
 
         return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(result);
     }

@@ -22,8 +22,8 @@ import com.spectralogic.ds3cli.models.GetObjectResult;
 
 public class GetObjectView implements View<GetObjectResult> {
     @Override
-    public String render( GetObjectResult result ) throws JsonProcessingException {
-        ObjectMapper mapper = new ObjectMapper();
+    public String render( final GetObjectResult result ) throws JsonProcessingException {
+        final ObjectMapper mapper = new ObjectMapper();
         return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(result);
     }
 }

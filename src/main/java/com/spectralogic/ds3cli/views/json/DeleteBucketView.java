@@ -22,8 +22,8 @@ import com.spectralogic.ds3cli.models.DeleteBucketResult;
 
 public class DeleteBucketView implements View<DeleteBucketResult> {
     @Override
-    public String render( DeleteBucketResult result ) throws JsonProcessingException {
-        ObjectMapper mapper = new ObjectMapper();
+    public String render( final DeleteBucketResult result ) throws JsonProcessingException {
+        final ObjectMapper mapper = new ObjectMapper();
         return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(result);
     }
 }

@@ -28,8 +28,8 @@ public class GetBucketView implements View<GetBucketResult> {
 
     @Override
     public String render(final GetBucketResult br) {
-        if( !br.getObjIterator().hasNext()) {
-            return "No objects were reported in the bucket '" + br.getBucketName() + "'";
+        if( (null == br.getObjIterator()) || !br.getObjIterator().hasNext()) {
+            return "No objects were reported in bucket '" + br.getBucketName() + "'";
         }
 
         return ASCIITable.getInstance().getTable(getHeaders(), formatBucketList(br.getObjIterator()));

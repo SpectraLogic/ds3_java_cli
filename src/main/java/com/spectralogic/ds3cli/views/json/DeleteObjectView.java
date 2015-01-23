@@ -18,12 +18,12 @@ package com.spectralogic.ds3cli.views.json;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.spectralogic.ds3cli.View;
-import com.spectralogic.ds3cli.models.StatusResult;
+import com.spectralogic.ds3cli.models.DeleteObjectResult;
 
-public class DeleteObjectView implements View<StatusResult> {
+public class DeleteObjectView implements View<DeleteObjectResult> {
     @Override
-    public String render( StatusResult result ) throws JsonProcessingException {
-        ObjectMapper mapper = new ObjectMapper();
+    public String render( final DeleteObjectResult result ) throws JsonProcessingException {
+        final ObjectMapper mapper = new ObjectMapper();
         return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(result);
     }
 }

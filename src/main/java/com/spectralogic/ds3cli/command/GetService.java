@@ -42,9 +42,6 @@ public class GetService extends CliCommand<ListAllMyBucketsResult> {
         final GetServiceResponse response = getClient().getService(new GetServiceRequest());
 
         final ListAllMyBucketsResult result = response.getResult();
-        if (result.getBuckets() == null) {
-            return null;
-        }
 
         return result;
     }

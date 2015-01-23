@@ -26,7 +26,7 @@ import java.util.List;
 public class GetServiceView implements View<ListAllMyBucketsResult> {
     @Override
     public String render(final ListAllMyBucketsResult obj) {
-        if (obj == null) {
+        if( (obj == null) || (null == obj.getBuckets()) ){
             return "You do not have any buckets";
         }
 

@@ -1,10 +1,11 @@
 package com.spectralogic.ds3cli;
 
 import com.spectralogic.ds3cli.command.*;
-import com.spectralogic.ds3cli.views.cli.*;
+import com.spectralogic.ds3cli.logging.Logging;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.Ds3ClientBuilder;
 import com.spectralogic.ds3client.models.Credentials;
+import com.spectralogic.ds3client.networking.FailedRequestException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -12,9 +13,9 @@ import java.util.concurrent.Callable;
 
 public class Ds3Cli implements Callable<String> {
 
-    private Map<ViewType, Map<CommandValue, View>> views;
-    private Arguments args;
-    private Ds3Client client;
+    private final Map<ViewType, Map<CommandValue, View>> views;
+    private final Arguments args;
+    private final Ds3Client client;
 
     Ds3Cli(final Arguments args)  {
         this.args = args;
@@ -23,7 +24,7 @@ public class Ds3Cli implements Callable<String> {
     }
 
     private Map getViews(){
-        Map allViews = new HashMap<>();
+        final Map allViews = new HashMap<>();
         allViews.put( ViewType.CLI, getCliViews() );
         allViews.put( ViewType.JSON, getJsonViews() );
         //TODO XML
@@ -44,7 +45,6 @@ public class Ds3Cli implements Callable<String> {
         return cliViews;
     }
 
-    // TODO fill in all Commands
     private Map getJsonViews(){
         final Map<CommandValue, View> jsonViews = new HashMap<>();
         jsonViews.put( CommandValue.GET_SERVICE,    new com.spectralogic.ds3cli.views.json.GetServiceView() );

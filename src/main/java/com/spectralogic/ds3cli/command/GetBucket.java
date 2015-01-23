@@ -51,14 +51,7 @@ public class GetBucket extends CliCommand<GetBucketResult> {
             final Iterable<Contents> objects = helper.listObjects(bucketName);
             final Iterator<Contents> objIterator = objects.iterator();
 
-            if(!objIterator.hasNext()) {
-                //DM TODO is this really an exceptional situation?
-                throw new CommandException("No objects were reported in the bucket '" + bucketName + "'" );
-                // return new GetBucketResult( "No objects were reported in the bucket '" + bucketName + "'", null );
-            }
-
             return new GetBucketResult( bucketName, objIterator);
-
         }
         catch(final FailedRequestException e) {
             if(e.getStatusCode() == 500) {

@@ -10,11 +10,11 @@ public class GetServiceView implements View<ListAllMyBucketsResult> {
 
     @Override
     public String render(final ListAllMyBucketsResult obj) throws JsonProcessingException {
-        if (obj == null) {
-            return "You do not have any buckets";
-        }
+        final ObjectMapper mapper = new ObjectMapper();
 
-        ObjectMapper mapper = new ObjectMapper();
+        if( (obj == null) || (null == obj.getBuckets()) ){
+            return mapper.writerWithDefaultPrettyPrinter().writeValueAsString("You do not have any buckets");
+        }
 
         return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(obj);
     }
