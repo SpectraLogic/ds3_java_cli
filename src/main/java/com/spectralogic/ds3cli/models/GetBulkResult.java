@@ -13,24 +13,19 @@
  * ****************************************************************************
  */
 
-package com.spectralogic.ds3cli.command;
+package com.spectralogic.ds3cli.models;
 
-import com.spectralogic.ds3cli.Arguments;
-import com.spectralogic.ds3client.Ds3Client;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.concurrent.Callable;
+public class GetBulkResult {
+    @JsonProperty("status_message")
+    final private String result;
 
-public abstract class CliCommand<T> implements Callable<T> {
-
-    private final Ds3Client client;
-
-    public CliCommand(final Ds3Client client) {
-        this.client = client;
+    final public String getResult(){
+        return this.result;
     }
 
-    protected Ds3Client getClient() {
-        return client;
+    public GetBulkResult(final String result){
+        this.result = result;
     }
-
-    public abstract CliCommand init(final Arguments args) throws Exception;
 }

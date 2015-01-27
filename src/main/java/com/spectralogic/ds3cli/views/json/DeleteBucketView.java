@@ -13,24 +13,17 @@
  * ****************************************************************************
  */
 
-package com.spectralogic.ds3cli.command;
+package com.spectralogic.ds3cli.views.json;
 
-import com.spectralogic.ds3cli.Arguments;
-import com.spectralogic.ds3client.Ds3Client;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.spectralogic.ds3cli.View;
+import com.spectralogic.ds3cli.models.DeleteBucketResult;
 
-import java.util.concurrent.Callable;
-
-public abstract class CliCommand<T> implements Callable<T> {
-
-    private final Ds3Client client;
-
-    public CliCommand(final Ds3Client client) {
-        this.client = client;
+public class DeleteBucketView implements View<DeleteBucketResult> {
+    @Override
+    public String render( final DeleteBucketResult result ) throws JsonProcessingException {
+        final ObjectMapper mapper = new ObjectMapper();
+        return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(result);
     }
-
-    protected Ds3Client getClient() {
-        return client;
-    }
-
-    public abstract CliCommand init(final Arguments args) throws Exception;
 }

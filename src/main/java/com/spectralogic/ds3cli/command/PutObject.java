@@ -18,6 +18,7 @@ package com.spectralogic.ds3cli.command;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.BadArgumentException;
 import com.spectralogic.ds3cli.logging.Logging;
+import com.spectralogic.ds3cli.models.PutObjectResult;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.PutObjectRequest;
 import org.apache.commons.cli.MissingOptionException;
@@ -65,11 +66,11 @@ public class PutObject extends CliCommand {
 
     @SuppressWarnings("deprecation")
     @Override
-    public String call() throws Exception {
+    public PutObjectResult call() throws Exception {
         try (final FileChannel channel = FileChannel.open(objectPath, StandardOpenOption.READ)) {
             getClient().putObject(new PutObjectRequest(bucketName, normalizeObjectName(objectName), Files.size(objectPath), channel));
         }
-        return "Success: Finished writing file to ds3 appliance.";
+        return new PutObjectResult("Success: Finished writing file to ds3 appliance.");
     }
 
     private static String normalizeObjectName(final String objectName) {

@@ -13,24 +13,14 @@
  * ****************************************************************************
  */
 
-package com.spectralogic.ds3cli.command;
+package com.spectralogic.ds3cli.views.cli;
 
-import com.spectralogic.ds3cli.Arguments;
-import com.spectralogic.ds3client.Ds3Client;
+import com.spectralogic.ds3cli.View;
+import com.spectralogic.ds3cli.models.PutObjectResult;
 
-import java.util.concurrent.Callable;
-
-public abstract class CliCommand<T> implements Callable<T> {
-
-    private final Ds3Client client;
-
-    public CliCommand(final Ds3Client client) {
-        this.client = client;
+public class PutObjectView implements View<PutObjectResult> {
+    @Override
+    public String render(final PutObjectResult result) {
+        return result.getResult();
     }
-
-    protected Ds3Client getClient() {
-        return client;
-    }
-
-    public abstract CliCommand init(final Arguments args) throws Exception;
 }

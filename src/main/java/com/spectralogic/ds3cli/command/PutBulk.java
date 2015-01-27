@@ -17,6 +17,7 @@ package com.spectralogic.ds3cli.command;
 
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.logging.Logging;
+import com.spectralogic.ds3cli.models.PutBulkResult;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.helpers.FileObjectPutter;
@@ -69,7 +70,7 @@ public class PutBulk extends CliCommand {
     }
 
     @Override
-    public String call() throws Exception {
+    public PutBulkResult call() throws Exception {
         final Ds3ClientHelpers helper = Ds3ClientHelpers.wrap(getClient());
         final Iterable<Ds3Object> objects = helper.listObjectsForDirectory(this.inputDirectory);
 
@@ -92,7 +93,7 @@ public class PutBulk extends CliCommand {
         }
         job.transfer(new PrefixedFileObjectPutter(this.inputDirectory, prefix));
 
-        return "SUCCESS: Wrote all the files in " + this.inputDirectory.toString() + " to bucket " + this.bucketName;
+        return new PutBulkResult("SUCCESS: Wrote all the files in " + this.inputDirectory.toString() + " to bucket " + this.bucketName);
     }
 
     static class PrefixedFileObjectPutter implements Ds3ClientHelpers.ObjectChannelBuilder {
