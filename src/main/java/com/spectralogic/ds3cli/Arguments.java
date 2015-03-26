@@ -128,8 +128,8 @@ public class Arguments {
         options.addOption(objectName);
         options.addOption(prefix);
         options.addOption(proxy);
-        options.addOption(start);
-        options.addOption(end);
+        //options.addOption(start);  //TODO re-add these calls when we have support for partial file gets in the helper functions
+        //options.addOption(end);
         options.addOption(clearBucket);
         options.addOption(retries);
         options.addOption(checksum);

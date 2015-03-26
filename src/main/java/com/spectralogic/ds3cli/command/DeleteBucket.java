@@ -30,7 +30,7 @@ import org.apache.commons.cli.MissingOptionException;
 import java.io.IOException;
 import java.security.SignatureException;
 
-public class DeleteBucket extends CliCommand {
+public class DeleteBucket extends CliCommand<DeleteBucketResult> {
     
     private String bucketName;
     private boolean clearBucket;

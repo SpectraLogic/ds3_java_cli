@@ -29,7 +29,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 
-public class PutObject extends CliCommand {
+public class PutObject extends CliCommand<PutObjectResult> {
 
     private String bucketName;
     private Path objectPath;

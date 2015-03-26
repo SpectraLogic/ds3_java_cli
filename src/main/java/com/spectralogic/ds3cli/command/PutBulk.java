@@ -32,7 +32,7 @@ import java.nio.channels.SeekableByteChannel;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 
-public class PutBulk extends CliCommand {
+public class PutBulk extends CliCommand<PutBulkResult> {
     private String bucketName;
     private Path inputDirectory;
     private String prefix;

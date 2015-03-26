@@ -18,20 +18,22 @@ package com.spectralogic.ds3cli.views.cli;
 import com.bethecoder.ascii_table.ASCIITable;
 import com.bethecoder.ascii_table.ASCIITableHeader;
 import com.spectralogic.ds3cli.View;
+import com.spectralogic.ds3cli.models.GetServiceResult;
 import com.spectralogic.ds3client.models.Bucket;
 import com.spectralogic.ds3client.models.ListAllMyBucketsResult;
 
 import java.util.List;
 
-public class GetServiceView implements View<ListAllMyBucketsResult> {
+public class GetServiceView implements View<GetServiceResult> {
     @Override
-    public String render(final ListAllMyBucketsResult obj) {
-        if( (obj == null) || (null == obj.getBuckets()) ){
+    public String render(final GetServiceResult obj) {
+        final ListAllMyBucketsResult result = obj.getResult();
+        if( (result == null) || (null == result.getBuckets()) ){
             return "You do not have any buckets";
         }
 
-        return "Owner: " + obj.getOwner().getDisplayName() + "\n" +
-            ASCIITable.getInstance().getTable(getHeaders(), formatBucketList(obj));
+        return "Owner: " + result.getOwner().getDisplayName() + "\n" +
+            ASCIITable.getInstance().getTable(getHeaders(), formatBucketList(result));
     }
 
     private String[][] formatBucketList(final ListAllMyBucketsResult result) {

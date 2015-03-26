@@ -21,7 +21,7 @@ import com.spectralogic.ds3client.models.Contents;
 
 import java.util.Iterator;
 
-public class GetBucketResult {
+public class GetBucketResult implements Result {
     @JsonProperty("bucket_name")
     final private String bucketName;
     @JsonProperty("objects")

@@ -24,7 +24,7 @@ import org.apache.commons.cli.MissingOptionException;
 
 import java.io.IOException;
 
-public class DeleteObject extends CliCommand {
+public class DeleteObject extends CliCommand<DeleteObjectResult> {
     
     private String bucketName;
     private String objectName;

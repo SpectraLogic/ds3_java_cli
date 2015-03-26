@@ -15,12 +15,20 @@
 
 package com.spectralogic.ds3cli.views.json;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.models.PutBucketResult;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class PutBucketView implements View<PutBucketResult> {
     @Override
-    public String render(final PutBucketResult result) {
-        return result.getResult();
+    public String render(final PutBucketResult result) throws JsonProcessingException {
+        final ObjectMapper mapper = new ObjectMapper();
+        final Map<String, String> jsonBackingMap = new HashMap<>();
+        jsonBackingMap.put("message", result.getResult());
+        return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(jsonBackingMap);
     }
 }

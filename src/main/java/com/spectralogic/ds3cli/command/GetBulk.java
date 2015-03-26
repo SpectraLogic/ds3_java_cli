@@ -37,7 +37,7 @@ import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.security.SignatureException;
 
-public class GetBulk extends CliCommand {
+public class GetBulk extends CliCommand<GetBulkResult> {
     private String bucketName;
     private Path outputPath;
     private String prefix;

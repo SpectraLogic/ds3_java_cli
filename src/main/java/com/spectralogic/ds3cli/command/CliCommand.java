@@ -16,11 +16,12 @@
 package com.spectralogic.ds3cli.command;
 
 import com.spectralogic.ds3cli.Arguments;
+import com.spectralogic.ds3cli.models.Result;
 import com.spectralogic.ds3client.Ds3Client;
 
 import java.util.concurrent.Callable;
 
-public abstract class CliCommand<T> implements Callable<T> {
+public abstract class CliCommand<T extends Result> implements Callable<T> {
 
     private final Ds3Client client;
 

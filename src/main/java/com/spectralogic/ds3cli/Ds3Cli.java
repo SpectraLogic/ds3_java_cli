@@ -1,11 +1,11 @@
 package com.spectralogic.ds3cli;
 
 import com.spectralogic.ds3cli.command.*;
-import com.spectralogic.ds3cli.logging.Logging;
+import com.spectralogic.ds3cli.views.cli.CommandExceptionCliView;
+import com.spectralogic.ds3cli.views.json.CommandExceptionJsonView;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.Ds3ClientBuilder;
 import com.spectralogic.ds3client.models.Credentials;
-import com.spectralogic.ds3client.networking.FailedRequestException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -23,15 +23,15 @@ public class Ds3Cli implements Callable<String> {
         this.views = getViews();
     }
 
-    private Map getViews(){
-        final Map allViews = new HashMap<>();
+    private Map<ViewType, Map<CommandValue, View>>  getViews(){
+        final Map<ViewType, Map<CommandValue, View>>  allViews = new HashMap<>();
         allViews.put( ViewType.CLI, getCliViews() );
         allViews.put( ViewType.JSON, getJsonViews() );
         //TODO XML
         return allViews;
     }
 
-    private Map getCliViews(){
+    private Map<CommandValue, View> getCliViews(){
         final Map<CommandValue, View> cliViews = new HashMap<>();
         cliViews.put( CommandValue.GET_SERVICE,     new com.spectralogic.ds3cli.views.cli.GetServiceView() );
         cliViews.put( CommandValue.GET_BUCKET,      new com.spectralogic.ds3cli.views.cli.GetBucketView() );
@@ -45,7 +45,7 @@ public class Ds3Cli implements Callable<String> {
         return cliViews;
     }
 
-    private Map getJsonViews(){
+    private Map<CommandValue, View> getJsonViews(){
         final Map<CommandValue, View> jsonViews = new HashMap<>();
         jsonViews.put( CommandValue.GET_SERVICE,    new com.spectralogic.ds3cli.views.json.GetServiceView() );
         jsonViews.put( CommandValue.GET_BUCKET,     new com.spectralogic.ds3cli.views.json.GetBucketView() );
@@ -83,7 +83,12 @@ public class Ds3Cli implements Callable<String> {
             return view.render(command.init(this.args).call());
         }
         catch(final CommandException e) {
-            return e.getMessage();
+            if (this.args.getOutputFormat() == ViewType.JSON) {
+                return new CommandExceptionJsonView().render(e);
+            }
+            else {
+                return new CommandExceptionCliView().render(e);
+            }
         }
     }
 
@@ -120,5 +125,4 @@ public class Ds3Cli implements Callable<String> {
             }
         }
     }
-
 }
