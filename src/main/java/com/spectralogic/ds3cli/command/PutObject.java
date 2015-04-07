@@ -15,15 +15,20 @@
 
 package com.spectralogic.ds3cli.command;
 
+import com.google.common.collect.Lists;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.BadArgumentException;
 import com.spectralogic.ds3cli.logging.Logging;
 import com.spectralogic.ds3cli.models.PutObjectResult;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.PutObjectRequest;
+import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
+import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import org.apache.commons.cli.MissingOptionException;
 
+import java.io.IOException;
 import java.nio.channels.FileChannel;
+import java.nio.channels.SeekableByteChannel;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -67,9 +72,21 @@ public class PutObject extends CliCommand<PutObjectResult> {
     @SuppressWarnings("deprecation")
     @Override
     public PutObjectResult call() throws Exception {
-        try (final FileChannel channel = FileChannel.open(objectPath, StandardOpenOption.READ)) {
-            getClient().putObject(new PutObjectRequest(bucketName, normalizeObjectName(objectName), Files.size(objectPath), channel));
-        }
+
+
+        final Ds3ClientHelpers helpers = Ds3ClientHelpers.wrap(getClient());
+
+        final Ds3Object ds3Obj = new Ds3Object(normalizeObjectName(objectName), Files.size(objectPath));
+
+        final Ds3ClientHelpers.Job putJob = helpers.startWriteJob(bucketName, Lists.newArrayList(ds3Obj));
+
+        putJob.transfer(new Ds3ClientHelpers.ObjectChannelBuilder() {
+            @Override
+            public SeekableByteChannel buildChannel(final String s) throws IOException {
+                return FileChannel.open(objectPath, StandardOpenOption.READ);
+            }
+        });
+
         return new PutObjectResult("Success: Finished writing file to ds3 appliance.");
     }
 

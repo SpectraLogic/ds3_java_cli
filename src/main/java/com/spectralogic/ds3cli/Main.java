@@ -16,6 +16,9 @@
 package com.spectralogic.ds3cli;
 
 import com.spectralogic.ds3cli.logging.Logging;
+import com.spectralogic.ds3client.Ds3Client;
+import com.spectralogic.ds3client.Ds3ClientBuilder;
+import com.spectralogic.ds3client.models.Credentials;
 import com.spectralogic.ds3client.networking.FailedRequestException;
 
 public class Main {
@@ -23,7 +26,7 @@ public class Main {
     public static void main(final String[] args) {
         try {
             final Arguments arguments = new Arguments(args);
-            final Ds3Cli runner = new Ds3Cli(arguments);
+            final Ds3Cli runner = new Ds3Cli(createClient(arguments), arguments);
             System.out.println(runner.call());
         } catch (final Exception e) {
             System.out.println("ERROR: " + e.getMessage());
@@ -36,5 +39,20 @@ public class Main {
             }
             System.exit(1);
         }
+    }
+
+
+    private static Ds3Client createClient(final Arguments arguments) {
+        final Ds3ClientBuilder builder = Ds3ClientBuilder.create(
+                arguments.getEndpoint(),
+                new Credentials(arguments.getAccessKey(), arguments.getSecretKey())
+        )
+                .withHttps(arguments.isHttps())
+                .withCertificateVerification(arguments.isCertificateVerification())
+                .withRedirectRetries(arguments.getRetries());
+        if (arguments.getProxy() != null) {
+            builder.withProxy(arguments.getProxy());
+        }
+        return builder.build();
     }
 }

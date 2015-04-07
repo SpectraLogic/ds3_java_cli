@@ -16,11 +16,13 @@
 package com.spectralogic.ds3cli.command;
 
 import com.spectralogic.ds3cli.Arguments;
+import com.spectralogic.ds3cli.CommandException;
 import com.spectralogic.ds3cli.models.GetServiceResult;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.GetServiceRequest;
 import com.spectralogic.ds3client.commands.GetServiceResponse;
 import com.spectralogic.ds3client.models.ListAllMyBucketsResult;
+import com.spectralogic.ds3client.networking.FailedRequestException;
 import com.spectralogic.ds3client.utils.SSLSetupException;
 
 import java.io.IOException;
@@ -39,9 +41,13 @@ public class GetService extends CliCommand<GetServiceResult> {
     }
 
     @Override
-    public GetServiceResult call() throws IOException, SignatureException, SSLSetupException {
-        final GetServiceResponse response = getClient().getService(new GetServiceRequest());
+    public GetServiceResult call() throws IOException, SignatureException, SSLSetupException, CommandException {
+        try {
+            final GetServiceResponse response = getClient().getService(new GetServiceRequest());
 
-        return new GetServiceResult(response.getResult());
+            return new GetServiceResult(response.getResult());
+        } catch (final FailedRequestException e) {
+            throw new CommandException("Failed Get Service", e);
+        }
     }
 }

@@ -4,8 +4,6 @@ import com.spectralogic.ds3cli.command.*;
 import com.spectralogic.ds3cli.views.cli.CommandExceptionCliView;
 import com.spectralogic.ds3cli.views.json.CommandExceptionJsonView;
 import com.spectralogic.ds3client.Ds3Client;
-import com.spectralogic.ds3client.Ds3ClientBuilder;
-import com.spectralogic.ds3client.models.Credentials;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -17,9 +15,9 @@ public class Ds3Cli implements Callable<String> {
     private final Arguments args;
     private final Ds3Client client;
 
-    Ds3Cli(final Arguments args)  {
+    Ds3Cli(final Ds3Client client, final Arguments args)  {
         this.args = args;
-        this.client = createClient(args);
+        this.client = client;
         this.views = getViews();
     }
 
@@ -59,19 +57,6 @@ public class Ds3Cli implements Callable<String> {
         return jsonViews;
     }
 
-    private Ds3Client createClient(final Arguments arguments) {
-        final Ds3ClientBuilder builder = Ds3ClientBuilder.create(
-                arguments.getEndpoint(),
-                new Credentials(arguments.getAccessKey(), arguments.getSecretKey())
-        )
-                .withHttps(arguments.isHttps())
-                .withCertificateVerification(arguments.isCertificateVerification())
-                .withRedirectRetries(arguments.getRetries());
-        if (arguments.getProxy() != null) {
-            builder.withProxy(arguments.getProxy());
-        }
-        return builder.build();
-    }
 
     @Override
     public String call() throws Exception {

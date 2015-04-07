@@ -358,7 +358,7 @@ public class Arguments {
         return bucket;
     }
 
-    private void setBucket(final String bucket) {
+    void setBucket(final String bucket) {
         this.bucket = bucket;
     }
 
@@ -366,7 +366,7 @@ public class Arguments {
         return directory;
     }
 
-    private void setDirectory(final String directory) {
+    void setDirectory(final String directory) {
         this.directory = directory;
     }
 
@@ -374,7 +374,7 @@ public class Arguments {
         return endpoint;
     }
 
-    private void setEndpoint(final String endpoint) {
+    void setEndpoint(final String endpoint) {
         this.endpoint = endpoint;
     }
 
@@ -382,7 +382,7 @@ public class Arguments {
         return accessKey;
     }
 
-    private void setAccessKey(final String accessKey) {
+    void setAccessKey(final String accessKey) {
         this.accessKey = accessKey;
     }
 
@@ -390,7 +390,7 @@ public class Arguments {
         return secretKey;
     }
 
-    private void setSecretKey(final String secretKey) {
+    void setSecretKey(final String secretKey) {
         this.secretKey = secretKey;
     }
 
@@ -398,11 +398,11 @@ public class Arguments {
         return command;
     }
 
-    private void setCommand(final CommandValue command) {
+    void setCommand(final CommandValue command) {
         this.command = command;
     }
 
-    private void setObjectName(final String objectName) {
+    void setObjectName(final String objectName) {
         this.objectName = objectName;
     }
 
@@ -410,7 +410,7 @@ public class Arguments {
         return objectName;
     }
 
-    private void setProxy(final String proxy) {
+    void setProxy(final String proxy) {
         this.proxy = proxy;
     }
 
@@ -422,7 +422,7 @@ public class Arguments {
         return start;
     }
 
-    private void setStart(final int start) {
+    void setStart(final int start) {
         this.start = start;
     }
 
@@ -430,11 +430,11 @@ public class Arguments {
         return end;
     }
 
-    private void setEnd(final int end) {
+    void setEnd(final int end) {
         this.end = end;
     }
 
-    private void setClearBucket(boolean clearBucket) {
+    void setClearBucket(boolean clearBucket) {
         this.clearBucket = clearBucket;
     }
 
@@ -442,7 +442,7 @@ public class Arguments {
         return this.clearBucket;
     }
 
-    private void setRetries(int retries) {
+    void setRetries(int retries) {
         this.retries = retries;
     }
 
@@ -454,7 +454,7 @@ public class Arguments {
         return prefix;
     }
 
-    private void setPrefix(final String prefix) {
+    void setPrefix(final String prefix) {
         this.prefix = prefix;
     }
 
@@ -462,7 +462,7 @@ public class Arguments {
         return checksum;
     }
 
-    private void setChecksum(final boolean checksum) {
+    void setChecksum(final boolean checksum) {
         this.checksum = checksum;
     }
 
@@ -470,7 +470,7 @@ public class Arguments {
         return priority;
     }
 
-    private void setPriority(final Priority priority) {
+    void setPriority(final Priority priority) {
         this.priority = priority;
     }
 
@@ -478,7 +478,7 @@ public class Arguments {
         return writeOptimization;
     }
 
-    private void setWriteOptimization(final WriteOptimization writeOptimization) {
+    void setWriteOptimization(final WriteOptimization writeOptimization) {
         this.writeOptimization = writeOptimization;
     }
 
@@ -486,7 +486,7 @@ public class Arguments {
         return defaultPutPriority;
     }
 
-    private void setDefaultPutPriority(final Priority defaultPutPriority) {
+    void setDefaultPutPriority(final Priority defaultPutPriority) {
         this.defaultPutPriority = defaultPutPriority;
     }
 
@@ -494,7 +494,7 @@ public class Arguments {
         return defaultGetPriority;
     }
 
-    private void setDefaultGetPriority(final Priority defaultGetPriority) {
+    void setDefaultGetPriority(final Priority defaultGetPriority) {
         this.defaultGetPriority = defaultGetPriority;
     }
 
@@ -502,7 +502,7 @@ public class Arguments {
         return defaultWriteOptimization;
     }
 
-    private void setDefaultWriteOptimization(final WriteOptimization defaultWriteOptimization) {
+    void setDefaultWriteOptimization(final WriteOptimization defaultWriteOptimization) {
         this.defaultWriteOptimization = defaultWriteOptimization;
     }
 
@@ -510,7 +510,7 @@ public class Arguments {
         return certificateVerification;
     }
 
-    private void setCertificateVerification(final boolean certificateVerification) {
+    void setCertificateVerification(final boolean certificateVerification) {
         this.certificateVerification = certificateVerification;
     }
 
@@ -518,7 +518,7 @@ public class Arguments {
         return https;
     }
 
-    private void setHttps(final boolean https) {
+    void setHttps(final boolean https) {
         this.https = https;
     }
 
@@ -526,7 +526,7 @@ public class Arguments {
         return this.outputFormat;
     }
 
-    private void setOutputFormat(final ViewType outputFormat) {
+    void setOutputFormat(final ViewType outputFormat) {
         this.outputFormat = outputFormat;
     }
 }

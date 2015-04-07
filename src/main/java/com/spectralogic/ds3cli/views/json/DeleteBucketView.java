@@ -19,11 +19,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.models.DeleteBucketResult;
+import com.spectralogic.ds3cli.util.JsonMapper;
 
 public class DeleteBucketView implements View<DeleteBucketResult> {
     @Override
-    public String render( final DeleteBucketResult result ) throws JsonProcessingException {
-        final ObjectMapper mapper = new ObjectMapper();
-        return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(result);
+    public String render(final DeleteBucketResult result) throws JsonProcessingException {
+        final CommonJsonView view = CommonJsonView.newView(CommonJsonView.Status.OK);
+        return JsonMapper.toJson(view.message(result.getResult()));
     }
 }

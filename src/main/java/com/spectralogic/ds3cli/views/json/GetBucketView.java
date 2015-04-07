@@ -19,12 +19,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.models.GetBucketResult;
+import com.spectralogic.ds3cli.util.JsonMapper;
 
 public class GetBucketView implements View<GetBucketResult> {
     @Override
     public String render(final GetBucketResult result) throws JsonProcessingException {
-        final ObjectMapper mapper = new ObjectMapper();
-
-        return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(result);
+        final CommonJsonView view = CommonJsonView.newView(CommonJsonView.Status.OK);
+        return JsonMapper.toJson(view.data(result));
     }
 }

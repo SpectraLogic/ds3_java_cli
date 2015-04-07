@@ -72,7 +72,7 @@ public class PutBucket extends CliCommand<PutBucketResult> {
             }
 
             getClient().putBucket(request);
-            return new PutBucketResult("Successfully created " + bucketName);
+            return new PutBucketResult("Success: created bucket " + bucketName + ".");
         }
         catch(final FailedRequestException e) {
             if (e.getStatusCode() == 409) {
