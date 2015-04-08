@@ -1,6 +1,9 @@
 ds3_java_cli
 ============
 
+[![Build
+Status](https://travis-ci.org/SpectraLogic/ds3_java_cli.svg?branch=master)](https://travis-ci.org/SpectraLogic/ds3_java_cli)
+
 ## Contact Us
 
 Join us at our [Google Groups](https://groups.google.com/d/forum/spectralogicds3-sdks) forum to ask questions, or see frequently asked questions.
