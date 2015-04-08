@@ -21,7 +21,7 @@ import com.spectralogic.ds3cli.CommandException;
 import com.spectralogic.ds3cli.logging.Logging;
 import com.spectralogic.ds3cli.models.GetObjectResult;
 import com.spectralogic.ds3cli.util.Ds3Provider;
-import com.spectralogic.ds3client.Ds3Client;
+import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3client.commands.GetObjectRequest;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.helpers.FileObjectGetter;
@@ -29,7 +29,6 @@ import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.networking.FailedRequestException;
 import org.apache.commons.cli.MissingOptionException;
 
-import java.nio.channels.FileChannel;
 import java.nio.file.*;
 import java.util.List;
 
@@ -40,8 +39,8 @@ public class GetObject extends CliCommand<GetObjectResult> {
     private String prefix;
     private GetObjectRequest.Range byteRange;
 
-    public GetObject(final Ds3Provider provider) {
-        super(provider);
+    public GetObject(final Ds3Provider provider, final FileUtils fileUtils) {
+        super(provider, fileUtils);
     }
 
     @Override
@@ -70,16 +69,16 @@ public class GetObject extends CliCommand<GetObjectResult> {
             final Path filePath = Paths.get(prefix, objectName);
             Logging.log("Output path: " + filePath.toString());
 
-            Files.createDirectories(filePath.getParent());
+            getFileUtils().createDirectories(filePath.getParent());
 
-            final Ds3ClientHelpers helpers = Ds3ClientHelpers.wrap(getClient());
+            final Ds3ClientHelpers helpers = getClientHelpers();
             final List<Ds3Object> ds3ObjectList = Lists.newArrayList(new Ds3Object(objectName));
 
             final Ds3ClientHelpers.Job job = helpers.startReadJob(bucketName, ds3ObjectList);
 
             job.transfer(new FileObjectGetter(Paths.get(prefix)));
 
-            return new GetObjectResult("SUCCESS: Finished downloading object.  The object was written out to: " + filePath);
+            return new GetObjectResult("SUCCESS: Finished downloading object.  The object was written to: " + filePath);
         }
         catch(final FailedRequestException e) {
             if(e.getStatusCode() == 500) {

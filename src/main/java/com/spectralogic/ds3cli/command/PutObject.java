@@ -21,8 +21,7 @@ import com.spectralogic.ds3cli.BadArgumentException;
 import com.spectralogic.ds3cli.logging.Logging;
 import com.spectralogic.ds3cli.models.PutObjectResult;
 import com.spectralogic.ds3cli.util.Ds3Provider;
-import com.spectralogic.ds3client.Ds3Client;
-import com.spectralogic.ds3client.commands.PutObjectRequest;
+import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import org.apache.commons.cli.MissingOptionException;
@@ -31,7 +30,6 @@ import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.FileSystems;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 
@@ -41,8 +39,8 @@ public class PutObject extends CliCommand<PutObjectResult> {
     private Path objectPath;
     private String objectName;
 
-    public PutObject(final Ds3Provider provider) {
-        super(provider);
+    public PutObject(final Ds3Provider provider, final FileUtils fileUtils) {
+        super(provider, fileUtils);
     }
 
     @Override
@@ -61,10 +59,10 @@ public class PutObject extends CliCommand<PutObjectResult> {
         }
 
         objectPath = FileSystems.getDefault().getPath(args.getObjectName());
-        if(!Files.exists(objectPath)) {
+        if(!getFileUtils().exists(objectPath)) {
             throw new BadArgumentException("File '"+ objectName +"' does not exist.");
         }
-        if (!Files.isRegularFile(objectPath)) {
+        if (!getFileUtils().isRegularFile(objectPath)) {
             throw new BadArgumentException("The '-o' command must be a file and not a directory.");
         }
         return this;
@@ -73,14 +71,9 @@ public class PutObject extends CliCommand<PutObjectResult> {
     @SuppressWarnings("deprecation")
     @Override
     public PutObjectResult call() throws Exception {
-
-
-        final Ds3ClientHelpers helpers = Ds3ClientHelpers.wrap(getClient());
-
-        final Ds3Object ds3Obj = new Ds3Object(normalizeObjectName(objectName), Files.size(objectPath));
-
+        final Ds3ClientHelpers helpers = getClientHelpers();
+        final Ds3Object ds3Obj = new Ds3Object(normalizeObjectName(objectName), getFileUtils().size(objectPath));
         final Ds3ClientHelpers.Job putJob = helpers.startWriteJob(bucketName, Lists.newArrayList(ds3Obj));
-
         putJob.transfer(new Ds3ClientHelpers.ObjectChannelBuilder() {
             @Override
             public SeekableByteChannel buildChannel(final String s) throws IOException {

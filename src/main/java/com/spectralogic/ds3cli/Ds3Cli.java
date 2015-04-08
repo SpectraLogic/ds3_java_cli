@@ -2,6 +2,7 @@ package com.spectralogic.ds3cli;
 
 import com.spectralogic.ds3cli.command.*;
 import com.spectralogic.ds3cli.util.Ds3Provider;
+import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3cli.views.cli.CommandExceptionCliView;
 import com.spectralogic.ds3cli.views.json.CommandExceptionJsonView;
 
@@ -14,10 +15,12 @@ public class Ds3Cli implements Callable<String> {
     private final Map<ViewType, Map<CommandValue, View>> views;
     private final Arguments args;
     private final Ds3Provider ds3Provider;
+    private final FileUtils fileUtils;
 
-    Ds3Cli(final Ds3Provider provider, final Arguments args)  {
+    Ds3Cli(final Ds3Provider provider, final Arguments args, final FileUtils fileUtils) {
         this.args = args;
         this.ds3Provider = provider;
+        this.fileUtils = fileUtils;
         this.views = getViews();
     }
 
@@ -81,32 +84,32 @@ public class Ds3Cli implements Callable<String> {
         final CommandValue command = this.args.getCommand();
         switch(command) {
             case GET_OBJECT: {
-                return new GetObject(this.ds3Provider);
+                return new GetObject(this.ds3Provider, this.fileUtils);
             }
             case GET_BUCKET: {
-                return new GetBucket(this.ds3Provider);
+                return new GetBucket(this.ds3Provider, this.fileUtils);
             }
             case PUT_BUCKET: {
-                return new PutBucket(this.ds3Provider);
+                return new PutBucket(this.ds3Provider, this.fileUtils);
             }
             case PUT_OBJECT: {
-                return new PutObject(this.ds3Provider);
+                return new PutObject(this.ds3Provider, this.fileUtils);
             }
             case DELETE_BUCKET: {
-                return new DeleteBucket(this.ds3Provider);
+                return new DeleteBucket(this.ds3Provider, this.fileUtils);
             }
             case DELETE_OBJECT: {
-                return new DeleteObject(this.ds3Provider);
+                return new DeleteObject(this.ds3Provider, this.fileUtils);
             }
             case GET_BULK: {
-                return new GetBulk(this.ds3Provider);
+                return new GetBulk(this.ds3Provider, this.fileUtils);
             }
             case PUT_BULK: {
-                return new PutBulk(this.ds3Provider);
+                return new PutBulk(this.ds3Provider, this.fileUtils);
             }
             case GET_SERVICE:
             default: {
-                return new GetService(this.ds3Provider);
+                return new GetService(this.ds3Provider, this.fileUtils);
             }
         }
     }

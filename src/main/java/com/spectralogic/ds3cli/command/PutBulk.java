@@ -19,6 +19,7 @@ import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.logging.Logging;
 import com.spectralogic.ds3cli.models.PutBulkResult;
 import com.spectralogic.ds3cli.util.Ds3Provider;
+import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.helpers.FileObjectPutter;
@@ -41,8 +42,8 @@ public class PutBulk extends CliCommand<PutBulkResult> {
     private Priority priority;
     private WriteOptimization writeOptimization;
 
-    public PutBulk(final Ds3Provider provider) {
-        super(provider);
+    public PutBulk(final Ds3Provider provider, final FileUtils fileUtils) {
+        super(provider, fileUtils);
     }
 
     @Override
@@ -72,7 +73,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
 
     @Override
     public PutBulkResult call() throws Exception {
-        final Ds3ClientHelpers helper = Ds3ClientHelpers.wrap(getClient());
+        final Ds3ClientHelpers helper = getClientHelpers();
         final Iterable<Ds3Object> objects = helper.listObjectsForDirectory(this.inputDirectory);
 
         if (prefix != null) {

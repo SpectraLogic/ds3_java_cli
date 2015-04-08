@@ -19,6 +19,7 @@ import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.CommandException;
 import com.spectralogic.ds3cli.models.DeleteObjectResult;
 import com.spectralogic.ds3cli.util.Ds3Provider;
+import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.DeleteObjectRequest;
 import org.apache.commons.cli.MissingOptionException;
@@ -30,8 +31,8 @@ public class DeleteObject extends CliCommand<DeleteObjectResult> {
     private String bucketName;
     private String objectName;
 
-    public DeleteObject(final Ds3Provider provider) {
-        super(provider);
+    public DeleteObject(final Ds3Provider provider, final FileUtils fileUtils) {
+        super(provider, fileUtils);
     }
 
     @Override

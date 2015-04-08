@@ -18,6 +18,7 @@ package com.spectralogic.ds3cli.command;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.models.Result;
 import com.spectralogic.ds3cli.util.Ds3Provider;
+import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 
@@ -26,9 +27,11 @@ import java.util.concurrent.Callable;
 public abstract class CliCommand<T extends Result> implements Callable<T> {
 
     private final Ds3Provider ds3Provider;
+    private final FileUtils fileUtils;
 
-    public CliCommand(final Ds3Provider ds3Provider) {
+    public CliCommand(final Ds3Provider ds3Provider, final FileUtils fileUtils) {
         this.ds3Provider = ds3Provider;
+        this.fileUtils = fileUtils;
     }
 
     protected Ds3Client getClient() {
@@ -37,6 +40,10 @@ public abstract class CliCommand<T extends Result> implements Callable<T> {
 
     protected Ds3ClientHelpers getClientHelpers() {
         return this.ds3Provider.getClientHelpers();
+    }
+
+    protected FileUtils getFileUtils() {
+        return this.fileUtils;
     }
 
     public abstract CliCommand init(final Arguments args) throws Exception;

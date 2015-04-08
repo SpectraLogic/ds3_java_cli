@@ -17,6 +17,7 @@ package com.spectralogic.ds3cli;
 
 import com.spectralogic.ds3cli.logging.Logging;
 import com.spectralogic.ds3cli.util.Ds3Provider;
+import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.Ds3ClientBuilder;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
@@ -30,7 +31,8 @@ public class Main {
             final Arguments arguments = new Arguments(args);
             final Ds3Client client = createClient(arguments);
             final Ds3Provider provider = new Ds3ProviderImpl(client, Ds3ClientHelpers.wrap(client));
-            final Ds3Cli runner = new Ds3Cli(provider, arguments);
+            final FileUtils fileUtils = new FileUtilsImpl();
+            final Ds3Cli runner = new Ds3Cli(provider, arguments, fileUtils);
             System.out.println(runner.call());
         } catch (final Exception e) {
             System.out.println("ERROR: " + e.getMessage());

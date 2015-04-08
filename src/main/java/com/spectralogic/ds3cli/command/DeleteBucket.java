@@ -20,6 +20,7 @@ import com.spectralogic.ds3cli.CommandException;
 import com.spectralogic.ds3cli.logging.Logging;
 import com.spectralogic.ds3cli.models.DeleteBucketResult;
 import com.spectralogic.ds3cli.util.Ds3Provider;
+import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.DeleteBucketRequest;
 import com.spectralogic.ds3client.commands.DeleteObjectRequest;
@@ -35,8 +36,8 @@ public class DeleteBucket extends CliCommand<DeleteBucketResult> {
     
     private String bucketName;
     private boolean clearBucket;
-    public DeleteBucket(final Ds3Provider provider) {
-        super(provider);
+    public DeleteBucket(final Ds3Provider provider, final FileUtils fileUtils) {
+        super(provider, fileUtils);
     }
 
     @Override
