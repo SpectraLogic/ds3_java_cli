@@ -17,7 +17,7 @@ package com.spectralogic.ds3cli.models;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class GetBulkResult {
+public class GetBulkResult implements Result {
     @JsonProperty("status_message")
     final private String result;
 

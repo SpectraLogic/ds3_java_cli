@@ -16,14 +16,14 @@
 package com.spectralogic.ds3cli.views.json;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.models.GetObjectResult;
+import com.spectralogic.ds3cli.util.JsonMapper;
 
 public class GetObjectView implements View<GetObjectResult> {
     @Override
-    public String render( final GetObjectResult result ) throws JsonProcessingException {
-        final ObjectMapper mapper = new ObjectMapper();
-        return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(result);
+    public String render(final GetObjectResult result) throws JsonProcessingException {
+        final CommonJsonView view = CommonJsonView.newView(CommonJsonView.Status.OK);
+        return JsonMapper.toJson(view.message(result.getResult()));
     }
 }

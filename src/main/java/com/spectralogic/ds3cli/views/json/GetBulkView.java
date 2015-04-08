@@ -20,11 +20,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.models.GetBulkResult;
 import com.spectralogic.ds3cli.models.GetObjectResult;
+import com.spectralogic.ds3cli.util.JsonMapper;
 
 public class GetBulkView implements View<GetBulkResult> {
     @Override
     public String render( final GetBulkResult result ) throws JsonProcessingException {
-        final ObjectMapper mapper = new ObjectMapper();
-        return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(result);
+        final CommonJsonView view = CommonJsonView.newView(CommonJsonView.Status.OK);
+        return JsonMapper.toJson(view.message(result.getResult()));
     }
 }

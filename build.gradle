@@ -25,13 +25,14 @@ apply plugin: 'maven'
 apply plugin: 'idea'
 apply plugin: 'application'
 
-version = '0.7.7-SNAPSHOT'
+version = '1.1.0-SNAPSHOT'
 group = 'com.spectralogic'
 
 mainClassName = 'com.spectralogic.ds3cli.Main'
 
 repositories {
   mavenCentral()
+  jcenter()
   mavenLocal()
   maven {
     url 'https://spectralogic.github.io/java/repository'
@@ -41,14 +42,15 @@ repositories {
 dependencies {
   compile fileTree(dir: 'lib', include: '*.jar')
   compile 'commons-cli:commons-cli:1.2'
-  compile 'com.google.guava:guava:16.0.1'
-  compile 'com.spectralogic.ds3:ds3-sdk:0.7.7-SNAPSHOT'
+  compile 'com.google.guava:guava:18.0'
+  compile 'joda-time:joda-time:2.7'
+  compile 'com.spectralogic.ds3:ds3-sdk:1.1.0-RC1'
   compile (
     [group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.2.3'],
     [group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: '2.2.3'],
     [group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.2.3']
   )
-  testCompile 'com.googlecode.jmockit:jmockit:1.4'
+  testCompile "org.mockito:mockito-core:1.+"
   testCompile 'junit:junit:4.11'
 }
 
@@ -68,5 +70,5 @@ task genConfigProperties << {
 jar.dependsOn genConfigProperties
 
 task wrapper(type: Wrapper) {
-  gradleVersion = '2.1'
+  gradleVersion = '2.3'
 }

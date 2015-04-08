@@ -17,7 +17,7 @@ package com.spectralogic.ds3cli.models;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class DeleteObjectResult {
+public class DeleteObjectResult implements Result {
     @JsonProperty("status_message")
     final private String result;
 

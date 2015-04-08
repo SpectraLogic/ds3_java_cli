@@ -21,10 +21,10 @@ import com.spectralogic.ds3client.models.Contents;
 
 import java.util.Iterator;
 
-public class GetBucketResult {
-    @JsonProperty("bucket_name")
+public class GetBucketResult implements Result {
+    @JsonProperty("BucketName")
     final private String bucketName;
-    @JsonProperty("objects")
+    @JsonProperty("Objects")
     @JacksonXmlElementWrapper(
             useWrapping = true
     )

@@ -18,6 +18,8 @@ package com.spectralogic.ds3cli.command;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.logging.Logging;
 import com.spectralogic.ds3cli.models.PutBulkResult;
+import com.spectralogic.ds3cli.util.Ds3Provider;
+import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.helpers.FileObjectPutter;
@@ -32,7 +34,7 @@ import java.nio.channels.SeekableByteChannel;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 
-public class PutBulk extends CliCommand {
+public class PutBulk extends CliCommand<PutBulkResult> {
     private String bucketName;
     private Path inputDirectory;
     private String prefix;
@@ -40,8 +42,8 @@ public class PutBulk extends CliCommand {
     private Priority priority;
     private WriteOptimization writeOptimization;
 
-    public PutBulk(final Ds3Client client) {
-        super(client);
+    public PutBulk(final Ds3Provider provider, final FileUtils fileUtils) {
+        super(provider, fileUtils);
     }
 
     @Override
@@ -71,7 +73,7 @@ public class PutBulk extends CliCommand {
 
     @Override
     public PutBulkResult call() throws Exception {
-        final Ds3ClientHelpers helper = Ds3ClientHelpers.wrap(getClient());
+        final Ds3ClientHelpers helper = getClientHelpers();
         final Iterable<Ds3Object> objects = helper.listObjectsForDirectory(this.inputDirectory);
 
         if (prefix != null) {

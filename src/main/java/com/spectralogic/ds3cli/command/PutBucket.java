@@ -16,24 +16,29 @@
 package com.spectralogic.ds3cli.command;
 
 import com.spectralogic.ds3cli.Arguments;
+import com.spectralogic.ds3cli.CommandException;
 import com.spectralogic.ds3cli.logging.Logging;
+import com.spectralogic.ds3cli.models.PutBucketResult;
+import com.spectralogic.ds3cli.util.Ds3Provider;
+import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.PutBucketRequest;
 import com.spectralogic.ds3client.models.bulk.Priority;
 import com.spectralogic.ds3client.models.bulk.WriteOptimization;
+import com.spectralogic.ds3client.networking.FailedRequestException;
 import org.apache.commons.cli.MissingOptionException;
 
 import java.io.IOException;
 
-public class PutBucket extends CliCommand {
+public class PutBucket extends CliCommand<PutBucketResult> {
 
     private String bucketName;
     private Priority defaultPutPriority;
     private Priority defaultGetPriority;
     private WriteOptimization defaultWriteOptimization;
 
-    public PutBucket(final Ds3Client client) {
-        super(client);
+    public PutBucket(final Ds3Provider provider, final FileUtils fileUtils) {
+        super(provider, fileUtils);
     }
 
     @Override
@@ -51,9 +56,10 @@ public class PutBucket extends CliCommand {
     }
 
     @Override
-    public String call() throws Exception {
+    public PutBucketResult call() throws Exception {
         try {
             final PutBucketRequest request = new PutBucketRequest(bucketName);
+
             if (this.defaultGetPriority != null) {
                 Logging.logf("Adding a default get priority (%s) to the create bucket", this.defaultGetPriority.toString());
                 request.withDefaultGetJobPriority(defaultGetPriority);
@@ -66,11 +72,18 @@ public class PutBucket extends CliCommand {
                 Logging.logf("Adding a default write optimization (%s) to the create bucket", this.defaultWriteOptimization.toString());
                 request.withDefaultWriteOptimization(defaultWriteOptimization);
             }
+
             getClient().putBucket(request);
+            return new PutBucketResult("Success: created bucket " + bucketName + ".");
+        }
+        catch(final FailedRequestException e) {
+            if (e.getStatusCode() == 409) {
+                throw new CommandException("Bucket " + bucketName + " already exists", e);
+            }
+            throw new CommandException("Encountered a DS3 Error", e);
         }
         catch (final IOException e) {
-             return "Error: Request failed with the following error: " + e.getMessage();
+             throw new CommandException("Encountered an error when communicating with ds3 endpoint", e);
         }
-        return "Success: Created bucket '"+ bucketName+"'.";
     }
 }

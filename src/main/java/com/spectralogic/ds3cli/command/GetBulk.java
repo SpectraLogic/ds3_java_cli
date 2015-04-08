@@ -20,6 +20,8 @@ import com.google.common.collect.Iterables;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.logging.Logging;
 import com.spectralogic.ds3cli.models.GetBulkResult;
+import com.spectralogic.ds3cli.util.Ds3Provider;
+import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.helpers.FileObjectGetter;
@@ -37,15 +39,15 @@ import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.security.SignatureException;
 
-public class GetBulk extends CliCommand {
+public class GetBulk extends CliCommand<GetBulkResult> {
     private String bucketName;
     private Path outputPath;
     private String prefix;
     private boolean checksum;
     private Priority priority;
 
-    public GetBulk(final Ds3Client client) {
-        super(client);
+    public GetBulk(final Ds3Provider provider, final FileUtils fileUtils) {
+        super(provider, fileUtils);
     }
 
     @Override
@@ -97,7 +99,7 @@ public class GetBulk extends CliCommand {
     }
 
     private String restoreSome(final Ds3ClientHelpers.ObjectChannelBuilder getter) throws IOException, SignatureException, XmlProcessingException, SSLSetupException {
-        final Ds3ClientHelpers helper = Ds3ClientHelpers.wrap(getClient());
+        final Ds3ClientHelpers helper = getClientHelpers();
         final Iterable<Contents> contents = helper.listObjects(this.bucketName, this.prefix);
         final Iterable<Ds3Object> objects = Iterables.transform(contents, new Function<Contents, Ds3Object>() {
             @Override
@@ -116,14 +118,14 @@ public class GetBulk extends CliCommand {
     }
 
     private String restoreAll(final Ds3ClientHelpers.ObjectChannelBuilder getter) throws XmlProcessingException, SignatureException, IOException, SSLSetupException {
-        final Ds3ClientHelpers helper = Ds3ClientHelpers.wrap(getClient());
+        final Ds3ClientHelpers helper = getClientHelpers();
         final Ds3ClientHelpers.Job job = helper.startReadAllJob(this.bucketName,
                 ReadJobOptions.create()
                 .withPriority(this.priority));
 
         job.transfer(new LoggingFileObjectGetter(getter));
 
-        return "SUCCESS: Wrote all the objects from " + this.bucketName + " to " + this.outputPath.toString();
+        return "SUCCESS: Wrote all the objects from " + this.bucketName + " to directory " + this.outputPath.toString();
     }
 
 

@@ -16,20 +16,24 @@
 package com.spectralogic.ds3cli.command;
 
 import com.spectralogic.ds3cli.Arguments;
+import com.spectralogic.ds3cli.CommandException;
+import com.spectralogic.ds3cli.models.GetServiceResult;
+import com.spectralogic.ds3cli.util.Ds3Provider;
+import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.GetServiceRequest;
 import com.spectralogic.ds3client.commands.GetServiceResponse;
 import com.spectralogic.ds3client.models.ListAllMyBucketsResult;
+import com.spectralogic.ds3client.networking.FailedRequestException;
 import com.spectralogic.ds3client.utils.SSLSetupException;
 
 import java.io.IOException;
 import java.security.SignatureException;
 
-public class GetService extends CliCommand<ListAllMyBucketsResult> {
+public class GetService extends CliCommand<GetServiceResult> {
 
-
-    public GetService(final Ds3Client client) {
-        super(client);
+    public GetService(final Ds3Provider provider, final FileUtils fileUtils) {
+        super(provider, fileUtils);
     }
 
     @Override
@@ -38,11 +42,13 @@ public class GetService extends CliCommand<ListAllMyBucketsResult> {
     }
 
     @Override
-    public ListAllMyBucketsResult call() throws IOException, SignatureException, SSLSetupException {
-        final GetServiceResponse response = getClient().getService(new GetServiceRequest());
+    public GetServiceResult call() throws IOException, SignatureException, SSLSetupException, CommandException {
+        try {
+            final GetServiceResponse response = getClient().getService(new GetServiceRequest());
 
-        final ListAllMyBucketsResult result = response.getResult();
-
-        return result;
+            return new GetServiceResult(response.getResult());
+        } catch (final FailedRequestException e) {
+            throw new CommandException("Failed Get Service", e);
+        }
     }
 }

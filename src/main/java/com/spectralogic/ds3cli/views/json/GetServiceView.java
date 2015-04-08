@@ -2,21 +2,23 @@ package com.spectralogic.ds3cli.views.json;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.spectralogic.ds3cli.View;
+import com.spectralogic.ds3cli.models.GetServiceResult;
+import com.spectralogic.ds3cli.util.JsonMapper;
 import com.spectralogic.ds3client.models.ListAllMyBucketsResult;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-public class GetServiceView implements View<ListAllMyBucketsResult> {
+public class GetServiceView implements View<GetServiceResult> {
 
     @Override
-    public String render(final ListAllMyBucketsResult obj) throws JsonProcessingException {
-        final ObjectMapper mapper = new ObjectMapper();
+    public String render(final GetServiceResult obj) throws JsonProcessingException {
+        final ListAllMyBucketsResult result = obj.getResult();
+        final CommonJsonView view = CommonJsonView.newView(CommonJsonView.Status.OK);
 
-        if( (obj == null) || (null == obj.getBuckets()) ){
-            return mapper.writerWithDefaultPrettyPrinter().writeValueAsString("You do not have any buckets");
+        if( (result == null) || (null == result.getBuckets()) ){
+            view.message("You do not have any buckets");
+            return JsonMapper.toJson(view);
         }
 
-        return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(obj);
+        return JsonMapper.toJson(view.data(result));
     }
 
 }

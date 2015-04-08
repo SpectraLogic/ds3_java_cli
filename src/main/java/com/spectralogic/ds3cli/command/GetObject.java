@@ -15,30 +15,32 @@
 
 package com.spectralogic.ds3cli.command;
 
+import com.google.common.collect.Lists;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.CommandException;
 import com.spectralogic.ds3cli.logging.Logging;
 import com.spectralogic.ds3cli.models.GetObjectResult;
-import com.spectralogic.ds3client.Ds3Client;
+import com.spectralogic.ds3cli.util.Ds3Provider;
+import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3client.commands.GetObjectRequest;
+import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
+import com.spectralogic.ds3client.helpers.FileObjectGetter;
+import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.networking.FailedRequestException;
 import org.apache.commons.cli.MissingOptionException;
 
-import java.nio.channels.FileChannel;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
+import java.nio.file.*;
+import java.util.List;
 
-public class GetObject extends CliCommand {
+public class GetObject extends CliCommand<GetObjectResult> {
 
     private String bucketName;
     private String objectName;
     private String prefix;
     private GetObjectRequest.Range byteRange;
 
-    public GetObject(final Ds3Client client) {
-        super(client);
+    public GetObject(final Ds3Provider provider, final FileUtils fileUtils) {
+        super(provider, fileUtils);
     }
 
     @Override
@@ -57,9 +59,6 @@ public class GetObject extends CliCommand {
         if (prefix == null) {
             prefix = ".";
         }
-        if (args.getEnd() != 0) {
-            byteRange = new GetObjectRequest.Range(args.getStart(), args.getEnd());
-        }
         return this;
     }
 
@@ -67,24 +66,19 @@ public class GetObject extends CliCommand {
     @Override
     public GetObjectResult call() throws Exception {
         try {
-            final Path filePath = FileSystems.getDefault().getPath(prefix, objectName);
+            final Path filePath = Paths.get(prefix, objectName);
             Logging.log("Output path: " + filePath.toString());
 
-            Files.createDirectories(filePath.getParent());
+            getFileUtils().createDirectories(filePath.getParent());
 
-            final FileChannel fileChannel = FileChannel.open(
-                filePath,
-                StandardOpenOption.WRITE,
-                StandardOpenOption.CREATE,
-                StandardOpenOption.TRUNCATE_EXISTING
-            );
-            final GetObjectRequest request = new GetObjectRequest(bucketName, objectName, fileChannel);
-            if (byteRange != null) {
-                request.withByteRange(byteRange);
-            }
-            getClient().getObject(request);
+            final Ds3ClientHelpers helpers = getClientHelpers();
+            final List<Ds3Object> ds3ObjectList = Lists.newArrayList(new Ds3Object(objectName));
 
-            return new GetObjectResult("SUCCESS: Finished downloading object.  The object was written out to: " + filePath);
+            final Ds3ClientHelpers.Job job = helpers.startReadJob(bucketName, ds3ObjectList);
+
+            job.transfer(new FileObjectGetter(Paths.get(prefix)));
+
+            return new GetObjectResult("SUCCESS: Finished downloading object.  The object was written to: " + filePath);
         }
         catch(final FailedRequestException e) {
             if(e.getStatusCode() == 500) {

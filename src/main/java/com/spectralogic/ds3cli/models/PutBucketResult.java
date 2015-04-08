@@ -15,10 +15,7 @@
 
 package com.spectralogic.ds3cli.models;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-public class PutBucketResult {
-    @JsonProperty("status_message")
+public class PutBucketResult implements Result {
     final private String result;
 
     final public String getResult(){
