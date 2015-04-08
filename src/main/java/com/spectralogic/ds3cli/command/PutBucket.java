@@ -19,6 +19,7 @@ import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.CommandException;
 import com.spectralogic.ds3cli.logging.Logging;
 import com.spectralogic.ds3cli.models.PutBucketResult;
+import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.PutBucketRequest;
 import com.spectralogic.ds3client.models.bulk.Priority;
@@ -35,8 +36,8 @@ public class PutBucket extends CliCommand<PutBucketResult> {
     private Priority defaultGetPriority;
     private WriteOptimization defaultWriteOptimization;
 
-    public PutBucket(final Ds3Client client) {
-        super(client);
+    public PutBucket(final Ds3Provider provider) {
+        super(provider);
     }
 
     @Override

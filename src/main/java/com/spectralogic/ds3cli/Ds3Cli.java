@@ -1,9 +1,9 @@
 package com.spectralogic.ds3cli;
 
 import com.spectralogic.ds3cli.command.*;
+import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.views.cli.CommandExceptionCliView;
 import com.spectralogic.ds3cli.views.json.CommandExceptionJsonView;
-import com.spectralogic.ds3client.Ds3Client;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -13,11 +13,11 @@ public class Ds3Cli implements Callable<String> {
 
     private final Map<ViewType, Map<CommandValue, View>> views;
     private final Arguments args;
-    private final Ds3Client client;
+    private final Ds3Provider ds3Provider;
 
-    Ds3Cli(final Ds3Client client, final Arguments args)  {
+    Ds3Cli(final Ds3Provider provider, final Arguments args)  {
         this.args = args;
-        this.client = client;
+        this.ds3Provider = provider;
         this.views = getViews();
     }
 
@@ -81,32 +81,32 @@ public class Ds3Cli implements Callable<String> {
         final CommandValue command = this.args.getCommand();
         switch(command) {
             case GET_OBJECT: {
-                return new GetObject(client);
+                return new GetObject(this.ds3Provider);
             }
             case GET_BUCKET: {
-                return new GetBucket(client);
+                return new GetBucket(this.ds3Provider);
             }
             case PUT_BUCKET: {
-                return new PutBucket(client);
+                return new PutBucket(this.ds3Provider);
             }
             case PUT_OBJECT: {
-                return new PutObject(client);
+                return new PutObject(this.ds3Provider);
             }
             case DELETE_BUCKET: {
-                return new DeleteBucket(client);
+                return new DeleteBucket(this.ds3Provider);
             }
             case DELETE_OBJECT: {
-                return new DeleteObject(client);
+                return new DeleteObject(this.ds3Provider);
             }
             case GET_BULK: {
-                return new GetBulk(client);
+                return new GetBulk(this.ds3Provider);
             }
             case PUT_BULK: {
-                return new PutBulk(client);
+                return new PutBulk(this.ds3Provider);
             }
             case GET_SERVICE:
             default: {
-                return new GetService(client);
+                return new GetService(this.ds3Provider);
             }
         }
     }

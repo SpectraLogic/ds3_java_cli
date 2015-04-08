@@ -18,6 +18,7 @@ package com.spectralogic.ds3cli.command;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.CommandException;
 import com.spectralogic.ds3cli.models.GetServiceResult;
+import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.GetServiceRequest;
 import com.spectralogic.ds3client.commands.GetServiceResponse;
@@ -31,8 +32,8 @@ import java.security.SignatureException;
 public class GetService extends CliCommand<GetServiceResult> {
 
 
-    public GetService(final Ds3Client client) {
-        super(client);
+    public GetService(final Ds3Provider provider) {
+        super(provider);
     }
 
     @Override

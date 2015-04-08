@@ -6,19 +6,15 @@ import com.spectralogic.ds3client.models.Error;
 import com.spectralogic.ds3client.networking.FailedRequestException;
 import com.spectralogic.ds3client.networking.Headers;
 import com.spectralogic.ds3client.networking.WebResponse;
-import org.apache.commons.cli.ParseException;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 
-import java.io.IOException;
 import java.io.InputStream;
-import java.security.SignatureException;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.contains;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -64,7 +60,7 @@ public class Ds3Cli_Test {
         when(webResponse.getResponseStream()).thenReturn(stream);
 
         final GetServiceResponse serviceResponse = new GetServiceResponse(webResponse);
-        final Ds3Cli cli = new Ds3Cli(client, args);
+        final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args);
         when(client.getService(any(GetServiceRequest.class))).thenReturn(serviceResponse);
 
         final String result = cli.call();
@@ -119,7 +115,7 @@ public class Ds3Cli_Test {
         when(webResponse.getResponseStream()).thenReturn(stream);
 
         final GetServiceResponse serviceResponse = new GetServiceResponse(webResponse);
-        final Ds3Cli cli = new Ds3Cli(client, args);
+        final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args);
         when(client.getService(any(GetServiceRequest.class))).thenReturn(serviceResponse);
 
         final String result = cli.call();
@@ -131,8 +127,8 @@ public class Ds3Cli_Test {
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_service"});
         final Ds3Client client = mock(Ds3Client.class);
         when(client.getService(any(GetServiceRequest.class))).thenThrow(new FailedRequestException(new int[]{200}, 500, new Error(), ""));
-        final Ds3Cli cli = new Ds3Cli(client, args);
 
+        final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args);
         final String result = cli.call();
         assertThat(result, is("Failed Get Service"));
     }
@@ -151,8 +147,8 @@ public class Ds3Cli_Test {
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_service", "--output-format", "json"});
         final Ds3Client client = mock(Ds3Client.class);
         when(client.getService(any(GetServiceRequest.class))).thenThrow(new FailedRequestException(new int[]{200}, 500, new Error(),""));
-        final Ds3Cli cli = new Ds3Cli(client, args);
 
+        final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args);
         final String result = cli.call();
         assertTrue(result.endsWith(expected));
     }
@@ -169,8 +165,7 @@ public class Ds3Cli_Test {
         final DeleteBucketResponse deleteBucketResponse = new DeleteBucketResponse(webResponse);
         when(client.deleteBucket(any(DeleteBucketRequest.class))).thenReturn(deleteBucketResponse);
 
-        final Ds3Cli cli = new Ds3Cli(client, args);
-
+        final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args);
         final String result = cli.call();
         assertThat(result, is("Success: Deleted bucket 'bucketName'."));
     }
@@ -191,7 +186,7 @@ public class Ds3Cli_Test {
         final DeleteBucketResponse deleteBucketResponse = new DeleteBucketResponse(webResponse);
         when(client.deleteBucket(any(DeleteBucketRequest.class))).thenReturn(deleteBucketResponse);
 
-        final Ds3Cli cli = new Ds3Cli(client, args);
+        final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args);
 
         final String result = cli.call();
         assertTrue(result.endsWith(expected));
@@ -209,7 +204,7 @@ public class Ds3Cli_Test {
         final DeleteObjectResponse deleteObjectResponse = new DeleteObjectResponse(webResponse);
         when(client.deleteObject(any(DeleteObjectRequest.class))).thenReturn(deleteObjectResponse);
 
-        final Ds3Cli cli = new Ds3Cli(client, args);
+        final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args);
 
         final String result = cli.call();
         assertThat(result, is("Success: Deleted object 'obj.txt' from bucket 'bucketName'."));
@@ -231,7 +226,7 @@ public class Ds3Cli_Test {
         final DeleteObjectResponse deleteObjectResponse = new DeleteObjectResponse(webResponse);
         when(client.deleteObject(any(DeleteObjectRequest.class))).thenReturn(deleteObjectResponse);
 
-        final Ds3Cli cli = new Ds3Cli(client, args);
+        final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args);
 
         final String result = cli.call();
         assertTrue(result.endsWith(expected));
@@ -287,7 +282,7 @@ public class Ds3Cli_Test {
         final GetBucketResponse getBucketResponse = new GetBucketResponse(webResponse);
         when(client.getBucket(any(GetBucketRequest.class))).thenReturn(getBucketResponse);
 
-        final Ds3Cli cli = new Ds3Cli(client, args);
+        final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args);
         final String result = cli.call();
         assertThat(result, is(expected));
     }
@@ -363,7 +358,7 @@ public class Ds3Cli_Test {
         final GetBucketResponse getBucketResponse = new GetBucketResponse(webResponse);
         when(client.getBucket(any(GetBucketRequest.class))).thenReturn(getBucketResponse);
 
-        final Ds3Cli cli = new Ds3Cli(client, args);
+        final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args);
         final String result = cli.call();
         assertTrue(result.endsWith(expected));
     }
@@ -380,7 +375,7 @@ public class Ds3Cli_Test {
         final PutBucketResponse response = new PutBucketResponse(webResponse);
         when(client.putBucket(any(PutBucketRequest.class))).thenReturn(response);
 
-        final Ds3Cli cli = new Ds3Cli(client, args);
+        final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args);
 
         final String result = cli.call();
         assertThat(result, is("Success: created bucket bucketName."));
@@ -401,7 +396,7 @@ public class Ds3Cli_Test {
         final PutBucketResponse response = new PutBucketResponse(webResponse);
         when(client.putBucket(any(PutBucketRequest.class))).thenReturn(response);
 
-        final Ds3Cli cli = new Ds3Cli(client, args);
+        final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args);
 
         final String result = cli.call();
         assertTrue(result.endsWith(expected));

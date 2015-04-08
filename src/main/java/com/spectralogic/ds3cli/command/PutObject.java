@@ -20,6 +20,7 @@ import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.BadArgumentException;
 import com.spectralogic.ds3cli.logging.Logging;
 import com.spectralogic.ds3cli.models.PutObjectResult;
+import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.PutObjectRequest;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
@@ -40,8 +41,8 @@ public class PutObject extends CliCommand<PutObjectResult> {
     private Path objectPath;
     private String objectName;
 
-    public PutObject(final Ds3Client client) {
-        super(client);
+    public PutObject(final Ds3Provider provider) {
+        super(provider);
     }
 
     @Override

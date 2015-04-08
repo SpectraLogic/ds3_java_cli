@@ -20,6 +20,7 @@ import com.google.common.collect.Iterables;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.logging.Logging;
 import com.spectralogic.ds3cli.models.GetBulkResult;
+import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.helpers.FileObjectGetter;
@@ -44,8 +45,8 @@ public class GetBulk extends CliCommand<GetBulkResult> {
     private boolean checksum;
     private Priority priority;
 
-    public GetBulk(final Ds3Client client) {
-        super(client);
+    public GetBulk(final Ds3Provider provider) {
+        super(provider);
     }
 
     @Override

@@ -16,8 +16,10 @@
 package com.spectralogic.ds3cli;
 
 import com.spectralogic.ds3cli.logging.Logging;
+import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.Ds3ClientBuilder;
+import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.models.Credentials;
 import com.spectralogic.ds3client.networking.FailedRequestException;
 
@@ -26,7 +28,9 @@ public class Main {
     public static void main(final String[] args) {
         try {
             final Arguments arguments = new Arguments(args);
-            final Ds3Cli runner = new Ds3Cli(createClient(arguments), arguments);
+            final Ds3Client client = createClient(arguments);
+            final Ds3Provider provider = new Ds3ProviderImpl(client, Ds3ClientHelpers.wrap(client));
+            final Ds3Cli runner = new Ds3Cli(provider, arguments);
             System.out.println(runner.call());
         } catch (final Exception e) {
             System.out.println("ERROR: " + e.getMessage());

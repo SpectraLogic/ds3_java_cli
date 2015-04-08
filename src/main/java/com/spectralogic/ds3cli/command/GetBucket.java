@@ -19,6 +19,7 @@ package com.spectralogic.ds3cli.command;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.CommandException;
 import com.spectralogic.ds3cli.models.GetBucketResult;
+import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.models.Contents;
@@ -29,8 +30,8 @@ import java.util.Iterator;
 
 public class GetBucket extends CliCommand<GetBucketResult> {
     private String bucketName;
-    public GetBucket(final Ds3Client client) {
-        super(client);
+    public GetBucket(final Ds3Provider provider) {
+        super(provider);
     }
 
     @Override

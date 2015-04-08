@@ -20,6 +20,7 @@ import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.CommandException;
 import com.spectralogic.ds3cli.logging.Logging;
 import com.spectralogic.ds3cli.models.GetObjectResult;
+import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.GetObjectRequest;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
@@ -39,8 +40,8 @@ public class GetObject extends CliCommand<GetObjectResult> {
     private String prefix;
     private GetObjectRequest.Range byteRange;
 
-    public GetObject(final Ds3Client client) {
-        super(client);
+    public GetObject(final Ds3Provider provider) {
+        super(provider);
     }
 
     @Override
