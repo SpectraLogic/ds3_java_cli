@@ -72,8 +72,9 @@ public class Ds3Cli_Test {
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
         when(client.getService(any(GetServiceRequest.class))).thenReturn(serviceResponse);
 
-        final String result = cli.call();
-        assertThat(result, is(expectedString));
+        final CommandResponse result = cli.call();
+        assertThat(result.getMessage(), is(expectedString));
+        assertThat(result.getReturnCode(), is(0));
     }
 
     @Test
@@ -127,8 +128,9 @@ public class Ds3Cli_Test {
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
         when(client.getService(any(GetServiceRequest.class))).thenReturn(serviceResponse);
 
-        final String result = cli.call();
-        assertTrue(result.endsWith(expectedString));
+        final CommandResponse result = cli.call();
+        assertTrue(result.getMessage().endsWith(expectedString));
+        assertThat(result.getReturnCode(), is(0));
     }
 
     @Test
@@ -138,8 +140,9 @@ public class Ds3Cli_Test {
         when(client.getService(any(GetServiceRequest.class))).thenThrow(new FailedRequestException(new int[]{200}, 500, new Error(), ""));
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
-        final String result = cli.call();
-        assertThat(result, is("Failed Get Service"));
+        final CommandResponse result = cli.call();
+        assertThat(result.getMessage(), is("Failed Get Service"));
+        assertThat(result.getReturnCode(), is(1));
     }
 
     @Test
@@ -158,8 +161,9 @@ public class Ds3Cli_Test {
         when(client.getService(any(GetServiceRequest.class))).thenThrow(new FailedRequestException(new int[]{200}, 500, new Error(),""));
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
-        final String result = cli.call();
-        assertTrue(result.endsWith(expected));
+        final CommandResponse result = cli.call();
+        assertTrue(result.getMessage().endsWith(expected));
+        assertThat(result.getReturnCode(), is(1));
     }
 
     @Test
@@ -175,8 +179,9 @@ public class Ds3Cli_Test {
         when(client.deleteBucket(any(DeleteBucketRequest.class))).thenReturn(deleteBucketResponse);
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
-        final String result = cli.call();
-        assertThat(result, is("Success: Deleted bucket 'bucketName'."));
+        final CommandResponse result = cli.call();
+        assertThat(result.getMessage(), is("Success: Deleted bucket 'bucketName'."));
+        assertThat(result.getReturnCode(), is(0));
     }
 
     @Test
@@ -197,8 +202,9 @@ public class Ds3Cli_Test {
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
 
-        final String result = cli.call();
-        assertTrue(result.endsWith(expected));
+        final CommandResponse result = cli.call();
+        assertTrue(result.getMessage().endsWith(expected));
+        assertThat(result.getReturnCode(), is(0));
     }
 
     @Test
@@ -215,8 +221,9 @@ public class Ds3Cli_Test {
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
 
-        final String result = cli.call();
-        assertThat(result, is("Success: Deleted object 'obj.txt' from bucket 'bucketName'."));
+        final CommandResponse result = cli.call();
+        assertThat(result.getMessage(), is("Success: Deleted object 'obj.txt' from bucket 'bucketName'."));
+        assertThat(result.getReturnCode(), is(0));
     }
 
     @Test
@@ -237,8 +244,9 @@ public class Ds3Cli_Test {
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
 
-        final String result = cli.call();
-        assertTrue(result.endsWith(expected));
+        final CommandResponse result = cli.call();
+        assertTrue(result.getMessage().endsWith(expected));
+        assertThat(result.getReturnCode(), is(0));
     }
 
     @Test
@@ -292,8 +300,9 @@ public class Ds3Cli_Test {
         when(client.getBucket(any(GetBucketRequest.class))).thenReturn(getBucketResponse);
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
-        final String result = cli.call();
-        assertThat(result, is(expected));
+        final CommandResponse result = cli.call();
+        assertThat(result.getMessage(), is(expected));
+        assertThat(result.getReturnCode(), is(0));
     }
 
     @Test
@@ -368,8 +377,9 @@ public class Ds3Cli_Test {
         when(client.getBucket(any(GetBucketRequest.class))).thenReturn(getBucketResponse);
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
-        final String result = cli.call();
-        assertTrue(result.endsWith(expected));
+        final CommandResponse result = cli.call();
+        assertTrue(result.getMessage().endsWith(expected));
+        assertThat(result.getReturnCode(), is(0));
     }
 
     @Test
@@ -386,8 +396,9 @@ public class Ds3Cli_Test {
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
 
-        final String result = cli.call();
-        assertThat(result, is("Success: created bucket bucketName."));
+        final CommandResponse result = cli.call();
+        assertThat(result.getMessage(), is("Success: created bucket bucketName."));
+        assertThat(result.getReturnCode(), is(0));
     }
 
     @Test
@@ -407,8 +418,9 @@ public class Ds3Cli_Test {
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
 
-        final String result = cli.call();
-        assertTrue(result.endsWith(expected));
+        final CommandResponse result = cli.call();
+        assertTrue(result.getMessage().endsWith(expected));
+        assertThat(result.getReturnCode(), is(0));
     }
 
     @Test
@@ -423,8 +435,9 @@ public class Ds3Cli_Test {
         when(helpers.startWriteJob(eq("bucketName"), (Iterable<Ds3Object>) isNotNull())).thenReturn(mockedPutJob);
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(null, helpers), args, mockedFileUtils);
-        final String result = cli.call();
-        assertThat(result, is("Success: Finished writing file to ds3 appliance."));
+        final CommandResponse result = cli.call();
+        assertThat(result.getMessage(), is("Success: Finished writing file to ds3 appliance."));
+        assertThat(result.getReturnCode(), is(0));
     }
 
     @Test
@@ -441,8 +454,9 @@ public class Ds3Cli_Test {
         when(helpers.startWriteJob(eq("bucketName"), (Iterable<Ds3Object>) isNotNull())).thenReturn(mockedPutJob);
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(null, helpers), args, mockedFileUtils);
-        final String result = cli.call();
-        assertTrue(result.endsWith(expected));
+        final CommandResponse result = cli.call();
+        assertTrue(result.getMessage().endsWith(expected));
+        assertThat(result.getReturnCode(), is(0));
     }
 
     @Test
@@ -454,8 +468,9 @@ public class Ds3Cli_Test {
         when(helpers.startReadJob(eq("bucketName"), (Iterable<Ds3Object>) isNotNull())).thenReturn(mockedGetJob);
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(null, helpers), args, mockedFileUtils);
-        final String result = cli.call();
-        assertThat(result, is("SUCCESS: Finished downloading object.  The object was written to: ./obj.txt"));
+        final CommandResponse result = cli.call();
+        assertThat(result.getMessage(), is("SUCCESS: Finished downloading object.  The object was written to: ./obj.txt"));
+        assertThat(result.getReturnCode(), is(0));
     }
 
     @Test
@@ -469,8 +484,9 @@ public class Ds3Cli_Test {
         when(helpers.startReadJob(eq("bucketName"), (Iterable<Ds3Object>) isNotNull())).thenReturn(mockedGetJob);
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(null, helpers), args, mockedFileUtils);
-        final String result = cli.call();
-        assertTrue(result.endsWith(expected));
+        final CommandResponse result = cli.call();
+        assertTrue(result.getMessage().endsWith(expected));
+        assertThat(result.getReturnCode(), is(0));
     }
 
     @Test
@@ -483,8 +499,9 @@ public class Ds3Cli_Test {
         when(helpers.startReadAllJob(eq("bucketName"), any(ReadJobOptions.class))).thenReturn(mockedGetJob);
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(null, helpers), args, mockedFileUtils);
-        final String result = cli.call();
-        assertThat(result, is("SUCCESS: Wrote all the objects from bucketName to directory ."));
+        final CommandResponse result = cli.call();
+        assertThat(result.getMessage(), is("SUCCESS: Wrote all the objects from bucketName to directory ."));
+        assertThat(result.getReturnCode(), is(0));
     }
 
     @Test
@@ -499,9 +516,9 @@ public class Ds3Cli_Test {
         when(helpers.startReadAllJob(eq("bucketName"), any(ReadJobOptions.class))).thenReturn(mockedGetJob);
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(null, helpers), args, mockedFileUtils);
-        final String result = cli.call();
-        System.out.println(result);
-        assertTrue(result.endsWith(expected));
+        final CommandResponse result = cli.call();
+        assertTrue(result.getMessage().endsWith(expected));
+        assertThat(result.getReturnCode(), is(0));
     }
 
     @Test
@@ -516,8 +533,9 @@ public class Ds3Cli_Test {
         when(helpers.startWriteJob(eq("bucketName"), eq(retObj), any(WriteJobOptions.class))).thenReturn(mockedGetJob);
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(null, helpers), args, mockedFileUtils);
-        final String result = cli.call();
-        assertThat(result, is("SUCCESS: Wrote all the files in dir to bucket bucketName"));
+        final CommandResponse result = cli.call();
+        assertThat(result.getMessage(), is("SUCCESS: Wrote all the files in dir to bucket bucketName"));
+        assertThat(result.getReturnCode(), is(0));
     }
 
     @Test
@@ -534,7 +552,8 @@ public class Ds3Cli_Test {
         when(helpers.startWriteJob(eq("bucketName"), eq(retObj), any(WriteJobOptions.class))).thenReturn(mockedGetJob);
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(null, helpers), args, mockedFileUtils);
-        final String result = cli.call();
-        assertTrue(result.endsWith(expected));
+        final CommandResponse result = cli.call();
+        assertTrue(result.getMessage().endsWith(expected));
+        assertThat(result.getReturnCode(), is(0));
     }
 }
