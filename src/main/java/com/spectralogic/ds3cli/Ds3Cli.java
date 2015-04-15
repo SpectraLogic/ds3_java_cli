@@ -10,7 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
-public class Ds3Cli implements Callable<String> {
+public class Ds3Cli implements Callable<CommandResponse> {
 
     private final Map<ViewType, Map<CommandValue, View>> views;
     private final Arguments args;
@@ -62,21 +62,24 @@ public class Ds3Cli implements Callable<String> {
 
 
     @Override
-    public String call() throws Exception {
+    public CommandResponse call() throws Exception {
         final CliCommand command = getCommandExecutor();
 
         final View view = views.get(this.args.getOutputFormat()).get(this.args.getCommand());
 
         try {
-            return view.render(command.init(this.args).call());
+            final String message = view.render(command.init(this.args).call());
+            return new CommandResponse(message, 0);
         }
         catch(final CommandException e) {
+            final String message;
             if (this.args.getOutputFormat() == ViewType.JSON) {
-                return new CommandExceptionJsonView().render(e);
+                message = new CommandExceptionJsonView().render(e);
             }
             else {
-                return new CommandExceptionCliView().render(e);
+                message = new CommandExceptionCliView().render(e);
             }
+            return new CommandResponse(message, 1);
         }
     }
 
