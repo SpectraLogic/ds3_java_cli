@@ -12,11 +12,15 @@
  *   specific language governing permissions and limitations under the License.
  * ****************************************************************************
  */
-
-package com.spectralogic.ds3cli;
+package com.spectralogic.ds3cli.views.cli;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.spectralogic.ds3cli.View;
+import com.spectralogic.ds3cli.models.DeleteTapePartitionResult;
 
-public interface View<T>{
-    String render(final T obj) throws JsonProcessingException;
+public class DeleteTapePartitionView implements View<DeleteTapePartitionResult> {
+    @Override
+    public String render(final DeleteTapePartitionResult obj) throws JsonProcessingException {
+        return obj.getResult();
+    }
 }

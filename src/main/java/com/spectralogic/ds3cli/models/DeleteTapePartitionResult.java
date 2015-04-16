@@ -13,10 +13,17 @@
  * ****************************************************************************
  */
 
-package com.spectralogic.ds3cli;
+package com.spectralogic.ds3cli.models;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+public class DeleteTapePartitionResult implements Result {
 
-public interface View<T>{
-    String render(final T obj) throws JsonProcessingException;
+    private final String result;
+
+    public DeleteTapePartitionResult(final String result) {
+        this.result = result;
+    }
+
+    public String getResult() {
+        return result;
+    }
 }

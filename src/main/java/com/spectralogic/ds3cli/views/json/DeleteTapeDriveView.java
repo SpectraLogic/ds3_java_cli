@@ -13,10 +13,17 @@
  * ****************************************************************************
  */
 
-package com.spectralogic.ds3cli;
+package com.spectralogic.ds3cli.views.json;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.spectralogic.ds3cli.View;
+import com.spectralogic.ds3cli.models.DeleteTapeDriveResult;
+import com.spectralogic.ds3cli.util.JsonMapper;
 
-public interface View<T>{
-    String render(final T obj) throws JsonProcessingException;
+public class DeleteTapeDriveView implements View<DeleteTapeDriveResult> {
+    @Override
+    public String render(final DeleteTapeDriveResult obj) throws JsonProcessingException {
+        final CommonJsonView view = CommonJsonView.newView(CommonJsonView.Status.OK);
+        return JsonMapper.toJson(view.message(obj.getResult()));
+    }
 }
