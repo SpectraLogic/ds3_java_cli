@@ -38,6 +38,7 @@ public class Arguments {
     private String accessKey;
     private String secretKey;
     private String prefix;
+    private String id = null;
     private CommandValue command;
     private final String[] args;
     private String objectName;
@@ -86,6 +87,8 @@ public class Arguments {
         start.setArgName("start");
         final Option end = new Option("n", true, "The ending byte for a get_object command");
         end.setArgName("end");
+        final Option id = new Option("i", true, "ID for identifying ds3 api resources");
+        id.setArgName("id");
         final Option clearBucket = new Option(null, false, "Used with the command `delete_bucket`.  If this is set then the `delete_bucket` command will also delete all the objects in the bucket");
         clearBucket.setLongOpt("force");
         final Option retries = new Option("r", true, "Specifies how many times puts and gets will be attempted before failing the request.  The default is 5");
@@ -128,6 +131,7 @@ public class Arguments {
         options.addOption(objectName);
         options.addOption(prefix);
         options.addOption(proxy);
+        options.addOption(id);
         //options.addOption(start);  //TODO re-add these calls when we have support for partial file gets in the helper functions
         //options.addOption(end);
         options.addOption(clearBucket);
@@ -236,6 +240,7 @@ public class Arguments {
         this.setProxy(cmd.getOptionValue("x"));
         this.setDirectory(cmd.getOptionValue("d"));
         this.setPrefix(cmd.getOptionValue("p"));
+        this.setId(cmd.getOptionValue("i"));
 
         final String start = cmd.getOptionValue("s");
         if (!(start == null || start.isEmpty())) {
@@ -528,5 +533,13 @@ public class Arguments {
 
     void setOutputFormat(final ViewType outputFormat) {
         this.outputFormat = outputFormat;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    void setId(final String id) {
+        this.id = id;
     }
 }

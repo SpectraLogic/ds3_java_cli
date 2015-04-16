@@ -1,6 +1,23 @@
+/*
+ * ******************************************************************************
+ *   Copyright 2014-2015 Spectra Logic Corporation. All Rights Reserved.
+ *   Licensed under the Apache License, Version 2.0 (the "License"). You may not use
+ *   this file except in compliance with the License. A copy of the License is located at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   or in the "license" file accompanying this file.
+ *   This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+ *   CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ *   specific language governing permissions and limitations under the License.
+ * ****************************************************************************
+ */
+
 package com.spectralogic.ds3cli;
 
 import com.google.common.collect.Lists;
+import com.spectralogic.ds3cli.models.DeleteTapeDriveResult;
+import com.spectralogic.ds3cli.models.DeleteTapePartitionResult;
 import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.*;
@@ -12,11 +29,14 @@ import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.networking.FailedRequestException;
 import com.spectralogic.ds3client.networking.Headers;
 import com.spectralogic.ds3client.networking.WebResponse;
+import org.apache.commons.cli.ParseException;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
+import java.security.SignatureException;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -158,7 +178,7 @@ public class Ds3Cli_Test {
 
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_service", "--output-format", "json"});
         final Ds3Client client = mock(Ds3Client.class);
-        when(client.getService(any(GetServiceRequest.class))).thenThrow(new FailedRequestException(new int[]{200}, 500, new Error(),""));
+        when(client.getService(any(GetServiceRequest.class))).thenThrow(new FailedRequestException(new int[]{200}, 500, new Error(), ""));
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
         final CommandResponse result = cli.call();
@@ -552,6 +572,97 @@ public class Ds3Cli_Test {
         when(helpers.startWriteJob(eq("bucketName"), eq(retObj), any(WriteJobOptions.class))).thenReturn(mockedGetJob);
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(null, helpers), args, mockedFileUtils);
+        final CommandResponse result = cli.call();
+        assertTrue(result.getMessage().endsWith(expected));
+        assertThat(result.getReturnCode(), is(0));
+    }
+
+    @Test
+    public void deleteTapeDrive() throws Exception {
+        final String expected = "Success: Deleted tape drive 'someIdValue'.";
+
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "delete_tape_drive", "-i", "someIdValue"});
+        final Ds3Client client = mock(Ds3Client.class);
+
+        final WebResponse webResponse = mock(WebResponse.class);
+        final Headers headers = mock(Headers.class);
+        when(webResponse.getStatusCode()).thenReturn(204);
+        when(webResponse.getHeaders()).thenReturn(headers);
+
+        final DeleteTapeDriveResponse deleteTapeDriveResponse = new DeleteTapeDriveResponse(webResponse);
+        when(client.deleteTapeDrive(any(DeleteTapeDriveRequest.class))).thenReturn(deleteTapeDriveResponse);
+
+        final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
+
+        final CommandResponse result = cli.call();
+        assertThat(result.getMessage(), is(expected));
+        assertThat(result.getReturnCode(), is(0));
+    }
+
+    @Test
+    public void deleteTapeDriveJson() throws Exception {
+        final String expected = "  \"Status\" : \"OK\",\n" +
+                "  \"Message\" : \"Success: Deleted tape drive 'someIdValue'.\"\n" +
+                "}";
+
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "delete_tape_drive", "-i", "someIdValue", "--output-format", "json"});
+        final Ds3Client client = mock(Ds3Client.class);
+        final WebResponse webResponse = mock(WebResponse.class);
+        final Headers headers = mock(Headers.class);
+        when(webResponse.getStatusCode()).thenReturn(204);
+        when(webResponse.getHeaders()).thenReturn(headers);
+
+        final DeleteTapeDriveResponse deleteTapeDriveResponse = new DeleteTapeDriveResponse(webResponse);
+        when(client.deleteTapeDrive(any(DeleteTapeDriveRequest.class))).thenReturn(deleteTapeDriveResponse);
+
+        final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
+
+        final CommandResponse result = cli.call();
+        assertTrue(result.getMessage().endsWith(expected));
+        assertThat(result.getReturnCode(), is(0));
+    }
+
+    @Test
+    public void deleteTapePartition() throws Exception {
+        final String expected = "Success: Deleted tape partition 'someIdValue'.";
+
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "delete_tape_partition", "-i", "someIdValue"});
+        final Ds3Client client = mock(Ds3Client.class);
+
+        final WebResponse webResponse = mock(WebResponse.class);
+        final Headers headers = mock(Headers.class);
+        when(webResponse.getStatusCode()).thenReturn(204);
+        when(webResponse.getHeaders()).thenReturn(headers);
+
+        final DeleteTapePartitionResponse deleteTapePartitionResponse = new DeleteTapePartitionResponse(webResponse);
+        when(client.deleteTapePartition(any(DeleteTapePartitionRequest.class))).thenReturn(deleteTapePartitionResponse);
+
+        final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
+
+        final CommandResponse result = cli.call();
+        assertThat(result.getMessage(), is(expected));
+        assertThat(result.getReturnCode(), is(0));
+    }
+
+    @Test
+    public void deleteTapePartitionJson() throws Exception {
+        final String expected = "  \"Status\" : \"OK\",\n" +
+                "  \"Message\" : \"Success: Deleted tape partition 'someIdValue'.\"\n" +
+                "}";
+
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "delete_tape_partition", "-i", "someIdValue", "--output-format", "json"});
+
+        final Ds3Client client = mock(Ds3Client.class);
+        final WebResponse webResponse = mock(WebResponse.class);
+        final Headers headers = mock(Headers.class);
+        when(webResponse.getStatusCode()).thenReturn(204);
+        when(webResponse.getHeaders()).thenReturn(headers);
+
+        final DeleteTapePartitionResponse deleteTapePartitionResponse = new DeleteTapePartitionResponse(webResponse);
+        when(client.deleteTapePartition(any(DeleteTapePartitionRequest.class))).thenReturn(deleteTapePartitionResponse);
+
+        final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
+
         final CommandResponse result = cli.call();
         assertTrue(result.getMessage().endsWith(expected));
         assertThat(result.getReturnCode(), is(0));
