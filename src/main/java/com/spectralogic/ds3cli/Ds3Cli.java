@@ -39,7 +39,7 @@ public class Ds3Cli implements Callable<CommandResponse> {
         this.views = getViews();
     }
 
-    private Map<ViewType, Map<CommandValue, View>>  getViews(){
+    private Map<ViewType, Map<CommandValue, View>>  getViews() {
         final Map<ViewType, Map<CommandValue, View>>  allViews = new HashMap<>();
         allViews.put( ViewType.CLI, getCliViews() );
         allViews.put( ViewType.JSON, getJsonViews() );
@@ -47,35 +47,42 @@ public class Ds3Cli implements Callable<CommandResponse> {
         return allViews;
     }
 
-    private Map<CommandValue, View> getCliViews(){
+    private Map<CommandValue, View> getCliViews() {
+        final com.spectralogic.ds3cli.views.cli.DeleteView deleteView = new com.spectralogic.ds3cli.views.cli.DeleteView();
+
         final Map<CommandValue, View> cliViews = new HashMap<>();
         cliViews.put(CommandValue.GET_SERVICE,           new com.spectralogic.ds3cli.views.cli.GetServiceView() );
         cliViews.put(CommandValue.GET_BUCKET,            new com.spectralogic.ds3cli.views.cli.GetBucketView() );
         cliViews.put(CommandValue.GET_OBJECT,            new com.spectralogic.ds3cli.views.cli.GetObjectView() );
-        cliViews.put(CommandValue.DELETE_BUCKET,         new com.spectralogic.ds3cli.views.cli.DeleteBucketView() );
-        cliViews.put(CommandValue.DELETE_OBJECT,         new com.spectralogic.ds3cli.views.cli.DeleteObjectView() );
+        cliViews.put(CommandValue.DELETE_BUCKET,         deleteView);
+        cliViews.put(CommandValue.DELETE_OBJECT,         deleteView);
         cliViews.put(CommandValue.GET_BULK,              new com.spectralogic.ds3cli.views.cli.GetBulkView() );
         cliViews.put(CommandValue.PUT_BUCKET,            new com.spectralogic.ds3cli.views.cli.PutBucketView() );
         cliViews.put(CommandValue.PUT_BULK,              new com.spectralogic.ds3cli.views.cli.PutBulkView() );
         cliViews.put(CommandValue.PUT_OBJECT,            new com.spectralogic.ds3cli.views.cli.PutObjectView() );
-        cliViews.put(CommandValue.DELETE_TAPE_PARTITION, new com.spectralogic.ds3cli.views.cli.DeleteTapePartitionView());
-        cliViews.put(CommandValue.DELETE_TAPE_DRIVE,     new com.spectralogic.ds3cli.views.cli.DeleteTapeDriveView());
+        cliViews.put(CommandValue.DELETE_TAPE_PARTITION, deleteView);
+        cliViews.put(CommandValue.DELETE_TAPE_DRIVE,     deleteView);
+        cliViews.put(CommandValue.GET_JOBS,              new com.spectralogic.ds3cli.views.cli.GetJobsView());
+        cliViews.put(CommandValue.DELETE_JOB, deleteView);
         return cliViews;
     }
 
-    private Map<CommandValue, View> getJsonViews(){
+    private Map<CommandValue, View> getJsonViews() {
+        final com.spectralogic.ds3cli.views.json.DeleteView deleteView = new com.spectralogic.ds3cli.views.json.DeleteView();
         final Map<CommandValue, View> jsonViews = new HashMap<>();
         jsonViews.put(CommandValue.GET_SERVICE,           new com.spectralogic.ds3cli.views.json.GetServiceView() );
         jsonViews.put(CommandValue.GET_BUCKET,            new com.spectralogic.ds3cli.views.json.GetBucketView() );
         jsonViews.put(CommandValue.GET_BULK,              new com.spectralogic.ds3cli.views.json.GetBulkView() );
         jsonViews.put(CommandValue.GET_OBJECT,            new com.spectralogic.ds3cli.views.json.GetObjectView() );
-        jsonViews.put(CommandValue.DELETE_BUCKET,         new com.spectralogic.ds3cli.views.json.DeleteBucketView() );
-        jsonViews.put(CommandValue.DELETE_OBJECT,         new com.spectralogic.ds3cli.views.json.DeleteObjectView() );
+        jsonViews.put(CommandValue.DELETE_BUCKET,         deleteView);
+        jsonViews.put(CommandValue.DELETE_OBJECT,         deleteView);
         jsonViews.put(CommandValue.PUT_BUCKET,            new com.spectralogic.ds3cli.views.json.PutBucketView() );
         jsonViews.put(CommandValue.PUT_BULK,              new com.spectralogic.ds3cli.views.json.PutBulkView() );
         jsonViews.put(CommandValue.PUT_OBJECT,            new com.spectralogic.ds3cli.views.json.PutObjectView() );
-        jsonViews.put(CommandValue.DELETE_TAPE_PARTITION, new com.spectralogic.ds3cli.views.json.DeleteTapePartitionView());
-        jsonViews.put(CommandValue.DELETE_TAPE_DRIVE, new com.spectralogic.ds3cli.views.json.DeleteTapeDriveView());
+        jsonViews.put(CommandValue.DELETE_TAPE_PARTITION, deleteView);
+        jsonViews.put(CommandValue.DELETE_TAPE_DRIVE,     deleteView);
+        jsonViews.put(CommandValue.GET_JOBS,              new com.spectralogic.ds3cli.views.json.GetJobsView());
+        jsonViews.put(CommandValue.DELETE_JOB,            deleteView);
         return jsonViews;
     }
 
@@ -134,6 +141,12 @@ public class Ds3Cli implements Callable<CommandResponse> {
             }
             case DELETE_TAPE_PARTITION: {
                 return new DeleteTapePartition(this.ds3Provider, this.fileUtils);
+            }
+            case GET_JOBS: {
+                return new GetJobs(this.ds3Provider, this.fileUtils);
+            }
+            case DELETE_JOB: {
+                return new DeleteJob(this.ds3Provider, this.fileUtils);
             }
             case GET_SERVICE:
             default: {

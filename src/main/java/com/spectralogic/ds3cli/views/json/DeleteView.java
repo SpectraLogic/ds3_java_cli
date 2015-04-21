@@ -1,6 +1,6 @@
 /*
  * ******************************************************************************
- *   Copyright 2014-2015 Spectra Logic Corporation. All Rights Reserved.
+ *   Copyright 2014 Spectra Logic Corporation. All Rights Reserved.
  *   Licensed under the Apache License, Version 2.0 (the "License"). You may not use
  *   this file except in compliance with the License. A copy of the License is located at
  *
@@ -12,16 +12,18 @@
  *   specific language governing permissions and limitations under the License.
  * ****************************************************************************
  */
-
-package com.spectralogic.ds3cli.views.cli;
+package com.spectralogic.ds3cli.views.json;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.spectralogic.ds3cli.View;
-import com.spectralogic.ds3cli.models.DeleteTapeDriveResult;
+import com.spectralogic.ds3cli.models.DeleteResult;
+import com.spectralogic.ds3cli.util.JsonMapper;
 
-public class DeleteTapeDriveView implements View<DeleteTapeDriveResult> {
+public class DeleteView implements View<DeleteResult> {
     @Override
-    public String render(final DeleteTapeDriveResult obj) throws JsonProcessingException {
-        return obj.getResult();
+    public String render(final DeleteResult obj) throws JsonProcessingException {
+        final CommonJsonView view = CommonJsonView.newView(CommonJsonView.Status.OK);
+
+        return JsonMapper.toJson(view.message(obj.getResult()));
     }
 }

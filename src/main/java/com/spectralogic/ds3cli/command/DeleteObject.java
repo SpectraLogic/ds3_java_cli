@@ -17,16 +17,15 @@ package com.spectralogic.ds3cli.command;
 
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.CommandException;
-import com.spectralogic.ds3cli.models.DeleteObjectResult;
+import com.spectralogic.ds3cli.models.DeleteResult;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
-import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.DeleteObjectRequest;
 import org.apache.commons.cli.MissingOptionException;
 
 import java.io.IOException;
 
-public class DeleteObject extends CliCommand<DeleteObjectResult> {
+public class DeleteObject extends CliCommand<DeleteResult> {
     
     private String bucketName;
     private String objectName;
@@ -49,7 +48,7 @@ public class DeleteObject extends CliCommand<DeleteObjectResult> {
     }
 
     @Override
-    public DeleteObjectResult call() throws Exception {
+    public DeleteResult call() throws Exception {
         try {
             getClient().deleteObject(new DeleteObjectRequest(bucketName, objectName));
         }
@@ -57,6 +56,6 @@ public class DeleteObject extends CliCommand<DeleteObjectResult> {
             throw new CommandException("Error: Request failed with the following error: " + e.getMessage(), e);
         }
 
-        return new DeleteObjectResult("Success: Deleted object '" + this.objectName + "' from bucket '" + this.bucketName + "'.");
+        return new DeleteResult("Success: Deleted object '" + this.objectName + "' from bucket '" + this.bucketName + "'.");
     }
 }

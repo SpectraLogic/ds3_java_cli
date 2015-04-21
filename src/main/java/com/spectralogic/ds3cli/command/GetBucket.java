@@ -31,16 +31,18 @@ import java.util.Iterator;
 
 public class GetBucket extends CliCommand<GetBucketResult> {
     private String bucketName;
+    private String prefix;
     public GetBucket(final Ds3Provider provider, final FileUtils fileUtils) {
         super(provider, fileUtils);
     }
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
-        bucketName = args.getBucket();
+        this.bucketName = args.getBucket();
         if (bucketName == null) {
             throw new MissingOptionException("The get bucket command requires '-b' to be set.");
         }
+        this.prefix = args.getPrefix();
         return this;
     }
 
@@ -50,7 +52,15 @@ public class GetBucket extends CliCommand<GetBucketResult> {
         try {
             final Ds3ClientHelpers helper = Ds3ClientHelpers.wrap(getClient());
 
-            final Iterable<Contents> objects = helper.listObjects(bucketName);
+            final Iterable<Contents> objects;
+
+            if (this.prefix == null) {
+                objects = helper.listObjects(bucketName);
+            }
+            else {
+                objects = helper.listObjects(bucketName, this.prefix);
+            }
+
             final Iterator<Contents> objIterator = objects.iterator();
 
             return new GetBucketResult( bucketName, objIterator);

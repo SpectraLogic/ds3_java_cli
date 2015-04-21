@@ -17,7 +17,7 @@ package com.spectralogic.ds3cli.command;
 
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.CommandException;
-import com.spectralogic.ds3cli.models.DeleteTapeDriveResult;
+import com.spectralogic.ds3cli.models.DeleteResult;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3client.commands.DeleteTapeDriveRequest;
@@ -25,7 +25,7 @@ import org.apache.commons.cli.MissingOptionException;
 
 import java.io.IOException;
 
-public class DeleteTapeDrive extends CliCommand<DeleteTapeDriveResult> {
+public class DeleteTapeDrive extends CliCommand<DeleteResult> {
 
     private String id;
 
@@ -43,7 +43,7 @@ public class DeleteTapeDrive extends CliCommand<DeleteTapeDriveResult> {
     }
 
     @Override
-    public DeleteTapeDriveResult call() throws Exception {
+    public DeleteResult call() throws Exception {
         try {
             getClient().deleteTapeDrive(new DeleteTapeDriveRequest(this.id));
         }
@@ -51,6 +51,6 @@ public class DeleteTapeDrive extends CliCommand<DeleteTapeDriveResult> {
             throw new CommandException("Error: Request failed with the following error: " + e.getMessage(), e);
         }
 
-        return new DeleteTapeDriveResult("Success: Deleted tape drive '" + this.id+ "'.");
+        return new DeleteResult("Success: Deleted tape drive '" + this.id+ "'.");
     }
 }

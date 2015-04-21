@@ -13,19 +13,26 @@
  * ****************************************************************************
  */
 
-package com.spectralogic.ds3cli.models;
+package com.spectralogic.ds3cli.command;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.spectralogic.ds3cli.Arguments;
+import com.spectralogic.ds3cli.models.GetJobsResult;
+import com.spectralogic.ds3cli.util.Ds3Provider;
+import com.spectralogic.ds3cli.util.FileUtils;
+import com.spectralogic.ds3client.commands.GetJobsRequest;
 
-public class DeleteBucketResult implements Result {
-    @JsonProperty("status_message")
-    final private String result;
-
-    final public String getResult(){
-        return this.result;
+public class GetJobs extends CliCommand<GetJobsResult> {
+    public GetJobs(final Ds3Provider ds3Provider, final FileUtils fileUtils) {
+        super(ds3Provider, fileUtils);
     }
 
-    public DeleteBucketResult(final String result){
-        this.result = result;
+    @Override
+    public CliCommand init(final Arguments args) throws Exception {
+        return this;
+    }
+
+    @Override
+    public GetJobsResult call() throws Exception {
+        return new GetJobsResult(getClient().getJobs(new GetJobsRequest()).getJobs());
     }
 }

@@ -16,8 +16,6 @@
 package com.spectralogic.ds3cli;
 
 import com.google.common.collect.Lists;
-import com.spectralogic.ds3cli.models.DeleteTapeDriveResult;
-import com.spectralogic.ds3cli.models.DeleteTapePartitionResult;
 import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.*;
@@ -29,14 +27,11 @@ import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.networking.FailedRequestException;
 import com.spectralogic.ds3client.networking.Headers;
 import com.spectralogic.ds3client.networking.WebResponse;
-import org.apache.commons.cli.ParseException;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
-import java.security.SignatureException;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
