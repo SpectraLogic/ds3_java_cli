@@ -18,7 +18,7 @@ package com.spectralogic.ds3cli.command;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.CommandException;
 import com.spectralogic.ds3cli.logging.Logging;
-import com.spectralogic.ds3cli.models.DeleteBucketResult;
+import com.spectralogic.ds3cli.models.DeleteResult;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3client.Ds3Client;
@@ -32,7 +32,7 @@ import org.apache.commons.cli.MissingOptionException;
 import java.io.IOException;
 import java.security.SignatureException;
 
-public class DeleteBucket extends CliCommand<DeleteBucketResult> {
+public class DeleteBucket extends CliCommand<DeleteResult> {
     
     private String bucketName;
     private boolean clearBucket;
@@ -51,13 +51,13 @@ public class DeleteBucket extends CliCommand<DeleteBucketResult> {
     }
 
     @Override
-    public DeleteBucketResult call() throws Exception {
+    public DeleteResult call() throws Exception {
 
         if (clearBucket) {
-            return new DeleteBucketResult( clearObjects() );
+            return new DeleteResult( clearObjects() );
         }
         else {
-            return new DeleteBucketResult( deleteBucket() );
+            return new DeleteResult( deleteBucket() );
         }
     }
 

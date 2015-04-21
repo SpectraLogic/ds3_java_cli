@@ -12,15 +12,16 @@
  *   specific language governing permissions and limitations under the License.
  * ****************************************************************************
  */
+package com.spectralogic.ds3cli.models;
 
-package com.spectralogic.ds3cli.views.cli;
+public class DeleteResult implements Result {
+    private final String result;
 
-import com.spectralogic.ds3cli.View;
-import com.spectralogic.ds3cli.models.DeleteBucketResult;
+    public DeleteResult(final String result) {
+        this.result = result;
+    }
 
-public class DeleteBucketView implements View<DeleteBucketResult> {
-    @Override
-    public String render(final DeleteBucketResult result) {
-        return result.getResult();
+    public String getResult() {
+        return result;
     }
 }
