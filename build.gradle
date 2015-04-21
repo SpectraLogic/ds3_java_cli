@@ -25,7 +25,7 @@ apply plugin: 'maven'
 apply plugin: 'idea'
 apply plugin: 'application'
 
-version = '1.1.1'
+version = '1.1.2'
 group = 'com.spectralogic'
 
 mainClassName = 'com.spectralogic.ds3cli.Main'
