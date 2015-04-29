@@ -44,7 +44,7 @@ dependencies {
   compile 'commons-cli:commons-cli:1.2'
   compile 'com.google.guava:guava:18.0'
   compile 'joda-time:joda-time:2.7'
-  compile 'com.spectralogic.ds3:ds3-sdk:1.1.0-RC2'
+  compile 'com.spectralogic.ds3:ds3-sdk:1.1.0-RC3'
   compile (
     [group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.2.3'],
     [group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: '2.2.3'],
