@@ -18,11 +18,9 @@ package com.spectralogic.ds3cli.command;
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import com.spectralogic.ds3cli.Arguments;
-import com.spectralogic.ds3cli.logging.Logging;
 import com.spectralogic.ds3cli.models.GetBulkResult;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
-import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.helpers.FileObjectGetter;
 import com.spectralogic.ds3client.helpers.options.ReadJobOptions;
@@ -32,6 +30,8 @@ import com.spectralogic.ds3client.models.bulk.Priority;
 import com.spectralogic.ds3client.serializer.XmlProcessingException;
 import com.spectralogic.ds3client.utils.SSLSetupException;
 import org.apache.commons.cli.MissingOptionException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.channels.SeekableByteChannel;
@@ -40,6 +40,9 @@ import java.nio.file.Path;
 import java.security.SignatureException;
 
 public class GetBulk extends CliCommand<GetBulkResult> {
+
+    private final static Logger LOG = LoggerFactory.getLogger(GetBulk.class);
+
     private String bucketName;
     private Path outputPath;
     private String prefix;
@@ -89,11 +92,11 @@ public class GetBulk extends CliCommand<GetBulkResult> {
         }
 
         if (this.prefix == null) {
-            Logging.log("Getting all objects from " + this.bucketName);
+            LOG.info("Getting all objects from " + this.bucketName);
             return new GetBulkResult(restoreAll(getter));
         }
         else {
-            Logging.log("Getting only those objects that start with " + this.prefix);
+            LOG.info("Getting only those objects that start with " + this.prefix);
             return new GetBulkResult(restoreSome(getter));
         }
     }
@@ -139,7 +142,7 @@ public class GetBulk extends CliCommand<GetBulkResult> {
 
         @Override
         public SeekableByteChannel buildChannel(final String s) throws IOException {
-            Logging.logf("Getting object %s", s);
+            LOG.info("Getting object %s", s);
             return this.objectGetter.buildChannel(s);
         }
     }

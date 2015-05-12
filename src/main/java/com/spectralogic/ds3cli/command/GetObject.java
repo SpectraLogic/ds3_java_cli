@@ -18,7 +18,6 @@ package com.spectralogic.ds3cli.command;
 import com.google.common.collect.Lists;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.CommandException;
-import com.spectralogic.ds3cli.logging.Logging;
 import com.spectralogic.ds3cli.models.GetObjectResult;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
@@ -28,12 +27,15 @@ import com.spectralogic.ds3client.helpers.FileObjectGetter;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.networking.FailedRequestException;
 import org.apache.commons.cli.MissingOptionException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.file.*;
 import java.util.List;
 
 public class GetObject extends CliCommand<GetObjectResult> {
 
+    private Logger LOG = LoggerFactory.getLogger(GetObject.class);
     private String bucketName;
     private String objectName;
     private String prefix;
@@ -67,7 +69,7 @@ public class GetObject extends CliCommand<GetObjectResult> {
     public GetObjectResult call() throws Exception {
         try {
             final Path filePath = Paths.get(prefix, objectName);
-            Logging.log("Output path: " + filePath.toString());
+            LOG.info("Output path: " + filePath.toString());
 
             getFileUtils().createDirectories(filePath.getParent());
 
@@ -82,20 +84,20 @@ public class GetObject extends CliCommand<GetObjectResult> {
         }
         catch(final FailedRequestException e) {
             if(e.getStatusCode() == 500) {
-                Logging.log(e.getMessage());
-                if (Logging.isVerbose()) {
+                LOG.info(e.getMessage());
+                if (LOG.isInfoEnabled()) {
                     e.printStackTrace();
                 }
                 throw new CommandException( "Error: Cannot communicate with the remote DS3 appliance.", e);
             }
             else if(e.getStatusCode() == 404) {
-                if (Logging.isVerbose()) {
+                if (LOG.isInfoEnabled()) {
                     e.printStackTrace();
                 }
                 throw new CommandException( "Error: " + e.getMessage(), e);
             }
             else {
-                if (Logging.isVerbose()) {
+                if (LOG.isInfoEnabled()) {
                     e.printStackTrace();
                 }
                 throw new CommandException( "Error: Encountered an unknown error of ("+ e.getStatusCode() +") while accessing the remote DS3 appliance.", e);

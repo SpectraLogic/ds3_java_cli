@@ -15,10 +15,12 @@
 
 package com.spectralogic.ds3cli;
 
-import com.spectralogic.ds3cli.logging.Logging;
+import ch.qos.logback.classic.Level;
 import com.spectralogic.ds3client.models.bulk.Priority;
 import com.spectralogic.ds3client.models.bulk.WriteOptimization;
 import org.apache.commons.cli.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,6 +29,8 @@ import java.util.List;
 import java.util.Properties;
 
 public class Arguments {
+
+    private final static Logger LOG = LoggerFactory.getLogger(Arguments.class);
 
     private final static String PROPERTY_FILE = "config.properties";
 
@@ -120,6 +124,8 @@ public class Arguments {
         version.setLongOpt("version");
         final Option verbose = new Option(null, "Verbose output");
         verbose.setLongOpt("verbose");
+        final Option debug = new Option(null, "Debug output.  If set takes presidence over the 'verbose' option");
+        debug.setLongOpt("debug");
         final Option viewType = new Option(null, true, "Configure how the output should be displayed.  Possible values: ["+ ViewType.valuesString() +"]");
         viewType.setLongOpt("output-format");
         options.addOption(ds3Endpoint);
@@ -144,6 +150,7 @@ public class Arguments {
         options.addOption(http);
         options.addOption(version);
         options.addOption(verbose);
+        options.addOption(debug);
         options.addOption(viewType);
 
         // Disabled until they are enabled in DS3.
@@ -159,11 +166,20 @@ public class Arguments {
         final CommandLine cmd = parser.parse(options, args);
 
         final List<String> missingArgs = new ArrayList<>();
-        if (cmd.hasOption("verbose")) {
-            Logging.setVerbose(true);
-            Logging.log("Verbose output has been enabled");
-            Logging.logf("Version: %s", this.version);
+
+        final ch.qos.logback.classic.Logger rootLogger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+
+        if (cmd.hasOption("debug")) {
+            rootLogger.setLevel(Level.DEBUG);
+            rootLogger.info("Debug output enabled");
+        } else if (cmd.hasOption("verbose")) {
+            rootLogger.setLevel(Level.INFO);
+            rootLogger.info("Verbose output enabled");
+        } else {
+            rootLogger.setLevel(Level.OFF);
         }
+
+        rootLogger.info("Version: " + this.version);
 
         if (cmd.hasOption('h')) {
             printHelp();
@@ -283,13 +299,13 @@ public class Arguments {
         final String proxy = System.getenv("http_proxy");
         if (proxy != null) {
             setProxy(proxy);
-            Logging.logf("Proxy: %s", getProxy());
+            LOG.info("Proxy: %s", getProxy());
         }
 
         if (!missingArgs.isEmpty()) {
             throw new MissingOptionException(missingArgs);
         }
-        Logging.logf("Access Key: %s | Secret Key: %s | Endpoint: %s", getAccessKey(), getSecretKey(), getEndpoint());
+        LOG.info("Access Key: " + getAccessKey() +" | Secret Key: " + getSecretKey() + " | Endpoint: " + getEndpoint());
     }
 
     private WriteOptimization processWriteOptimization(final CommandLine cmd, final String writeOptimization) throws BadArgumentException {
@@ -341,7 +357,7 @@ public class Arguments {
             this.buildDate = (String) props.get("build.date");
             } catch (final IOException e) {
                 System.err.println("Failed to load version property file.");
-                if (Logging.isVerbose()) {
+                if (LOG.isInfoEnabled()) {
                     e.printStackTrace();
                 }
 

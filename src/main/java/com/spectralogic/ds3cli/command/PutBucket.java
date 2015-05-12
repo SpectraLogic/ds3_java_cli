@@ -17,20 +17,22 @@ package com.spectralogic.ds3cli.command;
 
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.CommandException;
-import com.spectralogic.ds3cli.logging.Logging;
 import com.spectralogic.ds3cli.models.PutBucketResult;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
-import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.PutBucketRequest;
 import com.spectralogic.ds3client.models.bulk.Priority;
 import com.spectralogic.ds3client.models.bulk.WriteOptimization;
 import com.spectralogic.ds3client.networking.FailedRequestException;
 import org.apache.commons.cli.MissingOptionException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
 public class PutBucket extends CliCommand<PutBucketResult> {
+
+    private static final Logger LOG = LoggerFactory.getLogger(PutBucket.class);
 
     private String bucketName;
     private Priority defaultPutPriority;
@@ -61,15 +63,15 @@ public class PutBucket extends CliCommand<PutBucketResult> {
             final PutBucketRequest request = new PutBucketRequest(bucketName);
 
             if (this.defaultGetPriority != null) {
-                Logging.logf("Adding a default get priority (%s) to the create bucket", this.defaultGetPriority.toString());
+                LOG.info("Adding a default get priority (" + this.defaultGetPriority.toString() + ") to the create bucket");
                 request.withDefaultGetJobPriority(defaultGetPriority);
             }
             if (this.defaultPutPriority != null) {
-                Logging.logf("Adding a default put priority (%s) to the create bucket", this.defaultPutPriority.toString());
+                LOG.info("Adding a default put priority (" + this.defaultPutPriority.toString() + ") to the create bucket");
                 request.withDefaultPutJobPriority(defaultPutPriority);
             }
             if (this.defaultWriteOptimization != null) {
-                Logging.logf("Adding a default write optimization (%s) to the create bucket", this.defaultWriteOptimization.toString());
+                LOG.info("Adding a default write optimization (" + this.defaultWriteOptimization.toString() + ") to the create bucket");
                 request.withDefaultWriteOptimization(defaultWriteOptimization);
             }
 

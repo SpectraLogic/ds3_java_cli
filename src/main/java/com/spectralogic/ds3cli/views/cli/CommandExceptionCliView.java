@@ -18,20 +18,23 @@ package com.spectralogic.ds3cli.views.cli;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.spectralogic.ds3cli.CommandException;
 import com.spectralogic.ds3cli.View;
-import com.spectralogic.ds3cli.logging.Logging;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 
 public class CommandExceptionCliView implements View<CommandException> {
-    @Override
+
+    private final static Logger LOG = LoggerFactory.getLogger(CommandExceptionCliView.class);
+
     public String render(final CommandException obj) throws JsonProcessingException {
         final StringBuilder builder = new StringBuilder();
         builder.append(obj.getMessage());
 
         try {
-            if (Logging.isVerbose()) {
+            if (LOG.isInfoEnabled()) {
                 final ByteArrayOutputStream out = new ByteArrayOutputStream();
                 final PrintWriter pOut = new PrintWriter(out);
                 obj.printStackTrace(pOut);
