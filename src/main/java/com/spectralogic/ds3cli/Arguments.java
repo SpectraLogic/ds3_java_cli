@@ -171,13 +171,15 @@ public class Arguments {
 
         if (cmd.hasOption("debug")) {
             rootLogger.setLevel(Level.DEBUG);
+            rootLogger.info("Debug output enabled");
         } else if (cmd.hasOption("verbose")) {
             rootLogger.setLevel(Level.INFO);
+            rootLogger.info("Verbose output enabled");
         } else {
             rootLogger.setLevel(Level.OFF);
         }
 
-        rootLogger.info("Version: %s", this.version);
+        rootLogger.info("Version: " + this.version);
 
         if (cmd.hasOption('h')) {
             printHelp();
@@ -303,7 +305,7 @@ public class Arguments {
         if (!missingArgs.isEmpty()) {
             throw new MissingOptionException(missingArgs);
         }
-        LOG.info("Access Key: %s | Secret Key: %s | Endpoint: %s", getAccessKey(), getSecretKey(), getEndpoint());
+        LOG.info("Access Key: " + getAccessKey() +" | Secret Key: " + getSecretKey() + " | Endpoint: " + getEndpoint());
     }
 
     private WriteOptimization processWriteOptimization(final CommandLine cmd, final String writeOptimization) throws BadArgumentException {

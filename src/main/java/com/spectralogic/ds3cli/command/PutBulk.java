@@ -62,7 +62,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         }
 
         if (args.getObjectName() != null) {
-            System.out.println("Warning: '-o' is not used with bulk put and is ignored.");
+            System.err.println("Warning: '-o' is not used with bulk put and is ignored.");
         }
 
         this.prefix = args.getPrefix();
@@ -80,7 +80,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         final Iterable<Ds3Object> objects = helper.listObjectsForDirectory(this.inputDirectory);
 
         if (prefix != null) {
-            LOG.info("Pre-appending %s to all object names", prefix);
+            LOG.info("Pre-appending " + prefix + " to all object names");
             for(final Ds3Object obj : objects) {
                 obj.setName(prefix + obj.getName());
             }
@@ -121,7 +121,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
             }
             else {
                 if (!s.startsWith(prefix)) {
-                    LOG.info("The object (%s) does not begin with prefix %s.  Ignoring adding the prefix.", s, prefix);
+                    LOG.info("The object (" + s + ") does not begin with prefix " + prefix + ".  Ignoring adding the prefix.");
                     objectName = s;
                 }
                 else {
@@ -142,7 +142,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
 
         @Override
         public SeekableByteChannel buildChannel(final String s) throws IOException {
-            LOG.info("Putting %s to ds3 endpoint", s);
+            LOG.info("Putting " + s + " to ds3 endpoint");
             return this.objectPutter.buildChannel(s);
         }
     }

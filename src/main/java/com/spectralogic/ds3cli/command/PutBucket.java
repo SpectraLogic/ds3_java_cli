@@ -63,15 +63,15 @@ public class PutBucket extends CliCommand<PutBucketResult> {
             final PutBucketRequest request = new PutBucketRequest(bucketName);
 
             if (this.defaultGetPriority != null) {
-                LOG.info("Adding a default get priority (%s) to the create bucket", this.defaultGetPriority.toString());
+                LOG.info("Adding a default get priority (" + this.defaultGetPriority.toString() + ") to the create bucket");
                 request.withDefaultGetJobPriority(defaultGetPriority);
             }
             if (this.defaultPutPriority != null) {
-                LOG.info("Adding a default put priority (%s) to the create bucket", this.defaultPutPriority.toString());
+                LOG.info("Adding a default put priority (" + this.defaultPutPriority.toString() + ") to the create bucket");
                 request.withDefaultPutJobPriority(defaultPutPriority);
             }
             if (this.defaultWriteOptimization != null) {
-                LOG.info("Adding a default write optimization (%s) to the create bucket", this.defaultWriteOptimization.toString());
+                LOG.info("Adding a default write optimization (" + this.defaultWriteOptimization.toString() + ") to the create bucket");
                 request.withDefaultWriteOptimization(defaultWriteOptimization);
             }
 
