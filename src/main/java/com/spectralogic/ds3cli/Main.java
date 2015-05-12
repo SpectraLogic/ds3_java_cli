@@ -15,7 +15,6 @@
 
 package com.spectralogic.ds3cli;
 
-import com.spectralogic.ds3cli.logging.Logging;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3client.Ds3Client;
@@ -23,8 +22,12 @@ import com.spectralogic.ds3client.Ds3ClientBuilder;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.models.Credentials;
 import com.spectralogic.ds3client.networking.FailedRequestException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Main {
+
+    private final static Logger LOG = LoggerFactory.getLogger(Main.class);
 
     public static void main(final String[] args) {
         try {
@@ -38,11 +41,11 @@ public class Main {
             System.exit(response.getReturnCode());
         } catch (final Exception e) {
             System.out.println("ERROR: " + e.getMessage());
-            if (Logging.isVerbose()) {
+            if (LOG.isInfoEnabled()) {
                 e.printStackTrace();
                 if (e instanceof FailedRequestException) {
-                    Logging.log("Printing out the response from the server:");
-                    Logging.log(((FailedRequestException) e).getResponseString());
+                    LOG.info("Printing out the response from the server:");
+                    LOG.info(((FailedRequestException) e).getResponseString());
                 }
             }
             System.exit(2);

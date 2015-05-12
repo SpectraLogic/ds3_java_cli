@@ -16,11 +16,9 @@
 package com.spectralogic.ds3cli.command;
 
 import com.spectralogic.ds3cli.Arguments;
-import com.spectralogic.ds3cli.logging.Logging;
 import com.spectralogic.ds3cli.models.PutBulkResult;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
-import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.helpers.FileObjectPutter;
 import com.spectralogic.ds3client.helpers.options.WriteJobOptions;
@@ -28,6 +26,8 @@ import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.models.bulk.Priority;
 import com.spectralogic.ds3client.models.bulk.WriteOptimization;
 import org.apache.commons.cli.MissingOptionException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.channels.SeekableByteChannel;
@@ -35,6 +35,9 @@ import java.nio.file.FileSystems;
 import java.nio.file.Path;
 
 public class PutBulk extends CliCommand<PutBulkResult> {
+
+    private final static Logger LOG = LoggerFactory.getLogger(PutBulk.class);
+
     private String bucketName;
     private Path inputDirectory;
     private String prefix;
@@ -77,7 +80,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         final Iterable<Ds3Object> objects = helper.listObjectsForDirectory(this.inputDirectory);
 
         if (prefix != null) {
-            Logging.logf("Pre-appending %s to all object names", prefix);
+            LOG.info("Pre-appending %s to all object names", prefix);
             for(final Ds3Object obj : objects) {
                 obj.setName(prefix + obj.getName());
             }
@@ -118,7 +121,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
             }
             else {
                 if (!s.startsWith(prefix)) {
-                    Logging.logf("The object (%s) does not begin with prefix %s.  Ignoring adding the prefix.", s, prefix);
+                    LOG.info("The object (%s) does not begin with prefix %s.  Ignoring adding the prefix.", s, prefix);
                     objectName = s;
                 }
                 else {
@@ -139,7 +142,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
 
         @Override
         public SeekableByteChannel buildChannel(final String s) throws IOException {
-            Logging.logf("Putting %s to ds3 endpoint", s);
+            LOG.info("Putting %s to ds3 endpoint", s);
             return this.objectPutter.buildChannel(s);
         }
     }

@@ -44,7 +44,9 @@ dependencies {
   compile 'commons-cli:commons-cli:1.2'
   compile 'com.google.guava:guava:18.0'
   compile 'joda-time:joda-time:2.7'
-  compile 'com.spectralogic.ds3:ds3-sdk:1.1.0-RC3'
+  compile 'ch.qos.logback:logback-core:1.0.13'
+  compile 'ch.qos.logback:logback-classic:1.0.13'
+  compile 'com.spectralogic.ds3:ds3-sdk:1.1.0-RC4'
   compile (
     [group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.2.3'],
     [group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: '2.2.3'],
@@ -70,5 +72,5 @@ task genConfigProperties << {
 jar.dependsOn genConfigProperties
 
 task wrapper(type: Wrapper) {
-  gradleVersion = '2.3'
+  gradleVersion = '2.4'
 }

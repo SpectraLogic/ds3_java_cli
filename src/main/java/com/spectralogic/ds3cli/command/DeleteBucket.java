@@ -17,7 +17,6 @@ package com.spectralogic.ds3cli.command;
 
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.CommandException;
-import com.spectralogic.ds3cli.logging.Logging;
 import com.spectralogic.ds3cli.models.DeleteResult;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
@@ -28,12 +27,16 @@ import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.models.Contents;
 import com.spectralogic.ds3client.utils.SSLSetupException;
 import org.apache.commons.cli.MissingOptionException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.security.SignatureException;
 
 public class DeleteBucket extends CliCommand<DeleteResult> {
-    
+
+    private static final Logger LOG = LoggerFactory.getLogger(DeleteBucket.class);
+
     private String bucketName;
     private boolean clearBucket;
     public DeleteBucket(final Ds3Provider provider, final FileUtils fileUtils) {
@@ -74,7 +77,7 @@ public class DeleteBucket extends CliCommand<DeleteResult> {
     private String clearObjects() throws SignatureException, SSLSetupException, CommandException {
         // TODO when the multi object delete command has been added to DS3
         // Get the list of objects from the bucket
-        Logging.log("Deleting objects in bucket first");
+        LOG.debug("Deleting objects in bucket first");
         final Ds3Client client = getClient();
         final Ds3ClientHelpers helper = Ds3ClientHelpers.wrap(client);
 
@@ -83,7 +86,7 @@ public class DeleteBucket extends CliCommand<DeleteResult> {
             for (final Contents content : fileList) {
                 client.deleteObject(new DeleteObjectRequest(bucketName, content.getKey()));
             }
-            Logging.log("Deleting bucket");
+            LOG.debug("Deleting bucket");
             getClient().deleteBucket(new DeleteBucketRequest(bucketName));
 
         } catch (final IOException e) {

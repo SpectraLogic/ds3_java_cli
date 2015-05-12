@@ -18,13 +18,14 @@ package com.spectralogic.ds3cli.command;
 import com.google.common.collect.Lists;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.BadArgumentException;
-import com.spectralogic.ds3cli.logging.Logging;
 import com.spectralogic.ds3cli.models.PutObjectResult;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import org.apache.commons.cli.MissingOptionException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.channels.FileChannel;
@@ -34,6 +35,8 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 
 public class PutObject extends CliCommand<PutObjectResult> {
+
+    private final static Logger LOG = LoggerFactory.getLogger(PutObject.class);
 
     private String bucketName;
     private Path objectPath;
@@ -101,7 +104,7 @@ public class PutObject extends CliCommand<PutObjectResult> {
         }
 
         final String normalizedPath = path.replace("\\", "/");
-        Logging.log("Normalized Path: " + normalizedPath);
+        LOG.info("Normalized Path: " + normalizedPath);
         return normalizedPath;
     }
 }
