@@ -20,8 +20,8 @@ import org.slf4j.LoggerFactory;
 
 public class TransferCalculationUtils {
     private final static Logger LOG = LoggerFactory.getLogger(TransferCalculationUtils.class);
-    public static void logTransferSpeed(final long totalTime, final long dataTransfered) {
-        final long bytesPerMilli = dataTransfered/totalTime;
+    public static void logTransferSpeed(final long totalTime, final long dataTransferred) {
+        final long bytesPerMilli = dataTransferred/totalTime;
         final long mbPerMilli = bytesPerMilli/1024/1024;
         final long mbPerSec = mbPerMilli * 1000;
         LOG.info("Aggregate transfer speed: %d MB/s", mbPerSec);

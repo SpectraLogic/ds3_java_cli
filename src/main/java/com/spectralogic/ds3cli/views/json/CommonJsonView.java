@@ -40,7 +40,7 @@ public class CommonJsonView {
         this.metaData = new HashMap<>();
     }
 
-    public CommonJsonView addMedataData(final String key, final Object value) {
+    public CommonJsonView addMetaData(final String key, final Object value) {
         this.metaData.put(key, value);
         return this;
     }
@@ -83,6 +83,6 @@ public class CommonJsonView {
     static CommonJsonView newView(final Status status) {
         final CommonJsonView view = new CommonJsonView();
         final DateTime time = DateTime.now(DateTimeZone.UTC);
-        return view.status(status).addMedataData("Date", time.toString(ISODateTimeFormat.dateTime()));
+        return view.status(status).addMetaData("Date", time.toString(ISODateTimeFormat.dateTime()));
     }
 }
