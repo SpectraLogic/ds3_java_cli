@@ -96,6 +96,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
 //            Logging.log("Performing bulk put with checksum computation enabled");
 //            job.withRequestModifier(new ComputedChecksumModifier());
         }
+        LOG.info("Created bulk put job " + job.getJobId().toString() + ", starting transfer");
         job.transfer(new PrefixedFileObjectPutter(this.inputDirectory, prefix));
 
         return new PutBulkResult("SUCCESS: Wrote all the files in " + this.inputDirectory.toString() + " to bucket " + this.bucketName);
