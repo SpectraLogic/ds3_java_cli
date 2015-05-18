@@ -54,6 +54,7 @@ dependencies {
   )
   testCompile "org.mockito:mockito-core:1.+"
   testCompile 'junit:junit:4.11'
+  testRuntime 'org.slf4j:slf4j-simple:1.7.12'
 }
 
 task genConfigProperties << {

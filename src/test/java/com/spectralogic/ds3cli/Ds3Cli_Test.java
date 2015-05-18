@@ -32,6 +32,7 @@ import org.junit.Test;
 
 import java.io.InputStream;
 import java.nio.file.Path;
+import java.util.UUID;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -544,6 +545,8 @@ public class Ds3Cli_Test {
         final FileUtils mockedFileUtils = mock(FileUtils.class);
         final Iterable<Ds3Object> retObj = Lists.newArrayList(new Ds3Object("obj1.txt", 1245), new Ds3Object("obj2.txt", 12345));
 
+        final UUID jobId = UUID.randomUUID();
+        when(mockedGetJob.getJobId()).thenReturn(jobId);
         when(helpers.listObjectsForDirectory(any(Path.class))).thenReturn(retObj);
         when(helpers.startWriteJob(eq("bucketName"), eq(retObj), any(WriteJobOptions.class))).thenReturn(mockedGetJob);
 
@@ -563,6 +566,8 @@ public class Ds3Cli_Test {
         final FileUtils mockedFileUtils = mock(FileUtils.class);
         final Iterable<Ds3Object> retObj = Lists.newArrayList(new Ds3Object("obj1.txt", 1245), new Ds3Object("obj2.txt", 12345));
 
+        final UUID jobId = UUID.randomUUID();
+        when(mockedGetJob.getJobId()).thenReturn(jobId);
         when(helpers.listObjectsForDirectory(any(Path.class))).thenReturn(retObj);
         when(helpers.startWriteJob(eq("bucketName"), eq(retObj), any(WriteJobOptions.class))).thenReturn(mockedGetJob);
 
