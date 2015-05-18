@@ -10,7 +10,7 @@ Join us at our [Google Groups](https://groups.google.com/d/forum/spectralogicds3
 
 ## Install
 
-To install the latest ds3_java_cli download the latest release(either a zip or tar) from the [Releases](../../releases) page.  Inside of the release download there is a `bin` directory and a `lib` directory.  The `bin` directory contains all the excutable files for both Linux and Windows.  The `lib` directory contains all the jar files that are needed for the cli.  There should be no need to modify anything inside of the `lib` directory.  The only external dependency is the latest [Java 7 or 8 JRE](http://www.oracle.com/technetwork/java/javase/downloads/index.html)
+To install the latest ds3_java_cli download the latest release(either a zip or tar) from the [Releases](../../releases) page.  Inside of the release download there is a `bin` directory and a `lib` directory.  The `bin` directory contains all the executable files for both Linux and Windows.  The `lib` directory contains all the jar files that are needed for the cli.  There should be no need to modify anything inside of the `lib` directory.  The only external dependency is the latest [Java 7 or 8 JRE](http://www.oracle.com/technetwork/java/javase/downloads/index.html)
 
 ## Usage
 
@@ -47,7 +47,7 @@ The cli supports connecting to DS3 via a HTTP Proxy.  To automatically connect t
 
 ## Build
 
-To build the CLI, you need to make sure that the [ds3_java_sdk](https://github.com/SpectraLogic/ds3_java_sdk) is installed and accessable via maven (see [Installing ds3_java_sdk](https://github.com/SpectraLogic/ds3_java_sdk#install)).  You must also have cloned the latest version of the CLI source.  Then run `gradlew` from the root of the project:
+To build the CLI, you need to make sure that the [ds3_java_sdk](https://github.com/SpectraLogic/ds3_java_sdk) is installed and accessible via maven (see [Installing ds3_java_sdk](https://github.com/SpectraLogic/ds3_java_sdk#install)).  You must also have cloned the latest version of the CLI source.  Then run `gradlew` from the root of the project:
 
     ./gradlew clean distTar
     

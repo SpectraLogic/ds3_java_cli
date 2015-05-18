@@ -16,13 +16,9 @@
 package com.spectralogic.ds3cli.views.json;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.models.PutBucketResult;
 import com.spectralogic.ds3cli.util.JsonMapper;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class PutBucketView implements View<PutBucketResult> {
     @Override

@@ -124,7 +124,7 @@ public class Arguments {
         version.setLongOpt("version");
         final Option verbose = new Option(null, "Verbose output");
         verbose.setLongOpt("verbose");
-        final Option debug = new Option(null, "Debug output.  If set takes presidence over the 'verbose' option");
+        final Option debug = new Option(null, "Debug output.  If set takes precedence over the 'verbose' option");
         debug.setLongOpt("debug");
         final Option trace = new Option(null, "Trace output");
         trace.setLongOpt("trace");
