@@ -126,6 +126,8 @@ public class Arguments {
         verbose.setLongOpt("verbose");
         final Option debug = new Option(null, "Debug output.  If set takes presidence over the 'verbose' option");
         debug.setLongOpt("debug");
+        final Option trace = new Option(null, "Trace output");
+        trace.setLongOpt("trace");
         final Option viewType = new Option(null, true, "Configure how the output should be displayed.  Possible values: ["+ ViewType.valuesString() +"]");
         viewType.setLongOpt("output-format");
         options.addOption(ds3Endpoint);
@@ -151,6 +153,7 @@ public class Arguments {
         options.addOption(version);
         options.addOption(verbose);
         options.addOption(debug);
+        options.addOption(trace);
         options.addOption(viewType);
 
         // Disabled until they are enabled in DS3.
@@ -169,9 +172,12 @@ public class Arguments {
 
         final ch.qos.logback.classic.Logger rootLogger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
 
-        if (cmd.hasOption("debug")) {
+        if (cmd.hasOption("trace")) {
+            rootLogger.setLevel(Level.TRACE);
+            rootLogger.trace("Trace output enabled");
+        } else if (cmd.hasOption("debug")) {
             rootLogger.setLevel(Level.DEBUG);
-            rootLogger.info("Debug output enabled");
+            rootLogger.debug("Debug output enabled");
         } else if (cmd.hasOption("verbose")) {
             rootLogger.setLevel(Level.INFO);
             rootLogger.info("Verbose output enabled");

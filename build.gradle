@@ -25,7 +25,7 @@ apply plugin: 'maven'
 apply plugin: 'idea'
 apply plugin: 'application'
 
-version = '1.1.4'
+version = '1.1.5'
 group = 'com.spectralogic'
 
 mainClassName = 'com.spectralogic.ds3cli.Main'
@@ -46,7 +46,7 @@ dependencies {
   compile 'joda-time:joda-time:2.7'
   compile 'ch.qos.logback:logback-core:1.0.13'
   compile 'ch.qos.logback:logback-classic:1.0.13'
-  compile 'com.spectralogic.ds3:ds3-sdk:1.1.0-RC4'
+  compile 'com.spectralogic.ds3:ds3-sdk:1.1.0-RC5'
   compile (
     [group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.2.3'],
     [group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: '2.2.3'],

@@ -34,7 +34,7 @@ public class DeleteJob extends CliCommand<DeleteResult> {
     @Override
     public CliCommand init(final Arguments args) throws Exception {
         if (args.getId() == null) {
-            throw new MissingOptionException("The delete tape drive command requires '-i' to be set.");
+            throw new MissingOptionException("The delete job command requires '-i' to be set.");
         }
         this.id = UUID.fromString(args.getId());
         return this;

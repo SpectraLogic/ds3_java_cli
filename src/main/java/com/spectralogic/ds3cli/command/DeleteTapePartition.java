@@ -37,7 +37,7 @@ public class DeleteTapePartition extends CliCommand<DeleteResult> {
     public CliCommand init(final Arguments args) throws Exception {
         this.id = args.getId();
         if (this.id == null) {
-            throw new MissingOptionException("The delete tape command requires '-i' to be set.");
+            throw new MissingOptionException("The delete tape partition command requires '-i' to be set.");
         }
         return this;
     }
