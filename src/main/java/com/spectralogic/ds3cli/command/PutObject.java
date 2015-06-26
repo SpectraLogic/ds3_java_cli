@@ -104,7 +104,7 @@ public class PutObject extends CliCommand<PutObjectResult> {
         }
 
         final String normalizedPath = path.replace("\\", "/");
-        LOG.info("Normalized Path: " + normalizedPath);
+        LOG.info("Normalized object name: " + normalizedPath);
         return normalizedPath;
     }
 }
