@@ -32,6 +32,8 @@ import org.junit.Test;
 
 import java.io.InputStream;
 import java.nio.file.Path;
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -78,7 +80,12 @@ public class Ds3Cli_Test {
         when(webResponse.getStatusCode()).thenReturn(200);
         when(webResponse.getHeaders()).thenReturn(new Headers() {
             @Override
-            public String get(final String key) {
+            public List<String> get(final String key) {
+                return null;
+            }
+
+            @Override
+            public Set<String> keys() {
                 return null;
             }
         });
@@ -134,7 +141,12 @@ public class Ds3Cli_Test {
         when(webResponse.getStatusCode()).thenReturn(200);
         when(webResponse.getHeaders()).thenReturn(new Headers() {
             @Override
-            public String get(final String key) {
+            public List<String> get(final String key) {
+                return null;
+            }
+
+            @Override
+            public Set<String> keys() {
                 return null;
             }
         });

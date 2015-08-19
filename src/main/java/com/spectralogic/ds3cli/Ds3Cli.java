@@ -65,6 +65,7 @@ public class Ds3Cli implements Callable<CommandResponse> {
         cliViews.put(CommandValue.GET_JOBS,              new com.spectralogic.ds3cli.views.cli.GetJobsView());
         cliViews.put(CommandValue.DELETE_JOB, deleteView);
         cliViews.put(CommandValue.SYSTEM_INFORMATION, new com.spectralogic.ds3cli.views.cli.SystemInformationView());
+        cliViews.put(CommandValue.HEAD_OBJECT, new com.spectralogic.ds3cli.views.cli.HeadObjectView());
         return cliViews;
     }
 
@@ -85,6 +86,7 @@ public class Ds3Cli implements Callable<CommandResponse> {
         jsonViews.put(CommandValue.GET_JOBS,              new com.spectralogic.ds3cli.views.json.GetJobsView());
         jsonViews.put(CommandValue.DELETE_JOB,            deleteView);
         jsonViews.put(CommandValue.SYSTEM_INFORMATION, new com.spectralogic.ds3cli.views.json.SystemInformationView());
+        jsonViews.put(CommandValue.HEAD_OBJECT, new com.spectralogic.ds3cli.views.json.HeadObjectView());
         return jsonViews;
     }
 
@@ -152,6 +154,9 @@ public class Ds3Cli implements Callable<CommandResponse> {
             }
             case SYSTEM_INFORMATION: {
                 return new SystemInformation(this.ds3Provider, this.fileUtils);
+            }
+            case HEAD_OBJECT: {
+                return new HeadObject(this.ds3Provider, this.fileUtils);
             }
             case GET_SERVICE:
             default: {
