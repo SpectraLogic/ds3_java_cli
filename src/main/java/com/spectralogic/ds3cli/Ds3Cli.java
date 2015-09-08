@@ -64,8 +64,9 @@ public class Ds3Cli implements Callable<CommandResponse> {
         cliViews.put(CommandValue.DELETE_TAPE_DRIVE,     deleteView);
         cliViews.put(CommandValue.GET_JOBS,              new com.spectralogic.ds3cli.views.cli.GetJobsView());
         cliViews.put(CommandValue.DELETE_JOB, deleteView);
-        cliViews.put(CommandValue.SYSTEM_INFORMATION, new com.spectralogic.ds3cli.views.cli.SystemInformationView());
-        cliViews.put(CommandValue.HEAD_OBJECT, new com.spectralogic.ds3cli.views.cli.HeadObjectView());
+        cliViews.put(CommandValue.SYSTEM_INFORMATION,    new com.spectralogic.ds3cli.views.cli.SystemInformationView());
+        cliViews.put(CommandValue.HEAD_OBJECT,           new com.spectralogic.ds3cli.views.cli.HeadObjectView());
+        cliViews.put(CommandValue.GET_JOB,               new com.spectralogic.ds3cli.views.cli.GetJobView());
         return cliViews;
     }
 
@@ -85,8 +86,9 @@ public class Ds3Cli implements Callable<CommandResponse> {
         jsonViews.put(CommandValue.DELETE_TAPE_DRIVE,     deleteView);
         jsonViews.put(CommandValue.GET_JOBS,              new com.spectralogic.ds3cli.views.json.GetJobsView());
         jsonViews.put(CommandValue.DELETE_JOB,            deleteView);
-        jsonViews.put(CommandValue.SYSTEM_INFORMATION, new com.spectralogic.ds3cli.views.json.SystemInformationView());
-        jsonViews.put(CommandValue.HEAD_OBJECT, new com.spectralogic.ds3cli.views.json.HeadObjectView());
+        jsonViews.put(CommandValue.SYSTEM_INFORMATION,    new com.spectralogic.ds3cli.views.json.SystemInformationView());
+        jsonViews.put(CommandValue.HEAD_OBJECT,           new com.spectralogic.ds3cli.views.json.HeadObjectView());
+        jsonViews.put(CommandValue.GET_JOB,               new com.spectralogic.ds3cli.views.json.GetJobView());
         return jsonViews;
     }
 
@@ -148,6 +150,9 @@ public class Ds3Cli implements Callable<CommandResponse> {
             }
             case GET_JOBS: {
                 return new GetJobs(this.ds3Provider, this.fileUtils);
+            }
+            case GET_JOB: {
+                return new GetJob(this.ds3Provider, this.fileUtils);
             }
             case DELETE_JOB: {
                 return new DeleteJob(this.ds3Provider, this.fileUtils);
