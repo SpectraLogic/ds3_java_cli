@@ -1,6 +1,6 @@
 /*
  * ******************************************************************************
- *   Copyright 2014 Spectra Logic Corporation. All Rights Reserved.
+ *   Copyright 2014-2015 Spectra Logic Corporation. All Rights Reserved.
  *   Licensed under the Apache License, Version 2.0 (the "License"). You may not use
  *   this file except in compliance with the License. A copy of the License is located at
  *
@@ -20,6 +20,7 @@ import com.spectralogic.ds3cli.CommandException;
 import com.spectralogic.ds3cli.models.DeleteResult;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
+import com.spectralogic.ds3client.commands.DeleteFolderRequest;
 import org.apache.commons.cli.MissingOptionException;
 
 import java.io.IOException;
@@ -39,8 +40,9 @@ public class DeleteFolder extends CliCommand<DeleteResult> {
             throw new MissingOptionException("The delete folder command requires '-b' to be set.");
         }
         if (folderName == null) {
-            throw new MissingOptionException(""); //TODO create proper exception
+            throw new MissingOptionException("The delete folder command requires '-d' to be set.");
         }
+        return this;
     }
 
     @Override

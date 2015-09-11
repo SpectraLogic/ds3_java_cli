@@ -15,21 +15,25 @@
 
 package com.spectralogic.ds3cli.util;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
+public class SterilizeString {
 
-public class JsonMapper {
-    private final static ObjectWriter writer;
-    private JsonMapper() {
+    private static String fs = System.getProperty("file.separator");
+
+    public static String toUnix(final String str) {
+        if(System.getProperty("os.name").contains("Windows")) {
+            return str.replace("\r\n","\n");
+        }
+        return str;
     }
 
-    static {
-        final ObjectMapper mapper = new ObjectMapper();
-        writer = mapper.writerWithDefaultPrettyPrinter();
+    public static String getFileDelimiter() {
+        return getFileDelimiter(false);
     }
 
-    public static String toJson(final Object obj) throws JsonProcessingException {
-        return SterilizeString.toUnix(writer.writeValueAsString(obj));
+    public static String getFileDelimiter(boolean escaped) {
+        if(escaped) {
+            return "\\" + fs;
+        }
+        return fs;
     }
 }
