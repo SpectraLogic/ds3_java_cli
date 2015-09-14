@@ -17,10 +17,11 @@ package com.spectralogic.ds3cli.util;
 
 public class SterilizeString {
 
-    private static String fs = System.getProperty("file.separator");
+    private final static String fs = System.getProperty("file.separator");
+    private final static boolean isWindows = System.getProperty("os.name").contains("Windows");
 
     public static String toUnix(final String str) {
-        if(System.getProperty("os.name").contains("Windows")) {
+        if(isWindows) {
             return str.replace("\r\n","\n");
         }
         return str;
@@ -30,8 +31,8 @@ public class SterilizeString {
         return getFileDelimiter(false);
     }
 
-    public static String getFileDelimiter(boolean escaped) {
-        if(escaped) {
+    public static String getFileDelimiter(final boolean escaped) {
+        if(escaped && fs.compareTo("\\") == 0) {
             return "\\" + fs;
         }
         return fs;
