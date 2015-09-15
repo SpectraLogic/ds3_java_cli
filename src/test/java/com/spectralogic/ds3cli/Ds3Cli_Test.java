@@ -17,6 +17,7 @@ package com.spectralogic.ds3cli;
 
 import com.google.common.collect.Lists;
 import com.spectralogic.ds3cli.util.FileUtils;
+import com.spectralogic.ds3cli.util.SterilizeString;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.*;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
@@ -190,7 +191,7 @@ public class Ds3Cli_Test {
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
         final CommandResponse result = cli.call();
-        assertTrue(result.getMessage().endsWith(expected));
+        assertTrue(SterilizeString.toUnix(result.getMessage()).endsWith(expected));
         assertThat(result.getReturnCode(), is(1));
     }
 
@@ -227,6 +228,49 @@ public class Ds3Cli_Test {
 
         final DeleteBucketResponse deleteBucketResponse = new DeleteBucketResponse(webResponse);
         when(client.deleteBucket(any(DeleteBucketRequest.class))).thenReturn(deleteBucketResponse);
+
+        final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
+
+        final CommandResponse result = cli.call();
+        assertTrue(result.getMessage().endsWith(expected));
+        assertThat(result.getReturnCode(), is(0));
+    }
+
+    @Test
+    public void deleteFolder() throws Exception {
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!",
+                "-a", "access", "-c", "delete_folder", "-b", "bucketName", "-d", "folderName"});
+        final Ds3Client client = mock(Ds3Client.class);
+        final WebResponse webResponse = mock(WebResponse.class);
+        final Headers headers = mock(Headers.class);
+        when(webResponse.getStatusCode()).thenReturn(204);
+        when(webResponse.getHeaders()).thenReturn(headers);
+
+        final DeleteFolderResponse deleteFolderResponse = new DeleteFolderResponse(webResponse);
+        when(client.deleteFolder(any(DeleteFolderRequest.class))).thenReturn(deleteFolderResponse);
+
+        final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
+        final CommandResponse result = cli.call();
+        assertThat(result.getMessage(), is("Success: Deleted folder 'folderName'."));
+        assertThat(result.getReturnCode(), is(0));
+    }
+
+    @Test
+    public void deleteFolderJson() throws Exception {
+        final String expected = "  \"Status\" : \"OK\",\n" +
+                "  \"Message\" : \"Success: Deleted folder 'folderName'.\"\n" +
+                "}";
+
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!",
+                "-a", "access", "-c", "delete_folder", "-b", "bucketName", "-d", "folderName", "--output-format", "json"});
+        final Ds3Client client = mock(Ds3Client.class);
+        final WebResponse webResponse = mock(WebResponse.class);
+        final Headers headers = mock(Headers.class);
+        when(webResponse.getStatusCode()).thenReturn(204);
+        when(webResponse.getHeaders()).thenReturn(headers);
+
+        final DeleteFolderResponse deleteFolderResponse = new DeleteFolderResponse(webResponse);
+        when(client.deleteFolder(any(DeleteFolderRequest.class))).thenReturn(deleteFolderResponse);
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
 
@@ -489,6 +533,8 @@ public class Ds3Cli_Test {
 
     @Test
     public void getObject() throws Exception {
+        final String expected = "SUCCESS: Finished downloading object.  The object was written to: ." + SterilizeString.getFileDelimiter() + "obj.txt";
+
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_object", "-b", "bucketName", "-o", "obj.txt"});
         final Ds3ClientHelpers helpers = mock(Ds3ClientHelpers.class);
         final Ds3ClientHelpers.Job mockedGetJob = mock(Ds3ClientHelpers.Job.class);
@@ -497,13 +543,13 @@ public class Ds3Cli_Test {
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(null, helpers), args, mockedFileUtils);
         final CommandResponse result = cli.call();
-        assertThat(result.getMessage(), is("SUCCESS: Finished downloading object.  The object was written to: ./obj.txt"));
+        assertThat(result.getMessage(), is(expected));
         assertThat(result.getReturnCode(), is(0));
     }
 
     @Test
     public void getObjectJson() throws Exception {
-        final String expected = "\"Status\" : \"OK\",\n  \"Message\" : \"SUCCESS: Finished downloading object.  The object was written to: ./obj.txt\"\n}";
+        final String expected = "\"Status\" : \"OK\",\n  \"Message\" : \"SUCCESS: Finished downloading object.  The object was written to: ." + SterilizeString.getFileDelimiter(true) + "obj.txt\"\n}";
 
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_object", "-b", "bucketName", "-o", "obj.txt", "--output-format", "json"});
         final Ds3ClientHelpers helpers = mock(Ds3ClientHelpers.class);
