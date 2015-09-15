@@ -20,9 +20,11 @@ public class SterilizeString {
     private final static String fs = System.getProperty("file.separator");
     private final static boolean isWindows = System.getProperty("os.name").contains("Windows");
 
+    private SterilizeString() {}
+
     public static String toUnix(final String str) {
         if(isWindows) {
-            return str.replace("\r\n","\n");
+            return str.replace("\r\n", "\n");
         }
         return str;
     }
