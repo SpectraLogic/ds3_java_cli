@@ -83,7 +83,7 @@ public class Arguments {
         directory.setArgName("directory");
         final Option objectName = new Option("o", true, "The name of the object to be retrieved or stored");
         objectName.setArgName("objectFileName");
-        final Option prefix = new Option("p", true, "Restores only objects who's names start with prefix.  Used with `get_bulk` and 'put_object'");
+        final Option prefix = new Option("p", true, "Used with 'get_bulk' to restore only objects who's names start with prefix.  Also used with 'bulk_put' and 'put_object' to add a prefix to object name(s)");
         prefix.setArgName("prefix");
         final Option proxy = new Option("x", true, "The URL of the proxy server to use or have \"http_proxy\" set as an environment variable");
         proxy.setArgName("proxy");
