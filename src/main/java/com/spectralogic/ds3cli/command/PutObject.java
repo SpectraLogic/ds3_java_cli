@@ -41,6 +41,7 @@ public class PutObject extends CliCommand<PutObjectResult> {
     private String bucketName;
     private Path objectPath;
     private String objectName;
+    private String prefix;
 
     public PutObject(final Ds3Provider provider, final FileUtils fileUtils) {
         super(provider, fileUtils);
@@ -68,6 +69,9 @@ public class PutObject extends CliCommand<PutObjectResult> {
         if (!getFileUtils().isRegularFile(objectPath)) {
             throw new BadArgumentException("The '-o' command must be a file and not a directory.");
         }
+
+        this.prefix = args.getPrefix();
+
         return this;
     }
 
@@ -76,6 +80,12 @@ public class PutObject extends CliCommand<PutObjectResult> {
     public PutObjectResult call() throws Exception {
         final Ds3ClientHelpers helpers = getClientHelpers();
         final Ds3Object ds3Obj = new Ds3Object(normalizeObjectName(objectName), getFileUtils().size(objectPath));
+
+        if(prefix != null) {
+            LOG.info("Pre-appending " + prefix + " to object name");
+            ds3Obj.setName(prefix + ds3Obj.getName());
+        }
+
         final Ds3ClientHelpers.Job putJob = helpers.startWriteJob(bucketName, Lists.newArrayList(ds3Obj));
         putJob.transfer(new Ds3ClientHelpers.ObjectChannelBuilder() {
             @Override
