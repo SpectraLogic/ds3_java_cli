@@ -13,65 +13,35 @@
  * ****************************************************************************
  */
 
-import java.nio.file.Files
-import java.nio.file.Path
 
-plugins {
-    id "com.github.hierynomus.license" version "0.11.0"
+allprojects {
+    version = '1.2.0'
+    group = 'com.spectralogic'
 }
 
-apply plugin: 'java'
-apply plugin: 'maven'
-apply plugin: 'idea'
-apply plugin: 'application'
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'maven'
+    apply plugin: 'idea'
 
-version = '1.2.0'
-group = 'com.spectralogic'
-
-mainClassName = 'com.spectralogic.ds3cli.Main'
-
-repositories {
-  mavenCentral()
-  jcenter()
-  mavenLocal()
-  maven {
-    url 'http://dl.bintray.com/spectralogic/ds3'
-  }
-}
-
-dependencies {
-  compile fileTree(dir: 'lib', include: '*.jar')
-  compile 'commons-cli:commons-cli:1.2'
-  compile 'com.google.guava:guava:18.0'
-  compile 'joda-time:joda-time:2.7'
-  compile 'ch.qos.logback:logback-core:1.0.13'
-  compile 'ch.qos.logback:logback-classic:1.0.13'
-  compile 'com.spectralogic.ds3:ds3-sdk:1.2.0-RC2'
-  compile (
-    [group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.5.3'],
-    [group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: '2.5.3'],
-    [group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.5.3']
-  )
-  testCompile "org.mockito:mockito-core:1.+"
-  testCompile 'junit:junit:4.11'
-  testRuntime 'org.slf4j:slf4j-simple:1.7.12'
-}
-
-task genConfigProperties << {
-    File configFile = new File(sourceSets.main.output.resourcesDir, "/config.properties")
-    Path configPath = sourceSets.main.output.resourcesDir.toPath()
-    if (!Files.exists(configPath)) {
-        Files.createDirectories(configPath)
+    repositories {
+        mavenCentral()
+        jcenter()
+        mavenLocal()
+        maven {
+            url 'http://dl.bintray.com/spectralogic/ds3'
+        }
     }
 
-    configFile.withWriter{out ->
-        out.writeLine("version="+version)
-        out.writeLine("build.date="+new Date().toString())
+    dependencies {
+        compile 'com.google.guava:guava:18.0'
+        compile 'com.spectralogic.ds3:ds3-sdk:1.2.0-RC2'
+        testCompile "org.mockito:mockito-core:1.+"
+        testCompile 'junit:junit:4.11'
+        testRuntime 'org.slf4j:slf4j-simple:1.7.12'
     }
 }
-
-jar.dependsOn genConfigProperties
 
 task wrapper(type: Wrapper) {
-  gradleVersion = '2.6'
+    gradleVersion = '2.7'
 }
