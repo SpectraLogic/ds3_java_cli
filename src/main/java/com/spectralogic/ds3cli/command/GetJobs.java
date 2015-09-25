@@ -22,17 +22,25 @@ import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3client.commands.GetJobsRequest;
 
 public class GetJobs extends CliCommand<GetJobsResult> {
+
+    private boolean completed;
+
     public GetJobs(final Ds3Provider ds3Provider, final FileUtils fileUtils) {
         super(ds3Provider, fileUtils);
     }
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
+        this.completed = args.isCompleted();
         return this;
     }
 
     @Override
     public GetJobsResult call() throws Exception {
-        return new GetJobsResult(getClient().getJobs(new GetJobsRequest()).getJobs());
+        final GetJobsRequest request = new GetJobsRequest();
+        if(completed) {
+            request.withFullDetails(completed);
+        }
+        return new GetJobsResult(getClient().getJobs(request).getJobs());
     }
 }

@@ -59,6 +59,7 @@ public class Arguments {
     private boolean checksum = false;
     private boolean certificateVerification = true;
     private boolean https = true;
+    private boolean completed = false;
     private ViewType outputFormat = ViewType.CLI;
 
     private String version = "N/a";
@@ -130,6 +131,8 @@ public class Arguments {
         trace.setLongOpt("trace");
         final Option viewType = new Option(null, true, "Configure how the output should be displayed.  Possible values: ["+ ViewType.valuesString() +"]");
         viewType.setLongOpt("output-format");
+        final Option completed = new Option(null, false, "Used with the command get_jobs to include the display of completed jobs");
+        completed.setLongOpt("completed");
         options.addOption(ds3Endpoint);
         options.addOption(bucket);
         options.addOption(directory);
@@ -155,6 +158,7 @@ public class Arguments {
         options.addOption(debug);
         options.addOption(trace);
         options.addOption(viewType);
+        options.addOption(completed);
 
         // Disabled until they are enabled in DS3.
         // options.addOption(defaultGetPriority);
@@ -252,6 +256,10 @@ public class Arguments {
 
         if (cmd.hasOption("checksum")) {
             this.setChecksum(true);
+        }
+
+        if (cmd.hasOption("completed")) {
+            this.setCompleted(true);
         }
 
         this.setBucket(cmd.getOptionValue("b"));
@@ -564,4 +572,8 @@ public class Arguments {
     void setId(final String id) {
         this.id = id;
     }
+
+    public boolean isCompleted() { return this.completed; }
+
+    void setCompleted(final boolean completed) { this.completed = completed; }
 }
