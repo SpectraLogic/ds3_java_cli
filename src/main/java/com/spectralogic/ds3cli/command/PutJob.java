@@ -53,7 +53,7 @@ public class PutJob extends CliCommand<PutJobResult> {
             }
             getClient().modifyJob(request);
         }
-        catch (IOException e) {
+        catch (final IOException e) {
             throw new CommandException("Error: Request failed with the following error: " + e.getMessage(), e);
         }
         String result = "Success: Modified job with job id '" + jobId.toString() + "'";
