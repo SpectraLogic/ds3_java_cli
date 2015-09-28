@@ -34,11 +34,19 @@ subprojects {
     }
 
     dependencies {
+        compile 'ch.qos.logback:logback-core:1.0.13'
+        compile 'ch.qos.logback:logback-classic:1.0.13'
         compile 'com.google.guava:guava:18.0'
         compile 'com.spectralogic.ds3:ds3-sdk:1.2.0-RC2'
         testCompile "org.mockito:mockito-core:1.+"
         testCompile 'junit:junit:4.11'
-        testRuntime 'org.slf4j:slf4j-simple:1.7.12'
+
+    }
+}
+
+project(':ds3-cli-integration') {
+    dependencies {
+        compile project(':ds3-cli')
     }
 }
 
