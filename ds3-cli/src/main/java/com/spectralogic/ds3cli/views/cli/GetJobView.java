@@ -23,6 +23,10 @@ public class GetJobView implements View<GetJobResult> {
                 mol.getStartDate(), mol.getOriginalSizeInBytes(), mol.getCompletedSizeInBytes());
 
 
+        if (mol.getObjects() == null) {
+            return returnString;
+        }
+
         return returnString + ASCIITable.getInstance().getTable(getHeaders(), formatJobDetails(obj.getJobDetails().getObjects().iterator()));
     }
 
