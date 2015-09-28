@@ -18,7 +18,7 @@ public class GetJobView implements View<GetJobResult> {
 
         final MasterObjectList mol = obj.getJobDetails();
 
-        final String returnString = String.format("JobId: %s | Status: %s | Bucket: %s | Type: %s | Priority: %s | User Name: %s | Creation Date: %s | Total Size: %s | Total Transferred: %d\n",
+        final String returnString = String.format("JobId: %s | Status: %s | Bucket: %s | Type: %s | Priority: %s | User Name: %s | Creation Date: %s | Total Size: %s | Total Transferred: %d",
                 mol.getJobId().toString(), mol.getStatus().toString(), mol.getBucketName(), mol.getRequestType().toString(), mol.getPriority().toString(), mol.getUserName(),
                 mol.getStartDate(), mol.getOriginalSizeInBytes(), mol.getCompletedSizeInBytes());
 
@@ -27,7 +27,7 @@ public class GetJobView implements View<GetJobResult> {
             return returnString;
         }
 
-        return returnString + ASCIITable.getInstance().getTable(getHeaders(), formatJobDetails(obj.getJobDetails().getObjects().iterator()));
+        return returnString + "\n" + ASCIITable.getInstance().getTable(getHeaders(), formatJobDetails(obj.getJobDetails().getObjects().iterator()));
     }
 
     private String[][] formatJobDetails(final Iterator<Objects> iterator) {
