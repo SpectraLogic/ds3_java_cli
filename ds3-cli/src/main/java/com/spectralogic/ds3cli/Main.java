@@ -52,7 +52,7 @@ public class Main {
         }
     }
 
-    private static Ds3Client createClient(final Arguments arguments) {
+    public static Ds3Client createClient(final Arguments arguments) {
         final Ds3ClientBuilder builder = Ds3ClientBuilder.create(
                 arguments.getEndpoint(),
                 new Credentials(arguments.getAccessKey(), arguments.getSecretKey())

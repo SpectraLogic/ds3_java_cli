@@ -19,7 +19,7 @@ import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 
-class Ds3ProviderImpl implements Ds3Provider {
+public class Ds3ProviderImpl implements Ds3Provider {
 
     private final Ds3Client client;
     private final Ds3ClientHelpers helpers;
