@@ -15,23 +15,47 @@
 
 package com.spectralogic.ds3cli.integration;
 
-import com.spectralogic.ds3cli.Main;
+import com.spectralogic.ds3cli.*;
+import com.spectralogic.ds3cli.util.Ds3Provider;
+import com.spectralogic.ds3cli.util.FileUtils;
+import com.spectralogic.ds3client.Ds3Client;
+import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 public class Util {
-    public static final String RESOURCE_BASE_NAME = "books/";
-
-    private static final String[] BOOKS = {"beowulf.txt", "sherlock_holmes.txt", "tale_of_two_cities.txt", "ulysses.txt"};
+    public static final String RESOURCE_BASE_NAME = "./src/test/resources/books/";
+    public static final String DOWNLOAD_BASE_NAME = "./output/";
 
     private Util() {}
 
-    private static void loadTestFile(final String bucketName, final String fileName) {
-        Main.main(new String[] {"-c", "put_object", "-b", bucketName, "-o", fileName});
+    public static CommandResponse command(final Ds3Client client, final Arguments args) throws Exception {
+        final Ds3Provider provider = new Ds3ProviderImpl(client, Ds3ClientHelpers.wrap(client));
+        final FileUtils fileUtils = new FileUtilsImpl();
+        final Ds3Cli runner = new Ds3Cli(provider, args, fileUtils);
+        final CommandResponse response = runner.call();
+
+        return response;
     }
 
-    public static void loadBookTestData(final String bucketName) {
-        for(String book : BOOKS) {
-            loadTestFile(bucketName, book);
-        }
+    public static CommandResponse createBucket(final Ds3Client client, final String bucketName) throws Exception {
+        final Arguments args = new Arguments(new String[]{"--http", "-c", "put_bucket", "-b", bucketName});
+        return command(client, args);
     }
 
+    public static CommandResponse deleteBucket(final Ds3Client client, final String bucketName) throws Exception {
+        final Arguments args = new Arguments(new String[]{"--http", "-c", "delete_bucket", "-b", bucketName, "--force"});
+        return command(client, args);
+    }
+
+    public static void loadBookTestData(final Ds3Client client, final String bucketName) throws Exception {
+        final Arguments args = new Arguments(new String[]{"--http", "-c", "put_bulk", "-b", bucketName, "-d", RESOURCE_BASE_NAME});
+        command(client, args);
+    }
+
+    public static void deleteLoadedFile(final String fileName) throws IOException {
+        Files.deleteIfExists(Paths.get(DOWNLOAD_BASE_NAME + fileName));
+    }
 }

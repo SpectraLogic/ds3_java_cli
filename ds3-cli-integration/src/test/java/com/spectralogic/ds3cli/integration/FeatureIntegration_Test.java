@@ -15,98 +15,252 @@
 
 package com.spectralogic.ds3cli.integration;
 
+import com.google.common.collect.Lists;
 import com.spectralogic.ds3cli.*;
 import com.spectralogic.ds3client.Ds3Client;
-import com.spectralogic.ds3client.commands.GetJobRequest;
-import com.spectralogic.ds3client.commands.GetJobResponse;
-import com.spectralogic.ds3client.networking.Headers;
-import com.spectralogic.ds3client.networking.WebResponse;
-import org.apache.commons.io.IOUtils;
+import com.spectralogic.ds3client.Ds3ClientBuilder;
+import com.spectralogic.ds3client.commands.GetObjectRequest;
+import com.spectralogic.ds3client.commands.GetObjectResponse;
+import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
+import com.spectralogic.ds3client.models.bulk.Ds3Object;
+import com.spectralogic.ds3client.utils.ResourceUtils;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+
+import com.spectralogic.ds3cli.util.SterilizeString;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.channels.FileChannel;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 
 public class FeatureIntegration_Test {
 
-    final private String[] CONNECTION = {"ds3_java_cli", "--http", "-e", "192.168.56.101:8080", "-k", "8qHN6TUE",
-            "-a", "c3BlY3RyYQ=="};
+    private static Ds3Client client;
+
+    @BeforeClass
+    public static void startup() {
+        final Ds3ClientBuilder builder = Ds3ClientBuilder.fromEnv();
+        builder.withHttps(false);
+        client = builder.build();
+    }
+
+    @AfterClass
+    public static void teardown() throws IOException {
+        client.close();
+    }
+
+    @Test
+    public void putBucket() throws Exception {
+        final String bucketName = "test_put_bucket";
+        try {
+            final String expected = "Success: created bucket " + bucketName + ".";
+
+            final CommandResponse response = Util.createBucket(client, bucketName);
+            assertThat(response.getMessage(), is(expected));
+
+        } finally {
+            Util.deleteBucket(client, bucketName);
+        }
+    }
+
+    @Test
+    public void putBucketJson() throws Exception {
+        final String bucketName = "test_put_bucket_json";
+        try {
+            final String expected = "\"Message\" : \"Success: created bucket " + bucketName + ".\"\n}";
+
+            final Arguments args = new Arguments(new String[]{"--http", "-c", "put_bucket", "-b", bucketName, "--output-format", "json"});
+            final CommandResponse response = Util.command(client, args);
+            assertTrue(response.getMessage().endsWith(expected));
+        } finally {
+            Util.deleteBucket(client, bucketName);
+        }
+    }
+
+    @Test
+     public void deleteBucket() throws Exception {
+        final String bucketName = "test_delete_bucket";
+        try {
+            final String expected = "Success: Deleted " + bucketName + " and all the objects contained in it.";
+
+            Util.createBucket(client, bucketName);
+            final CommandResponse response = Util.deleteBucket(client, bucketName);
+            assertThat(response.getMessage(), is(expected));
+        } finally {
+
+        }
+    }
+
+    @Test
+    public void deleteBucketJson() throws Exception {
+        final String bucketName = "test_delete_bucket_json";
+        try {
+            final String expected = "\"Message\" : \"Success: Deleted " + bucketName + " and all the objects contained in it.\"\n}";
+
+            Util.createBucket(client, bucketName);
+            final Arguments args = new Arguments(new String[]{"--http", "-c", "delete_bucket", "-b", bucketName, "--force", "--output-format", "json"});
+            final CommandResponse response = Util.command(client, args);
+            assertTrue(response.getMessage().endsWith(expected));
+        } finally {
+
+        }
+    }
+
+    @Test
+    public void getObject() throws Exception {
+        final String bucketName = "test_get_object";
+        try {
+            final String expected = "SUCCESS: Finished downloading object.  The object was written to: "
+                    + SterilizeString.pathToWindows(Util.DOWNLOAD_BASE_NAME) + "beowulf.txt";
+
+            Util.createBucket(client, bucketName);
+            Util.loadBookTestData(client, bucketName);
+
+            final Arguments args = new Arguments(new String[]{"--http", "-c", "get_object", "-b", bucketName,
+                    "-o", "beowulf.txt", "-d", Util.DOWNLOAD_BASE_NAME});
+            final CommandResponse response = Util.command(client, args);
+
+            assertThat(response.getMessage(), is(expected));
+        } finally {
+            Util.deleteBucket(client, bucketName);
+            Util.deleteLoadedFile("beowulf.txt");
+        }
+    }
+
+    @Test
+    public void getObjectJson() throws Exception {
+        final String bucketName = "test_get_object_json";
+        try {
+            final String expected = "\"Message\" : \"SUCCESS: Finished downloading object.  The object was written to: "
+                    + SterilizeString.pathToWindows(Util.DOWNLOAD_BASE_NAME, true) + "beowulf.txt\"\n}";
+
+            Util.createBucket(client, bucketName);
+            Util.loadBookTestData(client, bucketName);
+
+            final Arguments args = new Arguments(new String[]{"--http", "-c", "get_object", "-b", bucketName,
+                    "-o", "beowulf.txt", "-d", Util.DOWNLOAD_BASE_NAME, "--output-format", "json"});
+            final CommandResponse response = Util.command(client, args);
+
+            assertTrue(response.getMessage().endsWith(expected));
+        } finally {
+            Util.deleteBucket(client, bucketName);
+            Util.deleteLoadedFile("beowulf.txt");
+        }
+    }
 
     @Test
     public void getCompletedJob() throws Exception {
-        final String jobId = "aa5df0cc-b03a-4cb9-b69d-56e7367e917f";
+        final String bucketName = "test_get_job";
+        final String book = "sherlock_holmes.txt";
+        try {
+            Util.createBucket(client, bucketName);
+            Util.loadBookTestData(client, bucketName);
 
-        final Arguments args = new Arguments(new String[]{"--http", "-c", "get_job", "-i", jobId});
+            final File objFile = ResourceUtils.loadFileResource("books/" + book);
+            final Ds3Object obj = new Ds3Object(book, objFile.length());
 
-        final String expected = "JobId: " + jobId + " | Status: COMPLETED | Bucket: bucket | Type: GET | Priority: HIGH | User Name: spectra | Creation Date: 2015-09-28T17:30:43.000Z | Total Size: 32 | Total Transferred: 0";
-        final String response = "<MasterObjectList BucketName=\"bucket\" CachedSizeInBytes=\"0\" ChunkClientProcessingOrderGuarantee=\"NONE\" CompletedSizeInBytes=\"0\" JobId=\"aa5df0cc-b03a-4cb9-b69d-56e7367e917f\" OriginalSizeInBytes=\"32\" Priority=\"HIGH\" RequestType=\"GET\" StartDate=\"2015-09-28T17:30:43.000Z\" Status=\"COMPLETED\" UserId=\"c2581493-058c-40d7-a3a1-9a50b20d6d3b\" UserName=\"spectra\" WriteOptimization=\"CAPACITY\"></MasterObjectList>";
+            final Path dirPath = FileSystems.getDefault().getPath("output");
+            if (!Files.exists(dirPath)) {
+                Files.createDirectory(dirPath);
+            }
+            final FileChannel channel = FileChannel.open(
+                    dirPath.resolve(book),
+                    StandardOpenOption.WRITE,
+                    StandardOpenOption.CREATE,
+                    StandardOpenOption.TRUNCATE_EXISTING
+            );
+            final Ds3ClientHelpers.Job readJob = Ds3ClientHelpers.wrap(client)
+                    .startReadJob(bucketName, Lists.newArrayList(obj));
 
-        final Ds3Client client = mock(Ds3Client.class);
-        final WebResponse webResponse = mock(WebResponse.class);
-        final Headers headers = mock(Headers.class);
-        when(webResponse.getStatusCode()).thenReturn(200);
-        when(webResponse.getHeaders()).thenReturn(headers);
-        when(webResponse.getResponseStream()).thenReturn(IOUtils.toInputStream(response));
-        final GetJobResponse getJobResponse = new GetJobResponse(webResponse);
-        when(client.getJob(any(GetJobRequest.class))).thenReturn(getJobResponse);
+            final GetObjectResponse readResponse = client.getObject(new GetObjectRequest(bucketName, book, 0, readJob.getJobId(), channel));
+            assertThat(readResponse, is(notNullValue()));
+            assertThat(readResponse.getStatusCode(), is(equalTo(200)));
 
-        final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
+            final Arguments args = new Arguments(new String[]{"--http", "-c", "get_job", "-i", readJob.getJobId().toString()});
+            final CommandResponse getJobResponse = Util.command(client, args);
 
-        final CommandResponse result = cli.call();
-        assertThat(result.getMessage(), is(expected));
-        assertThat(result.getReturnCode(), is(0));
+            final String expectedBeginning = "JobId: " + readJob.getJobId() + " | Status: COMPLETED | Bucket: " + bucketName
+                    + " | Type: GET | Priority: HIGH | User Name: spectra | Creation Date: ";
+            final String expectedEnding = " | Total Size: " + objFile.length() + " | Total Transferred: 0";
+
+            assertTrue(getJobResponse.getMessage().startsWith(expectedBeginning));
+            assertTrue(getJobResponse.getMessage().endsWith(expectedEnding));
+        } finally {
+            Util.deleteBucket(client, bucketName);
+            Util.deleteLoadedFile(book);
+        }
     }
 
-    /*
     @Test
     public void getCompletedJobJson() throws Exception {
-        final String jobId = "aa5df0cc-b03a-4cb9-b69d-56e7367e917f";
-        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!",
-                "-a", "access", "-c", "get_job", "-i", jobId, "--output-format", "json"});
+        final String bucketName = "test_get_job_json";
+        final String book = "tale_of_two_cities.txt";
+        try {
+            Util.createBucket(client, bucketName);
+            Util.loadBookTestData(client, bucketName);
 
-        final String expected = "\"Data\" : {\n"
-                + "    \"jobDetails\" : {\n"
-                + "      \"Nodes\" : null,\n"
-                + "      \"CachedSizeInBytes\" : 0,\n"
-                + "      \"CompletedSizeInBytes\" : 0,\n"
-                + "      \"OriginalSizeInBytes\" : 32,\n"
-                + "      \"BucketName\" : \"bucket\",\n"
-                + "      \"JobId\" : \"aa5df0cc-b03a-4cb9-b69d-56e7367e917f\",\n"
-                + "      \"UserId\" : \"c2581493-058c-40d7-a3a1-9a50b20d6d3b\",\n"
-                + "      \"UserName\" : \"spectra\",\n"
-                + "      \"WriteOptimization\" : \"CAPACITY\",\n"
-                + "      \"Priority\" : \"HIGH\",\n"
-                + "      \"RequestType\" : \"GET\",\n"
-                + "      \"StartDate\" : \"2015-09-28T17:30:43.000Z\",\n"
-                + "      \"ChunkClientProcessingOrderGuarantee\" : \"NONE\",\n"
-                + "      \"Status\" : \"COMPLETED\",\n"
-                + "      \"Objects\" : null\n"
-                + "    }\n"
-                + "  },\n  \"Status\" : \"OK\"\n"
-                + "}";
+            final File objFile = ResourceUtils.loadFileResource("books/" + book);
+            final Ds3Object obj = new Ds3Object(book, objFile.length());
 
-        final String response = "<MasterObjectList BucketName=\"bucket\" CachedSizeInBytes=\"0\" ChunkClientProcessingOrderGuarantee=\"NONE\" CompletedSizeInBytes=\"0\" JobId=\"aa5df0cc-b03a-4cb9-b69d-56e7367e917f\" OriginalSizeInBytes=\"32\" Priority=\"HIGH\" RequestType=\"GET\" StartDate=\"2015-09-28T17:30:43.000Z\" Status=\"COMPLETED\" UserId=\"c2581493-058c-40d7-a3a1-9a50b20d6d3b\" UserName=\"spectra\" WriteOptimization=\"CAPACITY\"></MasterObjectList>";
+            final Path dirPath = FileSystems.getDefault().getPath("output");
+            if (!Files.exists(dirPath)) {
+                Files.createDirectory(dirPath);
+            }
+            final FileChannel channel = FileChannel.open(
+                    dirPath.resolve(book),
+                    StandardOpenOption.WRITE,
+                    StandardOpenOption.CREATE,
+                    StandardOpenOption.TRUNCATE_EXISTING
+            );
+            final Ds3ClientHelpers.Job readJob = Ds3ClientHelpers.wrap(client)
+                    .startReadJob(bucketName, Lists.newArrayList(obj));
 
-        final Ds3Client client = mock(Ds3Client.class);
-        final WebResponse webResponse = mock(WebResponse.class);
-        final Headers headers = mock(Headers.class);
-        when(webResponse.getStatusCode()).thenReturn(200);
-        when(webResponse.getHeaders()).thenReturn(headers);
-        when(webResponse.getResponseStream()).thenReturn(IOUtils.toInputStream(response));
-        final GetJobResponse getJobResponse = new GetJobResponse(webResponse);
-        when(client.getJob(any(GetJobRequest.class))).thenReturn(getJobResponse);
+            final GetObjectResponse readResponse = client.getObject(new GetObjectRequest(bucketName, book, 0, readJob.getJobId(), channel));
+            assertThat(readResponse, is(notNullValue()));
+            assertThat(readResponse.getStatusCode(), is(equalTo(200)));
 
-        final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
+            final Arguments args = new Arguments(new String[]{"--http", "-c", "get_job", "-i", readJob.getJobId().toString(), "--output-format", "json"});
+            final CommandResponse getJobResponse = Util.command(client, args);
 
-        final CommandResponse result = cli.call();
-        assertTrue(result.getMessage().endsWith(expected));
-        assertThat(result.getReturnCode(), is(0));
+            final String expectedMiddle = "\"Data\" : {\n"
+                    + "    \"jobDetails\" : {\n"
+                    + "      \"Nodes\" : null,\n"
+                    + "      \"CachedSizeInBytes\" : 0,\n"
+                    + "      \"CompletedSizeInBytes\" : 0,\n"
+                    + "      \"OriginalSizeInBytes\" : " + objFile.length() + ",\n"
+                    + "      \"BucketName\" : \"" + bucketName + "\",\n"
+                    + "      \"JobId\" : \"" + readJob.getJobId() + "\",\n"
+                    + "      \"UserId\" : \"c2581493-058c-40d7-a3a1-9a50b20d6d3b\",\n"
+                    + "      \"UserName\" : \"spectra\",\n"
+                    + "      \"WriteOptimization\" : \"CAPACITY\",\n"
+                    + "      \"Priority\" : \"HIGH\",\n"
+                    + "      \"RequestType\" : \"GET\",\n"
+                    + "      \"StartDate\" : ";
+
+            final String expectedEnding =
+                      "      \"ChunkClientProcessingOrderGuarantee\" : \"NONE\",\n"
+                    + "      \"Status\" : \"COMPLETED\",\n"
+                    + "      \"Objects\" : null\n"
+                              + "    }\n"
+                              + "  },\n  \"Status\" : \"OK\"\n"
+                    + "}";
+
+            assertTrue(getJobResponse.getMessage().contains(expectedMiddle));
+            assertTrue(getJobResponse.getMessage().endsWith(expectedEnding));
+        } finally {
+            Util.deleteBucket(client, bucketName);
+            Util.deleteLoadedFile(book);
+        }
     }
-    */
-
-
 }

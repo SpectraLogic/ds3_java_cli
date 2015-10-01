@@ -33,10 +33,24 @@ public class SterilizeString {
         return getFileDelimiter(false);
     }
 
-    public static String getFileDelimiter(final boolean escaped) {
-        if(escaped && fs.compareTo("\\") == 0) {
+    public static String getFileDelimiter(final boolean isEscaped) {
+        if(isEscaped && fs.compareTo("\\") == 0) {
             return "\\" + fs;
         }
         return fs;
+    }
+
+    public static String pathToWindows(final String str) {
+        return pathToWindows(str, false);
+    }
+
+    public static String pathToWindows(final String str, boolean isEscaped) {
+        if(isWindows) {
+            if(isEscaped) {
+                return str.replace("/", "\\\\");
+            }
+            return str.replace("/","\\");
+        }
+        return str;
     }
 }
