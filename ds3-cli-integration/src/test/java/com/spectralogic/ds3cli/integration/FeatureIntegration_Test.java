@@ -122,7 +122,7 @@ public class FeatureIntegration_Test {
         final String bucketName = "test_get_object";
         try {
             final String expected = "SUCCESS: Finished downloading object.  The object was written to: "
-                    + SterilizeString.pathToWindows(Util.DOWNLOAD_BASE_NAME) + "beowulf.txt";
+                    + SterilizeString.osSpecificPath(Util.DOWNLOAD_BASE_NAME) + "beowulf.txt";
 
             Util.createBucket(client, bucketName);
             Util.loadBookTestData(client, bucketName);
@@ -143,7 +143,7 @@ public class FeatureIntegration_Test {
         final String bucketName = "test_get_object_json";
         try {
             final String expected = "\"Message\" : \"SUCCESS: Finished downloading object.  The object was written to: "
-                    + SterilizeString.pathToWindows(Util.DOWNLOAD_BASE_NAME, true) + "beowulf.txt\"\n}";
+                    + SterilizeString.osSpecificPath(Util.DOWNLOAD_BASE_NAME, true) + "beowulf.txt\"\n}";
 
             Util.createBucket(client, bucketName);
             Util.loadBookTestData(client, bucketName);

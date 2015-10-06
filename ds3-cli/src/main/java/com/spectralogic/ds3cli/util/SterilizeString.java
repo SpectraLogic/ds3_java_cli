@@ -40,12 +40,12 @@ public class SterilizeString {
         return fs;
     }
 
-    public static String pathToWindows(final String str) {
-        return pathToWindows(str, false);
+    public static String osSpecificPath(final String str) {
+        return osSpecificPath(str, false);
     }
 
-    public static String pathToWindows(final String str, boolean isEscaped) {
-        if(isWindows) {
+    public static String osSpecificPath(final String str, boolean isEscaped) {
+        if(fs.compareTo("\\") == 0) {
             if(isEscaped) {
                 return str.replace("/", "\\\\");
             }
