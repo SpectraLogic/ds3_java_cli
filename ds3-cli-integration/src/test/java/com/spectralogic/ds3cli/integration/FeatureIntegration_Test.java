@@ -91,30 +91,24 @@ public class FeatureIntegration_Test {
     @Test
      public void deleteBucket() throws Exception {
         final String bucketName = "test_delete_bucket";
-        try {
-            final String expected = "Success: Deleted " + bucketName + " and all the objects contained in it.";
 
-            Util.createBucket(client, bucketName);
-            final CommandResponse response = Util.deleteBucket(client, bucketName);
-            assertThat(response.getMessage(), is(expected));
-        } finally {
+        final String expected = "Success: Deleted " + bucketName + " and all the objects contained in it.";
 
-        }
+        Util.createBucket(client, bucketName);
+        final CommandResponse response = Util.deleteBucket(client, bucketName);
+        assertThat(response.getMessage(), is(expected));
     }
 
     @Test
     public void deleteBucketJson() throws Exception {
         final String bucketName = "test_delete_bucket_json";
-        try {
-            final String expected = "\"Message\" : \"Success: Deleted " + bucketName + " and all the objects contained in it.\"\n}";
 
-            Util.createBucket(client, bucketName);
-            final Arguments args = new Arguments(new String[]{"--http", "-c", "delete_bucket", "-b", bucketName, "--force", "--output-format", "json"});
-            final CommandResponse response = Util.command(client, args);
-            assertTrue(response.getMessage().endsWith(expected));
-        } finally {
+        final String expected = "\"Message\" : \"Success: Deleted " + bucketName + " and all the objects contained in it.\"\n}";
 
-        }
+        Util.createBucket(client, bucketName);
+        final Arguments args = new Arguments(new String[]{"--http", "-c", "delete_bucket", "-b", bucketName, "--force", "--output-format", "json"});
+        final CommandResponse response = Util.command(client, args);
+        assertTrue(response.getMessage().endsWith(expected));
     }
 
     @Test
