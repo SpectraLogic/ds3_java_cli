@@ -32,7 +32,7 @@ public class Ds3Cli implements Callable<CommandResponse> {
     private final Ds3Provider ds3Provider;
     private final FileUtils fileUtils;
 
-    Ds3Cli(final Ds3Provider provider, final Arguments args, final FileUtils fileUtils) {
+    public Ds3Cli(final Ds3Provider provider, final Arguments args, final FileUtils fileUtils) {
         this.args = args;
         this.ds3Provider = provider;
         this.fileUtils = fileUtils;

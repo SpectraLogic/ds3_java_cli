@@ -65,7 +65,7 @@ public class Arguments {
     private String version = "N/a";
     private String buildDate = "N/a";
 
-    Arguments(final String[] args) throws BadArgumentException, ParseException {
+    public Arguments(final String[] args) throws BadArgumentException, ParseException {
         loadProperties();
         this.args = args;
         options = new Options();
