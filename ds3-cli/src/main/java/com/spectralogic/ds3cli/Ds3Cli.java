@@ -69,6 +69,7 @@ public class Ds3Cli implements Callable<CommandResponse> {
         cliViews.put(CommandValue.GET_JOB,               new com.spectralogic.ds3cli.views.cli.GetJobView());
         cliViews.put(CommandValue.DELETE_FOLDER,         deleteView);
         cliViews.put(CommandValue.PUT_JOB,               new com.spectralogic.ds3cli.views.cli.PutJobView());
+        cliViews.put(CommandValue.GET_TAPES,             new com.spectralogic.ds3cli.views.cli.GetTapesView());
         return cliViews;
     }
 
@@ -93,6 +94,7 @@ public class Ds3Cli implements Callable<CommandResponse> {
         jsonViews.put(CommandValue.GET_JOB,               new com.spectralogic.ds3cli.views.json.GetJobView());
         jsonViews.put(CommandValue.DELETE_FOLDER,         deleteView);
         jsonViews.put(CommandValue.PUT_JOB,               new com.spectralogic.ds3cli.views.json.PutJobView());
+        jsonViews.put(CommandValue.GET_TAPES, new com.spectralogic.ds3cli.views.json.GetTapesView());
         return jsonViews;
     }
 
@@ -172,6 +174,9 @@ public class Ds3Cli implements Callable<CommandResponse> {
             }
             case PUT_JOB: {
                 return new PutJob(this.ds3Provider, this.fileUtils);
+            }
+            case GET_TAPES: {
+                return new GetTapes(this.ds3Provider, this.fileUtils);
             }
             case GET_SERVICE:
             default: {
