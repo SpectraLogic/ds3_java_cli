@@ -24,7 +24,7 @@ import java.util.ArrayList;
 public enum CommandValue {
 GET_SERVICE, GET_BUCKET, GET_OBJECT, PUT_BUCKET, PUT_OBJECT, DELETE_BUCKET, DELETE_OBJECT, GET_BULK, PUT_BULK,
     DELETE_TAPE_DRIVE, DELETE_TAPE_PARTITION, GET_JOBS, GET_JOB, DELETE_JOB, SYSTEM_INFORMATION, HEAD_OBJECT,
-    DELETE_FOLDER, PUT_JOB, GET_TAPES;
+    DELETE_FOLDER, PUT_JOB, GET_TAPES, DELETE_TAPE;
 
     public static String valuesString() {
         final ArrayList<CommandValue> list = Lists.newArrayList(CommandValue.values());
