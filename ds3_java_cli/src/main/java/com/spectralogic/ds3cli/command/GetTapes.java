@@ -40,7 +40,7 @@ public class GetTapes extends CliCommand<GetTapesResult> {
 
             return new GetTapesResult(response.getTapes());
         } catch (final FailedRequestException e) {
-            throw new CommandException("Failed Get Service", e);
+            throw new CommandException("Failed Get Tapes", e);
         }
     }
 }
