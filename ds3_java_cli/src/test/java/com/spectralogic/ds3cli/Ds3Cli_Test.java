@@ -15,6 +15,7 @@
 
 package com.spectralogic.ds3cli;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3cli.util.SterilizeString;
@@ -40,9 +41,7 @@ import java.util.UUID;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Matchers.isNotNull;
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -166,7 +165,7 @@ public class Ds3Cli_Test {
     public void error() throws Exception {
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_service"});
         final Ds3Client client = mock(Ds3Client.class);
-        when(client.getService(any(GetServiceRequest.class))).thenThrow(new FailedRequestException(new int[]{200}, 500, new Error(), ""));
+        when(client.getService(any(GetServiceRequest.class))).thenThrow(new FailedRequestException(toImmutableIntList(new int[]{200}), 500, new Error(), ""));
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
         final CommandResponse result = cli.call();
@@ -187,7 +186,7 @@ public class Ds3Cli_Test {
 
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_service", "--output-format", "json"});
         final Ds3Client client = mock(Ds3Client.class);
-        when(client.getService(any(GetServiceRequest.class))).thenThrow(new FailedRequestException(new int[]{200}, 500, new Error(), ""));
+        when(client.getService(any(GetServiceRequest.class))).thenThrow(new FailedRequestException(toImmutableIntList(new int[]{200}), 500, new Error(), ""));
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
         final CommandResponse result = cli.call();
@@ -844,5 +843,15 @@ public class Ds3Cli_Test {
         final CommandResponse result = cli.call();
         assertTrue(result.getMessage().endsWith(expected));
         assertThat(result.getReturnCode(), is(0));
+    }
+
+    private ImmutableList<Integer> toImmutableIntList(final int[] expectedStatuses) {
+        final ImmutableList.Builder integerBuilder = ImmutableList.builder();
+
+        for (final int status : expectedStatuses) {
+            integerBuilder.add(Integer.valueOf(status));
+        }
+
+        return integerBuilder.build();
     }
 }

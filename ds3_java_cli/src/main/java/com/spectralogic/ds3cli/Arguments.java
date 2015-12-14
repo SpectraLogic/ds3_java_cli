@@ -160,10 +160,6 @@ public class Arguments {
         options.addOption(viewType);
         options.addOption(completed);
 
-        // Disabled until they are enabled in DS3.
-        // options.addOption(defaultGetPriority);
-        // options.addOption(defaultPutPriority);
-        // options.addOption(defaultWriteOptimization);
 
         processCommandLine();
     }
@@ -320,6 +316,7 @@ public class Arguments {
             throw new MissingOptionException(missingArgs);
         }
         LOG.info("Access Key: " + getAccessKey() +" | Secret Key: " + getSecretKey() + " | Endpoint: " + getEndpoint());
+
     }
 
     private WriteOptimization processWriteOptimization(final CommandLine cmd, final String writeOptimization) throws BadArgumentException {
@@ -520,27 +517,21 @@ public class Arguments {
     public Priority getDefaultPutPriority() {
         return defaultPutPriority;
     }
-
     void setDefaultPutPriority(final Priority defaultPutPriority) {
         this.defaultPutPriority = defaultPutPriority;
     }
-
     public Priority getDefaultGetPriority() {
         return defaultGetPriority;
     }
-
     void setDefaultGetPriority(final Priority defaultGetPriority) {
         this.defaultGetPriority = defaultGetPriority;
     }
-
     public WriteOptimization getDefaultWriteOptimization() {
         return defaultWriteOptimization;
     }
-
     void setDefaultWriteOptimization(final WriteOptimization defaultWriteOptimization) {
         this.defaultWriteOptimization = defaultWriteOptimization;
     }
-
     public boolean isCertificateVerification() {
         return certificateVerification;
     }
@@ -576,4 +567,6 @@ public class Arguments {
     public boolean isCompleted() { return this.completed; }
 
     void setCompleted(final boolean completed) { this.completed = completed; }
+
+
 }

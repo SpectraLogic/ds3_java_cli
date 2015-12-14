@@ -21,7 +21,6 @@ import com.spectralogic.ds3cli.CommandException;
 import com.spectralogic.ds3cli.models.GetObjectResult;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
-import com.spectralogic.ds3client.commands.GetObjectRequest;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.helpers.FileObjectGetter;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
@@ -30,7 +29,8 @@ import org.apache.commons.cli.MissingOptionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.nio.file.*;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 public class GetObject extends CliCommand<GetObjectResult> {
@@ -39,7 +39,6 @@ public class GetObject extends CliCommand<GetObjectResult> {
     private String bucketName;
     private String objectName;
     private String prefix;
-    private GetObjectRequest.Range byteRange;
 
     public GetObject(final Ds3Provider provider, final FileUtils fileUtils) {
         super(provider, fileUtils);
@@ -61,6 +60,8 @@ public class GetObject extends CliCommand<GetObjectResult> {
         if (prefix == null) {
             prefix = ".";
         }
+
+
         return this;
     }
 
@@ -72,7 +73,6 @@ public class GetObject extends CliCommand<GetObjectResult> {
             LOG.info("Output path: " + filePath.toString());
 
             getFileUtils().createDirectories(filePath.getParent());
-
             final Ds3ClientHelpers helpers = getClientHelpers();
             final List<Ds3Object> ds3ObjectList = Lists.newArrayList(new Ds3Object(objectName));
 
@@ -104,4 +104,8 @@ public class GetObject extends CliCommand<GetObjectResult> {
             }
         }
     }
+
+
+
+
 }
