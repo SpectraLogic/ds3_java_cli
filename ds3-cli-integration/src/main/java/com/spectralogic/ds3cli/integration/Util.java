@@ -18,12 +18,15 @@ package com.spectralogic.ds3cli.integration;
 import com.spectralogic.ds3cli.*;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
+import com.spectralogic.ds3cli.util.SyncUtils;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 
 public class Util {
     public static final String RESOURCE_BASE_NAME = "./src/test/resources/books/";
@@ -35,9 +38,8 @@ public class Util {
         final Ds3Provider provider = new Ds3ProviderImpl(client, Ds3ClientHelpers.wrap(client));
         final FileUtils fileUtils = new FileUtilsImpl();
         final Ds3Cli runner = new Ds3Cli(provider, args, fileUtils);
-        final CommandResponse response = runner.call();
 
-        return response;
+        return runner.call();
     }
 
     public static CommandResponse createBucket(final Ds3Client client, final String bucketName) throws Exception {
@@ -57,5 +59,22 @@ public class Util {
 
     public static void deleteLoadedFile(final String fileName) throws IOException {
         Files.deleteIfExists(Paths.get(DOWNLOAD_BASE_NAME + fileName));
+    }
+
+    public static void copyFileFromTo(final String fileName, final String from, final String to) throws IOException {
+        final Path toDir = Paths.get(to);
+
+        if (Files.notExists(toDir)) {
+            Files.createDirectories(toDir);
+        }
+
+        Files.copy(Paths.get(from+fileName), Paths.get(to+fileName), StandardCopyOption.REPLACE_EXISTING);
+    }
+
+    public static void deleteLoadedFiles() throws IOException {
+        final Iterable<Path> files = SyncUtils.listObjectsForDirectory(Paths.get(DOWNLOAD_BASE_NAME));
+        for (final Path file : files) {
+            Files.deleteIfExists(file);
+        }
     }
 }

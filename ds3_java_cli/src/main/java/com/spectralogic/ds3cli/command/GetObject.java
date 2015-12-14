@@ -21,25 +21,30 @@ import com.spectralogic.ds3cli.CommandException;
 import com.spectralogic.ds3cli.models.GetObjectResult;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
-import com.spectralogic.ds3client.commands.GetObjectRequest;
+import com.spectralogic.ds3cli.util.SyncUtils;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.helpers.FileObjectGetter;
+import com.spectralogic.ds3client.models.Contents;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.networking.FailedRequestException;
+import com.spectralogic.ds3client.serializer.XmlProcessingException;
+
 import org.apache.commons.cli.MissingOptionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.nio.file.*;
+import java.security.SignatureException;
 import java.util.List;
 
 public class GetObject extends CliCommand<GetObjectResult> {
 
-    private Logger LOG = LoggerFactory.getLogger(GetObject.class);
+    private final Logger LOG = LoggerFactory.getLogger(GetObject.class);
     private String bucketName;
     private String objectName;
     private String prefix;
-    private GetObjectRequest.Range byteRange;
+    private boolean sync;
 
     public GetObject(final Ds3Provider provider, final FileUtils fileUtils) {
         super(provider, fileUtils);
@@ -61,6 +66,12 @@ public class GetObject extends CliCommand<GetObjectResult> {
         if (prefix == null) {
             prefix = ".";
         }
+
+        if (args.withSync()) {
+            LOG.info("Using sync command");
+            this.sync = true;
+        }
+
         return this;
     }
 
@@ -68,18 +79,29 @@ public class GetObject extends CliCommand<GetObjectResult> {
     @Override
     public GetObjectResult call() throws Exception {
         try {
+            final Ds3ClientHelpers helpers = getClientHelpers();
             final Path filePath = Paths.get(prefix, objectName);
             LOG.info("Output path: " + filePath.toString());
 
-            getFileUtils().createDirectories(filePath.getParent());
+            final Ds3Object ds3Obj = new Ds3Object(objectName.replace("\\", "/"));
+            if (sync && SyncUtils.FileExists(filePath)) {
+                final Iterable<Contents> objects = helpers.listObjects(bucketName);
+                for (final Contents obj : objects){
+                    if (ds3Obj.getName().equals(obj.getKey())) {
+                        if (SyncUtils.NeedToSync(filePath, obj, false)) {
+                            LOG.info("Syncing new version of " + objectName);
+                            Transfer(helpers, ds3Obj);
+                            return new GetObjectResult("SUCCESS: Finished syncing object.");
+                        }
+                        else {
+                            LOG.info("No need to sync " + objectName);
+                            return new GetObjectResult("SUCCESS: No need to sync " + objectName);
+                        }
+                    }
+                }
+            }
 
-            final Ds3ClientHelpers helpers = getClientHelpers();
-            final List<Ds3Object> ds3ObjectList = Lists.newArrayList(new Ds3Object(objectName));
-
-            final Ds3ClientHelpers.Job job = helpers.startReadJob(bucketName, ds3ObjectList);
-
-            job.transfer(new FileObjectGetter(Paths.get(prefix)));
-
+            Transfer(helpers, ds3Obj);
             return new GetObjectResult("SUCCESS: Finished downloading object.  The object was written to: " + filePath);
         }
         catch(final FailedRequestException e) {
@@ -103,5 +125,14 @@ public class GetObject extends CliCommand<GetObjectResult> {
                 throw new CommandException( "Error: Encountered an unknown error of ("+ e.getStatusCode() +") while accessing the remote DS3 appliance.", e);
             }
         }
+    }
+
+    private void Transfer(final Ds3ClientHelpers helpers, final Ds3Object ds3Obj) throws IOException, SignatureException, XmlProcessingException {
+
+        final List<Ds3Object> ds3ObjectList = Lists.newArrayList(ds3Obj);
+
+        final Ds3ClientHelpers.Job job = helpers.startReadJob(bucketName, ds3ObjectList);
+
+        job.transfer(new FileObjectGetter(Paths.get(prefix)));
     }
 }

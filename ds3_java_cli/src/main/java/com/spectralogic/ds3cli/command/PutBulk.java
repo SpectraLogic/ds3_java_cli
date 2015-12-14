@@ -15,13 +15,16 @@
 
 package com.spectralogic.ds3cli.command;
 
+import com.google.common.collect.Iterables;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.models.PutBulkResult;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
+import com.spectralogic.ds3cli.util.SyncUtils;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.helpers.FileObjectPutter;
 import com.spectralogic.ds3client.helpers.options.WriteJobOptions;
+import com.spectralogic.ds3client.models.Contents;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.models.bulk.Priority;
 import com.spectralogic.ds3client.models.bulk.WriteOptimization;
@@ -33,6 +36,10 @@ import java.io.IOException;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class PutBulk extends CliCommand<PutBulkResult> {
 
@@ -44,6 +51,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
     private boolean checksum;
     private Priority priority;
     private WriteOptimization writeOptimization;
+    private boolean sync;
 
     public PutBulk(final Ds3Provider provider, final FileUtils fileUtils) {
         super(provider, fileUtils);
@@ -71,23 +79,47 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         this.inputDirectory = FileSystems.getDefault().getPath(srcDir);
         this.checksum = args.isChecksum();
 
+        if (args.withSync()) {
+            LOG.info("Using sync command");
+            this.sync = true;
+        }
+
         return this;
     }
 
     @Override
     public PutBulkResult call() throws Exception {
-        final Ds3ClientHelpers helper = getClientHelpers();
-        final Iterable<Ds3Object> objects = helper.listObjectsForDirectory(this.inputDirectory);
+        final Ds3ClientHelpers helpers = getClientHelpers();
+        final Iterable<Ds3Object> ds3Objects;
+
+        /* Ensure the bucket exists and if not create it */
+        helpers.ensureBucketExists(this.bucketName);
+
+        if (sync) {
+            if (!SyncUtils.IsSyncSupported(getClient())){
+                return new PutBulkResult("Failed: The sync command is not supported with your version of BlackPearl.");
+            }
+
+            final Iterable<Contents> contents = helpers.listObjects(bucketName, prefix);
+            final Iterable<Path> filteredObjects = filterObjects(this.inputDirectory, prefix!=null ? prefix : "", contents);
+            if (Iterables.isEmpty(filteredObjects)) {
+                return new PutBulkResult("SUCCESS: All files are up to date");
+            }
+
+            ds3Objects = getDs3Objects(filteredObjects);
+        }
+        else {
+            ds3Objects = helpers.listObjectsForDirectory(this.inputDirectory);
+        }
 
         if (prefix != null) {
             LOG.info("Pre-appending " + prefix + " to all object names");
-            for(final Ds3Object obj : objects) {
+            for (final Ds3Object obj : ds3Objects) {
                 obj.setName(prefix + obj.getName());
             }
         }
 
-        helper.ensureBucketExists(this.bucketName);
-        final Ds3ClientHelpers.Job job = helper.startWriteJob(this.bucketName, objects,
+        final Ds3ClientHelpers.Job job = helpers.startWriteJob(this.bucketName, ds3Objects,
                 WriteJobOptions.create()
                 .withPriority(this.priority)
                 .withWriteOptimization(this.writeOptimization));
@@ -100,6 +132,42 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         job.transfer(new PrefixedFileObjectPutter(this.inputDirectory, prefix));
 
         return new PutBulkResult("SUCCESS: Wrote all the files in " + this.inputDirectory.toString() + " to bucket " + this.bucketName);
+    }
+
+    private ArrayList<Ds3Object> getDs3Objects(final Iterable<Path> filteredObjects) throws IOException {
+        final ArrayList<Ds3Object> objects = new ArrayList<>();
+        for (final Path path : filteredObjects) {
+            objects.add(new Ds3Object(
+                    SyncUtils.GetFileName(inputDirectory, path),
+                    SyncUtils.GetFileSize(path)));
+        }
+        return objects;
+    }
+
+    private Iterable<Path> filterObjects(final Path inputDirectory, final String prefix, final Iterable<Contents> contents) throws IOException {
+        final Iterable<Path> localFiles = SyncUtils.listObjectsForDirectory(inputDirectory);
+        final Map<String, Contents> mapBucketFiles = new HashMap<>();
+        for (final Contents content : contents) {
+            mapBucketFiles.put(content.getKey(), content);
+        }
+
+        final List<Path> filteredObjects = new ArrayList<>();
+        for (final Path localFile : localFiles) {
+            final String fileName = SyncUtils.GetFileName(inputDirectory, localFile);
+            final Contents content = mapBucketFiles.get(prefix + fileName);
+            if (content == null) {
+                filteredObjects.add(localFile);
+            }
+            else if (SyncUtils.NeedToSync(localFile, content, true)) {
+                LOG.info("Syncing new version of " + fileName);
+                filteredObjects.add(localFile);
+            }
+            else {
+                LOG.info("No need to sync " + fileName);
+            }
+        }
+
+        return filteredObjects;
     }
 
     static class PrefixedFileObjectPutter implements Ds3ClientHelpers.ObjectChannelBuilder {
