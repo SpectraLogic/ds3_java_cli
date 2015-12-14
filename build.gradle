@@ -15,7 +15,7 @@
 
 
 allprojects {
-    version = '1.2.1'
+    version = '1.2.2'
     group = 'com.spectralogic'
 }
 
@@ -50,5 +50,5 @@ project(':ds3-cli-integration') {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '2.8'
+    gradleVersion = '2.9'
 }
