@@ -15,6 +15,7 @@
 
 package com.spectralogic.ds3cli;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3cli.util.SterilizeString;
@@ -28,7 +29,6 @@ import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.networking.FailedRequestException;
 import com.spectralogic.ds3client.networking.Headers;
 import com.spectralogic.ds3client.networking.WebResponse;
-import com.spectralogic.ds3client.utils.ResponseUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 
@@ -165,7 +165,7 @@ public class Ds3Cli_Test {
     public void error() throws Exception {
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_service"});
         final Ds3Client client = mock(Ds3Client.class);
-        when(client.getService(any(GetServiceRequest.class))).thenThrow(new FailedRequestException(ResponseUtils.toImmutableIntList(new int[]{200}), 500, new Error(), ""));
+        when(client.getService(any(GetServiceRequest.class))).thenThrow(new FailedRequestException(toImmutableIntList(new int[]{200}), 500, new Error(), ""));
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
         final CommandResponse result = cli.call();
@@ -186,7 +186,7 @@ public class Ds3Cli_Test {
 
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_service", "--output-format", "json"});
         final Ds3Client client = mock(Ds3Client.class);
-        when(client.getService(any(GetServiceRequest.class))).thenThrow(new FailedRequestException(ResponseUtils.toImmutableIntList(new int[]{200}), 500, new Error(), ""));
+        when(client.getService(any(GetServiceRequest.class))).thenThrow(new FailedRequestException(toImmutableIntList(new int[]{200}), 500, new Error(), ""));
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
         final CommandResponse result = cli.call();
@@ -843,5 +843,15 @@ public class Ds3Cli_Test {
         final CommandResponse result = cli.call();
         assertTrue(result.getMessage().endsWith(expected));
         assertThat(result.getReturnCode(), is(0));
+    }
+
+    private ImmutableList<Integer> toImmutableIntList(final int[] expectedStatuses) {
+        final ImmutableList.Builder integerBuilder = ImmutableList.builder();
+
+        for (final int status : expectedStatuses) {
+            integerBuilder.add(Integer.valueOf(status));
+        }
+
+        return integerBuilder.build();
     }
 }
