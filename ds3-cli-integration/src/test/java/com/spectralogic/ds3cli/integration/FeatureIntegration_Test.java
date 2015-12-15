@@ -19,7 +19,7 @@ import com.google.common.collect.Lists;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.CommandResponse;
 import com.spectralogic.ds3cli.util.SterilizeString;
-import com.spectralogic.ds3cli.util.SyncUtils;
+import com.spectralogic.ds3cli.util.Utils;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.Ds3ClientBuilder;
 import com.spectralogic.ds3client.commands.GetObjectRequest;
@@ -124,7 +124,7 @@ public class FeatureIntegration_Test {
             assertThat(response.getMessage(), is(expected));
         } finally {
             Util.deleteBucket(client, bucketName);
-            Util.deleteLoadedFile("beowulf.txt");
+            Util.deleteLocalFile("beowulf.txt");
         }
     }
 
@@ -145,7 +145,7 @@ public class FeatureIntegration_Test {
             assertTrue(response.getMessage().endsWith(expected));
         } finally {
             Util.deleteBucket(client, bucketName);
-            Util.deleteLoadedFile("beowulf.txt");
+            Util.deleteLocalFile("beowulf.txt");
         }
     }
 
@@ -188,7 +188,7 @@ public class FeatureIntegration_Test {
             assertTrue(getJobResponse.getMessage().endsWith(expectedEnding));
         } finally {
             Util.deleteBucket(client, bucketName);
-            Util.deleteLoadedFile(book);
+            Util.deleteLocalFile(book);
         }
     }
 
@@ -244,7 +244,7 @@ public class FeatureIntegration_Test {
             assertTrue(getJobResponse.getMessage().endsWith(expectedEnding));
         } finally {
             Util.deleteBucket(client, bucketName);
-            Util.deleteLoadedFile(book);
+            Util.deleteLocalFile(book);
         }
     }
 
@@ -256,7 +256,7 @@ public class FeatureIntegration_Test {
             Util.createBucket(client, bucketName);
             Util.loadBookTestData(client, bucketName);
 
-            Util.copyFileFromTo("beowulf.txt", Util.RESOURCE_BASE_NAME, Util.DOWNLOAD_BASE_NAME);
+            Util.copyFile("beowulf.txt", Util.RESOURCE_BASE_NAME, Util.DOWNLOAD_BASE_NAME);
             final Arguments args = new Arguments(new String[]{"--http", "-c", "get_object", "-b", bucketName,
                     "-o", "beowulf.txt", "-d", Util.DOWNLOAD_BASE_NAME, "--sync"});
             CommandResponse response = Util.command(client, args);
@@ -267,7 +267,7 @@ public class FeatureIntegration_Test {
 
         } finally {
             Util.deleteBucket(client, bucketName);
-            Util.deleteLoadedFile("beowulf.txt");
+            Util.deleteLocalFile("beowulf.txt");
         }
     }
 
@@ -289,7 +289,7 @@ public class FeatureIntegration_Test {
 
         } finally {
             Util.deleteBucket(client, bucketName);
-            Util.deleteLoadedFiles();
+            Util.deleteLocalFiles();
         }
     }
 
@@ -300,7 +300,7 @@ public class FeatureIntegration_Test {
 
             Util.createBucket(client, bucketName);
             final Arguments args = new Arguments(new String[]{"--http", "-c", "put_object", "-b", bucketName,
-                    "-o", SyncUtils.GetFileName(Paths.get("."), Paths.get(Util.RESOURCE_BASE_NAME + "beowulf.txt")), "--sync"});
+                    "-o", Utils.getFileName(Paths.get("."), Paths.get(Util.RESOURCE_BASE_NAME + "beowulf.txt")), "--sync"});
             CommandResponse response = Util.command(client, args);
             assertThat(response.getMessage(), is("Success: Finished writing file to ds3 appliance."));
 

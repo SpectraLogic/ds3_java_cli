@@ -15,12 +15,14 @@
 
 package com.spectralogic.ds3cli.command;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.models.PutBulkResult;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3cli.util.SyncUtils;
+import com.spectralogic.ds3cli.util.Utils;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.helpers.FileObjectPutter;
 import com.spectralogic.ds3client.helpers.options.WriteJobOptions;
@@ -79,7 +81,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         this.inputDirectory = FileSystems.getDefault().getPath(srcDir);
         this.checksum = args.isChecksum();
 
-        if (args.withSync()) {
+        if (args.isSync()) {
             LOG.info("Using sync command");
             this.sync = true;
         }
@@ -96,7 +98,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         helpers.ensureBucketExists(this.bucketName);
 
         if (sync) {
-            if (!SyncUtils.IsSyncSupported(getClient())){
+            if (!SyncUtils.isSyncSupported(getClient())){
                 return new PutBulkResult("Failed: The sync command is not supported with your version of BlackPearl.");
             }
 
@@ -134,18 +136,18 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         return new PutBulkResult("SUCCESS: Wrote all the files in " + this.inputDirectory.toString() + " to bucket " + this.bucketName);
     }
 
-    private ArrayList<Ds3Object> getDs3Objects(final Iterable<Path> filteredObjects) throws IOException {
+    private ImmutableList<Ds3Object> getDs3Objects(final Iterable<Path> filteredObjects) throws IOException {
         final ArrayList<Ds3Object> objects = new ArrayList<>();
         for (final Path path : filteredObjects) {
             objects.add(new Ds3Object(
-                    SyncUtils.GetFileName(inputDirectory, path),
-                    SyncUtils.GetFileSize(path)));
+                    Utils.getFileName(inputDirectory, path),
+                    Utils.getFileSize(path)));
         }
-        return objects;
+        return ImmutableList.copyOf(objects);
     }
 
     private Iterable<Path> filterObjects(final Path inputDirectory, final String prefix, final Iterable<Contents> contents) throws IOException {
-        final Iterable<Path> localFiles = SyncUtils.listObjectsForDirectory(inputDirectory);
+        final Iterable<Path> localFiles = Utils.listObjectsForDirectory(inputDirectory);
         final Map<String, Contents> mapBucketFiles = new HashMap<>();
         for (final Contents content : contents) {
             mapBucketFiles.put(content.getKey(), content);
@@ -153,12 +155,12 @@ public class PutBulk extends CliCommand<PutBulkResult> {
 
         final List<Path> filteredObjects = new ArrayList<>();
         for (final Path localFile : localFiles) {
-            final String fileName = SyncUtils.GetFileName(inputDirectory, localFile);
+            final String fileName = Utils.getFileName(inputDirectory, localFile);
             final Contents content = mapBucketFiles.get(prefix + fileName);
             if (content == null) {
                 filteredObjects.add(localFile);
             }
-            else if (SyncUtils.NeedToSync(localFile, content, true)) {
+            else if (SyncUtils.needToSync(localFile, content, true)) {
                 LOG.info("Syncing new version of " + fileName);
                 filteredObjects.add(localFile);
             }

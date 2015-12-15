@@ -546,7 +546,7 @@ public class Arguments {
         this.sync = sync;
     }
 
-    public boolean withSync()
+    public boolean isSync()
     {
         return sync;
     }

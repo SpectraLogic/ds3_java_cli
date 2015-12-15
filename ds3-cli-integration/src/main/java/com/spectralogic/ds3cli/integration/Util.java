@@ -18,7 +18,7 @@ package com.spectralogic.ds3cli.integration;
 import com.spectralogic.ds3cli.*;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
-import com.spectralogic.ds3cli.util.SyncUtils;
+import com.spectralogic.ds3cli.util.Utils;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 
@@ -57,11 +57,11 @@ public class Util {
         command(client, args);
     }
 
-    public static void deleteLoadedFile(final String fileName) throws IOException {
+    public static void deleteLocalFile(final String fileName) throws IOException {
         Files.deleteIfExists(Paths.get(DOWNLOAD_BASE_NAME + fileName));
     }
 
-    public static void copyFileFromTo(final String fileName, final String from, final String to) throws IOException {
+    public static void copyFile(final String fileName, final String from, final String to) throws IOException {
         final Path toDir = Paths.get(to);
 
         if (Files.notExists(toDir)) {
@@ -71,8 +71,8 @@ public class Util {
         Files.copy(Paths.get(from+fileName), Paths.get(to+fileName), StandardCopyOption.REPLACE_EXISTING);
     }
 
-    public static void deleteLoadedFiles() throws IOException {
-        final Iterable<Path> files = SyncUtils.listObjectsForDirectory(Paths.get(DOWNLOAD_BASE_NAME));
+    public static void deleteLocalFiles() throws IOException {
+        final Iterable<Path> files = Utils.listObjectsForDirectory(Paths.get(DOWNLOAD_BASE_NAME));
         for (final Path file : files) {
             Files.deleteIfExists(file);
         }

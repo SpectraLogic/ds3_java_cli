@@ -77,7 +77,7 @@ public class PutObject extends CliCommand<PutObjectResult> {
 
         this.prefix = args.getPrefix();
 
-        if (args.withSync()) {
+        if (args.isSync()) {
             LOG.info("Using sync command");
             this.sync = true;
         }
@@ -100,14 +100,14 @@ public class PutObject extends CliCommand<PutObjectResult> {
         helpers.ensureBucketExists(this.bucketName);
 
         if (sync) {
-            if (!SyncUtils.IsSyncSupported(getClient())){
+            if (!SyncUtils.isSyncSupported(getClient())){
                 return new PutObjectResult("Failed: The sync command is not supported with your version of BlackPearl.");
             }
 
             final Iterable<Contents> objects = helpers.listObjects(bucketName);
             for (final Contents obj : objects){
                 if (ds3Obj.getName().equals(obj.getKey())) {
-                    if (SyncUtils.NeedToSync(objectPath, obj, true)) {
+                    if (SyncUtils.needToSync(objectPath, obj, true)) {
                         LOG.info("Syncing new version of " + objectName);
                         Transfer(helpers, ds3Obj);
                         return new PutObjectResult("Success: Finished syncing file to ds3 appliance.");

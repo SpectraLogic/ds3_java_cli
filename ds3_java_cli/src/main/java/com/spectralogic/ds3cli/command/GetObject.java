@@ -22,25 +22,27 @@ import com.spectralogic.ds3cli.models.GetObjectResult;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3cli.util.SyncUtils;
+import com.spectralogic.ds3cli.util.Utils;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.helpers.FileObjectGetter;
 import com.spectralogic.ds3client.models.Contents;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.networking.FailedRequestException;
 import com.spectralogic.ds3client.serializer.XmlProcessingException;
-
 import org.apache.commons.cli.MissingOptionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.nio.file.*;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.SignatureException;
 import java.util.List;
 
 public class GetObject extends CliCommand<GetObjectResult> {
 
-    private final Logger LOG = LoggerFactory.getLogger(GetObject.class);
+    private final static Logger LOG = LoggerFactory.getLogger(GetObject.class);
+
     private String bucketName;
     private String objectName;
     private String prefix;
@@ -67,7 +69,7 @@ public class GetObject extends CliCommand<GetObjectResult> {
             prefix = ".";
         }
 
-        if (args.withSync()) {
+        if (args.isSync()) {
             LOG.info("Using sync command");
             this.sync = true;
         }
@@ -75,7 +77,6 @@ public class GetObject extends CliCommand<GetObjectResult> {
         return this;
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     public GetObjectResult call() throws Exception {
         try {
@@ -84,20 +85,13 @@ public class GetObject extends CliCommand<GetObjectResult> {
             LOG.info("Output path: " + filePath.toString());
 
             final Ds3Object ds3Obj = new Ds3Object(objectName.replace("\\", "/"));
-            if (sync && SyncUtils.FileExists(filePath)) {
-                final Iterable<Contents> objects = helpers.listObjects(bucketName);
-                for (final Contents obj : objects){
-                    if (ds3Obj.getName().equals(obj.getKey())) {
-                        if (SyncUtils.NeedToSync(filePath, obj, false)) {
-                            LOG.info("Syncing new version of " + objectName);
-                            Transfer(helpers, ds3Obj);
-                            return new GetObjectResult("SUCCESS: Finished syncing object.");
-                        }
-                        else {
-                            LOG.info("No need to sync " + objectName);
-                            return new GetObjectResult("SUCCESS: No need to sync " + objectName);
-                        }
-                    }
+            if (sync && Utils.fileExists(filePath)) {
+                if (needToSync(helpers, filePath, ds3Obj.getName())) {
+                    Transfer(helpers, ds3Obj);
+                    return new GetObjectResult("SUCCESS: Finished syncing object.");
+                }
+                else {
+                    return new GetObjectResult("SUCCESS: No need to sync " + objectName);
                 }
             }
 
@@ -127,12 +121,26 @@ public class GetObject extends CliCommand<GetObjectResult> {
         }
     }
 
+    private boolean needToSync(final Ds3ClientHelpers helpers, final Path filePath, final String ds3ObjName) throws SignatureException, IOException, XmlProcessingException {
+        final Iterable<Contents> objects = helpers.listObjects(bucketName);
+        for (final Contents obj : objects){
+            if (ds3ObjName.equals(obj.getKey())) {
+                if (SyncUtils.needToSync(filePath, obj, false)) {
+                    LOG.info("Syncing new version of " + objectName);
+                    return true;
+                }
+                else {
+                    LOG.info("No need to sync " + objectName);
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
     private void Transfer(final Ds3ClientHelpers helpers, final Ds3Object ds3Obj) throws IOException, SignatureException, XmlProcessingException {
-
         final List<Ds3Object> ds3ObjectList = Lists.newArrayList(ds3Obj);
-
         final Ds3ClientHelpers.Job job = helpers.startReadJob(bucketName, ds3ObjectList);
-
         job.transfer(new FileObjectGetter(Paths.get(prefix)));
     }
 }

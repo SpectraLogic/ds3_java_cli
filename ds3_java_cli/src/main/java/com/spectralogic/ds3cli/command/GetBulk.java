@@ -22,6 +22,7 @@ import com.spectralogic.ds3cli.models.GetBulkResult;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3cli.util.SyncUtils;
+import com.spectralogic.ds3cli.util.Utils;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.helpers.FileObjectGetter;
 import com.spectralogic.ds3client.helpers.options.ReadJobOptions;
@@ -80,7 +81,7 @@ public class GetBulk extends CliCommand<GetBulkResult> {
         this.checksum = args.isChecksum();
         this.prefix = args.getPrefix();
 
-        if (args.withSync()) {
+        if (args.isSync()) {
             LOG.info("Using sync command");
             this.sync = true;
         }
@@ -101,7 +102,8 @@ public class GetBulk extends CliCommand<GetBulkResult> {
         }
 
         if (sync) {
-            if (this.prefix == null) {
+            //TODO use Guard.isStringNullOrEmpty(this.prefix) when java sdk 1.2.3 will be released
+            if (this.prefix == null || this.prefix.isEmpty()) {
                 LOG.info("Syncing all objects from " + this.bucketName);
             }
             else {
@@ -123,12 +125,15 @@ public class GetBulk extends CliCommand<GetBulkResult> {
         final Ds3ClientHelpers helper = getClientHelpers();
         final Iterable<Contents> contents = helper.listObjects(this.bucketName, this.prefix);
 
-        Iterable<Contents> filteredContents = null;
+        final Iterable<Contents> filteredContents;
         if (sync) {
             filteredContents = filterContents(contents, this.outputPath);
             if (Iterables.isEmpty(filteredContents)) {
                 return "SUCCESS: All files are up to date";
             }
+        }
+        else {
+            filteredContents = null;
         }
 
         final Iterable<Ds3Object> objects = Iterables.transform(
@@ -170,10 +175,10 @@ public class GetBulk extends CliCommand<GetBulkResult> {
     }
 
     private Iterable<Contents> filterContents(final Iterable<Contents> contents, final Path outputPath) throws IOException {
-        final Iterable<Path> localFiles = SyncUtils.listObjectsForDirectory(outputPath);
+        final Iterable<Path> localFiles = Utils.listObjectsForDirectory(outputPath);
         final HashMap<String, Path> mapLocalFiles = new HashMap<>();
         for (final Path localFile : localFiles) {
-            mapLocalFiles.put(SyncUtils.GetFileName(outputPath, localFile), localFile);
+            mapLocalFiles.put(Utils.getFileName(outputPath, localFile), localFile);
         }
 
         final ArrayList<Contents> filteredContents = new ArrayList<>();
@@ -182,7 +187,7 @@ public class GetBulk extends CliCommand<GetBulkResult> {
             if (filePath == null) {
                 filteredContents.add(content);
             }
-            else if (SyncUtils.NeedToSync(filePath, content, false)) {
+            else if (SyncUtils.needToSync(filePath, content, false)) {
                 LOG.info("Syncing new version of " + filePath.toString());
                 filteredContents.add(content);
             }
