@@ -42,6 +42,8 @@ import java.nio.file.Path;
 import java.security.SignatureException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class GetBulk extends CliCommand<GetBulkResult> {
 
@@ -176,12 +178,12 @@ public class GetBulk extends CliCommand<GetBulkResult> {
 
     private Iterable<Contents> filterContents(final Iterable<Contents> contents, final Path outputPath) throws IOException {
         final Iterable<Path> localFiles = Utils.listObjectsForDirectory(outputPath);
-        final HashMap<String, Path> mapLocalFiles = new HashMap<>();
+        final Map<String, Path> mapLocalFiles = new HashMap<>();
         for (final Path localFile : localFiles) {
             mapLocalFiles.put(Utils.getFileName(outputPath, localFile), localFile);
         }
 
-        final ArrayList<Contents> filteredContents = new ArrayList<>();
+        final List<Contents> filteredContents = new ArrayList<>();
         for (final Contents content : contents) {
             final Path filePath = mapLocalFiles.get(content.getKey());
             if (filePath == null) {
