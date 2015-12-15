@@ -23,21 +23,19 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
-import java.util.List;
 
 public final class Utils {
 
     public static ImmutableList<Path> listObjectsForDirectory(final Path directory) throws IOException {
-        final List<Path> objects = new ArrayList<>();
+        final ImmutableList.Builder<Path> objectsBuilder = ImmutableList.builder();
         Files.walkFileTree(directory, new SimpleFileVisitor<Path>() {
             @Override
             public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) throws IOException {
-                objects.add(file);
+                objectsBuilder.add(file);
                 return FileVisitResult.CONTINUE;
             }
         });
-        return ImmutableList.copyOf(objects);
+        return objectsBuilder.build();
     }
 
     public static String getFileName(final Path rootDir, final Path filePath) {

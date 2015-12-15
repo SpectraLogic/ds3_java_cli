@@ -137,13 +137,13 @@ public class PutBulk extends CliCommand<PutBulkResult> {
     }
 
     private ImmutableList<Ds3Object> getDs3Objects(final Iterable<Path> filteredObjects) throws IOException {
-        final ArrayList<Ds3Object> objects = new ArrayList<>();
+        final ImmutableList.Builder<Ds3Object> objectsBuilder = ImmutableList.builder();
         for (final Path path : filteredObjects) {
-            objects.add(new Ds3Object(
+            objectsBuilder.add(new Ds3Object(
                     Utils.getFileName(inputDirectory, path),
                     Utils.getFileSize(path)));
         }
-        return ImmutableList.copyOf(objects);
+        return objectsBuilder.build();
     }
 
     private Iterable<Path> filterObjects(final Path inputDirectory, final String prefix, final Iterable<Contents> contents) throws IOException {

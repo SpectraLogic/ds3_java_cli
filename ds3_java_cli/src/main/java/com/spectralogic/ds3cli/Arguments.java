@@ -122,7 +122,7 @@ public class Arguments {
         viewType.setLongOpt("output-format");
         final Option completed = new Option(null, false, "Used with the command get_jobs to include the display of completed jobs");
         completed.setLongOpt("completed");
-        final Option sync = new Option(null, false, "TODO"); //TODO add the correct text here
+        final Option sync = new Option(null, false, "Copy only the newest files");
         sync.setLongOpt("sync");
         options.addOption(ds3Endpoint);
         options.addOption(bucket);
