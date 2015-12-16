@@ -13,7 +13,7 @@
  * ****************************************************************************
  */
 
-package com.spectralogic.ds3cli;
+package com.spectralogic.ds3cli.Exceptions;
 
 
 public class CommandException extends Exception {

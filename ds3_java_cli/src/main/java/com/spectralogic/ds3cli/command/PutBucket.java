@@ -16,7 +16,7 @@
 package com.spectralogic.ds3cli.command;
 
 import com.spectralogic.ds3cli.Arguments;
-import com.spectralogic.ds3cli.CommandException;
+import com.spectralogic.ds3cli.Exceptions.CommandException;
 import com.spectralogic.ds3cli.models.PutBucketResult;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;

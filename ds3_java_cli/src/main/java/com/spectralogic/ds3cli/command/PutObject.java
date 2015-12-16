@@ -17,7 +17,7 @@ package com.spectralogic.ds3cli.command;
 
 import com.google.common.collect.Lists;
 import com.spectralogic.ds3cli.Arguments;
-import com.spectralogic.ds3cli.BadArgumentException;
+import com.spectralogic.ds3cli.Exceptions.BadArgumentException;
 import com.spectralogic.ds3cli.models.PutObjectResult;
 import com.spectralogic.ds3cli.util.BlackPearlUtils;
 import com.spectralogic.ds3cli.util.Ds3Provider;
