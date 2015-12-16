@@ -160,7 +160,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
             if (content == null) {
                 filteredObjects.add(localFile);
             }
-            else if (SyncUtils.needToSync(localFile, content, true)) {
+            else if (SyncUtils.isNewFile(localFile, content, true)) {
                 LOG.info("Syncing new version of " + fileName);
                 filteredObjects.add(localFile);
             }

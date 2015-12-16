@@ -23,7 +23,6 @@ import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3cli.util.SyncUtils;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
-import com.spectralogic.ds3client.models.Contents;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.serializer.XmlProcessingException;
 import org.apache.commons.cli.MissingOptionException;
@@ -100,23 +99,15 @@ public class PutObject extends CliCommand<PutObjectResult> {
         helpers.ensureBucketExists(this.bucketName);
 
         if (sync) {
-            if (!SyncUtils.isSyncSupported(getClient())){
+            if (!SyncUtils.isSyncSupported(getClient())) {
                 return new PutObjectResult("Failed: The sync command is not supported with your version of BlackPearl.");
             }
 
-            final Iterable<Contents> objects = helpers.listObjects(bucketName);
-            for (final Contents obj : objects){
-                if (ds3Obj.getName().equals(obj.getKey())) {
-                    if (SyncUtils.needToSync(objectPath, obj, true)) {
-                        LOG.info("Syncing new version of " + objectName);
-                        Transfer(helpers, ds3Obj);
-                        return new PutObjectResult("Success: Finished syncing file to ds3 appliance.");
-                    }
-                    else {
-                        LOG.info("No need to sync " + objectName);
-                        return new PutObjectResult("Success: No need to sync " + objectName);
-                    }
-                }
+            if (SyncUtils.needToSync(helpers, bucketName, objectPath, ds3Obj.getName(), true)) {
+                Transfer(helpers, ds3Obj);
+                return new PutObjectResult("Success: Finished syncing file to ds3 appliance.");
+            } else {
+                return new PutObjectResult("Success: No need to sync " + objectName);
             }
         }
 

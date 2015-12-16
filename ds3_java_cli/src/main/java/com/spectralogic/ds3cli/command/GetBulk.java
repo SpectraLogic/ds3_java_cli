@@ -189,7 +189,7 @@ public class GetBulk extends CliCommand<GetBulkResult> {
             if (filePath == null) {
                 filteredContents.add(content);
             }
-            else if (SyncUtils.needToSync(filePath, content, false)) {
+            else if (SyncUtils.isNewFile(filePath, content, false)) {
                 LOG.info("Syncing new version of " + filePath.toString());
                 filteredContents.add(content);
             }

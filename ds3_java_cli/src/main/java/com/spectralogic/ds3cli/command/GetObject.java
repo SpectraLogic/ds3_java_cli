@@ -25,7 +25,6 @@ import com.spectralogic.ds3cli.util.SyncUtils;
 import com.spectralogic.ds3cli.util.Utils;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.helpers.FileObjectGetter;
-import com.spectralogic.ds3client.models.Contents;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.networking.FailedRequestException;
 import com.spectralogic.ds3client.serializer.XmlProcessingException;
@@ -86,7 +85,7 @@ public class GetObject extends CliCommand<GetObjectResult> {
 
             final Ds3Object ds3Obj = new Ds3Object(objectName.replace("\\", "/"));
             if (sync && Utils.fileExists(filePath)) {
-                if (needToSync(helpers, filePath, ds3Obj.getName())) {
+                if (SyncUtils.needToSync(helpers, bucketName, filePath, ds3Obj.getName(), false)) {
                     Transfer(helpers, ds3Obj);
                     return new GetObjectResult("SUCCESS: Finished syncing object.");
                 }
@@ -119,23 +118,6 @@ public class GetObject extends CliCommand<GetObjectResult> {
                 throw new CommandException( "Error: Encountered an unknown error of ("+ e.getStatusCode() +") while accessing the remote DS3 appliance.", e);
             }
         }
-    }
-
-    private boolean needToSync(final Ds3ClientHelpers helpers, final Path filePath, final String ds3ObjName) throws SignatureException, IOException, XmlProcessingException {
-        final Iterable<Contents> objects = helpers.listObjects(bucketName);
-        for (final Contents obj : objects){
-            if (ds3ObjName.equals(obj.getKey())) {
-                if (SyncUtils.needToSync(filePath, obj, false)) {
-                    LOG.info("Syncing new version of " + objectName);
-                    return true;
-                }
-                else {
-                    LOG.info("No need to sync " + objectName);
-                    return false;
-                }
-            }
-        }
-        return true;
     }
 
     private void Transfer(final Ds3ClientHelpers helpers, final Ds3Object ds3Obj) throws IOException, SignatureException, XmlProcessingException {

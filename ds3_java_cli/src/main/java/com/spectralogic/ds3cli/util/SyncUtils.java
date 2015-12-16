@@ -17,8 +17,9 @@ package com.spectralogic.ds3cli.util;
 
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.GetSystemInformationRequest;
+import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.models.Contents;
-
+import com.spectralogic.ds3client.serializer.XmlProcessingException;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeComparator;
 import org.slf4j.Logger;
@@ -47,11 +48,11 @@ public final class SyncUtils {
         return true;
     }
 
-    public static boolean needToSync(final Path localFile, final Contents serverFile, final boolean isPutCommand) throws IOException {
-        return needToSyncHelper(Files.getLastModifiedTime(localFile).toString(), serverFile.getLastModified(), isPutCommand);
+    public static boolean isNewFile(final Path localFile, final Contents serverFile, final boolean isPutCommand) throws IOException {
+        return isNewFileHelper(Files.getLastModifiedTime(localFile).toString(), serverFile.getLastModified(), isPutCommand);
     }
 
-    private static boolean needToSyncHelper(final String localFileLastModifiedTime, final String serverFileLastModifiedTime, final boolean isPutCommand) {
+    private static boolean isNewFileHelper(final String localFileLastModifiedTime, final String serverFileLastModifiedTime, final boolean isPutCommand) {
 
         final DateTime localFileDateTime = new DateTime(localFileLastModifiedTime);
         final DateTime serverFileDateTime = new DateTime(serverFileLastModifiedTime);
@@ -62,4 +63,20 @@ public final class SyncUtils {
         return DateTimeComparator.getInstance().compare(localFileDateTime, serverFileDateTime) < 0;
     }
 
+    public static boolean needToSync(final Ds3ClientHelpers helpers, final String bucketName, final Path filePath, final String ds3ObjName, final boolean isPutCommand) throws SignatureException, IOException, XmlProcessingException {
+        final Iterable<Contents> objects = helpers.listObjects(bucketName);
+        for (final Contents obj : objects){
+            if (ds3ObjName.equals(obj.getKey())) {
+                if (SyncUtils.isNewFile(filePath, obj, isPutCommand)) {
+                    LOG.info("Syncing new version of " + ds3ObjName);
+                    return true;
+                }
+                else {
+                    LOG.info("No need to sync " + ds3ObjName);
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
 }

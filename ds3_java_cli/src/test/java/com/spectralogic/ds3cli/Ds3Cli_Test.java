@@ -596,14 +596,14 @@ public class Ds3Cli_Test {
 
         PowerMockito.mockStatic(SyncUtils.class);
         PowerMockito.when(SyncUtils.isSyncSupported(any(Ds3Client.class))).thenReturn(true);
-        PowerMockito.when(SyncUtils.needToSync(any(Path.class), any(Contents.class), any(Boolean.class))).thenReturn(true);
+        when(SyncUtils.needToSync(any(Ds3ClientHelpers.class), any(String.class), any(Path.class), any(String.class), any(Boolean.class))).thenReturn(true);
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(null, helpers), args, mockedFileUtils);
         CommandResponse result = cli.call();
         assertThat(result.getMessage(), is("Success: Finished syncing file to ds3 appliance."));
         assertThat(result.getReturnCode(), is(0));
 
-        PowerMockito.when(SyncUtils.needToSync(any(Path.class), any(Contents.class), any(Boolean.class))).thenReturn(false);
+        when(SyncUtils.needToSync(any(Ds3ClientHelpers.class), any(String.class), any(Path.class), any(String.class), any(Boolean.class))).thenReturn(false);
         result = cli.call();
         assertThat(result.getMessage(), is("Success: No need to sync obj.txt"));
         assertThat(result.getReturnCode(), is(0));
@@ -698,13 +698,13 @@ public class Ds3Cli_Test {
         when(helpers.listObjects(eq("bucketName"))).thenReturn(retCont);
 
         PowerMockito.mockStatic(SyncUtils.class);
-        when(SyncUtils.needToSync(any(Path.class), any(Contents.class), any(Boolean.class))).thenReturn(true);
+        when(SyncUtils.needToSync(any(Ds3ClientHelpers.class), any(String.class), any(Path.class), any(String.class), any(Boolean.class))).thenReturn(true);
 
         result = cli.call();
         assertThat(result.getMessage(), is("SUCCESS: Finished syncing object."));
         assertThat(result.getReturnCode(), is(0));
 
-        when(SyncUtils.needToSync(any(Path.class), any(Contents.class), any(Boolean.class))).thenReturn(false);
+        when(SyncUtils.needToSync(any(Ds3ClientHelpers.class), any(String.class), any(Path.class), any(String.class), any(Boolean.class))).thenReturn(false);
         result = cli.call();
         assertThat(result.getMessage(), is("SUCCESS: No need to sync obj.txt"));
         assertThat(result.getReturnCode(), is(0));
@@ -842,7 +842,7 @@ public class Ds3Cli_Test {
         when(Utils.getFileName(any(Path.class), eq(p2))).thenReturn("obj2.txt");
 
         PowerMockito.mockStatic(SyncUtils.class);
-        when(SyncUtils.needToSync(any(Path.class), any(Contents.class), any(Boolean.class))).thenReturn(false);
+        when(SyncUtils.isNewFile(any(Path.class), any(Contents.class), any(Boolean.class))).thenReturn(false);
 
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(null, helpers), args, mockedFileUtils);
@@ -850,7 +850,7 @@ public class Ds3Cli_Test {
         assertThat(result.getMessage(), is("SUCCESS: All files are up to date"));
         assertThat(result.getReturnCode(), is(0));
 
-        when(SyncUtils.needToSync(any(Path.class), any(Contents.class), any(Boolean.class))).thenReturn(true);
+        when(SyncUtils.isNewFile(any(Path.class), any(Contents.class), any(Boolean.class))).thenReturn(true);
         result = cli.call();
         assertThat(result.getMessage(), is("SUCCESS: Synced all the objects from bucketName to ."));
         assertThat(result.getReturnCode(), is(0));
@@ -928,12 +928,12 @@ public class Ds3Cli_Test {
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(null, helpers), args, mockedFileUtils);
 
-        PowerMockito.when(SyncUtils.needToSync(any(Path.class), any(Contents.class), any(Boolean.class))).thenReturn(false);
+        PowerMockito.when(SyncUtils.isNewFile(any(Path.class), any(Contents.class), any(Boolean.class))).thenReturn(false);
         CommandResponse result = cli.call();
         assertThat(result.getMessage(), is("SUCCESS: All files are up to date"));
         assertThat(result.getReturnCode(), is(0));
 
-        PowerMockito.when(SyncUtils.needToSync(any(Path.class), any(Contents.class), any(Boolean.class))).thenReturn(true);
+        PowerMockito.when(SyncUtils.isNewFile(any(Path.class), any(Contents.class), any(Boolean.class))).thenReturn(true);
         PowerMockito.when(Utils.getFileSize(any(Path.class))).thenReturn(1245L);
         result = cli.call();
         assertThat(result.getMessage(), is("SUCCESS: Wrote all the files in dir to bucket bucketName"));

@@ -302,7 +302,7 @@ public class FeatureIntegration_Test {
             final Arguments args = new Arguments(new String[]{"--http", "-c", "put_object", "-b", bucketName,
                     "-o", Utils.getFileName(Paths.get("."), Paths.get(Util.RESOURCE_BASE_NAME + "beowulf.txt")), "--sync"});
             CommandResponse response = Util.command(client, args);
-            assertThat(response.getMessage(), is("Success: Finished writing file to ds3 appliance."));
+            assertThat(response.getMessage(), is("Success: Finished syncing file to ds3 appliance."));
 
             response = Util.command(client, args);
             assertThat(response.getMessage(), is("Success: No need to sync src/test/resources/books/beowulf.txt"));
