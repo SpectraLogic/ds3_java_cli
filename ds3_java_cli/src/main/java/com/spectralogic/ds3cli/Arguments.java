@@ -32,7 +32,7 @@ public class Arguments {
 
     private final static Logger LOG = LoggerFactory.getLogger(Arguments.class);
 
-    private final static String PROPERTY_FILE = "config.properties";
+    private final static String PROPERTY_FILE = "ds3_cli.properties";
 
     private final Options options;
 
