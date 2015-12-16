@@ -19,6 +19,7 @@ import com.google.common.collect.Lists;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.BadArgumentException;
 import com.spectralogic.ds3cli.models.PutObjectResult;
+import com.spectralogic.ds3cli.util.BlackPearlUtils;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
@@ -42,6 +43,7 @@ public class PutObject extends CliCommand<PutObjectResult> {
     private Path objectPath;
     private String objectName;
     private String prefix;
+    private boolean force;
 
     public PutObject(final Ds3Provider provider, final FileUtils fileUtils) {
         super(provider, fileUtils);
@@ -71,6 +73,7 @@ public class PutObject extends CliCommand<PutObjectResult> {
         }
 
         this.prefix = args.getPrefix();
+        this.force = args.isForce();
 
         return this;
     }
@@ -78,6 +81,10 @@ public class PutObject extends CliCommand<PutObjectResult> {
     @SuppressWarnings("deprecation")
     @Override
     public PutObjectResult call() throws Exception {
+        if (!force) {
+            BlackPearlUtils.checkBlackPearlForTapeFailure(getClient());
+        }
+
         final Ds3ClientHelpers helpers = getClientHelpers();
         final Ds3Object ds3Obj = new Ds3Object(normalizeObjectName(objectName), getFileUtils().size(objectPath));
 

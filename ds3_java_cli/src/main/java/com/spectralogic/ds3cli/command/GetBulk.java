@@ -19,6 +19,7 @@ import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.models.GetBulkResult;
+import com.spectralogic.ds3cli.util.BlackPearlUtils;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
@@ -48,6 +49,7 @@ public class GetBulk extends CliCommand<GetBulkResult> {
     private String prefix;
     private boolean checksum;
     private Priority priority;
+    private boolean force;
 
     public GetBulk(final Ds3Provider provider, final FileUtils fileUtils) {
         super(provider, fileUtils);
@@ -75,12 +77,18 @@ public class GetBulk extends CliCommand<GetBulkResult> {
         this.priority = args.getPriority();
         this.checksum = args.isChecksum();
         this.prefix = args.getPrefix();
+        this.force = args.isForce();
         return this;
     }
 
 
     @Override
     public GetBulkResult call() throws Exception {
+
+        if (!force) {
+            BlackPearlUtils.checkBlackPearlForTapeFailure(getClient());
+        }
+
         final Ds3ClientHelpers.ObjectChannelBuilder getter;
         if (checksum) {
             throw new RuntimeException("Checksumming is currently not implemented.");//TODO

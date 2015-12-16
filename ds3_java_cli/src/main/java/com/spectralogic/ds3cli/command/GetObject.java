@@ -19,6 +19,7 @@ import com.google.common.collect.Lists;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.CommandException;
 import com.spectralogic.ds3cli.models.GetObjectResult;
+import com.spectralogic.ds3cli.util.BlackPearlUtils;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
@@ -39,6 +40,7 @@ public class GetObject extends CliCommand<GetObjectResult> {
     private String bucketName;
     private String objectName;
     private String prefix;
+    private boolean force;
 
     public GetObject(final Ds3Provider provider, final FileUtils fileUtils) {
         super(provider, fileUtils);
@@ -61,6 +63,7 @@ public class GetObject extends CliCommand<GetObjectResult> {
             prefix = ".";
         }
 
+        this.force = args.isForce();
 
         return this;
     }
@@ -69,6 +72,10 @@ public class GetObject extends CliCommand<GetObjectResult> {
     @Override
     public GetObjectResult call() throws Exception {
         try {
+            if (!force) {
+                BlackPearlUtils.checkBlackPearlForTapeFailure(getClient());
+            }
+
             final Path filePath = Paths.get(prefix, objectName);
             LOG.info("Output path: " + filePath.toString());
 

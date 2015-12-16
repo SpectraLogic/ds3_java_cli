@@ -55,7 +55,7 @@ public class Arguments {
     private Priority defaultGetPriority;
     private WriteOptimization writeOptimization;
     private WriteOptimization defaultWriteOptimization;
-    private boolean clearBucket = false;
+    private boolean force = false;
     private boolean checksum = false;
     private boolean certificateVerification = true;
     private boolean https = true;
@@ -94,8 +94,8 @@ public class Arguments {
         end.setArgName("end");
         final Option id = new Option("i", true, "ID for identifying ds3 api resources");
         id.setArgName("id");
-        final Option clearBucket = new Option(null, false, "Used with the command `delete_bucket`.  If this is set then the `delete_bucket` command will also delete all the objects in the bucket");
-        clearBucket.setLongOpt("force");
+        final Option force = new Option(null, false, "Used with the command `delete_bucket`.  If this is set then the `delete_bucket` command will also delete all the objects in the bucket");
+        force.setLongOpt("force");
         final Option retries = new Option("r", true, "Specifies how many times puts and gets will be attempted before failing the request.  The default is 5");
         retries.setArgName("retries");
         final Option checksum = new Option(null, "Validate checksum values");
@@ -145,7 +145,7 @@ public class Arguments {
         options.addOption(id);
         //options.addOption(start);  //TODO re-add these calls when we have support for partial file gets in the helper functions
         //options.addOption(end);
-        options.addOption(clearBucket);
+        options.addOption(force);
         options.addOption(retries);
         options.addOption(checksum);
         options.addOption(priority);
@@ -247,7 +247,7 @@ public class Arguments {
         this.setWriteOptimization(processWriteOptimization(cmd, "writeOptimization"));
 
         if (cmd.hasOption("force")) {
-            this.setClearBucket(true);
+            this.setForce(true);
         }
 
         if (cmd.hasOption("checksum")) {
@@ -466,12 +466,12 @@ public class Arguments {
         this.end = end;
     }
 
-    void setClearBucket(boolean clearBucket) {
-        this.clearBucket = clearBucket;
+    void setForce(boolean force) {
+        this.force = force;
     }
 
-    public boolean isClearBucket() {
-        return this.clearBucket;
+    public boolean isForce() {
+        return this.force;
     }
 
     void setRetries(int retries) {

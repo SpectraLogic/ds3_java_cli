@@ -17,6 +17,7 @@ package com.spectralogic.ds3cli.command;
 
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.models.PutBulkResult;
+import com.spectralogic.ds3cli.util.BlackPearlUtils;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
@@ -44,6 +45,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
     private boolean checksum;
     private Priority priority;
     private WriteOptimization writeOptimization;
+    private boolean force;
 
     public PutBulk(final Ds3Provider provider, final FileUtils fileUtils) {
         super(provider, fileUtils);
@@ -70,12 +72,17 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         this.writeOptimization = args.getWriteOptimization();
         this.inputDirectory = FileSystems.getDefault().getPath(srcDir);
         this.checksum = args.isChecksum();
+        this.force = args.isForce();
 
         return this;
     }
 
     @Override
     public PutBulkResult call() throws Exception {
+        if (!force) {
+            BlackPearlUtils.checkBlackPearlForTapeFailure(getClient());
+        }
+
         final Ds3ClientHelpers helper = getClientHelpers();
         final Iterable<Ds3Object> objects = helper.listObjectsForDirectory(this.inputDirectory);
 

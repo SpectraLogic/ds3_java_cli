@@ -38,7 +38,7 @@ public class DeleteBucket extends CliCommand<DeleteResult> {
     private static final Logger LOG = LoggerFactory.getLogger(DeleteBucket.class);
 
     private String bucketName;
-    private boolean clearBucket;
+    private boolean force;
     public DeleteBucket(final Ds3Provider provider, final FileUtils fileUtils) {
         super(provider, fileUtils);
     }
@@ -49,14 +49,14 @@ public class DeleteBucket extends CliCommand<DeleteResult> {
         if (bucketName == null) {
             throw new MissingOptionException("The delete bucket command requires '-b' to be set.");
         }
-        clearBucket = args.isClearBucket();
+        force = args.isForce();
         return this;
     }
 
     @Override
     public DeleteResult call() throws Exception {
 
-        if (clearBucket) {
+        if (force) {
             return new DeleteResult( clearObjects() );
         }
         else {
