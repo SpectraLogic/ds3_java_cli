@@ -34,13 +34,13 @@ import java.util.regex.Pattern;
 public final class SyncUtils {
 
     private final static Logger LOG = LoggerFactory.getLogger(SyncUtils.class);
-    private final static int VersionSupported = 3;
-    private final static int MajorIndex = 0;
+    private final static int VERSION_SUPPORTED = 3;
+    private final static int MAJOR_INDEX = 0;
 
     public static boolean isSyncSupported(final Ds3Client client) throws IOException, SignatureException {
         final String buildInfo = client.getSystemInformation(new GetSystemInformationRequest()).getSystemInformation().getBuildInformation().getVersion();
         final String[] buildInfoArr = buildInfo.split((Pattern.quote(".")));
-        if (Integer.parseInt(buildInfoArr[MajorIndex]) < VersionSupported) {
+        if (Integer.parseInt(buildInfoArr[MAJOR_INDEX]) < VERSION_SUPPORTED) {
             LOG.info("The sync command can not be used with BlackPearl " +  buildInfo);
             return false;
         }

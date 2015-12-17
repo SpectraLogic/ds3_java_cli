@@ -55,7 +55,6 @@ import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-//import com.spectralogic.ds3client.utils.ResponseUtils;
 
 @RunWith(PowerMockRunner.class)
 public class Ds3Cli_Test {
