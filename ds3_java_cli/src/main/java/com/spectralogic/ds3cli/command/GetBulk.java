@@ -90,7 +90,7 @@ public class GetBulk extends CliCommand<GetBulkResult> {
             this.sync = true;
         }
 
-		this.force.args.isForce();
+		this.force = args.isForce();
         return this;
     }
 
