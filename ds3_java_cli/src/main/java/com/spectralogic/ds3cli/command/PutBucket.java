@@ -22,6 +22,7 @@ import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3client.commands.PutBucketRequest;
 import com.spectralogic.ds3client.networking.FailedRequestException;
+
 import org.apache.commons.cli.MissingOptionException;
 
 import java.io.IOException;
@@ -58,7 +59,7 @@ public class PutBucket extends CliCommand<PutBucketResult> {
             throw new CommandException("Encountered a DS3 Error", e);
         }
         catch (final IOException e) {
-             throw new CommandException("Encountered an error when communicating with ds3 endpoint", e);
+            throw new CommandException("Encountered an error when communicating with ds3 endpoint", e);
         }
     }
 }

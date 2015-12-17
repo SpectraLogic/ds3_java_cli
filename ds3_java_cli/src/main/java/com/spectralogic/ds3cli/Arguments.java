@@ -51,15 +51,13 @@ public class Arguments {
     private int end;
     private int retries = 20;
     private Priority priority;
-    private Priority defaultPutPriority;
-    private Priority defaultGetPriority;
     private WriteOptimization writeOptimization;
-    private WriteOptimization defaultWriteOptimization;
     private boolean clearBucket = false;
     private boolean checksum = false;
     private boolean certificateVerification = true;
     private boolean https = true;
     private boolean completed = false;
+    private boolean sync = false;
     private ViewType outputFormat = ViewType.CLI;
 
     private String version = "N/a";
@@ -103,18 +101,9 @@ public class Arguments {
         final Option priority = new Option(null, true, "Set the bulk job priority.  Possible values: [" + Priority.valuesString() + "]");
         priority.setLongOpt("priority");
         priority.setArgName("priority");
-        final Option defaultPutPriority = new Option(null, true, "Set the default bulk put job priority.  Possible values: [" + Priority.valuesString() + "]");
-        defaultPutPriority.setLongOpt("defaultPutPriority");
-        defaultPutPriority.setArgName("priority");
-        final Option defaultGetPriority = new Option(null, true, "Set the default bulk get job priority.  Possible values: [" + Priority.valuesString() + "]");
-        defaultGetPriority.setLongOpt("defaultGetPriority");
-        defaultGetPriority.setArgName("priority");
         final Option writeOptimization = new Option(null, true, "Set the job write optimization.  Possible values: ["+ WriteOptimization.valuesString() +"]");
         writeOptimization.setLongOpt("writeOptimization");
         writeOptimization.setArgName("writeOptimization");
-        final Option defaultWriteOptimization = new Option(null, true, "Set the default job write optimization for a bucket.  Possible values: ["+ WriteOptimization.valuesString() +"]");
-        defaultWriteOptimization.setLongOpt("defaultWriteOptimization");
-        defaultWriteOptimization.setArgName("writeOptimization");
         final Option help = new Option("h", "Print Help Menu");
         help.setLongOpt("help");
         final Option http = new Option(null, "Send all requests over standard http");
@@ -133,6 +122,8 @@ public class Arguments {
         viewType.setLongOpt("output-format");
         final Option completed = new Option(null, false, "Used with the command get_jobs to include the display of completed jobs");
         completed.setLongOpt("completed");
+        final Option sync = new Option(null, false, "Copy only the newest files");
+        sync.setLongOpt("sync");
         options.addOption(ds3Endpoint);
         options.addOption(bucket);
         options.addOption(directory);
@@ -159,7 +150,7 @@ public class Arguments {
         options.addOption(trace);
         options.addOption(viewType);
         options.addOption(completed);
-
+        options.addOption(sync);
 
         processCommandLine();
     }
@@ -240,10 +231,7 @@ public class Arguments {
         }
 
         this.setPriority(processPriorityType(cmd, "priority"));
-        this.setDefaultGetPriority(processPriorityType(cmd, "defaultGetPriority"));
-        this.setDefaultPutPriority(processPriorityType(cmd, "defaultPutPriority"));
 
-        this.setDefaultWriteOptimization(processWriteOptimization(cmd, "defaultWriteOptimization"));
         this.setWriteOptimization(processWriteOptimization(cmd, "writeOptimization"));
 
         if (cmd.hasOption("force")) {
@@ -317,6 +305,9 @@ public class Arguments {
         }
         LOG.info("Access Key: " + getAccessKey() +" | Secret Key: " + getSecretKey() + " | Endpoint: " + getEndpoint());
 
+        if (cmd.hasOption("sync")) {
+            this.setSync(true);
+        }
     }
 
     private WriteOptimization processWriteOptimization(final CommandLine cmd, final String writeOptimization) throws BadArgumentException {
@@ -364,8 +355,8 @@ public class Arguments {
         else {
             try {
                 props.load(input);
-            this.version = (String) props.get("version");
-            this.buildDate = (String) props.get("build.date");
+                this.version = (String) props.get("version");
+                this.buildDate = (String) props.get("build.date");
             } catch (final IOException e) {
                 System.err.println("Failed to load version property file.");
                 if (LOG.isInfoEnabled()) {
@@ -514,24 +505,6 @@ public class Arguments {
         this.writeOptimization = writeOptimization;
     }
 
-    public Priority getDefaultPutPriority() {
-        return defaultPutPriority;
-    }
-    void setDefaultPutPriority(final Priority defaultPutPriority) {
-        this.defaultPutPriority = defaultPutPriority;
-    }
-    public Priority getDefaultGetPriority() {
-        return defaultGetPriority;
-    }
-    void setDefaultGetPriority(final Priority defaultGetPriority) {
-        this.defaultGetPriority = defaultGetPriority;
-    }
-    public WriteOptimization getDefaultWriteOptimization() {
-        return defaultWriteOptimization;
-    }
-    void setDefaultWriteOptimization(final WriteOptimization defaultWriteOptimization) {
-        this.defaultWriteOptimization = defaultWriteOptimization;
-    }
     public boolean isCertificateVerification() {
         return certificateVerification;
     }
@@ -568,5 +541,13 @@ public class Arguments {
 
     void setCompleted(final boolean completed) { this.completed = completed; }
 
+    void setSync(final boolean sync)
+    {
+        this.sync = sync;
+    }
 
+    public boolean isSync()
+    {
+        return sync;
+    }
 }

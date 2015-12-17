@@ -16,7 +16,10 @@
 package com.spectralogic.ds3cli.integration;
 
 import com.google.common.collect.Lists;
-import com.spectralogic.ds3cli.*;
+import com.spectralogic.ds3cli.Arguments;
+import com.spectralogic.ds3cli.CommandResponse;
+import com.spectralogic.ds3cli.util.SterilizeString;
+import com.spectralogic.ds3cli.util.Utils;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.Ds3ClientBuilder;
 import com.spectralogic.ds3client.commands.GetObjectRequest;
@@ -28,21 +31,14 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-
-import com.spectralogic.ds3cli.util.SterilizeString;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
+import java.nio.file.*;
+
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 public class FeatureIntegration_Test {
 
@@ -128,7 +124,7 @@ public class FeatureIntegration_Test {
             assertThat(response.getMessage(), is(expected));
         } finally {
             Util.deleteBucket(client, bucketName);
-            Util.deleteLoadedFile("beowulf.txt");
+            Util.deleteLocalFile("beowulf.txt");
         }
     }
 
@@ -149,7 +145,7 @@ public class FeatureIntegration_Test {
             assertTrue(response.getMessage().endsWith(expected));
         } finally {
             Util.deleteBucket(client, bucketName);
-            Util.deleteLoadedFile("beowulf.txt");
+            Util.deleteLocalFile("beowulf.txt");
         }
     }
 
@@ -186,13 +182,13 @@ public class FeatureIntegration_Test {
 
             final String expectedBeginning = "JobId: " + readJob.getJobId() + " | Status: COMPLETED | Bucket: " + bucketName
                     + " | Type: GET | Priority: HIGH | User Name: spectra | Creation Date: ";
-            final String expectedEnding = " | Total Size: " + objFile.length() + " | Total Transferred: 0";
+            final String expectedEnding = " | Total Size: " + objFile.length() + " | Total Transferred: " + objFile.length();
 
             assertTrue(getJobResponse.getMessage().startsWith(expectedBeginning));
             assertTrue(getJobResponse.getMessage().endsWith(expectedEnding));
         } finally {
             Util.deleteBucket(client, bucketName);
-            Util.deleteLoadedFile(book);
+            Util.deleteLocalFile(book);
         }
     }
 
@@ -230,17 +226,11 @@ public class FeatureIntegration_Test {
             final String expectedMiddle = "\"Data\" : {\n"
                     + "    \"jobDetails\" : {\n"
                     + "      \"Nodes\" : null,\n"
-                    + "      \"CachedSizeInBytes\" : 0,\n"
-                    + "      \"CompletedSizeInBytes\" : 0,\n"
+                    + "      \"CachedSizeInBytes\" : " + objFile.length() + ",\n"
+                    + "      \"CompletedSizeInBytes\" : " + objFile.length() + ",\n"
                     + "      \"OriginalSizeInBytes\" : " + objFile.length() + ",\n"
                     + "      \"BucketName\" : \"" + bucketName + "\",\n"
-                    + "      \"JobId\" : \"" + readJob.getJobId() + "\",\n"
-                    + "      \"UserId\" : \"c2581493-058c-40d7-a3a1-9a50b20d6d3b\",\n"
-                    + "      \"UserName\" : \"spectra\",\n"
-                    + "      \"WriteOptimization\" : \"CAPACITY\",\n"
-                    + "      \"Priority\" : \"HIGH\",\n"
-                    + "      \"RequestType\" : \"GET\",\n"
-                    + "      \"StartDate\" : ";
+                    + "      \"JobId\" : \"" + readJob.getJobId() + "\",\n";
 
             final String expectedEnding =
                       "      \"ChunkClientProcessingOrderGuarantee\" : \"NONE\",\n"
@@ -254,7 +244,89 @@ public class FeatureIntegration_Test {
             assertTrue(getJobResponse.getMessage().endsWith(expectedEnding));
         } finally {
             Util.deleteBucket(client, bucketName);
-            Util.deleteLoadedFile(book);
+            Util.deleteLocalFile(book);
+        }
+    }
+
+    @Test
+    public void getObjectWithSync() throws Exception {
+        final String bucketName = "test_get_object";
+        try {
+
+            Util.createBucket(client, bucketName);
+            Util.loadBookTestData(client, bucketName);
+
+            Util.copyFile("beowulf.txt", Util.RESOURCE_BASE_NAME, Util.DOWNLOAD_BASE_NAME);
+            final Arguments args = new Arguments(new String[]{"--http", "-c", "get_object", "-b", bucketName,
+                    "-o", "beowulf.txt", "-d", Util.DOWNLOAD_BASE_NAME, "--sync"});
+            CommandResponse response = Util.command(client, args);
+            assertThat(response.getMessage(), is("SUCCESS: Finished syncing object."));
+
+            response = Util.command(client, args);
+            assertThat(response.getMessage(), is("SUCCESS: No need to sync beowulf.txt"));
+
+        } finally {
+            Util.deleteBucket(client, bucketName);
+            Util.deleteLocalFile("beowulf.txt");
+        }
+    }
+
+    @Test
+    public void getBulkObjectWithSync() throws Exception {
+        final String bucketName = "test_get_object";
+        try {
+
+            Util.createBucket(client, bucketName);
+            Util.loadBookTestData(client, bucketName);
+
+            final Arguments args = new Arguments(new String[]{"--http", "-c", "get_bulk", "-b", bucketName,
+                    "-d", Util.DOWNLOAD_BASE_NAME, "--sync"});
+            CommandResponse response = Util.command(client, args);
+            assertThat(response.getMessage(), is("SUCCESS: Synced all the objects from test_get_object to .\\.\\output"));
+
+            response = Util.command(client, args);
+            assertThat(response.getMessage(), is("SUCCESS: All files are up to date"));
+
+        } finally {
+            Util.deleteBucket(client, bucketName);
+            Util.deleteLocalFiles();
+        }
+    }
+
+    @Test
+    public void putObjectWithSync() throws Exception {
+        final String bucketName = "test_put_object";
+        try {
+
+            Util.createBucket(client, bucketName);
+            final Arguments args = new Arguments(new String[]{"--http", "-c", "put_object", "-b", bucketName,
+                    "-o", Utils.getFileName(Paths.get("."), Paths.get(Util.RESOURCE_BASE_NAME + "beowulf.txt")), "--sync"});
+            CommandResponse response = Util.command(client, args);
+            assertThat(response.getMessage(), is("Success: Finished syncing file to ds3 appliance."));
+
+            response = Util.command(client, args);
+            assertThat(response.getMessage(), is("Success: No need to sync src/test/resources/books/beowulf.txt"));
+
+        } finally {
+            Util.deleteBucket(client, bucketName);
+        }
+    }
+
+    @Test
+    public void putBulkObjectWithSync() throws Exception {
+        final String bucketName = "test_put_object";
+        try {
+
+            Util.createBucket(client, bucketName);
+            final Arguments args = new Arguments(new String[]{"--http", "-c", "put_bulk", "-b", bucketName, "-d", Util.RESOURCE_BASE_NAME, "--sync"});
+            CommandResponse response = Util.command(client, args);
+            assertThat(response.getMessage(), is("SUCCESS: Wrote all the files in .\\src\\test\\resources\\books to bucket test_put_object"));
+
+            response = Util.command(client, args);
+            assertThat(response.getMessage(), is("SUCCESS: All files are up to date"));
+
+        } finally {
+            Util.deleteBucket(client, bucketName);
         }
     }
 }

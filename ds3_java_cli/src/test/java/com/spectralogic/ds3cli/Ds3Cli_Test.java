@@ -19,21 +19,31 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3cli.util.SterilizeString;
+import com.spectralogic.ds3cli.util.SyncUtils;
+import com.spectralogic.ds3cli.util.Utils;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.*;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.helpers.options.ReadJobOptions;
 import com.spectralogic.ds3client.helpers.options.WriteJobOptions;
+import com.spectralogic.ds3client.models.Contents;
 import com.spectralogic.ds3client.models.Error;
+import com.spectralogic.ds3client.models.SystemInformation;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.networking.FailedRequestException;
 import com.spectralogic.ds3client.networking.Headers;
 import com.spectralogic.ds3client.networking.WebResponse;
+
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.InputStream;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -45,6 +55,8 @@ import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+
+@RunWith(PowerMockRunner.class)
 public class Ds3Cli_Test {
 
     @Test
@@ -165,6 +177,7 @@ public class Ds3Cli_Test {
     public void error() throws Exception {
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_service"});
         final Ds3Client client = mock(Ds3Client.class);
+        //TODO use toImmutableIntList from com.spectralogic.ds3client.utils.ResponseUtils when java sdk 1.2.3 is released
         when(client.getService(any(GetServiceRequest.class))).thenThrow(new FailedRequestException(toImmutableIntList(new int[]{200}), 500, new Error(), ""));
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
@@ -177,15 +190,16 @@ public class Ds3Cli_Test {
     public void errorJson() throws Exception {
         final String expected =
                 "  \"Data\" : {\n" +
-                "    \"ApiErrorMessage\" : \"\",\n" +
-                "    \"StatusCode\" : \"500\"\n" +
-                "  },\n" +
-                "  \"Status\" : \"ERROR\",\n" +
-                "  \"Message\" : \"Failed Get Service\"\n" +
-                "}";
+                        "    \"ApiErrorMessage\" : \"\",\n" +
+                        "    \"StatusCode\" : \"500\"\n" +
+                        "  },\n" +
+                        "  \"Status\" : \"ERROR\",\n" +
+                        "  \"Message\" : \"Failed Get Service\"\n" +
+                        "}";
 
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_service", "--output-format", "json"});
         final Ds3Client client = mock(Ds3Client.class);
+        //TODO use toImmutableIntList from com.spectralogic.ds3client.utils.ResponseUtils when java sdk 1.2.3 is released
         when(client.getService(any(GetServiceRequest.class))).thenThrow(new FailedRequestException(toImmutableIntList(new int[]{200}), 500, new Error(), ""));
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
@@ -381,31 +395,31 @@ public class Ds3Cli_Test {
 
         final String expected =
                 "  \"Data\" : {\n" +
-                "    \"BucketName\" : \"bucketName\",\n" +
-                "    \"Objects\" : [ {\n" +
-                "      \"Key\" : \"my-image.jpg\",\n" +
-                "      \"LastModified\" : \"2009-10-12T17:50:30.000Z\",\n" +
-                "      \"ETag\" : \"\\\"fba9dede5f27731c9771645a39863328\\\"\",\n" +
-                "      \"Size\" : 434234,\n" +
-                "      \"StorageClass\" : \"STANDARD\",\n" +
-                "      \"Owner\" : {\n" +
-                "        \"ID\" : \"75aa57f09aa0c8caeab4f8c24e99d10f8e7faeebf76c078efc7c6caea54ba06a\",\n" +
-                "        \"DisplayName\" : \"mtd@amazon.com\"\n" +
-                "      }\n" +
-                "    }, {\n" +
-                "      \"Key\" : \"my-third-image.jpg\",\n" +
-                "      \"LastModified\" : \"2009-10-12T17:50:30.000Z\",\n" +
-                "      \"ETag\" : \"\\\"1b2cf535f27731c974343645a3985328\\\"\",\n" +
-                "      \"Size\" : 64994,\n" +
-                "      \"StorageClass\" : \"STANDARD\",\n" +
-                "      \"Owner\" : {\n" +
-                "        \"ID\" : \"75aa57f09aa0c8caeab4f8c24e99d10f8e7faeebf76c078efc7c6caea54ba06a\",\n" +
-                "        \"DisplayName\" : \"mtd@amazon.com\"\n" +
-                "      }\n" +
-                "    } ]\n" +
-                "  },\n" +
-                "  \"Status\" : \"OK\"\n" +
-                "}";
+                        "    \"BucketName\" : \"bucketName\",\n" +
+                        "    \"Objects\" : [ {\n" +
+                        "      \"Key\" : \"my-image.jpg\",\n" +
+                        "      \"LastModified\" : \"2009-10-12T17:50:30.000Z\",\n" +
+                        "      \"ETag\" : \"\\\"fba9dede5f27731c9771645a39863328\\\"\",\n" +
+                        "      \"Size\" : 434234,\n" +
+                        "      \"StorageClass\" : \"STANDARD\",\n" +
+                        "      \"Owner\" : {\n" +
+                        "        \"ID\" : \"75aa57f09aa0c8caeab4f8c24e99d10f8e7faeebf76c078efc7c6caea54ba06a\",\n" +
+                        "        \"DisplayName\" : \"mtd@amazon.com\"\n" +
+                        "      }\n" +
+                        "    }, {\n" +
+                        "      \"Key\" : \"my-third-image.jpg\",\n" +
+                        "      \"LastModified\" : \"2009-10-12T17:50:30.000Z\",\n" +
+                        "      \"ETag\" : \"\\\"1b2cf535f27731c974343645a3985328\\\"\",\n" +
+                        "      \"Size\" : 64994,\n" +
+                        "      \"StorageClass\" : \"STANDARD\",\n" +
+                        "      \"Owner\" : {\n" +
+                        "        \"ID\" : \"75aa57f09aa0c8caeab4f8c24e99d10f8e7faeebf76c078efc7c6caea54ba06a\",\n" +
+                        "        \"DisplayName\" : \"mtd@amazon.com\"\n" +
+                        "      }\n" +
+                        "    } ]\n" +
+                        "  },\n" +
+                        "  \"Status\" : \"OK\"\n" +
+                        "}";
 
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_bucket", "-b", "bucketName", "--output-format", "json"});
         final String response = "<ListBucketResult>\n" +
@@ -561,6 +575,68 @@ public class Ds3Cli_Test {
         assertThat(result.getReturnCode(), is(0));
     }
 
+    @PrepareForTest({SyncUtils.class})
+    @Test
+    public void putObjectWithSync() throws Exception {
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "put_object", "-b", "bucketName", "-o", "obj.txt", "--sync"});
+
+        final Ds3ClientHelpers.Job mockedPutJob = mock(Ds3ClientHelpers.Job.class);
+        final Ds3ClientHelpers helpers = mock(Ds3ClientHelpers.class);
+        final Contents c = new Contents();
+        c.setKey("obj.txt");
+        final Iterable<Contents> retObj = Lists.newArrayList(c);
+        when(helpers.listObjects(eq("bucketName"))).thenReturn(retObj);
+        when(helpers.startWriteJob(eq("bucketName"), (Iterable<Ds3Object>) isNotNull())).thenReturn(mockedPutJob);
+
+        final FileUtils mockedFileUtils = mock(FileUtils.class);
+        when(mockedFileUtils.exists(any(Path.class))).thenReturn(true);
+        when(mockedFileUtils.isRegularFile(any(Path.class))).thenReturn(true);
+        when(mockedFileUtils.size(any(Path.class))).thenReturn(100L);
+
+        PowerMockito.mockStatic(SyncUtils.class);
+        PowerMockito.when(SyncUtils.isSyncSupported(any(Ds3Client.class))).thenReturn(true);
+        when(SyncUtils.needToSync(any(Ds3ClientHelpers.class), any(String.class), any(Path.class), any(String.class), any(Boolean.class))).thenReturn(true);
+
+        final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(null, helpers), args, mockedFileUtils);
+        CommandResponse result = cli.call();
+        assertThat(result.getMessage(), is("Success: Finished syncing file to ds3 appliance."));
+        assertThat(result.getReturnCode(), is(0));
+
+        when(SyncUtils.needToSync(any(Ds3ClientHelpers.class), any(String.class), any(Path.class), any(String.class), any(Boolean.class))).thenReturn(false);
+        result = cli.call();
+        assertThat(result.getMessage(), is("Success: No need to sync obj.txt"));
+        assertThat(result.getReturnCode(), is(0));
+    }
+
+    @Test
+    public void putObjectWithSyncNotSupportedVersion() throws Exception {
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "put_object", "-b", "bucketName", "-o", "obj.txt", "--sync"});
+
+        final SystemInformation.BuildInformation buildInformation = mock(SystemInformation.BuildInformation.class);
+        when(buildInformation.getVersion()).thenReturn("1.2.0");
+
+        final SystemInformation systemInformation = mock(SystemInformation.class);
+        when(systemInformation.getBuildInformation()).thenReturn(buildInformation);
+
+        final GetSystemInformationResponse systemInformationResponse = mock(GetSystemInformationResponse.class);
+        when(systemInformationResponse.getSystemInformation()).thenReturn(systemInformation);
+
+        final Ds3Client client = mock(Ds3Client.class);
+        when(client.getSystemInformation(any(GetSystemInformationRequest.class))).thenReturn(systemInformationResponse);
+
+        final Ds3ClientHelpers helpers = mock(Ds3ClientHelpers.class);
+
+        final FileUtils mockedFileUtils = mock(FileUtils.class);
+        when(mockedFileUtils.exists(any(Path.class))).thenReturn(true);
+        when(mockedFileUtils.isRegularFile(any(Path.class))).thenReturn(true);
+        when(mockedFileUtils.size(any(Path.class))).thenReturn(100L);
+
+        final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, helpers), args, mockedFileUtils);
+        final CommandResponse result = cli.call();
+        assertThat(result.getMessage(), is("Failed: The sync command is not supported with your version of BlackPearl."));
+        assertThat(result.getReturnCode(), is(0));
+    }
+
     @Test
     public void putObjectJson() throws Exception {
         final String expected = "\"Status\" : \"OK\",\n  \"Message\" : \"Success: Finished writing file to ds3 appliance.\"\n}";
@@ -593,6 +669,43 @@ public class Ds3Cli_Test {
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(null, helpers), args, mockedFileUtils);
         final CommandResponse result = cli.call();
         assertThat(result.getMessage(), is(expected));
+        assertThat(result.getReturnCode(), is(0));
+    }
+
+    @PrepareForTest({Utils.class, SyncUtils.class})
+    @Test
+    public void getObjectWithSync() throws Exception {
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_object", "-b", "bucketName", "-o", "obj.txt", "--sync"});
+        final Ds3ClientHelpers helpers = mock(Ds3ClientHelpers.class);
+        final Ds3ClientHelpers.Job mockedGetJob = mock(Ds3ClientHelpers.Job.class);
+        final FileUtils mockedFileUtils = mock(FileUtils.class);
+        when(helpers.startReadJob(eq("bucketName"), (Iterable<Ds3Object>) isNotNull())).thenReturn(mockedGetJob);
+
+        PowerMockito.mockStatic(Utils.class);
+        PowerMockito.when(Utils.fileExists(any(Path.class))).thenReturn(false);
+
+        final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(null, helpers), args, mockedFileUtils);
+        CommandResponse result = cli.call();
+        assertThat(result.getMessage(), is("SUCCESS: Finished downloading object.  The object was written to: ." + SterilizeString.getFileDelimiter() + "obj.txt"));
+        assertThat(result.getReturnCode(), is(0));
+
+        PowerMockito.when(Utils.fileExists(any(Path.class))).thenReturn(true);
+        final Contents c1 = new Contents();
+        c1.setKey("obj.txt");
+
+        final Iterable<Contents> retCont = Lists.newArrayList(c1);
+        when(helpers.listObjects(eq("bucketName"))).thenReturn(retCont);
+
+        PowerMockito.mockStatic(SyncUtils.class);
+        when(SyncUtils.needToSync(any(Ds3ClientHelpers.class), any(String.class), any(Path.class), any(String.class), any(Boolean.class))).thenReturn(true);
+
+        result = cli.call();
+        assertThat(result.getMessage(), is("SUCCESS: Finished syncing object."));
+        assertThat(result.getReturnCode(), is(0));
+
+        when(SyncUtils.needToSync(any(Ds3ClientHelpers.class), any(String.class), any(Path.class), any(String.class), any(Boolean.class))).thenReturn(false);
+        result = cli.call();
+        assertThat(result.getMessage(), is("SUCCESS: No need to sync obj.txt"));
         assertThat(result.getReturnCode(), is(0));
     }
 
@@ -697,6 +810,51 @@ public class Ds3Cli_Test {
         assertThat(result.getReturnCode(), is(0));
     }
 
+    @PrepareForTest({SyncUtils.class, Utils.class})
+    @Test
+    public void getBulkWithSync() throws Exception {
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_bulk", "-b", "bucketName", "--sync"});
+        final Ds3ClientHelpers helpers = mock(Ds3ClientHelpers.class);
+        final Ds3ClientHelpers.Job mockedGetJob = mock(Ds3ClientHelpers.Job.class);
+        final FileUtils mockedFileUtils = mock(FileUtils.class);
+
+        when(helpers.startReadJob(eq("bucketName"), (Iterable<Ds3Object>) isNotNull(), any(ReadJobOptions.class))).thenReturn(mockedGetJob);
+
+        final Contents c1 = new Contents();
+        c1.setKey("obj1.txt");
+        c1.setSize(123L);
+        final Contents c2 = new Contents();
+        c2.setKey("obj2.txt");
+        c2.setSize(123L);
+
+        final Iterable<Contents> retCont = Lists.newArrayList(c1, c2);
+        when(helpers.listObjects(eq("bucketName"), any(String.class))).thenReturn(retCont);
+
+
+        final Path p1 = Paths.get("obj1.txt");
+        final Path p2 = Paths.get("obj2.txt");
+        final ImmutableList<Path> retPath = ImmutableList.copyOf(Lists.newArrayList(p1, p2));
+
+        PowerMockito.mockStatic(Utils.class);
+        when(Utils.listObjectsForDirectory(any(Path.class))).thenReturn(retPath);
+        when(Utils.getFileName(any(Path.class), eq(p1))).thenReturn("obj1.txt");
+        when(Utils.getFileName(any(Path.class), eq(p2))).thenReturn("obj2.txt");
+
+        PowerMockito.mockStatic(SyncUtils.class);
+        when(SyncUtils.isNewFile(any(Path.class), any(Contents.class), any(Boolean.class))).thenReturn(false);
+
+
+        final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(null, helpers), args, mockedFileUtils);
+        CommandResponse result = cli.call();
+        assertThat(result.getMessage(), is("SUCCESS: All files are up to date"));
+        assertThat(result.getReturnCode(), is(0));
+
+        when(SyncUtils.isNewFile(any(Path.class), any(Contents.class), any(Boolean.class))).thenReturn(true);
+        result = cli.call();
+        assertThat(result.getMessage(), is("SUCCESS: Synced all the objects from bucketName to ."));
+        assertThat(result.getReturnCode(), is(0));
+    }
+
     @Test
     public void getBulkJson() throws Exception {
         final String expected = "\"Status\" : \"OK\",\n  \"Message\" : \"SUCCESS: Wrote all the objects from bucketName to directory .\"\n}";
@@ -730,6 +888,83 @@ public class Ds3Cli_Test {
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(null, helpers), args, mockedFileUtils);
         final CommandResponse result = cli.call();
         assertThat(result.getMessage(), is("SUCCESS: Wrote all the files in dir to bucket bucketName"));
+        assertThat(result.getReturnCode(), is(0));
+    }
+
+    @PrepareForTest({SyncUtils.class, Utils.class})
+    @Test
+    public void putBulkWithSync() throws Exception {
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "put_bulk", "-b", "bucketName", "-d", "dir", "--sync"});
+        final Ds3ClientHelpers helpers = mock(Ds3ClientHelpers.class);
+        final Ds3ClientHelpers.Job mockedGetJob = mock(Ds3ClientHelpers.Job.class);
+        final FileUtils mockedFileUtils = mock(FileUtils.class);
+        final Iterable<Ds3Object> retObj = Lists.newArrayList(new Ds3Object("obj1.txt", 1245L), new Ds3Object("obj2.txt", 1245L));
+
+        final UUID jobId = UUID.randomUUID();
+        when(mockedGetJob.getJobId()).thenReturn(jobId);
+        when(helpers.listObjectsForDirectory(any(Path.class))).thenReturn(retObj);
+        when(helpers.startWriteJob(eq("bucketName"), eq(retObj), any(WriteJobOptions.class))).thenReturn(mockedGetJob);
+
+        final Contents c1 = new Contents();
+        c1.setKey("obj1.txt");
+        final Contents c2 = new Contents();
+        c2.setKey("obj2.txt");
+
+        final Iterable<Contents> retCont = Lists.newArrayList(c1, c2);
+        when(helpers.listObjects(eq("bucketName"), any(String.class))).thenReturn(retCont);
+
+        PowerMockito.mockStatic(SyncUtils.class);
+        PowerMockito.when(SyncUtils.isSyncSupported(any(Ds3Client.class))).thenReturn(true);
+
+        final Path p1 = Paths.get("obj1.txt");
+        final Path p2 = Paths.get("obj2.txt");
+        final ImmutableList<Path> retPath = ImmutableList.copyOf(Lists.newArrayList(p1, p2));
+
+        PowerMockito.mockStatic(Utils.class);
+        PowerMockito.when(Utils.listObjectsForDirectory(any(Path.class))).thenReturn(retPath);
+        PowerMockito.when(Utils.getFileName(any(Path.class), eq(p1))).thenReturn("obj1.txt");
+        PowerMockito.when(Utils.getFileName(any(Path.class), eq(p2))).thenReturn("obj2.txt");
+
+        final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(null, helpers), args, mockedFileUtils);
+
+        PowerMockito.when(SyncUtils.isNewFile(any(Path.class), any(Contents.class), any(Boolean.class))).thenReturn(false);
+        CommandResponse result = cli.call();
+        assertThat(result.getMessage(), is("SUCCESS: All files are up to date"));
+        assertThat(result.getReturnCode(), is(0));
+
+        PowerMockito.when(SyncUtils.isNewFile(any(Path.class), any(Contents.class), any(Boolean.class))).thenReturn(true);
+        PowerMockito.when(Utils.getFileSize(any(Path.class))).thenReturn(1245L);
+        result = cli.call();
+        assertThat(result.getMessage(), is("SUCCESS: Wrote all the files in dir to bucket bucketName"));
+        assertThat(result.getReturnCode(), is(0));
+
+    }
+
+    @Test
+    public void putBulkWithSyncWrongVersion() throws Exception {
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "put_bulk", "-b", "bucketName", "-d", "dir", "--sync"});
+        final Ds3ClientHelpers helpers = mock(Ds3ClientHelpers.class);
+        final Ds3ClientHelpers.Job mockedGetJob = mock(Ds3ClientHelpers.Job.class);
+        final FileUtils mockedFileUtils = mock(FileUtils.class);
+        final Iterable<Ds3Object> retObj = Lists.newArrayList(new Ds3Object("obj1.txt", 1245), new Ds3Object("obj2.txt", 12345));
+
+        final UUID jobId = UUID.randomUUID();
+        when(mockedGetJob.getJobId()).thenReturn(jobId);
+        when(helpers.listObjectsForDirectory(any(Path.class))).thenReturn(retObj);
+        when(helpers.startWriteJob(eq("bucketName"), eq(retObj), any(WriteJobOptions.class))).thenReturn(mockedGetJob);
+
+        final Ds3Client client = mock(Ds3Client.class);
+        final GetSystemInformationResponse systemInformationResponse = mock(GetSystemInformationResponse.class);
+        final SystemInformation systemInformation = mock(SystemInformation.class);
+        final SystemInformation.BuildInformation buildInformation = mock(SystemInformation.BuildInformation.class);
+        when(buildInformation.getVersion()).thenReturn("1.2.0");
+        when(systemInformation.getBuildInformation()).thenReturn(buildInformation);
+        when(systemInformationResponse.getSystemInformation()).thenReturn(systemInformation);
+        when(client.getSystemInformation(any(GetSystemInformationRequest.class))).thenReturn(systemInformationResponse);
+
+        final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, helpers), args, mockedFileUtils);
+        final CommandResponse result = cli.call();
+        assertThat(result.getMessage(), is("Failed: The sync command is not supported with your version of BlackPearl."));
         assertThat(result.getReturnCode(), is(0));
     }
 
