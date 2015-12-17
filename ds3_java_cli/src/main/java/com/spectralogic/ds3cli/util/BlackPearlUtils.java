@@ -15,23 +15,22 @@
 
 package com.spectralogic.ds3cli.util;
 
+import com.google.common.collect.Iterables;
 import com.spectralogic.ds3cli.Exceptions.TapeFailureException;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.GetTapeFailureRequest;
 import com.spectralogic.ds3client.models.tape.TapeFailure;
 
-
 import java.io.IOException;
 import java.security.SignatureException;
-import java.util.List;
 
 public final class BlackPearlUtils {
 
     public static void checkBlackPearlForTapeFailure(final Ds3Client client) throws IOException, SignatureException, TapeFailureException {
-        final List<TapeFailure> tapeFailures = client.getTapeFailure(new GetTapeFailureRequest()).getTapeFailures();
+        final Iterable<TapeFailure> tapeFailures = client.getTapeFailure(new GetTapeFailureRequest()).getTapeFailures();
 
-        if (tapeFailures != null && tapeFailures.size() > 0) {
-            throw new TapeFailureException(tapeFailures);
+        if (tapeFailures != null && !Iterables.isEmpty(tapeFailures)) {
+            throw new TapeFailureException(tapeFailures.iterator());
         }
     }
 }

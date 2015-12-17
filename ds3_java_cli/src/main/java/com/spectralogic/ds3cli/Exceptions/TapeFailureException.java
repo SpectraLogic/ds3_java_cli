@@ -15,27 +15,60 @@
 
 package com.spectralogic.ds3cli.Exceptions;
 
+import com.bethecoder.ascii_table.ASCIITable;
+import com.bethecoder.ascii_table.ASCIITableHeader;
 import com.spectralogic.ds3client.models.tape.TapeFailure;
 
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 public class TapeFailureException extends Exception{
-    public TapeFailureException(final List<TapeFailure> tapeFailures) {
+    public TapeFailureException(final Iterator<TapeFailure> tapeFailures) {
         super(BuildTapeFailureMessage(tapeFailures));
     }
 
-    private static String BuildTapeFailureMessage(final List<TapeFailure> tapeFailures) {
-        final StringBuilder messageBuilder = new StringBuilder();
-        messageBuilder.append("There are tape failures in BlackPearl:\n");
-        for (final TapeFailure tapeFailure : tapeFailures) {
-            messageBuilder.append("Tape ID: ");
-            messageBuilder.append(tapeFailure.getTapeId());
-            messageBuilder.append(", ");
-            messageBuilder.append("Error Message: ");
-            messageBuilder.append(tapeFailure.getErrorMessage());
-            messageBuilder.append("\n");
+    private static String BuildTapeFailureMessage(final Iterator<TapeFailure> tapeFailures) {
+        return String.format("There are tape failures found in BlackPearl\n%sTo ignore this error use --force",
+                ASCIITable.getInstance().getTable(getHeaders(), formatBucketList(tapeFailures)));
+    }
+
+    private static ASCIITableHeader[] getHeaders() {
+        return new ASCIITableHeader[]{
+                new ASCIITableHeader("ID", ASCIITable.ALIGN_LEFT),
+                new ASCIITableHeader("Tape Drive ID", ASCIITable.ALIGN_LEFT),
+                new ASCIITableHeader("Tape ID", ASCIITable.ALIGN_LEFT),
+                new ASCIITableHeader("Date", ASCIITable.ALIGN_LEFT),
+                new ASCIITableHeader("Error Type", ASCIITable.ALIGN_LEFT),
+                new ASCIITableHeader("Error Message", ASCIITable.ALIGN_LEFT),
+        };
+    }
+
+    private static String[][] formatBucketList(final Iterator<TapeFailure> iterator) {
+        final List<String[]> contents = new ArrayList<>();
+
+        while(iterator.hasNext()) {
+
+            final TapeFailure tapeFailure = iterator.next();
+            final String[] arrayEntry = new String[6];
+            arrayEntry[0] = nullGuard(tapeFailure.getId().toString());
+            arrayEntry[1] = nullGuard(tapeFailure.getTapeDriveId().toString());
+            arrayEntry[2] = nullGuard(tapeFailure.getTapeId().toString());
+            arrayEntry[3] = nullGuard(tapeFailure.getDate());
+            arrayEntry[4] = nullGuard(tapeFailure.getType().toString());
+            arrayEntry[5] = nullGuard(tapeFailure.getErrorMessage());
+
+            contents.add(arrayEntry);
         }
-        messageBuilder.append("To ignore this error use --force");
-        return messageBuilder.toString();
+
+        return contents.toArray(new String[contents.size()][]);
+    }
+
+    private static String nullGuard(final String message) {
+        if(message == null) {
+            return "N/A";
+        }
+
+        return message;
     }
 }

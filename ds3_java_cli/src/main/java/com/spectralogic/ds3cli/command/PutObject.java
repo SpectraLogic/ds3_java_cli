@@ -87,7 +87,6 @@ public class PutObject extends CliCommand<PutObjectResult> {
         return this;
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     public PutObjectResult call() throws Exception {
         if (!force) {
