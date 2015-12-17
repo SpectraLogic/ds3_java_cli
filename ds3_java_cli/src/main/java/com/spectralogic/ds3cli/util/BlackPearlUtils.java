@@ -30,7 +30,7 @@ public final class BlackPearlUtils {
     public static void checkBlackPearlForTapeFailure(final Ds3Client client) throws IOException, SignatureException, TapeFailureException {
         final List<TapeFailure> tapeFailures = client.getTapeFailure(new GetTapeFailureRequest()).getTapeFailures();
 
-        if (tapeFailures!=null && tapeFailures.size() > 0) {
+        if (tapeFailures != null && tapeFailures.size() > 0) {
             throw new TapeFailureException(tapeFailures);
         }
     }
