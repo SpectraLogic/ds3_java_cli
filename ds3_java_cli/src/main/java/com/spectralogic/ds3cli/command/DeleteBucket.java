@@ -25,6 +25,7 @@ import com.spectralogic.ds3client.commands.DeleteBucketRequest;
 import com.spectralogic.ds3client.commands.DeleteObjectRequest;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.models.Contents;
+import com.spectralogic.ds3client.networking.FailedRequestException;
 import com.spectralogic.ds3client.utils.SSLSetupException;
 import org.apache.commons.cli.MissingOptionException;
 import org.slf4j.Logger;
@@ -64,13 +65,17 @@ public class DeleteBucket extends CliCommand<DeleteResult> {
         }
     }
 
-    private String deleteBucket() throws SignatureException, SSLSetupException, CommandException {
+    private String deleteBucket() throws SignatureException, SSLSetupException, CommandException, IOException {
         try {
             getClient().deleteBucket(new DeleteBucketRequest(bucketName));
         }
-        catch (final IOException e) {
+        catch (final FailedRequestException e) {
+            if (e.getStatusCode() == 409) { //BUCKET_NOT_EMPTY
+                return "Error: Tried to delete a non-empty bucket without the force delete objects flag.\nUse --force to delete all objects in the bucket";
+            }
             throw new CommandException("Error: Request failed with the following error: " + e.getMessage(), e);
         }
+
         return "Success: Deleted bucket '" + bucketName + "'.";
     }
 

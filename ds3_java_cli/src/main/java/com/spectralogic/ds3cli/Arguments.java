@@ -93,7 +93,7 @@ public class Arguments {
         end.setArgName("end");
         final Option id = new Option("i", true, "ID for identifying ds3 api resources");
         id.setArgName("id");
-        final Option force = new Option(null, false, "Used with the command `delete_bucket`.  If this is set then the `delete_bucket` command will also delete all the objects in the bucket");
+        final Option force = new Option(null, false, "Used to force an operation even if there is an error");
         force.setLongOpt("force");
         final Option retries = new Option("r", true, "Specifies how many times puts and gets will be attempted before failing the request.  The default is 5");
         retries.setArgName("retries");

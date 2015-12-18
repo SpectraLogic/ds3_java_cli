@@ -1081,10 +1081,10 @@ public class Ds3Cli_Test {
     }
 
     private ImmutableList<Integer> toImmutableIntList(final int[] expectedStatuses) {
-        final ImmutableList.Builder integerBuilder = ImmutableList.builder();
+        final ImmutableList.Builder<Integer> integerBuilder = ImmutableList.builder();
 
         for (final int status : expectedStatuses) {
-            integerBuilder.add(Integer.valueOf(status));
+            integerBuilder.add(status);
         }
 
         return integerBuilder.build();
