@@ -52,10 +52,7 @@ public class Arguments {
     private int end;
     private int retries = 20;
     private Priority priority;
-    private Priority defaultPutPriority;
-    private Priority defaultGetPriority;
     private WriteOptimization writeOptimization;
-    private WriteOptimization defaultWriteOptimization;
     private boolean force = false;
     private boolean checksum = false;
     private boolean certificateVerification = true;
