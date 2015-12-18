@@ -32,7 +32,8 @@ public class Util {
     public static final String RESOURCE_BASE_NAME = "./src/test/resources/books/";
     public static final String DOWNLOAD_BASE_NAME = "./output/";
 
-    private Util() {}
+    private Util() {
+    }
 
     public static CommandResponse command(final Ds3Client client, final Arguments args) throws Exception {
         final Ds3Provider provider = new Ds3ProviderImpl(client, Ds3ClientHelpers.wrap(client));
@@ -68,7 +69,7 @@ public class Util {
             Files.createDirectories(toDir);
         }
 
-        Files.copy(Paths.get(from+fileName), Paths.get(to+fileName), StandardCopyOption.REPLACE_EXISTING);
+        Files.copy(Paths.get(from + fileName), Paths.get(to + fileName), StandardCopyOption.REPLACE_EXISTING);
     }
 
     public static void deleteLocalFiles() throws IOException {

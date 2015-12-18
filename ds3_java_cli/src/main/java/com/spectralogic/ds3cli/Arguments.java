@@ -102,7 +102,7 @@ public class Arguments {
         final Option priority = new Option(null, true, "Set the bulk job priority.  Possible values: [" + Priority.valuesString() + "]");
         priority.setLongOpt("priority");
         priority.setArgName("priority");
-        final Option writeOptimization = new Option(null, true, "Set the job write optimization.  Possible values: ["+ WriteOptimization.valuesString() +"]");
+        final Option writeOptimization = new Option(null, true, "Set the job write optimization.  Possible values: [" + WriteOptimization.valuesString() + "]");
         writeOptimization.setLongOpt("writeOptimization");
         writeOptimization.setArgName("writeOptimization");
         final Option help = new Option("h", "Print Help Menu");
@@ -119,7 +119,7 @@ public class Arguments {
         debug.setLongOpt("debug");
         final Option trace = new Option(null, "Trace output");
         trace.setLongOpt("trace");
-        final Option viewType = new Option(null, true, "Configure how the output should be displayed.  Possible values: ["+ ViewType.valuesString() +"]");
+        final Option viewType = new Option(null, true, "Configure how the output should be displayed.  Possible values: [" + ViewType.valuesString() + "]");
         viewType.setLongOpt("output-format");
         final Option completed = new Option(null, false, "Used with the command get_jobs to include the display of completed jobs");
         completed.setLongOpt("completed");
@@ -304,7 +304,7 @@ public class Arguments {
         if (!missingArgs.isEmpty()) {
             throw new MissingOptionException(missingArgs);
         }
-        LOG.info("Access Key: " + getAccessKey() +" | Secret Key: " + getSecretKey() + " | Endpoint: " + getEndpoint());
+        LOG.info("Access Key: " + getAccessKey() + " | Secret Key: " + getSecretKey() + " | Endpoint: " + getEndpoint());
 
         if (cmd.hasOption("sync")) {
             this.setSync(true);
@@ -316,8 +316,7 @@ public class Arguments {
         try {
             if (writeOptimizationString == null) {
                 return null;
-            }
-            else {
+            } else {
                 return WriteOptimization.valueOf(writeOptimizationString.toUpperCase());
             }
         } catch (final IllegalArgumentException e) {
@@ -330,8 +329,7 @@ public class Arguments {
         try {
             if (priorityString == null) {
                 return null;
-            }
-            else {
+            } else {
                 return Priority.valueOf(priorityString.toUpperCase());
             }
         } catch (final IllegalArgumentException e) {
@@ -352,8 +350,7 @@ public class Arguments {
         final InputStream input = Arguments.class.getClassLoader().getResourceAsStream(PROPERTY_FILE);
         if (input == null) {
             System.err.println("Could not find property file.");
-        }
-        else {
+        } else {
             try {
                 props.load(input);
                 this.version = (String) props.get("version");
@@ -368,8 +365,9 @@ public class Arguments {
         }
 
     }
+
     private void printVersion() {
-        System.out.println("Version: " + getVersion() );
+        System.out.println("Version: " + getVersion());
         System.out.println("Build Date: " + getBuildDate());
     }
 
@@ -538,17 +536,19 @@ public class Arguments {
         this.id = id;
     }
 
-    public boolean isCompleted() { return this.completed; }
+    public boolean isCompleted() {
+        return this.completed;
+    }
 
-    void setCompleted(final boolean completed) { this.completed = completed; }
+    void setCompleted(final boolean completed) {
+        this.completed = completed;
+    }
 
-    void setSync(final boolean sync)
-    {
+    void setSync(final boolean sync) {
         this.sync = sync;
     }
 
-    public boolean isSync()
-    {
+    public boolean isSync() {
         return sync;
     }
 }

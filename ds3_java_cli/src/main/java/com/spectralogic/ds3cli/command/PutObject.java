@@ -47,7 +47,7 @@ public class PutObject extends CliCommand<PutObjectResult> {
     private String objectName;
     private String prefix;
     private boolean sync;
-	private boolean force;
+    private boolean force;
 
     public PutObject(final Ds3Provider provider, final FileUtils fileUtils) {
         super(provider, fileUtils);
@@ -69,8 +69,8 @@ public class PutObject extends CliCommand<PutObjectResult> {
         }
 
         objectPath = FileSystems.getDefault().getPath(args.getObjectName());
-        if(!getFileUtils().exists(objectPath)) {
-            throw new BadArgumentException("File '"+ objectName +"' does not exist.");
+        if (!getFileUtils().exists(objectPath)) {
+            throw new BadArgumentException("File '" + objectName + "' does not exist.");
         }
         if (!getFileUtils().isRegularFile(objectPath)) {
             throw new BadArgumentException("The '-o' command must be a file and not a directory.");
@@ -96,7 +96,7 @@ public class PutObject extends CliCommand<PutObjectResult> {
         final Ds3ClientHelpers helpers = getClientHelpers();
         final Ds3Object ds3Obj = new Ds3Object(normalizeObjectName(objectName), getFileUtils().size(objectPath));
 
-        if(prefix != null) {
+        if (prefix != null) {
             LOG.info("Pre-appending " + prefix + " to object name");
             ds3Obj.setName(prefix + ds3Obj.getName());
         }
@@ -136,11 +136,9 @@ public class PutObject extends CliCommand<PutObjectResult> {
         final int colonIndex = objectName.indexOf(':');
         if (colonIndex != -1) {
             path = objectName.substring(colonIndex + 2);
-        }
-        else if (objectName.startsWith("/")) {
+        } else if (objectName.startsWith("/")) {
             return objectName.substring(1);
-        }
-        else {
+        } else {
             path = objectName;
         }
         if (!path.contains("\\")) {

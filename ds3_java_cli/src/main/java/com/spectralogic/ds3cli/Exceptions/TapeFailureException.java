@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-public class TapeFailureException extends Exception{
+public class TapeFailureException extends Exception {
     public TapeFailureException(final Iterator<TapeFailure> tapeFailures) {
         super(BuildTapeFailureMessage(tapeFailures));
     }
@@ -47,7 +47,7 @@ public class TapeFailureException extends Exception{
     private static String[][] formatBucketList(final Iterator<TapeFailure> iterator) {
         final List<String[]> contents = new ArrayList<>();
 
-        while(iterator.hasNext()) {
+        while (iterator.hasNext()) {
 
             final TapeFailure tapeFailure = iterator.next();
             final String[] arrayEntry = new String[6];
@@ -65,7 +65,7 @@ public class TapeFailureException extends Exception{
     }
 
     private static String nullGuard(final String message) {
-        if(message == null) {
+        if (message == null) {
             return "N/A";
         }
 
