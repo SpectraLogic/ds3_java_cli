@@ -33,6 +33,7 @@ public class Util {
     public static final String DOWNLOAD_BASE_NAME = "./output/";
 
     private Util() {
+        //pass
     }
 
     public static CommandResponse command(final Ds3Client client, final Arguments args) throws Exception {

@@ -16,7 +16,7 @@
 package com.spectralogic.ds3cli.util;
 
 import com.google.common.collect.Iterables;
-import com.spectralogic.ds3cli.Exceptions.TapeFailureException;
+import com.spectralogic.ds3cli.exceptions.TapeFailureException;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.GetTapeFailureRequest;
 import com.spectralogic.ds3client.models.tape.TapeFailure;

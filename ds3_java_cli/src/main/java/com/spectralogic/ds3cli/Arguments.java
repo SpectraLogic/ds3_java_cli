@@ -16,7 +16,7 @@
 package com.spectralogic.ds3cli;
 
 import ch.qos.logback.classic.Level;
-import com.spectralogic.ds3cli.Exceptions.BadArgumentException;
+import com.spectralogic.ds3cli.exceptions.BadArgumentException;
 import com.spectralogic.ds3client.models.bulk.Priority;
 import com.spectralogic.ds3client.models.bulk.WriteOptimization;
 import org.apache.commons.cli.*;

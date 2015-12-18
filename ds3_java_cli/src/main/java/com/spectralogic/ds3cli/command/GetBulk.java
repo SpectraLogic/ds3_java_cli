@@ -172,8 +172,7 @@ public class GetBulk extends CliCommand<GetBulkResult> {
     private String restoreAll(final Ds3ClientHelpers.ObjectChannelBuilder getter) throws XmlProcessingException, SignatureException, IOException, SSLSetupException {
         final Ds3ClientHelpers helper = getClientHelpers();
         final Ds3ClientHelpers.Job job = helper.startReadAllJob(this.bucketName,
-                ReadJobOptions.create()
-                        .withPriority(this.priority));
+                ReadJobOptions.create().withPriority(this.priority));
 
         job.transfer(new LoggingFileObjectGetter(getter));
 
