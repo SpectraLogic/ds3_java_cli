@@ -458,7 +458,7 @@ public class Arguments {
         this.end = end;
     }
 
-    void setForce(boolean force) {
+    void setForce(final boolean force) {
         this.force = force;
     }
 
@@ -466,7 +466,7 @@ public class Arguments {
         return this.force;
     }
 
-    void setRetries(int retries) {
+    void setRetries(final int retries) {
         this.retries = retries;
     }
 
