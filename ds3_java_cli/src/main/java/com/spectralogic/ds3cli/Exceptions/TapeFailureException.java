@@ -24,6 +24,7 @@ import java.util.Iterator;
 import java.util.List;
 
 public class TapeFailureException extends Exception {
+
     public TapeFailureException(final Iterator<TapeFailure> tapeFailures) {
         super(BuildTapeFailureMessage(tapeFailures));
     }
