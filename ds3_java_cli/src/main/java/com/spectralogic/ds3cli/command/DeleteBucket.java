@@ -40,6 +40,7 @@ public class DeleteBucket extends CliCommand<DeleteResult> {
 
     private String bucketName;
     private boolean force;
+
     public DeleteBucket(final Ds3Provider provider, final FileUtils fileUtils) {
         super(provider, fileUtils);
     }
@@ -58,20 +59,18 @@ public class DeleteBucket extends CliCommand<DeleteResult> {
     public DeleteResult call() throws Exception {
 
         if (force) {
-            return new DeleteResult( clearObjects() );
-        }
-        else {
-            return new DeleteResult( deleteBucket() );
+            return new DeleteResult(clearObjects());
+        } else {
+            return new DeleteResult(deleteBucket());
         }
     }
 
     private String deleteBucket() throws SignatureException, SSLSetupException, CommandException, IOException {
         try {
             getClient().deleteBucket(new DeleteBucketRequest(bucketName));
-        }
-        catch (final FailedRequestException e) {
+        } catch (final FailedRequestException e) {
             if (e.getStatusCode() == 409) { //BUCKET_NOT_EMPTY
-                return "Error: Tried to delete a non-empty bucket without the force delete objects flag.\nUse --force to delete all objects in the bucket";
+                throw new CommandException("Error: Tried to delete a non-empty bucket without the force delete objects flag.\nUse --force to delete all objects in the bucket");
             }
             throw new CommandException("Error: Request failed with the following error: " + e.getMessage(), e);
         }
