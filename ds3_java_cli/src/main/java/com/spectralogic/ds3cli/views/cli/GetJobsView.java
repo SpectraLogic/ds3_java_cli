@@ -9,6 +9,8 @@ import com.spectralogic.ds3client.models.bulk.JobInfo;
 
 import java.util.List;
 
+import static com.spectralogic.ds3cli.util.Utils.nullGuard;
+
 public class GetJobsView implements View<GetJobsResult> {
     @Override
     public String render(final GetJobsResult obj) throws JsonProcessingException {
@@ -26,12 +28,12 @@ public class GetJobsView implements View<GetJobsResult> {
         for(int i = 0; i < result.size(); i ++) {
             final JobInfo job = result.get(i);
             final String [] jobArray = new String[6];
-            jobArray[0] = job.getBucketName();
-            jobArray[1] = job.getJobId().toString();
-            jobArray[2] = job.getStartDate();
-            jobArray[3] = job.getUserName();
-            jobArray[4] = job.getRequestType().toString();
-            jobArray[5] = job.getStatus().toString();
+            jobArray[0] = nullGuard(job.getBucketName());
+            jobArray[1] = nullGuard(job.getJobId().toString());
+            jobArray[2] = nullGuard(job.getStartDate());
+            jobArray[3] = nullGuard(job.getUserName());
+            jobArray[4] = nullGuard(job.getRequestType().toString());
+            jobArray[5] = nullGuard(job.getStatus().toString());
             formatArray[i] = jobArray;
         }
         return formatArray;

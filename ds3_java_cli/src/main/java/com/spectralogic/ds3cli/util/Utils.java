@@ -49,4 +49,12 @@ public final class Utils {
     public static boolean fileExists(final Path filePath) {
         return Files.exists(filePath);
     }
+
+    public static String nullGuard(final String message) {
+        if (message == null) {
+            return "N/A";
+        }
+
+        return message;
+    }
 }

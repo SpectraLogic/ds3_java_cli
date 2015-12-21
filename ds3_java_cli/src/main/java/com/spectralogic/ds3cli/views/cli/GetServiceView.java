@@ -24,6 +24,8 @@ import com.spectralogic.ds3client.models.ListAllMyBucketsResult;
 
 import java.util.List;
 
+import static com.spectralogic.ds3cli.util.Utils.nullGuard;
+
 public class GetServiceView implements View<GetServiceResult> {
     @Override
     public String render(final GetServiceResult obj) {
@@ -42,8 +44,8 @@ public class GetServiceView implements View<GetServiceResult> {
         for(int i = 0; i < buckets.size(); i ++) {
             final Bucket bucket = buckets.get(i);
             final String [] bucketArray = new String[2];
-            bucketArray[0] = bucket.getName();
-            bucketArray[1] = bucket.getCreationDate();
+            bucketArray[0] = nullGuard(bucket.getName());
+            bucketArray[1] = nullGuard(bucket.getCreationDate());
             formatArray[i] = bucketArray;
         }
         return formatArray;

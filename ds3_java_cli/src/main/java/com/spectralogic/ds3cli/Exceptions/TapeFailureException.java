@@ -23,6 +23,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import static com.spectralogic.ds3cli.util.Utils.nullGuard;
+
 public class TapeFailureException extends Exception {
 
     public TapeFailureException(final Iterator<TapeFailure> tapeFailures) {
@@ -63,13 +65,5 @@ public class TapeFailureException extends Exception {
         }
 
         return contents.toArray(new String[contents.size()][]);
-    }
-
-    private static String nullGuard(final String message) {
-        if (message == null) {
-            return "N/A";
-        }
-
-        return message;
     }
 }

@@ -25,6 +25,8 @@ import com.spectralogic.ds3client.models.tape.Tapes;
 
 import java.util.List;
 
+import static com.spectralogic.ds3cli.util.Utils.nullGuard;
+
 public class GetTapesView implements View<GetTapesResult> {
     @Override
     public String render(final GetTapesResult obj) throws JsonProcessingException {
@@ -42,12 +44,12 @@ public class GetTapesView implements View<GetTapesResult> {
         for(int i = 0; i < tapes.size(); i ++) {
             final Tape tape = tapes.get(i);
             final String [] bucketArray = new String[5];
-            bucketArray[0] = tape.getBarcode();
-            bucketArray[1] = tape.getId().toString();
-            bucketArray[2] = tape.getState().toString();
-            bucketArray[3] = tape.getLastModified();
-            bucketArray[4] = Long.toString(tape.getAvailableRawCapacity());
-            bucketArray[5] = tape.getMostRecentFailure();
+            bucketArray[0] = nullGuard(tape.getBarcode());
+            bucketArray[1] = nullGuard(tape.getId().toString());
+            bucketArray[2] = nullGuard(tape.getState().toString());
+            bucketArray[3] = nullGuard(tape.getLastModified());
+            bucketArray[4] = nullGuard(Long.toString(tape.getAvailableRawCapacity()));
+            bucketArray[5] = nullGuard(tape.getMostRecentFailure());
             formatArray[i] = bucketArray;
         }
         return formatArray;
