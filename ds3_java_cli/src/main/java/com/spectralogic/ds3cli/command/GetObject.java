@@ -104,22 +104,23 @@ public class GetObject extends CliCommand<GetObjectResult> {
             Transfer(helpers, ds3Obj);
             return new GetObjectResult("SUCCESS: Finished downloading object.  The object was written to: " + filePath);
         } catch (final FailedRequestException e) {
-            if (e.getStatusCode() == 500) {
-                LOG.info(e.getMessage());
-                if (LOG.isInfoEnabled()) {
-                    e.printStackTrace();
-                }
-                throw new CommandException("Error: Cannot communicate with the remote DS3 appliance.", e);
-            } else if (e.getStatusCode() == 404) {
-                if (LOG.isInfoEnabled()) {
-                    e.printStackTrace();
-                }
-                throw new CommandException("Error: " + e.getMessage(), e);
-            } else {
-                if (LOG.isInfoEnabled()) {
-                    e.printStackTrace();
-                }
-                throw new CommandException("Error: Encountered an unknown error of (" + e.getStatusCode() + ") while accessing the remote DS3 appliance.", e);
+            switch (e.getStatusCode()) {
+                case 500:
+                    LOG.info(e.getMessage());
+                    if (LOG.isInfoEnabled()) {
+                        e.printStackTrace();
+                    }
+                    throw new CommandException("Error: Cannot communicate with the remote DS3 appliance.", e);
+                case 404:
+                    if (LOG.isInfoEnabled()) {
+                        e.printStackTrace();
+                    }
+                    throw new CommandException("Error: " + e.getMessage(), e);
+                default:
+                    if (LOG.isInfoEnabled()) {
+                        e.printStackTrace();
+                    }
+                    throw new CommandException("Error: Encountered an unknown error of (" + e.getStatusCode() + ") while accessing the remote DS3 appliance.", e);
             }
         }
     }
