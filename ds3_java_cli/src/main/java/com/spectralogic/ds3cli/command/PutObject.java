@@ -17,8 +17,9 @@ package com.spectralogic.ds3cli.command;
 
 import com.google.common.collect.Lists;
 import com.spectralogic.ds3cli.Arguments;
-import com.spectralogic.ds3cli.BadArgumentException;
+import com.spectralogic.ds3cli.exceptions.BadArgumentException;
 import com.spectralogic.ds3cli.models.PutObjectResult;
+import com.spectralogic.ds3cli.util.BlackPearlUtils;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3cli.util.SyncUtils;
@@ -46,6 +47,7 @@ public class PutObject extends CliCommand<PutObjectResult> {
     private String objectName;
     private String prefix;
     private boolean sync;
+    private boolean force;
 
     public PutObject(final Ds3Provider provider, final FileUtils fileUtils) {
         super(provider, fileUtils);
@@ -67,14 +69,15 @@ public class PutObject extends CliCommand<PutObjectResult> {
         }
 
         objectPath = FileSystems.getDefault().getPath(args.getObjectName());
-        if(!getFileUtils().exists(objectPath)) {
-            throw new BadArgumentException("File '"+ objectName +"' does not exist.");
+        if (!getFileUtils().exists(objectPath)) {
+            throw new BadArgumentException("File '" + objectName + "' does not exist.");
         }
         if (!getFileUtils().isRegularFile(objectPath)) {
             throw new BadArgumentException("The '-o' command must be a file and not a directory.");
         }
 
         this.prefix = args.getPrefix();
+        this.force = args.isForce();
 
         if (args.isSync()) {
             LOG.info("Using sync command");
@@ -84,13 +87,16 @@ public class PutObject extends CliCommand<PutObjectResult> {
         return this;
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     public PutObjectResult call() throws Exception {
+        if (!force) {
+            BlackPearlUtils.checkBlackPearlForTapeFailure(getClient());
+        }
+
         final Ds3ClientHelpers helpers = getClientHelpers();
         final Ds3Object ds3Obj = new Ds3Object(normalizeObjectName(objectName), getFileUtils().size(objectPath));
 
-        if(prefix != null) {
+        if (prefix != null) {
             LOG.info("Pre-appending " + prefix + " to object name");
             ds3Obj.setName(prefix + ds3Obj.getName());
         }
@@ -130,11 +136,9 @@ public class PutObject extends CliCommand<PutObjectResult> {
         final int colonIndex = objectName.indexOf(':');
         if (colonIndex != -1) {
             path = objectName.substring(colonIndex + 2);
-        }
-        else if (objectName.startsWith("/")) {
+        } else if (objectName.startsWith("/")) {
             return objectName.substring(1);
-        }
-        else {
+        } else {
             path = objectName;
         }
         if (!path.contains("\\")) {

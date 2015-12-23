@@ -17,8 +17,9 @@ package com.spectralogic.ds3cli.command;
 
 import com.google.common.collect.Lists;
 import com.spectralogic.ds3cli.Arguments;
-import com.spectralogic.ds3cli.CommandException;
+import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.GetObjectResult;
+import com.spectralogic.ds3cli.util.BlackPearlUtils;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3cli.util.SyncUtils;
@@ -46,6 +47,7 @@ public class GetObject extends CliCommand<GetObjectResult> {
     private String objectName;
     private String prefix;
     private boolean sync;
+    private boolean force;
 
     public GetObject(final Ds3Provider provider, final FileUtils fileUtils) {
         super(provider, fileUtils);
@@ -73,12 +75,18 @@ public class GetObject extends CliCommand<GetObjectResult> {
             this.sync = true;
         }
 
+        this.force = args.isForce();
+
         return this;
     }
 
     @Override
     public GetObjectResult call() throws Exception {
         try {
+            if (!force) {
+                BlackPearlUtils.checkBlackPearlForTapeFailure(getClient());
+            }
+
             final Ds3ClientHelpers helpers = getClientHelpers();
             final Path filePath = Paths.get(prefix, objectName);
             LOG.info("Output path: " + filePath.toString());
@@ -88,34 +96,21 @@ public class GetObject extends CliCommand<GetObjectResult> {
                 if (SyncUtils.needToSync(helpers, bucketName, filePath, ds3Obj.getName(), false)) {
                     Transfer(helpers, ds3Obj);
                     return new GetObjectResult("SUCCESS: Finished syncing object.");
-                }
-                else {
+                } else {
                     return new GetObjectResult("SUCCESS: No need to sync " + objectName);
                 }
             }
 
             Transfer(helpers, ds3Obj);
             return new GetObjectResult("SUCCESS: Finished downloading object.  The object was written to: " + filePath);
-        }
-        catch(final FailedRequestException e) {
-            if(e.getStatusCode() == 500) {
-                LOG.info(e.getMessage());
-                if (LOG.isInfoEnabled()) {
-                    e.printStackTrace();
-                }
-                throw new CommandException( "Error: Cannot communicate with the remote DS3 appliance.", e);
-            }
-            else if(e.getStatusCode() == 404) {
-                if (LOG.isInfoEnabled()) {
-                    e.printStackTrace();
-                }
-                throw new CommandException( "Error: " + e.getMessage(), e);
-            }
-            else {
-                if (LOG.isInfoEnabled()) {
-                    e.printStackTrace();
-                }
-                throw new CommandException( "Error: Encountered an unknown error of ("+ e.getStatusCode() +") while accessing the remote DS3 appliance.", e);
+        } catch (final FailedRequestException e) {
+            switch (e.getStatusCode()) {
+                case 500:
+                    throw new CommandException("Error: Cannot communicate with the remote DS3 appliance.", e);
+                case 404:
+                    throw new CommandException("Error: " + e.getMessage(), e);
+                default:
+                    throw new CommandException("Error: Encountered an unknown error of (" + e.getStatusCode() + ") while accessing the remote DS3 appliance.", e);
             }
         }
     }

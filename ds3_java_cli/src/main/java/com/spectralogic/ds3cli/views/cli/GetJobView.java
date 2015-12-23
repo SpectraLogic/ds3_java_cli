@@ -12,6 +12,8 @@ import com.spectralogic.ds3client.models.bulk.Objects;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import static com.spectralogic.ds3cli.util.Utils.nullGuard;
+
 public class GetJobView implements View<GetJobResult> {
     @Override
     public String render(final GetJobResult obj) throws JsonProcessingException {
@@ -39,11 +41,11 @@ public class GetJobView implements View<GetJobResult> {
             for (final BulkObject obj : chunk) {
                 final String[] arrayEntry = new String[5];
 
-                arrayEntry[0] = obj.getName();
-                arrayEntry[1] = Long.toString(obj.getLength());
-                arrayEntry[2] = Boolean.toString(obj.isInCache());
-                arrayEntry[3] = Long.toString(chunk.getChunkNumber());
-                arrayEntry[4] = chunk.getChunkId().toString();
+                arrayEntry[0] = nullGuard(obj.getName());
+                arrayEntry[1] = nullGuard(Long.toString(obj.getLength()));
+                arrayEntry[2] = nullGuard(Boolean.toString(obj.isInCache()));
+                arrayEntry[3] = nullGuard(Long.toString(chunk.getChunkNumber()));
+                arrayEntry[4] = nullGuard(chunk.getChunkId().toString());
 
                 contents.add(arrayEntry);
             }

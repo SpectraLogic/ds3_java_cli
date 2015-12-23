@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.models.PutBulkResult;
+import com.spectralogic.ds3cli.util.BlackPearlUtils;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3cli.util.SyncUtils;
@@ -54,6 +55,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
     private Priority priority;
     private WriteOptimization writeOptimization;
     private boolean sync;
+    private boolean force;
 
     public PutBulk(final Ds3Provider provider, final FileUtils fileUtils) {
         super(provider, fileUtils);
@@ -80,6 +82,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         this.writeOptimization = args.getWriteOptimization();
         this.inputDirectory = FileSystems.getDefault().getPath(srcDir);
         this.checksum = args.isChecksum();
+        this.force = args.isForce();
 
         if (args.isSync()) {
             LOG.info("Using sync command");
@@ -91,6 +94,10 @@ public class PutBulk extends CliCommand<PutBulkResult> {
 
     @Override
     public PutBulkResult call() throws Exception {
+        if (!force) {
+            BlackPearlUtils.checkBlackPearlForTapeFailure(getClient());
+        }
+
         final Ds3ClientHelpers helpers = getClientHelpers();
         final Iterable<Ds3Object> ds3Objects;
 
@@ -98,19 +105,18 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         helpers.ensureBucketExists(this.bucketName);
 
         if (sync) {
-            if (!SyncUtils.isSyncSupported(getClient())){
+            if (!SyncUtils.isSyncSupported(getClient())) {
                 return new PutBulkResult("Failed: The sync command is not supported with your version of BlackPearl.");
             }
 
             final Iterable<Contents> contents = helpers.listObjects(bucketName, prefix);
-            final Iterable<Path> filteredObjects = filterObjects(this.inputDirectory, prefix!=null ? prefix : "", contents);
+            final Iterable<Path> filteredObjects = filterObjects(this.inputDirectory, prefix != null ? prefix : "", contents);
             if (Iterables.isEmpty(filteredObjects)) {
                 return new PutBulkResult("SUCCESS: All files are up to date");
             }
 
             ds3Objects = getDs3Objects(filteredObjects);
-        }
-        else {
+        } else {
             ds3Objects = helpers.listObjectsForDirectory(this.inputDirectory);
         }
 
@@ -123,8 +129,8 @@ public class PutBulk extends CliCommand<PutBulkResult> {
 
         final Ds3ClientHelpers.Job job = helpers.startWriteJob(this.bucketName, ds3Objects,
                 WriteJobOptions.create()
-                .withPriority(this.priority)
-                .withWriteOptimization(this.writeOptimization));
+                        .withPriority(this.priority)
+                        .withWriteOptimization(this.writeOptimization));
         if (this.checksum) {
             throw new RuntimeException("Checksum calculation is not currently supported."); //TODO
 //            Logging.log("Performing bulk put with checksum computation enabled");
@@ -159,12 +165,10 @@ public class PutBulk extends CliCommand<PutBulkResult> {
             final Contents content = mapBucketFiles.get(prefix + fileName);
             if (content == null) {
                 filteredObjects.add(localFile);
-            }
-            else if (SyncUtils.isNewFile(localFile, content, true)) {
+            } else if (SyncUtils.isNewFile(localFile, content, true)) {
                 LOG.info("Syncing new version of " + fileName);
                 filteredObjects.add(localFile);
-            }
-            else {
+            } else {
                 LOG.info("No need to sync " + fileName);
             }
         }
@@ -189,13 +193,11 @@ public class PutBulk extends CliCommand<PutBulkResult> {
 
             if (prefix == null) {
                 objectName = s;
-            }
-            else {
+            } else {
                 if (!s.startsWith(prefix)) {
                     LOG.info("The object (" + s + ") does not begin with prefix " + prefix + ".  Ignoring adding the prefix.");
                     objectName = s;
-                }
-                else {
+                } else {
                     objectName = s.substring(prefix.length());
                 }
             }

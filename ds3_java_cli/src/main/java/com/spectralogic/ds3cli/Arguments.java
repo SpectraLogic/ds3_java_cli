@@ -16,6 +16,7 @@
 package com.spectralogic.ds3cli;
 
 import ch.qos.logback.classic.Level;
+import com.spectralogic.ds3cli.exceptions.BadArgumentException;
 import com.spectralogic.ds3client.models.bulk.Priority;
 import com.spectralogic.ds3client.models.bulk.WriteOptimization;
 import org.apache.commons.cli.*;
@@ -52,7 +53,7 @@ public class Arguments {
     private int retries = 20;
     private Priority priority;
     private WriteOptimization writeOptimization;
-    private boolean clearBucket = false;
+    private boolean force = false;
     private boolean checksum = false;
     private boolean certificateVerification = true;
     private boolean https = true;
@@ -92,8 +93,8 @@ public class Arguments {
         end.setArgName("end");
         final Option id = new Option("i", true, "ID for identifying ds3 api resources");
         id.setArgName("id");
-        final Option clearBucket = new Option(null, false, "Used with the command `delete_bucket`.  If this is set then the `delete_bucket` command will also delete all the objects in the bucket");
-        clearBucket.setLongOpt("force");
+        final Option force = new Option(null, false, "Used to force an operation even if there is an error");
+        force.setLongOpt("force");
         final Option retries = new Option("r", true, "Specifies how many times puts and gets will be attempted before failing the request.  The default is 5");
         retries.setArgName("retries");
         final Option checksum = new Option(null, "Validate checksum values");
@@ -101,7 +102,7 @@ public class Arguments {
         final Option priority = new Option(null, true, "Set the bulk job priority.  Possible values: [" + Priority.valuesString() + "]");
         priority.setLongOpt("priority");
         priority.setArgName("priority");
-        final Option writeOptimization = new Option(null, true, "Set the job write optimization.  Possible values: ["+ WriteOptimization.valuesString() +"]");
+        final Option writeOptimization = new Option(null, true, "Set the job write optimization.  Possible values: [" + WriteOptimization.valuesString() + "]");
         writeOptimization.setLongOpt("writeOptimization");
         writeOptimization.setArgName("writeOptimization");
         final Option help = new Option("h", "Print Help Menu");
@@ -118,7 +119,7 @@ public class Arguments {
         debug.setLongOpt("debug");
         final Option trace = new Option(null, "Trace output");
         trace.setLongOpt("trace");
-        final Option viewType = new Option(null, true, "Configure how the output should be displayed.  Possible values: ["+ ViewType.valuesString() +"]");
+        final Option viewType = new Option(null, true, "Configure how the output should be displayed.  Possible values: [" + ViewType.valuesString() + "]");
         viewType.setLongOpt("output-format");
         final Option completed = new Option(null, false, "Used with the command get_jobs to include the display of completed jobs");
         completed.setLongOpt("completed");
@@ -136,7 +137,7 @@ public class Arguments {
         options.addOption(id);
         //options.addOption(start);  //TODO re-add these calls when we have support for partial file gets in the helper functions
         //options.addOption(end);
-        options.addOption(clearBucket);
+        options.addOption(force);
         options.addOption(retries);
         options.addOption(checksum);
         options.addOption(priority);
@@ -235,7 +236,7 @@ public class Arguments {
         this.setWriteOptimization(processWriteOptimization(cmd, "writeOptimization"));
 
         if (cmd.hasOption("force")) {
-            this.setClearBucket(true);
+            this.setForce(true);
         }
 
         if (cmd.hasOption("checksum")) {
@@ -303,7 +304,7 @@ public class Arguments {
         if (!missingArgs.isEmpty()) {
             throw new MissingOptionException(missingArgs);
         }
-        LOG.info("Access Key: " + getAccessKey() +" | Secret Key: " + getSecretKey() + " | Endpoint: " + getEndpoint());
+        LOG.info("Access Key: " + getAccessKey() + " | Secret Key: " + getSecretKey() + " | Endpoint: " + getEndpoint());
 
         if (cmd.hasOption("sync")) {
             this.setSync(true);
@@ -315,8 +316,7 @@ public class Arguments {
         try {
             if (writeOptimizationString == null) {
                 return null;
-            }
-            else {
+            } else {
                 return WriteOptimization.valueOf(writeOptimizationString.toUpperCase());
             }
         } catch (final IllegalArgumentException e) {
@@ -329,8 +329,7 @@ public class Arguments {
         try {
             if (priorityString == null) {
                 return null;
-            }
-            else {
+            } else {
                 return Priority.valueOf(priorityString.toUpperCase());
             }
         } catch (final IllegalArgumentException e) {
@@ -351,8 +350,7 @@ public class Arguments {
         final InputStream input = Arguments.class.getClassLoader().getResourceAsStream(PROPERTY_FILE);
         if (input == null) {
             System.err.println("Could not find property file.");
-        }
-        else {
+        } else {
             try {
                 props.load(input);
                 this.version = (String) props.get("version");
@@ -367,8 +365,9 @@ public class Arguments {
         }
 
     }
+
     private void printVersion() {
-        System.out.println("Version: " + getVersion() );
+        System.out.println("Version: " + getVersion());
         System.out.println("Build Date: " + getBuildDate());
     }
 
@@ -457,15 +456,15 @@ public class Arguments {
         this.end = end;
     }
 
-    void setClearBucket(boolean clearBucket) {
-        this.clearBucket = clearBucket;
+    void setForce(final boolean force) {
+        this.force = force;
     }
 
-    public boolean isClearBucket() {
-        return this.clearBucket;
+    public boolean isForce() {
+        return this.force;
     }
 
-    void setRetries(int retries) {
+    void setRetries(final int retries) {
         this.retries = retries;
     }
 
@@ -537,17 +536,19 @@ public class Arguments {
         this.id = id;
     }
 
-    public boolean isCompleted() { return this.completed; }
+    public boolean isCompleted() {
+        return this.completed;
+    }
 
-    void setCompleted(final boolean completed) { this.completed = completed; }
+    void setCompleted(final boolean completed) {
+        this.completed = completed;
+    }
 
-    void setSync(final boolean sync)
-    {
+    void setSync(final boolean sync) {
         this.sync = sync;
     }
 
-    public boolean isSync()
-    {
+    public boolean isSync() {
         return sync;
     }
 }

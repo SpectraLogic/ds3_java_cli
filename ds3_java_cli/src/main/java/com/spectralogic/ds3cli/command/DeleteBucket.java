@@ -16,7 +16,7 @@
 package com.spectralogic.ds3cli.command;
 
 import com.spectralogic.ds3cli.Arguments;
-import com.spectralogic.ds3cli.CommandException;
+import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.DeleteResult;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
@@ -25,6 +25,7 @@ import com.spectralogic.ds3client.commands.DeleteBucketRequest;
 import com.spectralogic.ds3client.commands.DeleteObjectRequest;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.models.Contents;
+import com.spectralogic.ds3client.networking.FailedRequestException;
 import com.spectralogic.ds3client.utils.SSLSetupException;
 import org.apache.commons.cli.MissingOptionException;
 import org.slf4j.Logger;
@@ -38,7 +39,8 @@ public class DeleteBucket extends CliCommand<DeleteResult> {
     private static final Logger LOG = LoggerFactory.getLogger(DeleteBucket.class);
 
     private String bucketName;
-    private boolean clearBucket;
+    private boolean force;
+
     public DeleteBucket(final Ds3Provider provider, final FileUtils fileUtils) {
         super(provider, fileUtils);
     }
@@ -49,28 +51,30 @@ public class DeleteBucket extends CliCommand<DeleteResult> {
         if (bucketName == null) {
             throw new MissingOptionException("The delete bucket command requires '-b' to be set.");
         }
-        clearBucket = args.isClearBucket();
+        force = args.isForce();
         return this;
     }
 
     @Override
     public DeleteResult call() throws Exception {
 
-        if (clearBucket) {
-            return new DeleteResult( clearObjects() );
-        }
-        else {
-            return new DeleteResult( deleteBucket() );
+        if (force) {
+            return new DeleteResult(clearObjects());
+        } else {
+            return new DeleteResult(deleteBucket());
         }
     }
 
-    private String deleteBucket() throws SignatureException, SSLSetupException, CommandException {
+    private String deleteBucket() throws SignatureException, SSLSetupException, CommandException, IOException {
         try {
             getClient().deleteBucket(new DeleteBucketRequest(bucketName));
-        }
-        catch (final IOException e) {
+        } catch (final FailedRequestException e) {
+            if (e.getStatusCode() == 409) { //BUCKET_NOT_EMPTY
+                throw new CommandException("Error: Tried to delete a non-empty bucket without the force delete objects flag.\nUse --force to delete all objects in the bucket");
+            }
             throw new CommandException("Error: Request failed with the following error: " + e.getMessage(), e);
         }
+
         return "Success: Deleted bucket '" + bucketName + "'.";
     }
 

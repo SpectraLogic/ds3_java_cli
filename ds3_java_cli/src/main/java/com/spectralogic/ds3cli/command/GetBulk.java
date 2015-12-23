@@ -19,6 +19,7 @@ import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.models.GetBulkResult;
+import com.spectralogic.ds3cli.util.BlackPearlUtils;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3cli.util.SyncUtils;
@@ -55,6 +56,7 @@ public class GetBulk extends CliCommand<GetBulkResult> {
     private boolean checksum;
     private Priority priority;
     private boolean sync;
+    private boolean force;
 
     public GetBulk(final Ds3Provider provider, final FileUtils fileUtils) {
         super(provider, fileUtils);
@@ -88,18 +90,23 @@ public class GetBulk extends CliCommand<GetBulkResult> {
             this.sync = true;
         }
 
+        this.force = args.isForce();
         return this;
     }
 
     @Override
     public GetBulkResult call() throws Exception {
+
+        if (!force) {
+            BlackPearlUtils.checkBlackPearlForTapeFailure(getClient());
+        }
+
         final Ds3ClientHelpers.ObjectChannelBuilder getter;
         if (checksum) {
             throw new RuntimeException("Checksumming is currently not implemented.");//TODO
 //            Logging.log("Performing get_bulk with checksum verification");
 //            getter = new VerifyingFileObjectGetter(this.outputPath);
-        }
-        else {
+        } else {
             getter = new FileObjectGetter(this.outputPath);
         }
 
@@ -107,8 +114,7 @@ public class GetBulk extends CliCommand<GetBulkResult> {
             //TODO use Guard.isStringNullOrEmpty(this.prefix) when java sdk 1.2.3 will be released
             if (this.prefix == null || this.prefix.isEmpty()) {
                 LOG.info("Syncing all objects from " + this.bucketName);
-            }
-            else {
+            } else {
                 LOG.info("Syncing only those objects that start with " + this.prefix);
             }
             return new GetBulkResult(restoreSome(getter));
@@ -133,8 +139,7 @@ public class GetBulk extends CliCommand<GetBulkResult> {
             if (Iterables.isEmpty(filteredContents)) {
                 return "SUCCESS: All files are up to date";
             }
-        }
-        else {
+        } else {
             filteredContents = null;
         }
 
@@ -149,27 +154,25 @@ public class GetBulk extends CliCommand<GetBulkResult> {
 
         final Ds3ClientHelpers.Job job = helper.startReadJob(this.bucketName, objects,
                 ReadJobOptions.create()
-                .withPriority(this.priority));
+                        .withPriority(this.priority));
 
         job.transfer(new LoggingFileObjectGetter(getter));
 
         if (sync) {
             if (prefix != null) {
                 return "SUCCESS: Synced all the objects that start with '" + this.prefix + "' from " + this.bucketName + " to " + this.outputPath.toString();
-            }
-            else {
+            } else {
                 return "SUCCESS: Synced all the objects from " + this.bucketName + " to " + this.outputPath.toString();
             }
         }
 
-        return "SUCCESS: Wrote all the objects that start with '"+ this.prefix +"' from " + this.bucketName + " to " + this.outputPath.toString();
+        return "SUCCESS: Wrote all the objects that start with '" + this.prefix + "' from " + this.bucketName + " to " + this.outputPath.toString();
     }
 
     private String restoreAll(final Ds3ClientHelpers.ObjectChannelBuilder getter) throws XmlProcessingException, SignatureException, IOException, SSLSetupException {
         final Ds3ClientHelpers helper = getClientHelpers();
         final Ds3ClientHelpers.Job job = helper.startReadAllJob(this.bucketName,
-                ReadJobOptions.create()
-                .withPriority(this.priority));
+                ReadJobOptions.create().withPriority(this.priority));
 
         job.transfer(new LoggingFileObjectGetter(getter));
 
@@ -188,12 +191,10 @@ public class GetBulk extends CliCommand<GetBulkResult> {
             final Path filePath = mapLocalFiles.get(content.getKey());
             if (filePath == null) {
                 filteredContents.add(content);
-            }
-            else if (SyncUtils.isNewFile(filePath, content, false)) {
+            } else if (SyncUtils.isNewFile(filePath, content, false)) {
                 LOG.info("Syncing new version of " + filePath.toString());
                 filteredContents.add(content);
-            }
-            else {
+            } else {
                 LOG.info("No need to sync " + filePath.toString());
             }
         }

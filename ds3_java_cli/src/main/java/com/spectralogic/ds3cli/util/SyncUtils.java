@@ -41,10 +41,10 @@ public final class SyncUtils {
         final String buildInfo = client.getSystemInformation(new GetSystemInformationRequest()).getSystemInformation().getBuildInformation().getVersion();
         final String[] buildInfoArr = buildInfo.split((Pattern.quote(".")));
         if (Integer.parseInt(buildInfoArr[MAJOR_INDEX]) < VERSION_SUPPORTED) {
-            LOG.info("The sync command can not be used with BlackPearl " +  buildInfo);
+            LOG.info("The sync command can not be used with BlackPearl " + buildInfo);
             return false;
         }
-        LOG.info("Using BlackPearl " +  buildInfo);
+        LOG.info("Using BlackPearl " + buildInfo);
         return true;
     }
 
@@ -65,13 +65,12 @@ public final class SyncUtils {
 
     public static boolean needToSync(final Ds3ClientHelpers helpers, final String bucketName, final Path filePath, final String ds3ObjName, final boolean isPutCommand) throws SignatureException, IOException, XmlProcessingException {
         final Iterable<Contents> objects = helpers.listObjects(bucketName);
-        for (final Contents obj : objects){
+        for (final Contents obj : objects) {
             if (ds3ObjName.equals(obj.getKey())) {
                 if (SyncUtils.isNewFile(filePath, obj, isPutCommand)) {
                     LOG.info("Syncing new version of " + ds3ObjName);
                     return true;
-                }
-                else {
+                } else {
                     LOG.info("No need to sync " + ds3ObjName);
                     return false;
                 }

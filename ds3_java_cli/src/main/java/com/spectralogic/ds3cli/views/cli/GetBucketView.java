@@ -23,6 +23,9 @@ import com.spectralogic.ds3client.models.Contents;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
+
+import static com.spectralogic.ds3cli.util.Utils.nullGuard;
 
 public class GetBucketView implements View<GetBucketResult> {
 
@@ -36,7 +39,7 @@ public class GetBucketView implements View<GetBucketResult> {
     }
 
     private String[][] formatBucketList(final Iterator<Contents> iterator) {
-        final ArrayList<String[]> contents = new ArrayList<>();
+        final List<String[]> contents = new ArrayList<>();
 
         while(iterator.hasNext()) {
 
@@ -60,13 +63,5 @@ public class GetBucketView implements View<GetBucketResult> {
                 new ASCIITableHeader("Owner", ASCIITable.ALIGN_RIGHT),
                 new ASCIITableHeader("Last Modified", ASCIITable.ALIGN_LEFT),
                 new ASCIITableHeader("ETag", ASCIITable.ALIGN_RIGHT)};
-    }
-
-    private String nullGuard(String message) {
-        if(message == null) {
-            return "N/A";
-        }
-
-        return message;
     }
 }

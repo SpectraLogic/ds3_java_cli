@@ -85,7 +85,7 @@ public class FeatureIntegration_Test {
     }
 
     @Test
-     public void deleteBucket() throws Exception {
+    public void deleteBucket() throws Exception {
         final String bucketName = "test_delete_bucket";
 
         final String expected = "Success: Deleted " + bucketName + " and all the objects contained in it.";
@@ -233,12 +233,12 @@ public class FeatureIntegration_Test {
                     + "      \"JobId\" : \"" + readJob.getJobId() + "\",\n";
 
             final String expectedEnding =
-                      "      \"ChunkClientProcessingOrderGuarantee\" : \"NONE\",\n"
-                    + "      \"Status\" : \"COMPLETED\",\n"
-                    + "      \"Objects\" : null\n"
-                              + "    }\n"
-                              + "  },\n  \"Status\" : \"OK\"\n"
-                    + "}";
+                    "      \"ChunkClientProcessingOrderGuarantee\" : \"NONE\",\n"
+                            + "      \"Status\" : \"COMPLETED\",\n"
+                            + "      \"Objects\" : null\n"
+                            + "    }\n"
+                            + "  },\n  \"Status\" : \"OK\"\n"
+                            + "}";
 
             assertTrue(getJobResponse.getMessage().contains(expectedMiddle));
             assertTrue(getJobResponse.getMessage().endsWith(expectedEnding));

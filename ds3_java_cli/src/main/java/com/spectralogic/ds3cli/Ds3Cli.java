@@ -15,6 +15,7 @@
 
 package com.spectralogic.ds3cli;
 
+import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.command.*;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;

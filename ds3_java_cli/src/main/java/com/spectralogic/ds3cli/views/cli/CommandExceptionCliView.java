@@ -16,7 +16,7 @@
 package com.spectralogic.ds3cli.views.cli;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.spectralogic.ds3cli.CommandException;
+import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.View;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

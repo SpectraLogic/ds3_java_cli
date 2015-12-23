@@ -13,7 +13,7 @@
  * ****************************************************************************
  */
 
-package com.spectralogic.ds3cli;
+package com.spectralogic.ds3cli.exceptions;
 
 public class BadArgumentException extends Exception {
     private static final long serialVersionUID = -5479046918626580006L;

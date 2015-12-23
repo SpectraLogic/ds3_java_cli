@@ -11,6 +11,8 @@ import com.spectralogic.ds3client.networking.Metadata;
 import java.util.List;
 import java.util.Set;
 
+import static com.spectralogic.ds3cli.util.Utils.nullGuard;
+
 public class HeadObjectView implements View<HeadObjectResult> {
     @Override
     public String render(final HeadObjectResult obj) throws JsonProcessingException {
@@ -37,8 +39,8 @@ public class HeadObjectView implements View<HeadObjectResult> {
         for(final String key : keys) {
             final List<String> values = metadata.get(key);
             final String [] bucketArray = new String[2];
-            bucketArray[0] = key;
-            bucketArray[1] = Joiner.on(", ").join(values);
+            bucketArray[0] = nullGuard(key);
+            bucketArray[1] = nullGuard(Joiner.on(", ").join(values));
             formatArray[arrayIndex] = bucketArray;
 
 
