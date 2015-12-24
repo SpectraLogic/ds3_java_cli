@@ -53,6 +53,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 
+@PrepareForTest({Utils.class, SyncUtils.class, BlackPearlUtils.class})
 @RunWith(PowerMockRunner.class)
 public class Ds3Cli_Test {
 
@@ -555,7 +556,6 @@ public class Ds3Cli_Test {
         assertThat(result.getReturnCode(), is(0));
     }
 
-    @PrepareForTest({BlackPearlUtils.class})
     @Test
     public void putObject() throws Exception {
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "put_object", "-b", "bucketName", "-o", "obj.txt"});
@@ -575,7 +575,6 @@ public class Ds3Cli_Test {
         assertThat(result.getReturnCode(), is(0));
     }
 
-    @PrepareForTest({SyncUtils.class, BlackPearlUtils.class})
     @Test
     public void putObjectWithSync() throws Exception {
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "put_object", "-b", "bucketName", "-o", "obj.txt", "--sync"});
@@ -610,7 +609,6 @@ public class Ds3Cli_Test {
         assertThat(result.getReturnCode(), is(0));
     }
 
-    @PrepareForTest({BlackPearlUtils.class})
     @Test
     public void putObjectWithSyncNotSupportedVersion() throws Exception {
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "put_object", "-b", "bucketName", "-o", "obj.txt", "--sync"});
@@ -642,7 +640,6 @@ public class Ds3Cli_Test {
         assertThat(result.getReturnCode(), is(0));
     }
 
-    @PrepareForTest({SyncUtils.class, BlackPearlUtils.class})
     @Test
     public void putObjectJson() throws Exception {
         final String expected = "\"Status\" : \"OK\",\n  \"Message\" : \"Success: Finished writing file to ds3 appliance.\"\n}";
@@ -664,7 +661,6 @@ public class Ds3Cli_Test {
         assertThat(result.getReturnCode(), is(0));
     }
 
-    @PrepareForTest({BlackPearlUtils.class})
     @Test
     public void getObject() throws Exception {
         final String expected = "SUCCESS: Finished downloading object.  The object was written to: ." + SterilizeString.getFileDelimiter() + "obj.txt";
@@ -683,7 +679,6 @@ public class Ds3Cli_Test {
         assertThat(result.getReturnCode(), is(0));
     }
 
-    @PrepareForTest({Utils.class, SyncUtils.class, BlackPearlUtils.class})
     @Test
     public void getObjectWithSync() throws Exception {
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_object", "-b", "bucketName", "-o", "obj.txt", "--sync"});
@@ -722,7 +717,6 @@ public class Ds3Cli_Test {
         assertThat(result.getReturnCode(), is(0));
     }
 
-    @PrepareForTest({BlackPearlUtils.class})
     @Test
     public void getObjectJson() throws Exception {
         final String expected = "\"Status\" : \"OK\",\n  \"Message\" : \"SUCCESS: Finished downloading object.  The object was written to: ." + SterilizeString.getFileDelimiter(true) + "obj.txt\"\n}";
@@ -811,7 +805,6 @@ public class Ds3Cli_Test {
         assertThat(result.getReturnCode(), is(0));
     }
 
-    @PrepareForTest({BlackPearlUtils.class})
     @Test
     public void getBulk() throws Exception {
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_bulk", "-b", "bucketName"});
@@ -829,7 +822,6 @@ public class Ds3Cli_Test {
         assertThat(result.getReturnCode(), is(0));
     }
 
-    @PrepareForTest({SyncUtils.class, Utils.class, BlackPearlUtils.class})
     @Test
     public void getBulkWithSync() throws Exception {
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_bulk", "-b", "bucketName", "--sync"});
@@ -875,7 +867,6 @@ public class Ds3Cli_Test {
         assertThat(result.getReturnCode(), is(0));
     }
 
-    @PrepareForTest({BlackPearlUtils.class})
     @Test
     public void getBulkJson() throws Exception {
         final String expected = "\"Status\" : \"OK\",\n  \"Message\" : \"SUCCESS: Wrote all the objects from bucketName to directory .\"\n}";
@@ -895,7 +886,6 @@ public class Ds3Cli_Test {
         assertThat(result.getReturnCode(), is(0));
     }
 
-    @PrepareForTest({BlackPearlUtils.class})
     @Test
     public void putBulk() throws Exception {
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "put_bulk", "-b", "bucketName", "-d", "dir"});
@@ -917,7 +907,6 @@ public class Ds3Cli_Test {
         assertThat(result.getReturnCode(), is(0));
     }
 
-    @PrepareForTest({SyncUtils.class, Utils.class, BlackPearlUtils.class})
     @Test
     public void putBulkWithSync() throws Exception {
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "put_bulk", "-b", "bucketName", "-d", "dir", "--sync"});
@@ -968,7 +957,6 @@ public class Ds3Cli_Test {
 
     }
 
-    @PrepareForTest({BlackPearlUtils.class})
     @Test
     public void putBulkWithSyncWrongVersion() throws Exception {
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "put_bulk", "-b", "bucketName", "-d", "dir", "--sync"});
@@ -999,7 +987,6 @@ public class Ds3Cli_Test {
         assertThat(result.getReturnCode(), is(0));
     }
 
-    @PrepareForTest({SyncUtils.class, Utils.class, BlackPearlUtils.class})
     @Test
     public void putBulkJson() throws Exception {
         final String expected = "\"Status\" : \"OK\",\n  \"Message\" : \"SUCCESS: Wrote all the files in dir to bucket bucketName\"\n}";
