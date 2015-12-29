@@ -31,7 +31,6 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.nio.file.*;
@@ -157,8 +156,9 @@ public class FeatureIntegration_Test {
             Util.createBucket(client, bucketName);
             Util.loadBookTestData(client, bucketName);
 
-            final File objFile = ResourceUtils.loadFileResource("books/" + book);
-            final Ds3Object obj = new Ds3Object(book, objFile.length());
+            final Path objFile = ResourceUtils.loadFileResource("books/" + book);
+            final long objSize = Files.size(objFile);
+            final Ds3Object obj = new Ds3Object(book, objSize);
 
             final Path dirPath = FileSystems.getDefault().getPath("output");
             if (!Files.exists(dirPath)) {
@@ -182,7 +182,7 @@ public class FeatureIntegration_Test {
 
             final String expectedBeginning = "JobId: " + readJob.getJobId() + " | Status: COMPLETED | Bucket: " + bucketName
                     + " | Type: GET | Priority: HIGH | User Name: spectra | Creation Date: ";
-            final String expectedEnding = " | Total Size: " + objFile.length() + " | Total Transferred: " + objFile.length();
+            final String expectedEnding = " | Total Size: " + objSize + " | Total Transferred: " + objSize;
 
             assertTrue(getJobResponse.getMessage().startsWith(expectedBeginning));
             assertTrue(getJobResponse.getMessage().endsWith(expectedEnding));
@@ -200,8 +200,9 @@ public class FeatureIntegration_Test {
             Util.createBucket(client, bucketName);
             Util.loadBookTestData(client, bucketName);
 
-            final File objFile = ResourceUtils.loadFileResource("books/" + book);
-            final Ds3Object obj = new Ds3Object(book, objFile.length());
+            final Path objFile = ResourceUtils.loadFileResource("books/" + book);
+            final long objSize = Files.size(objFile);
+            final Ds3Object obj = new Ds3Object(book, objSize);
 
             final Path dirPath = FileSystems.getDefault().getPath("output");
             if (!Files.exists(dirPath)) {
@@ -226,9 +227,9 @@ public class FeatureIntegration_Test {
             final String expectedMiddle = "\"Data\" : {\n"
                     + "    \"jobDetails\" : {\n"
                     + "      \"Nodes\" : null,\n"
-                    + "      \"CachedSizeInBytes\" : " + objFile.length() + ",\n"
-                    + "      \"CompletedSizeInBytes\" : " + objFile.length() + ",\n"
-                    + "      \"OriginalSizeInBytes\" : " + objFile.length() + ",\n"
+                    + "      \"CachedSizeInBytes\" : " + objSize + ",\n"
+                    + "      \"CompletedSizeInBytes\" : " + objSize + ",\n"
+                    + "      \"OriginalSizeInBytes\" : " + objSize + ",\n"
                     + "      \"BucketName\" : \"" + bucketName + "\",\n"
                     + "      \"JobId\" : \"" + readJob.getJobId() + "\",\n";
 

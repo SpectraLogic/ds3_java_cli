@@ -31,6 +31,7 @@ import com.spectralogic.ds3client.models.Contents;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.models.bulk.Priority;
 import com.spectralogic.ds3client.serializer.XmlProcessingException;
+import com.spectralogic.ds3client.utils.Guard;
 import com.spectralogic.ds3client.utils.SSLSetupException;
 import org.apache.commons.cli.MissingOptionException;
 import org.slf4j.Logger;
@@ -111,8 +112,7 @@ public class GetBulk extends CliCommand<GetBulkResult> {
         }
 
         if (sync) {
-            //TODO use Guard.isStringNullOrEmpty(this.prefix) when java sdk 1.2.3 will be released
-            if (this.prefix == null || this.prefix.isEmpty()) {
+            if (Guard.isStringNullOrEmpty(this.prefix)) {
                 LOG.info("Syncing all objects from " + this.bucketName);
             } else {
                 LOG.info("Syncing only those objects that start with " + this.prefix);
