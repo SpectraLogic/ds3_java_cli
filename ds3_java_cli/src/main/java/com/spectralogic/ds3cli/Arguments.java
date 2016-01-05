@@ -48,8 +48,9 @@ public class Arguments {
     private final String[] args;
     private String objectName;
     private String proxy;
-    private int start;
-    private int end;
+    //TODO re-add these calls when we have support for partial file gets in the helper functions
+    //private int start;
+    //private int end;
     private int retries = 20;
     private Priority priority;
     private WriteOptimization writeOptimization;
@@ -59,6 +60,8 @@ public class Arguments {
     private boolean https = true;
     private boolean completed = false;
     private boolean sync = false;
+    private String numberOfFiles;
+    private String sizeOfFiles;
     private ViewType outputFormat = ViewType.CLI;
 
     private String version = "N/a";
@@ -87,10 +90,11 @@ public class Arguments {
         prefix.setArgName("prefix");
         final Option proxy = new Option("x", true, "The URL of the proxy server to use or have \"http_proxy\" set as an environment variable");
         proxy.setArgName("proxy");
-        final Option start = new Option("s", true, "The starting byte for a get_object command");
-        start.setArgName("start");
-        final Option end = new Option("n", true, "The ending byte for a get_object command");
-        end.setArgName("end");
+        //TODO re-add these calls when we have support for partial file gets in the helper functions
+        //final Option start = new Option(null, true, "The starting byte for a get_object command");
+        //start.setArgName("start");
+        //final Option end = new Option(null, true, "The ending byte for a get_object command");
+        //end.setArgName("end");
         final Option id = new Option("i", true, "ID for identifying ds3 api resources");
         id.setArgName("id");
         final Option force = new Option(null, false, "Used to force an operation even if there is an error");
@@ -125,6 +129,10 @@ public class Arguments {
         completed.setLongOpt("completed");
         final Option sync = new Option(null, false, "Copy only the newest files");
         sync.setLongOpt("sync");
+        final Option numberOfFiles = new Option("n", true, "The number of files for the performance test");
+        numberOfFiles.setArgName("numberOfFiles");
+        final Option sizeOfFiles = new Option("s", true, "The size (in MB) for each file in the performance test");
+        sizeOfFiles.setArgName("sizeOfFiles");
         options.addOption(ds3Endpoint);
         options.addOption(bucket);
         options.addOption(directory);
@@ -135,7 +143,8 @@ public class Arguments {
         options.addOption(prefix);
         options.addOption(proxy);
         options.addOption(id);
-        //options.addOption(start);  //TODO re-add these calls when we have support for partial file gets in the helper functions
+        //TODO re-add these calls when we have support for partial file gets in the helper functions
+        //options.addOption(start);
         //options.addOption(end);
         options.addOption(force);
         options.addOption(retries);
@@ -152,6 +161,8 @@ public class Arguments {
         options.addOption(viewType);
         options.addOption(completed);
         options.addOption(sync);
+        options.addOption(numberOfFiles);
+        options.addOption(sizeOfFiles);
 
         processCommandLine();
     }
@@ -257,14 +268,15 @@ public class Arguments {
         this.setPrefix(cmd.getOptionValue("p"));
         this.setId(cmd.getOptionValue("i"));
 
-        final String start = cmd.getOptionValue("s");
-        if (!(start == null || start.isEmpty())) {
-            this.setStart(Integer.parseInt(start));
-        }
-        final String end = cmd.getOptionValue("n");
-        if (!(end == null || end.isEmpty())) {
-            this.setEnd(Integer.parseInt(end));
-        }
+        //TODO re-add these calls when we have support for partial file gets in the helper functions
+        //final String start = cmd.getOptionValue();
+        //if (!(start == null || start.isEmpty())) {
+        //    this.setStart(Integer.parseInt(start));
+        //}
+        //final String end = cmd.getOptionValue();
+        //if (!(end == null || end.isEmpty())) {
+        //    this.setEnd(Integer.parseInt(end));
+        //}
 
 
         if (getEndpoint() == null) {
@@ -309,6 +321,9 @@ public class Arguments {
         if (cmd.hasOption("sync")) {
             this.setSync(true);
         }
+
+        this.setNumberOfFiles(cmd.getOptionValue("n"));
+        this.setSizeOfFiles(cmd.getOptionValue("s"));
     }
 
     private WriteOptimization processWriteOptimization(final CommandLine cmd, final String writeOptimization) throws BadArgumentException {
@@ -440,21 +455,22 @@ public class Arguments {
         return this.proxy;
     }
 
-    public int getStart() {
-        return start;
-    }
+    //TODO re-add these calls when we have support for partial file gets in the helper functions
+    //public int getStart() {
+    //    return start;
+    //}
 
-    void setStart(final int start) {
-        this.start = start;
-    }
+    //void setStart(final int start) {
+    //    this.start = start;
+    //}
 
-    public int getEnd() {
-        return end;
-    }
+    //public int getEnd() {
+    //    return end;
+    //}
 
-    void setEnd(final int end) {
-        this.end = end;
-    }
+    //void setEnd(final int end) {
+    //    this.end = end;
+    //}
 
     void setForce(final boolean force) {
         this.force = force;
@@ -550,5 +566,21 @@ public class Arguments {
 
     public boolean isSync() {
         return sync;
+    }
+
+    void setNumberOfFiles(final String numberOfFiles) {
+        this.numberOfFiles = numberOfFiles;
+    }
+
+    public String getNumberOfFiles() {
+        return this.numberOfFiles;
+    }
+
+    void setSizeOfFiles(final String sizeOfFiles) {
+        this.sizeOfFiles = sizeOfFiles;
+    }
+
+    public String getSizeOfFiles() {
+        return this.sizeOfFiles;
     }
 }
