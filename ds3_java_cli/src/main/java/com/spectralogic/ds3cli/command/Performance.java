@@ -143,24 +143,27 @@ class PerformanceListener implements DataTransferredListener, ObjectCompletedLis
     }
 
     @Override
-    public synchronized void dataTransferred(final long size) {
-        totalByteTransferred += size;
+    public void dataTransferred(final long size) {
         final long currentTime = System.currentTimeMillis();
-        time = (currentTime - this.startTime == 0)? 1.0: (currentTime - this.startTime)/1000D;
-        content = totalByteTransferred/1024L/1024L;
-        mbps = content / time;
-        if (mbps > highestMbps) highestMbps = mbps;
-
+        synchronized (this) {
+            totalByteTransferred += size;
+            time = (currentTime - this.startTime == 0) ? 1.0 : (currentTime - this.startTime) / 1000D;
+            content = totalByteTransferred / 1024L / 1024L;
+            mbps = content / time;
+            if (mbps > highestMbps) highestMbps = mbps;
+        }
         printStatistics();
     }
 
     @Override
-    public synchronized void objectCompleted(final String s) {
-        numberOfFiles += 1;
+    public void objectCompleted(final String s) {
+        synchronized (this) {
+            numberOfFiles += 1;
+        }
         printStatistics();
     }
 
-    private synchronized void printStatistics() {
+    private void printStatistics() {
         if (isPutCommand) {
             System.out.print(String.format("\rPut Statistics: (%d/%d MB), files (%d/%d), Time (%.03f sec), Mbps (%.03f), Highest Mbps (%.03f sec)",
                     content, numberOfMB, numberOfFiles, totalNumberOfFiles, time, mbps, highestMbps));
@@ -200,10 +203,10 @@ class PerformanceSeekableByteChannel implements SeekableByteChannel {
     }
 
     public int read(final ByteBuffer dst) throws IOException {
-        final int numberOfBytes = Math.min(dst.remaining(), BUFFER_SIZE);
-        dst.put(this.backingArray, 0, numberOfBytes);
+        final int amountToRead = Math.min(dst.remaining(), BUFFER_SIZE);
+        dst.put(this.backingArray, 0, amountToRead);
 
-        return numberOfBytes;
+        return amountToRead;
     }
 
     public int write(final ByteBuffer src) throws IOException {
