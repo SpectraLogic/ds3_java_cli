@@ -66,12 +66,7 @@ public class PerformanceCommand extends CliCommand<PerformanceResult> {
         try {
             helpers.ensureBucketExists(this.bucketName);
 
-            final List<Ds3Object> objList = Lists.newArrayList();
-            for (int i = 0; i < numberOfFiles; i++) {
-                final long testFileSize = sizeOfFiles * 1024L * 1024L;
-                final Ds3Object obj = new Ds3Object("file_" + i, testFileSize);
-                objList.add(obj);
-            }
+            final List<Ds3Object> objList = getDs3Objects(numberOfFiles, sizeOfFiles);
 
             /**** PUT ****/
             transfer(helpers, numberOfFiles, sizeOfFiles, objList, true);
@@ -83,6 +78,16 @@ public class PerformanceCommand extends CliCommand<PerformanceResult> {
             deleteAllContents(getClient(), this.bucketName);
         }
         return new PerformanceResult("Done!");
+    }
+
+    private List<Ds3Object> getDs3Objects(final int numberOfFiles, final long sizeOfFiles) {
+        final List<Ds3Object> objList = Lists.newArrayList();
+        for (int i = 0; i < numberOfFiles; i++) {
+            final long testFileSize = sizeOfFiles * 1024L * 1024L;
+            final Ds3Object obj = new Ds3Object("file_" + i, testFileSize);
+            objList.add(obj);
+        }
+        return objList;
     }
 
     private void transfer(final Ds3ClientHelpers helpers, final int numberOfFiles, final long sizeOfFiles, final List<Ds3Object> objList, final boolean isPutCommand) throws SignatureException, IOException, XmlProcessingException {
