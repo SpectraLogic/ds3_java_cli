@@ -2,6 +2,8 @@ package com.spectralogic.ds3cli.command;
 
 import com.google.common.collect.Lists;
 import com.spectralogic.ds3cli.Arguments;
+import com.spectralogic.ds3cli.ViewType;
+import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.PerformanceResult;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
@@ -22,6 +24,7 @@ import java.nio.channels.SeekableByteChannel;
 import java.security.SignatureException;
 import java.util.List;
 
+
 public class PerformanceCommand extends CliCommand<PerformanceResult> {
 
     private String bucketName;
@@ -36,6 +39,10 @@ public class PerformanceCommand extends CliCommand<PerformanceResult> {
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
+        if (args.getOutputFormat() == ViewType.JSON) {
+            throw new CommandException("Json output is not supported with the performance command");
+        }
+
         bucketName = args.getBucket();
         if (bucketName == null) {
             throw new MissingOptionException("The performance command requires '-b' to be set.");

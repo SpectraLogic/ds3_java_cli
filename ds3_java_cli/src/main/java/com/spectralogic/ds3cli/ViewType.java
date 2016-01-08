@@ -21,7 +21,7 @@ import com.google.common.collect.Lists;
 
 import java.util.ArrayList;
 
-enum ViewType {
+public enum ViewType {
     CLI, JSON;
 
     public static String valuesString() {
