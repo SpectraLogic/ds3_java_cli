@@ -59,7 +59,9 @@ public class Main {
         )
                 .withHttps(arguments.isHttps())
                 .withCertificateVerification(arguments.isCertificateVerification())
+                .withBufferSize(Integer.valueOf(arguments.getBufferSize()))
                 .withRedirectRetries(arguments.getRetries());
+
         if (arguments.getProxy() != null) {
             builder.withProxy(arguments.getProxy());
         }

@@ -48,8 +48,6 @@ public class Arguments {
     private final String[] args;
     private String objectName;
     private String proxy;
-    private int start;
-    private int end;
     private int retries = 20;
     private Priority priority;
     private WriteOptimization writeOptimization;
@@ -59,10 +57,14 @@ public class Arguments {
     private boolean https = true;
     private boolean completed = false;
     private boolean sync = false;
+    private String numberOfFiles;
+    private String sizeOfFiles;
     private ViewType outputFormat = ViewType.CLI;
 
     private String version = "N/a";
     private String buildDate = "N/a";
+    private String bufferSize;
+    private String numberOfThreads;
 
     public Arguments(final String[] args) throws BadArgumentException, ParseException {
         loadProperties();
@@ -87,10 +89,6 @@ public class Arguments {
         prefix.setArgName("prefix");
         final Option proxy = new Option("x", true, "The URL of the proxy server to use or have \"http_proxy\" set as an environment variable");
         proxy.setArgName("proxy");
-        final Option start = new Option("s", true, "The starting byte for a get_object command");
-        start.setArgName("start");
-        final Option end = new Option("n", true, "The ending byte for a get_object command");
-        end.setArgName("end");
         final Option id = new Option("i", true, "ID for identifying ds3 api resources");
         id.setArgName("id");
         final Option force = new Option(null, false, "Used to force an operation even if there is an error");
@@ -125,6 +123,14 @@ public class Arguments {
         completed.setLongOpt("completed");
         final Option sync = new Option(null, false, "Copy only the newest files");
         sync.setLongOpt("sync");
+        final Option numberOfFiles = new Option("n", true, "The number of files for the performance test");
+        numberOfFiles.setArgName("numberOfFiles");
+        final Option sizeOfFiles = new Option("s", true, "The size (in MB) for each file in the performance test");
+        sizeOfFiles.setArgName("sizeOfFiles");
+        final Option bufferSize = new Option("bs", true, "Set the buffer size in bytes");
+        bufferSize.setArgName("bufferSize");
+        final Option numberOfThreads = new Option("nt", true, "Set the number of threads");
+        numberOfThreads.setArgName("numberOfThreads");
         options.addOption(ds3Endpoint);
         options.addOption(bucket);
         options.addOption(directory);
@@ -135,8 +141,6 @@ public class Arguments {
         options.addOption(prefix);
         options.addOption(proxy);
         options.addOption(id);
-        //options.addOption(start);  //TODO re-add these calls when we have support for partial file gets in the helper functions
-        //options.addOption(end);
         options.addOption(force);
         options.addOption(retries);
         options.addOption(checksum);
@@ -152,6 +156,10 @@ public class Arguments {
         options.addOption(viewType);
         options.addOption(completed);
         options.addOption(sync);
+        options.addOption(numberOfFiles);
+        options.addOption(sizeOfFiles);
+        options.addOption(bufferSize);
+        options.addOption(numberOfThreads);
 
         processCommandLine();
     }
@@ -257,16 +265,6 @@ public class Arguments {
         this.setPrefix(cmd.getOptionValue("p"));
         this.setId(cmd.getOptionValue("i"));
 
-        final String start = cmd.getOptionValue("s");
-        if (!(start == null || start.isEmpty())) {
-            this.setStart(Integer.parseInt(start));
-        }
-        final String end = cmd.getOptionValue("n");
-        if (!(end == null || end.isEmpty())) {
-            this.setEnd(Integer.parseInt(end));
-        }
-
-
         if (getEndpoint() == null) {
             final String endpoint = System.getenv("DS3_ENDPOINT");
             if (endpoint == null) {
@@ -308,6 +306,19 @@ public class Arguments {
 
         if (cmd.hasOption("sync")) {
             this.setSync(true);
+        }
+
+        this.setNumberOfFiles(cmd.getOptionValue("n"));
+        this.setSizeOfFiles(cmd.getOptionValue("s"));
+
+        this.setBufferSize(cmd.getOptionValue("bs"));
+        if (getBufferSize() == null) {
+            this.bufferSize = "1048576"; //default to 1MB
+        }
+
+        this.setNumberOfThreads(cmd.getOptionValue("nt"));
+        if (getNumberOfThreads() == null) {
+            this.numberOfThreads = "20"; //default to 20 threads
         }
     }
 
@@ -440,22 +451,6 @@ public class Arguments {
         return this.proxy;
     }
 
-    public int getStart() {
-        return start;
-    }
-
-    void setStart(final int start) {
-        this.start = start;
-    }
-
-    public int getEnd() {
-        return end;
-    }
-
-    void setEnd(final int end) {
-        this.end = end;
-    }
-
     void setForce(final boolean force) {
         this.force = force;
     }
@@ -550,5 +545,37 @@ public class Arguments {
 
     public boolean isSync() {
         return sync;
+    }
+
+    void setNumberOfFiles(final String numberOfFiles) {
+        this.numberOfFiles = numberOfFiles;
+    }
+
+    public String getNumberOfFiles() {
+        return this.numberOfFiles;
+    }
+
+    void setSizeOfFiles(final String sizeOfFiles) {
+        this.sizeOfFiles = sizeOfFiles;
+    }
+
+    public String getSizeOfFiles() {
+        return this.sizeOfFiles;
+    }
+
+    void setBufferSize(final String bufferSize) {
+        this.bufferSize = bufferSize;
+    }
+
+    public String getBufferSize() {
+        return this.bufferSize;
+    }
+
+    void setNumberOfThreads(final String numberOfThreads) {
+        this.numberOfThreads = numberOfThreads;
+    }
+
+    public String getNumberOfThreads() {
+        return this.numberOfThreads;
     }
 }
