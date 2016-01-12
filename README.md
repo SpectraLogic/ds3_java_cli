@@ -2,7 +2,7 @@ ds3_java_cli
 ============
 
 [![Build
-Status](https://travis-ci.org/SpectraLogic/ds3_java_cli.svg?branch=master)](https://travis-ci.org/SpectraLogic/ds3_java_cli)
+Status](https://travis-ci.org/SpectraLogic/ds3_java_cli.svg?branch=master)](https://travis-ci.org/SpectraLogic/ds3_java_cli) [![Apache V2 License](http://img.shields.io/badge/license-Apache%20V2-blue.svg)](https://github.com/SpectraLogic/ds3_java_cli/blob/master/LICENSE.md)
 
 ## Contact Us
 
