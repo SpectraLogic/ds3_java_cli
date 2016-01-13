@@ -18,6 +18,8 @@ package com.spectralogic.ds3cli.integration;
 import com.google.common.collect.Lists;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.CommandResponse;
+import com.spectralogic.ds3cli.integration.helpers.JobResponse;
+import com.spectralogic.ds3cli.integration.helpers.JsonMapper;
 import com.spectralogic.ds3cli.util.SterilizeString;
 import com.spectralogic.ds3cli.util.Utils;
 import com.spectralogic.ds3client.Ds3Client;
@@ -224,6 +226,10 @@ public class FeatureIntegration_Test {
             final Arguments args = new Arguments(new String[]{"--http", "-c", "get_job", "-i", readJob.getJobId().toString(), "--output-format", "json"});
             final CommandResponse getJobResponse = Util.command(client, args);
 
+            final JobResponse cliJobResponse = JsonMapper.toModel(getJobResponse.getMessage(), JobResponse.class);
+
+           assertThat(cliJobResponse.getMeta(), is(notNullValue()));
+
             final String expectedMiddle = "\"Data\" : {\n"
                     + "    \"jobDetails\" : {\n"
                     + "      \"Nodes\" : null,\n"
@@ -240,6 +246,9 @@ public class FeatureIntegration_Test {
                             + "    }\n"
                             + "  },\n  \"Status\" : \"OK\"\n"
                             + "}";
+
+            System.out.println(getJobResponse.getMessage());
+
 
             assertTrue(getJobResponse.getMessage().contains(expectedMiddle));
             assertTrue(getJobResponse.getMessage().endsWith(expectedEnding));
