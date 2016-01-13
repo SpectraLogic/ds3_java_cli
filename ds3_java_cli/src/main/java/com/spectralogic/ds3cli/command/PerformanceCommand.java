@@ -10,11 +10,13 @@ import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.DeleteBucketRequest;
 import com.spectralogic.ds3client.commands.DeleteObjectRequest;
+import com.spectralogic.ds3client.commands.PutBucketRequest;
 import com.spectralogic.ds3client.helpers.DataTransferredListener;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.helpers.ObjectCompletedListener;
 import com.spectralogic.ds3client.models.Contents;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
+import com.spectralogic.ds3client.networking.FailedRequestException;
 import com.spectralogic.ds3client.serializer.XmlProcessingException;
 import org.apache.commons.cli.MissingOptionException;
 
@@ -32,6 +34,7 @@ public class PerformanceCommand extends CliCommand<PerformanceResult> {
     private String sizeOfFiles;
     private int bufferSize;
     private int numberOfThreads;
+    private boolean doNotDelete;
 
     public PerformanceCommand(final Ds3Provider provider, final FileUtils fileUtils) {
         super(provider, fileUtils);
@@ -71,7 +74,16 @@ public class PerformanceCommand extends CliCommand<PerformanceResult> {
         final long sizeOfFiles = Integer.valueOf(this.sizeOfFiles);
 
         try {
-            helpers.ensureBucketExists(this.bucketName);
+            try {
+                final PutBucketRequest request = new PutBucketRequest(bucketName);
+                getClient().putBucket(request);
+            } catch(final FailedRequestException e) {
+                this.doNotDelete = true;
+                if (e.getStatusCode() == 409) {
+                    throw new CommandException("Bucket " + bucketName + " already exists. To avoid any conflicts please use a non-existent bucket.");
+                }
+                throw new CommandException("Encountered a DS3 Error", e);
+            }
 
             final List<Ds3Object> objList = getDs3Objects(numberOfFiles, sizeOfFiles);
 
@@ -82,7 +94,7 @@ public class PerformanceCommand extends CliCommand<PerformanceResult> {
             transfer(helpers, numberOfFiles, sizeOfFiles, objList, false);
 
         } finally {
-            deleteAllContents(getClient(), this.bucketName);
+            if (!doNotDelete) deleteAllContents(getClient(), this.bucketName);
         }
         return new PerformanceResult("Done!");
     }
@@ -184,13 +196,17 @@ public class PerformanceCommand extends CliCommand<PerformanceResult> {
         }
 
         private void printStatistics() {
+            final String messagePrefix;
             if (isPutCommand) {
-                System.out.print(String.format("\rPut Statistics: (%d/%d MB), files (%d/%d), Time (%.03f sec), Mbps (%.03f), Highest Mbps (%.03f sec)",
-                        content, numberOfMB, numberOfFiles, totalNumberOfFiles, time, mbps, highestMbps));
-            } else {
-                System.out.print(String.format("\rGet Statistics: (%d/%d MB), files (%d/%d), Time (%.03f sec), Mbps (%.03f), Highest Mbps (%.03f sec)",
-                        content, numberOfMB, numberOfFiles, totalNumberOfFiles, time, mbps, highestMbps));
+                messagePrefix = "Putting";
             }
+            else {
+                messagePrefix = "Getting";
+            }
+
+
+            System.out.print(String.format("\r%s Statistics: (%d/%d MB), files (%d/%d), Time (%.03f sec), MBps (%.03f), Highest MBps (%.03f)",
+                    messagePrefix, content, numberOfMB, numberOfFiles, totalNumberOfFiles, time, mbps, highestMbps));
         }
     }
 
