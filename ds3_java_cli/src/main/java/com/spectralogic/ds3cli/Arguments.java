@@ -318,7 +318,7 @@ public class Arguments {
 
         this.setNumberOfThreads(cmd.getOptionValue("nt"));
         if (getNumberOfThreads() == null) {
-            this.numberOfThreads = "20"; //default to 20 threads
+            this.numberOfThreads = "10"; //default to 20 threads
         }
     }
 
