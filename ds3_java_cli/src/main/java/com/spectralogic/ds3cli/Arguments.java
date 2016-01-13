@@ -302,7 +302,7 @@ public class Arguments {
         if (!missingArgs.isEmpty()) {
             throw new MissingOptionException(missingArgs);
         }
-        LOG.info("Access Key: " + getAccessKey() + " | Secret Key: " + getSecretKey() + " | Endpoint: " + getEndpoint());
+        LOG.info("Access Key: " + getAccessKey() + " | Endpoint: " + getEndpoint());
 
         if (cmd.hasOption("sync")) {
             this.setSync(true);
