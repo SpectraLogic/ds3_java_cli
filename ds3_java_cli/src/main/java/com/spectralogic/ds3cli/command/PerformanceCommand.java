@@ -80,7 +80,7 @@ public class PerformanceCommand extends CliCommand<PerformanceResult> {
             } catch(final FailedRequestException e) {
                 this.doNotDelete = true;
                 if (e.getStatusCode() == 409) {
-                    throw new CommandException("Bucket " + bucketName + " already exists. To avoid any conflict please use a non-existent bucket.");
+                    throw new CommandException("Bucket " + bucketName + " already exists. To avoid any conflicts please use a non-existent bucket.");
                 }
                 throw new CommandException("Encountered a DS3 Error", e);
             }
