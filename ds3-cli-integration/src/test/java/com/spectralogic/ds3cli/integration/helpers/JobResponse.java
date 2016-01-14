@@ -1,36 +1,8 @@
 package com.spectralogic.ds3cli.integration.helpers;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.Strings;
 
-/**
- *
- {
- "Meta" : {
- "Date" : "2016-01-13T22:47:40.020Z"
- },
- "Data" : {
- "jobDetails" : {
- "Nodes" : null,
- "CachedSizeInBytes" : 0,
- "CompletedSizeInBytes" : 0,
- "OriginalSizeInBytes" : 776649,
- "BucketName" : "test_get_job_json",
- "JobId" : "b1cb1d58-e1fe-4a78-b0f5-a925cddc9945",
- "UserId" : "323fc5f3-a233-47ee-a35e-980773d05413",
- "UserName" : "spectra",
- "WriteOptimization" : "CAPACITY",
- "Priority" : "HIGH",
- "RequestType" : "GET",
- "StartDate" : "2016-01-13T22:47:39.000Z",
- "ChunkClientProcessingOrderGuarantee" : "NONE",
- "Status" : "COMPLETED",
- "Objects" : null
- }
- },
- "Status" : "OK"
- }
- */
+import java.util.UUID;
 
 public class JobResponse {
 
@@ -40,25 +12,25 @@ public class JobResponse {
     @JsonProperty("Data")
     private Data data;
 
+    @JsonProperty("Status")
+    private String status;
+
     public Meta getMeta() {
         return meta;
     }
 
-    public void setMeta(final Meta meta) {
-        this.meta = meta;
+    public String getStatus() {
+        return status;
+    }
+
+    public Data getData() {
+        return data;
     }
 
     public static class Meta {
         @JsonProperty("Date")
         private String date;
 
-        public String getDate() {
-            return date;
-        }
-
-        public void setDate(final String date) {
-            this.date = date;
-        }
     }
 
     public static class Data {
@@ -67,10 +39,6 @@ public class JobResponse {
 
         public JobDetails getJobDetails() {
             return jobDetails;
-        }
-
-        public void setJobDetails(final JobDetails jobDetails) {
-            this.jobDetails = jobDetails;
         }
     }
 
@@ -82,20 +50,93 @@ public class JobResponse {
         @JsonProperty("CachedSizeInBytes")
         private long cachedSizeInBytes;
 
+        @JsonProperty("CompletedSizeInBytes")
+        private long CompletedSizeInBytes;
+
+        @JsonProperty("OriginalSizeInBytes")
+        private long OriginalSizeInBytes;
+
+        @JsonProperty("BucketName")
+        private String BucketName;
+
+        @JsonProperty("JobId")
+        private UUID JobId;
+
+        @JsonProperty("UserId")
+        private String UserId;
+
+        @JsonProperty("UserName")
+        private String UserName;
+
+        @JsonProperty("WriteOptimization")
+        private String WriteOptimization;
+
+        @JsonProperty("Priority")
+        private String Priority;
+
+        @JsonProperty("RequestType")
+        private String RequestType;
+
+        @JsonProperty("StartDate")
+        private String StartDate;
+
+        @JsonProperty("ChunkClientProcessingOrderGuarantee")
+        private String ChunkClientProcessingOrderGuarantee;
+
+        @JsonProperty("Status")
+        private String Status;
+
+        @JsonProperty("Objects")
+        private String Objects;
+
         public String getNodes() {
             return nodes;
-        }
-
-        public void setNodes(final String nodes) {
-            this.nodes = nodes;
         }
 
         public long getCachedSizeInBytes() {
             return cachedSizeInBytes;
         }
 
-        public void setCachedSizeInBytes(final long cachedSizeInBytes) {
-            this.cachedSizeInBytes = cachedSizeInBytes;
+        public long getCompletedSizeInBytes() {
+            return CompletedSizeInBytes;
         }
+
+        public long getOriginalSizeInBytes() {
+            return OriginalSizeInBytes;
+        }
+
+        public String getBucketName() {
+            return BucketName;
+        }
+
+        public UUID getJobId() {
+            return JobId;
+        }
+
+        public String getUserName() {
+            return UserName;
+        }
+
+        public String getPriority() {
+            return Priority;
+        }
+
+        public String getRequestType() {
+            return RequestType;
+        }
+
+        public String getChunkClientProcessingOrderGuarantee() {
+            return ChunkClientProcessingOrderGuarantee;
+        }
+
+        public String getStatus() {
+            return Status;
+        }
+
+        public String getObjects() {
+            return Objects;
+        }
+
     }
+
 }

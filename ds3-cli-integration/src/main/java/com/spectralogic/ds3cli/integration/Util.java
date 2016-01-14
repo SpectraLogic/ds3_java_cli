@@ -20,6 +20,7 @@ import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3cli.util.Utils;
 import com.spectralogic.ds3client.Ds3Client;
+import com.spectralogic.ds3client.commands.GetSystemInformationRequest;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 
 import java.io.IOException;
@@ -27,6 +28,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.security.SignatureException;
+import java.util.regex.Pattern;
 
 public class Util {
     public static final String RESOURCE_BASE_NAME = "./src/test/resources/books/";
@@ -78,5 +81,11 @@ public class Util {
         for (final Path file : files) {
             Files.deleteIfExists(file);
         }
+    }
+
+    public static double getBlackPearlVersion(final Ds3Client client) throws IOException, SignatureException {
+        final String buildInfo = client.getSystemInformation(new GetSystemInformationRequest()).getSystemInformation().getBuildInformation().getVersion();
+        final String[] buildInfoArr = buildInfo.split((Pattern.quote(".")));
+        return Double.valueOf(String.format("%s.%s", buildInfoArr[0], buildInfoArr[1]));
     }
 }
