@@ -19,18 +19,21 @@ public class JobResponse {
         return meta;
     }
 
-    public String getStatus() {
-        return status;
-    }
-
     public Data getData() {
         return data;
+    }
+
+    public String getStatus() {
+        return status;
     }
 
     public static class Meta {
         @JsonProperty("Date")
         private String date;
 
+        public String getDate() {
+            return date;
+        }
     }
 
     public static class Data {
@@ -51,43 +54,43 @@ public class JobResponse {
         private long cachedSizeInBytes;
 
         @JsonProperty("CompletedSizeInBytes")
-        private long CompletedSizeInBytes;
+        private long completedSizeInBytes;
 
         @JsonProperty("OriginalSizeInBytes")
-        private long OriginalSizeInBytes;
+        private long originalSizeInBytes;
 
         @JsonProperty("BucketName")
-        private String BucketName;
+        private String bucketName;
 
         @JsonProperty("JobId")
-        private UUID JobId;
+        private UUID jobId;
 
         @JsonProperty("UserId")
-        private String UserId;
+        private String userId;
 
         @JsonProperty("UserName")
-        private String UserName;
+        private String userName;
 
         @JsonProperty("WriteOptimization")
-        private String WriteOptimization;
+        private String writeOptimization;
 
         @JsonProperty("Priority")
-        private String Priority;
+        private String priority;
 
         @JsonProperty("RequestType")
-        private String RequestType;
+        private String requestType;
 
         @JsonProperty("StartDate")
-        private String StartDate;
+        private String startDate;
 
         @JsonProperty("ChunkClientProcessingOrderGuarantee")
-        private String ChunkClientProcessingOrderGuarantee;
+        private String chunkClientProcessingOrderGuarantee;
 
         @JsonProperty("Status")
-        private String Status;
+        private String status;
 
         @JsonProperty("Objects")
-        private String Objects;
+        private String objects;
 
         public String getNodes() {
             return nodes;
@@ -98,45 +101,56 @@ public class JobResponse {
         }
 
         public long getCompletedSizeInBytes() {
-            return CompletedSizeInBytes;
+            return completedSizeInBytes;
         }
 
         public long getOriginalSizeInBytes() {
-            return OriginalSizeInBytes;
+            return originalSizeInBytes;
         }
 
         public String getBucketName() {
-            return BucketName;
+            return bucketName;
         }
 
         public UUID getJobId() {
-            return JobId;
+            return jobId;
+        }
+
+        public String getUserId() {
+            return userId;
         }
 
         public String getUserName() {
-            return UserName;
+            return userName;
+        }
+
+        public String getWriteOptimization() {
+            return writeOptimization;
         }
 
         public String getPriority() {
-            return Priority;
+            return priority;
         }
 
         public String getRequestType() {
-            return RequestType;
+            return requestType;
+        }
+
+        public String getStartDate() {
+            return startDate;
         }
 
         public String getChunkClientProcessingOrderGuarantee() {
-            return ChunkClientProcessingOrderGuarantee;
+            return chunkClientProcessingOrderGuarantee;
         }
 
         public String getStatus() {
-            return Status;
+            return status;
         }
 
         public String getObjects() {
-            return Objects;
+            return objects;
         }
 
     }
-
 }
