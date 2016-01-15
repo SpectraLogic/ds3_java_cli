@@ -18,6 +18,8 @@ package com.spectralogic.ds3cli.integration;
 import com.google.common.collect.Lists;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.CommandResponse;
+import com.spectralogic.ds3cli.integration.helpers.JobResponse;
+import com.spectralogic.ds3cli.integration.helpers.JsonMapper;
 import com.spectralogic.ds3cli.util.SterilizeString;
 import com.spectralogic.ds3cli.util.Utils;
 import com.spectralogic.ds3client.Ds3Client;
@@ -182,10 +184,10 @@ public class FeatureIntegration_Test {
 
             final String expectedBeginning = "JobId: " + readJob.getJobId() + " | Status: COMPLETED | Bucket: " + bucketName
                     + " | Type: GET | Priority: HIGH | User Name: spectra | Creation Date: ";
-            final String expectedEnding = " | Total Size: " + objSize + " | Total Transferred: " + objSize;
+            final String expectedEnding = " | Total Size: " + objSize + " | Total Transferred: " ;//TODO add objSize when testing using BP 1.2 is not relevant anymore
 
             assertTrue(getJobResponse.getMessage().startsWith(expectedBeginning));
-            assertTrue(getJobResponse.getMessage().endsWith(expectedEnding));
+            assertTrue(getJobResponse.getMessage().contains(expectedEnding));
         } finally {
             Util.deleteBucket(client, bucketName);
             Util.deleteLocalFile(book);
@@ -224,25 +226,27 @@ public class FeatureIntegration_Test {
             final Arguments args = new Arguments(new String[]{"--http", "-c", "get_job", "-i", readJob.getJobId().toString(), "--output-format", "json"});
             final CommandResponse getJobResponse = Util.command(client, args);
 
-            final String expectedMiddle = "\"Data\" : {\n"
-                    + "    \"jobDetails\" : {\n"
-                    + "      \"Nodes\" : null,\n"
-                    + "      \"CachedSizeInBytes\" : " + objSize + ",\n"
-                    + "      \"CompletedSizeInBytes\" : " + objSize + ",\n"
-                    + "      \"OriginalSizeInBytes\" : " + objSize + ",\n"
-                    + "      \"BucketName\" : \"" + bucketName + "\",\n"
-                    + "      \"JobId\" : \"" + readJob.getJobId() + "\",\n";
+            final JobResponse cliJobResponse = JsonMapper.toModel(getJobResponse.getMessage(), JobResponse.class);
 
-            final String expectedEnding =
-                    "      \"ChunkClientProcessingOrderGuarantee\" : \"NONE\",\n"
-                            + "      \"Status\" : \"COMPLETED\",\n"
-                            + "      \"Objects\" : null\n"
-                            + "    }\n"
-                            + "  },\n  \"Status\" : \"OK\"\n"
-                            + "}";
+            assertThat(cliJobResponse.getMeta(), is(notNullValue()));
 
-            assertTrue(getJobResponse.getMessage().contains(expectedMiddle));
-            assertTrue(getJobResponse.getMessage().endsWith(expectedEnding));
+            assertThat(cliJobResponse.getData(), is(notNullValue()));
+            assertThat(cliJobResponse.getData().getJobDetails().getNodes(), is(nullValue()));
+            assertThat(cliJobResponse.getData().getJobDetails().getOriginalSizeInBytes(), is(objSize));
+            assertThat(cliJobResponse.getData().getJobDetails().getBucketName(), is(bucketName));
+            assertThat(cliJobResponse.getData().getJobDetails().getJobId(), is(readJob.getJobId()));
+            assertThat(cliJobResponse.getData().getJobDetails().getChunkClientProcessingOrderGuarantee(), is("NONE"));
+            assertThat(cliJobResponse.getData().getJobDetails().getStatus(), is("COMPLETED"));
+            assertThat(cliJobResponse.getData().getJobDetails().getObjects(), is(nullValue()));
+            assertThat(cliJobResponse.getData().getJobDetails().getUserName(), is("spectra"));
+            assertThat(cliJobResponse.getData().getJobDetails().getPriority(), is("HIGH"));
+            assertThat(cliJobResponse.getData().getJobDetails().getRequestType(), is("GET"));
+            //TODO add those tests when testing using BP 1.2 is not relevant anymore
+            //assertThat(cliJobResponse.getData().getJobDetails().getCachedSizeInBytes(), is(objSize));
+            //assertThat(cliJobResponse.getData().getJobDetails().getCompletedSizeInBytes(), is(objSize));
+
+            assertThat(cliJobResponse.getStatus(), is("OK"));
+
         } finally {
             Util.deleteBucket(client, bucketName);
             Util.deleteLocalFile(book);
@@ -298,11 +302,17 @@ public class FeatureIntegration_Test {
     public void putObjectWithSync() throws Exception {
         final String bucketName = "test_put_object";
         try {
-
             Util.createBucket(client, bucketName);
             final Arguments args = new Arguments(new String[]{"--http", "-c", "put_object", "-b", bucketName,
                     "-o", Utils.getFileName(Paths.get("."), Paths.get(Util.RESOURCE_BASE_NAME + "beowulf.txt")), "--sync"});
             CommandResponse response = Util.command(client, args);
+
+            final double bpVersion = Util.getBlackPearlVersion(client);
+            if (bpVersion < 3.0) {
+                assertThat(response.getMessage(), is("Failed: The sync command is not supported with your version of BlackPearl."));
+                return;
+            }
+
             assertThat(response.getMessage(), is("Success: Finished syncing file to ds3 appliance."));
 
             response = Util.command(client, args);
@@ -321,6 +331,13 @@ public class FeatureIntegration_Test {
             Util.createBucket(client, bucketName);
             final Arguments args = new Arguments(new String[]{"--http", "-c", "put_bulk", "-b", bucketName, "-d", Util.RESOURCE_BASE_NAME, "--sync"});
             CommandResponse response = Util.command(client, args);
+
+            final double bpVersion = Util.getBlackPearlVersion(client);
+            if (bpVersion < 3.0) {
+                assertThat(response.getMessage(), is("Failed: The sync command is not supported with your version of BlackPearl."));
+                return;
+            }
+
             assertThat(response.getMessage(), is("SUCCESS: Wrote all the files in .\\src\\test\\resources\\books to bucket test_put_object"));
 
             response = Util.command(client, args);
