@@ -24,6 +24,14 @@ public class PutBulkView implements View<PutBulkResult> {
     @Override
     public String render(final PutBulkResult result) throws JsonProcessingException {
         final CommonJsonView view = CommonJsonView.newView(CommonJsonView.Status.OK);
-        return JsonMapper.toJson(view.message(result.getResult()));
+
+        if (result.getIgnoredFiles() == null || result.getIgnoredFiles().isEmpty()) {
+            view.message(result.getResult());
+        }
+        else {
+            view.data(result);
+        }
+
+        return JsonMapper.toJson(view);
     }
 }
