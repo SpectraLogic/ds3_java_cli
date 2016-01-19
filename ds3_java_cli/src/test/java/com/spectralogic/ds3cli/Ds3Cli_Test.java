@@ -892,18 +892,28 @@ public class Ds3Cli_Test {
         final Ds3ClientHelpers helpers = mock(Ds3ClientHelpers.class);
         final Ds3ClientHelpers.Job mockedGetJob = mock(Ds3ClientHelpers.Job.class);
         final FileUtils mockedFileUtils = mock(FileUtils.class);
-        final Iterable<Ds3Object> retObj = Lists.newArrayList(new Ds3Object("obj1.txt", 1245), new Ds3Object("obj2.txt", 12345));
+
+        final Path p1 = Paths.get("obj1.txt");
+        final Path p2 = Paths.get("obj2.txt");
+        final ImmutableList<Path> retPath = ImmutableList.copyOf(Lists.newArrayList(p1, p2));
 
         final UUID jobId = UUID.randomUUID();
         when(mockedGetJob.getJobId()).thenReturn(jobId);
-        when(helpers.listObjectsForDirectory(any(Path.class))).thenReturn(retObj);
+        final Iterable<Ds3Object> retObj = Lists.newArrayList(new Ds3Object("obj1.txt", 1245), new Ds3Object("obj2.txt", 12345));
         when(helpers.startWriteJob(eq("bucketName"), eq(retObj), any(WriteJobOptions.class))).thenReturn(mockedGetJob);
+
+        PowerMockito.mockStatic(Utils.class);
+        when(Utils.listObjectsForDirectory(any(Path.class))).thenReturn(retPath);
+        PowerMockito.when(Utils.getFileName(any(Path.class), eq(p1))).thenReturn("obj1.txt");
+        PowerMockito.when(Utils.getFileSize(eq(p1))).thenReturn(1245L);
+        PowerMockito.when(Utils.getFileName(any(Path.class), eq(p2))).thenReturn("obj2.txt");
+        PowerMockito.when(Utils.getFileSize(eq(p2))).thenReturn(12345L);
 
         PowerMockito.mockStatic(BlackPearlUtils.class);
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(null, helpers), args, mockedFileUtils);
         final CommandResponse result = cli.call();
-        assertThat(result.getMessage(), is("SUCCESS: Wrote all the files in dir to bucket bucketName"));
+        assertThat(result.getMessage(), is("SUCCESS: Wrote all the files in <dir> to bucket <bucketName>"));
         assertThat(result.getReturnCode(), is(0));
     }
 
@@ -952,7 +962,7 @@ public class Ds3Cli_Test {
         PowerMockito.when(SyncUtils.isNewFile(any(Path.class), any(Contents.class), any(Boolean.class))).thenReturn(true);
         PowerMockito.when(Utils.getFileSize(any(Path.class))).thenReturn(1245L);
         result = cli.call();
-        assertThat(result.getMessage(), is("SUCCESS: Wrote all the files in dir to bucket bucketName"));
+        assertThat(result.getMessage(), is("SUCCESS: Wrote all the files in <dir> to bucket <bucketName>"));
         assertThat(result.getReturnCode(), is(0));
 
     }
@@ -989,7 +999,7 @@ public class Ds3Cli_Test {
 
     @Test
     public void putBulkJson() throws Exception {
-        final String expected = "\"Status\" : \"OK\",\n  \"Message\" : \"SUCCESS: Wrote all the files in dir to bucket bucketName\"\n}";
+        final String expected = "\"Status\" : \"OK\",\n  \"Message\" : \"SUCCESS: Wrote all the files in <dir> to bucket <bucketName>\"\n}";
 
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "put_bulk", "-b", "bucketName", "-d", "dir", "--output-format", "json"});
         final Ds3ClientHelpers helpers = mock(Ds3ClientHelpers.class);
@@ -997,9 +1007,19 @@ public class Ds3Cli_Test {
         final FileUtils mockedFileUtils = mock(FileUtils.class);
         final Iterable<Ds3Object> retObj = Lists.newArrayList(new Ds3Object("obj1.txt", 1245), new Ds3Object("obj2.txt", 12345));
 
+        final Path p1 = Paths.get("obj1.txt");
+        final Path p2 = Paths.get("obj2.txt");
+        final ImmutableList<Path> retPath = ImmutableList.copyOf(Lists.newArrayList(p1, p2));
+
+        PowerMockito.mockStatic(Utils.class);
+        when(Utils.listObjectsForDirectory(any(Path.class))).thenReturn(retPath);
+        PowerMockito.when(Utils.getFileName(any(Path.class), eq(p1))).thenReturn("obj1.txt");
+        PowerMockito.when(Utils.getFileSize(eq(p1))).thenReturn(1245L);
+        PowerMockito.when(Utils.getFileName(any(Path.class), eq(p2))).thenReturn("obj2.txt");
+        PowerMockito.when(Utils.getFileSize(eq(p2))).thenReturn(12345L);
+
         final UUID jobId = UUID.randomUUID();
         when(mockedGetJob.getJobId()).thenReturn(jobId);
-        when(helpers.listObjectsForDirectory(any(Path.class))).thenReturn(retObj);
         when(helpers.startWriteJob(eq("bucketName"), eq(retObj), any(WriteJobOptions.class))).thenReturn(mockedGetJob);
 
         PowerMockito.mockStatic(BlackPearlUtils.class);

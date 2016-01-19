@@ -338,7 +338,7 @@ public class FeatureIntegration_Test {
                 return;
             }
 
-            assertThat(response.getMessage(), is("SUCCESS: Wrote all the files in .\\src\\test\\resources\\books to bucket test_put_object"));
+            assertThat(response.getMessage(), is("SUCCESS: Wrote all the files in <.\\src\\test\\resources\\books> to bucket <test_put_object>"));
 
             response = Util.command(client, args);
             assertThat(response.getMessage(), is("SUCCESS: All files are up to date"));
