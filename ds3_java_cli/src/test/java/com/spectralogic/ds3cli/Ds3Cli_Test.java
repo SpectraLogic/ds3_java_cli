@@ -37,15 +37,18 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.SignatureException;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
 import static com.spectralogic.ds3client.utils.ResponseUtils.toImmutableIntList;
 import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.*;
@@ -1099,6 +1102,27 @@ public class Ds3Cli_Test {
         final CommandResponse result = cli.call();
         assertTrue(result.getMessage().endsWith(expected));
         assertThat(result.getReturnCode(), is(0));
+    }
+
+    @Test
+    public void isCliSupportedTest() throws IOException, SignatureException {
+        final Ds3Client client = mock(Ds3Client.class);
+        final GetSystemInformationResponse systemInformationResponse = mock(GetSystemInformationResponse.class);
+        final SystemInformation systemInformation = mock(SystemInformation.class);
+        final SystemInformation.BuildInformation buildInformation = mock(SystemInformation.BuildInformation.class);
+
+        when(systemInformation.getBuildInformation()).thenReturn(buildInformation);
+        when(systemInformationResponse.getSystemInformation()).thenReturn(systemInformation);
+        when(client.getSystemInformation(any(GetSystemInformationRequest.class))).thenReturn(systemInformationResponse);
+
+        when(buildInformation.getVersion()).thenReturn("1.2.0");
+        assertTrue(Utils.isCliSupported(client));
+
+        when(buildInformation.getVersion()).thenReturn("3.0.0");
+        assertTrue(Utils.isCliSupported(client));
+
+        when(buildInformation.getVersion()).thenReturn("1.1.0");
+        assertFalse(Utils.isCliSupported(client));
     }
 
 }
