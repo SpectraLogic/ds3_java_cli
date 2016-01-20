@@ -38,7 +38,7 @@ public final class Utils {
         return objectsBuilder.build();
     }
 
-    public static String getFileName(final Path rootDir, final Path filePath) {
+    public static String getFileName(final Path rootDir, final Path filePath) throws IOException{
         return rootDir.relativize(filePath).toString().replace("\\", "/");
     }
 

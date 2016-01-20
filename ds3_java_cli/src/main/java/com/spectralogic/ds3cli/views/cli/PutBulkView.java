@@ -17,13 +17,10 @@ package com.spectralogic.ds3cli.views.cli;
 
 import com.bethecoder.ascii_table.ASCIITable;
 import com.bethecoder.ascii_table.ASCIITableHeader;
+import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.command.PutBulk;
 import com.spectralogic.ds3cli.models.PutBulkResult;
-
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 
 import static com.spectralogic.ds3cli.util.Utils.nullGuard;
 
@@ -36,22 +33,23 @@ public class PutBulkView implements View<PutBulkResult> {
 
         return String.format("%s\n%s",
                 result.getResult(),
-                ASCIITable.getInstance().getTable(getHeaders(), formatBucketList(result.getIgnoredFiles().iterator())));
+                ASCIITable.getInstance().getTable(getHeaders(), formatIgnoreFileList(result.getIgnoredFiles())));
     }
 
-    private String[][] formatBucketList(final Iterator<PutBulk.IgnoreFile> iterator) {
-        final List<String[]> contents = new ArrayList<>();
+    private String[][] formatIgnoreFileList(final ImmutableList<PutBulk.IgnoreFile> immutableList) {
+        final String[][] ignoreFileList = new String[immutableList.size()][];
 
-        while(iterator.hasNext()) {
+        int index = 0;
 
-            final PutBulk.IgnoreFile ignoreFile = iterator.next();
+        for (final PutBulk.IgnoreFile ignoreFile : immutableList) {
             final String[] arrayEntry = new String[2];
             arrayEntry[0] = nullGuard(ignoreFile.getPath());
             arrayEntry[1] = nullGuard(ignoreFile.getErrorMessage());
-            contents.add(arrayEntry);
+            ignoreFileList[index] = arrayEntry;
+            index++;
         }
 
-        return contents.toArray(new String[contents.size()][]);
+        return ignoreFileList;
     }
 
     private ASCIITableHeader[] getHeaders() {

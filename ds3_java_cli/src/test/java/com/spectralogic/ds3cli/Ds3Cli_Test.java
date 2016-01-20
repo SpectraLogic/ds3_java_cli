@@ -37,6 +37,7 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -1121,4 +1122,100 @@ public class Ds3Cli_Test {
         assertThat(result.getReturnCode(), is(0));
     }
 
+    @Test
+    public void putBulkWithIgnoreErrors() throws Exception {
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "put_bulk", "-b", "bucketName", "-d", "dir", "--ignore-errors"});
+        final Ds3ClientHelpers helpers = mock(Ds3ClientHelpers.class);
+        final Ds3ClientHelpers.Job mockedGetJob = mock(Ds3ClientHelpers.Job.class);
+        final FileUtils mockedFileUtils = mock(FileUtils.class);
+
+        PowerMockito.mockStatic(BlackPearlUtils.class);
+
+        final Path p1 = Paths.get("obj1.txt");
+        final Path p2 = Paths.get("obj2.txt");
+        final Path p3 = Paths.get("obj3.txt");
+        final ImmutableList<Path> retPath = ImmutableList.copyOf(Lists.newArrayList(p1, p2, p3));
+
+        final UUID jobId = UUID.randomUUID();
+        when(mockedGetJob.getJobId()).thenReturn(jobId);
+        final Iterable<Ds3Object> retObj = Lists.newArrayList(
+                new Ds3Object("obj1.txt", 1245),
+                new Ds3Object("obj2.txt", 12345));
+        when(helpers.startWriteJob(eq("bucketName"), eq(retObj), any(WriteJobOptions.class))).thenReturn(mockedGetJob);
+
+        PowerMockito.mockStatic(Utils.class);
+        when(Utils.listObjectsForDirectory(any(Path.class))).thenReturn(retPath);
+        when(Utils.getFileName(any(Path.class), eq(p1))).thenReturn("obj1.txt");
+        when(Utils.getFileSize(eq(p1))).thenReturn(1245L);
+        when(Utils.getFileName(any(Path.class), eq(p2))).thenReturn("obj2.txt");
+        when(Utils.getFileSize(eq(p2))).thenReturn(12345L);
+        when(Utils.nullGuard(any(String.class))).thenCallRealMethod();
+
+        final IOException ex = new IOException("java.nio.file.NoSuchFileException: obj3.txt");
+        when(Utils.getFileName(any(Path.class), eq(p3))).thenThrow(ex);
+
+        final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(null, helpers), args, mockedFileUtils);
+        final CommandResponse result = cli.call();
+        final String expected = "WARN: Not all the files in <dir> was written to bucket <bucketName>\n" +
+                "+--------------+------------------------------------------------------------------+\n" +
+                "| Ignored File |                              Reason                              |\n" +
+                "+--------------+------------------------------------------------------------------+\n" +
+                "| obj3.txt     | java.io.IOException: java.nio.file.NoSuchFileException: obj3.txt |\n" +
+                "+--------------+------------------------------------------------------------------+\n";
+        assertThat(result.getMessage(), is(expected));
+        assertThat(result.getReturnCode(), is(0));
+    }
+
+    @Test
+    public void putBulkWithIgnoreErrorsJson() throws Exception {
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "put_bulk", "-b", "bucketName", "-d", "dir", "--ignore-errors", "--output-format", "json"});
+        final Ds3ClientHelpers helpers = mock(Ds3ClientHelpers.class);
+        final Ds3ClientHelpers.Job mockedGetJob = mock(Ds3ClientHelpers.Job.class);
+        final FileUtils mockedFileUtils = mock(FileUtils.class);
+
+        PowerMockito.mockStatic(BlackPearlUtils.class);
+
+        final Path p1 = Paths.get("obj1.txt");
+        final Path p2 = Paths.get("obj2.txt");
+        final Path p3 = Paths.get("obj3.txt");
+        final ImmutableList<Path> retPath = ImmutableList.copyOf(Lists.newArrayList(p1, p2, p3));
+
+        final UUID jobId = UUID.randomUUID();
+        when(mockedGetJob.getJobId()).thenReturn(jobId);
+        final Iterable<Ds3Object> retObj = Lists.newArrayList(
+                new Ds3Object("obj1.txt", 1245),
+                new Ds3Object("obj2.txt", 12345));
+        when(helpers.startWriteJob(eq("bucketName"), eq(retObj), any(WriteJobOptions.class))).thenReturn(mockedGetJob);
+
+        PowerMockito.mockStatic(Utils.class);
+        when(Utils.listObjectsForDirectory(any(Path.class))).thenReturn(retPath);
+        when(Utils.getFileName(any(Path.class), eq(p1))).thenReturn("obj1.txt");
+        when(Utils.getFileSize(eq(p1))).thenReturn(1245L);
+        when(Utils.getFileName(any(Path.class), eq(p2))).thenReturn("obj2.txt");
+        when(Utils.getFileSize(eq(p2))).thenReturn(12345L);
+        when(Utils.nullGuard(any(String.class))).thenCallRealMethod();
+
+        final IOException ex = new IOException("java.nio.file.NoSuchFileException: obj3.txt");
+        when(Utils.getFileName(any(Path.class), eq(p3))).thenThrow(ex);
+
+        final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(null, helpers), args, mockedFileUtils);
+        final CommandResponse result = cli.call();
+
+        final String startWith = "{\n" +
+                "  \"Meta\" : {";
+
+        final String endsWith = "},\n" +
+                "  \"Data\" : {\n" +
+                "    \"status_message\" : \"WARN: Not all the files in <dir> was written to bucket <bucketName>\",\n" +
+                "    \"ignored_files\" : [ {\n" +
+                "      \"path\" : \"obj3.txt\",\n" +
+                "      \"error_message\" : \"java.io.IOException: java.nio.file.NoSuchFileException: obj3.txt\"\n" +
+                "    } ]\n" +
+                "  },\n" +
+                "  \"Status\" : \"OK\"\n" +
+                "}";
+
+        assertTrue(result.getMessage().startsWith(startWith));
+        assertTrue(result.getMessage().endsWith(endsWith));
+    }
 }
