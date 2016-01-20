@@ -145,11 +145,11 @@ public class PutBulk extends CliCommand<PutBulkResult> {
 
         if (ignoreErrors && !objectsForDirectory.getIgnoredFiles().isEmpty()) {
             return new PutBulkResult(
-                    String.format("WARN: Not all the files in <%s> was written to bucket <%s>", this.inputDirectory.toString(), this.bucketName),
+                    String.format("WARN: Not all of the files in %s were written to bucket %s", this.inputDirectory.toString(), this.bucketName),
                     objectsForDirectory.getIgnoredFiles());
         }
 
-        return new PutBulkResult(String.format("SUCCESS: Wrote all the files in <%s> to bucket <%s>", this.inputDirectory.toString(), this.bucketName));
+        return new PutBulkResult(String.format("SUCCESS: Wrote all the files in %s to bucket %s", this.inputDirectory.toString(), this.bucketName));
     }
 
     private Iterable<Path> filterObjects(final Path inputDirectory, final String prefix, final Iterable<Contents> contents) throws IOException {

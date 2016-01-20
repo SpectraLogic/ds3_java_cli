@@ -914,7 +914,7 @@ public class Ds3Cli_Test {
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(null, helpers), args, mockedFileUtils);
         final CommandResponse result = cli.call();
-        assertThat(result.getMessage(), is("SUCCESS: Wrote all the files in <dir> to bucket <bucketName>"));
+        assertThat(result.getMessage(), is("SUCCESS: Wrote all the files in dir to bucket bucketName"));
         assertThat(result.getReturnCode(), is(0));
     }
 
@@ -963,7 +963,7 @@ public class Ds3Cli_Test {
         PowerMockito.when(SyncUtils.isNewFile(any(Path.class), any(Contents.class), any(Boolean.class))).thenReturn(true);
         PowerMockito.when(Utils.getFileSize(any(Path.class))).thenReturn(1245L);
         result = cli.call();
-        assertThat(result.getMessage(), is("SUCCESS: Wrote all the files in <dir> to bucket <bucketName>"));
+        assertThat(result.getMessage(), is("SUCCESS: Wrote all the files in dir to bucket bucketName"));
         assertThat(result.getReturnCode(), is(0));
 
     }
@@ -1000,7 +1000,7 @@ public class Ds3Cli_Test {
 
     @Test
     public void putBulkJson() throws Exception {
-        final String expected = "\"Status\" : \"OK\",\n  \"Message\" : \"SUCCESS: Wrote all the files in <dir> to bucket <bucketName>\"\n}";
+        final String expected = "\"Status\" : \"OK\",\n  \"Message\" : \"SUCCESS: Wrote all the files in dir to bucket bucketName\"\n}";
 
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "put_bulk", "-b", "bucketName", "-d", "dir", "--output-format", "json"});
         final Ds3ClientHelpers helpers = mock(Ds3ClientHelpers.class);
@@ -1156,7 +1156,7 @@ public class Ds3Cli_Test {
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(null, helpers), args, mockedFileUtils);
         final CommandResponse result = cli.call();
-        final String expected = "WARN: Not all the files in <dir> was written to bucket <bucketName>\n" +
+        final String expected = "WARN: Not all of the files in dir were written to bucket bucketName\n" +
                 "+--------------+------------------------------------------------------------------+\n" +
                 "| Ignored File |                              Reason                              |\n" +
                 "+--------------+------------------------------------------------------------------+\n" +
@@ -1206,7 +1206,7 @@ public class Ds3Cli_Test {
 
         final String endsWith = "},\n" +
                 "  \"Data\" : {\n" +
-                "    \"status_message\" : \"WARN: Not all the files in <dir> was written to bucket <bucketName>\",\n" +
+                "    \"status_message\" : \"WARN: Not all of the files in dir were written to bucket bucketName\",\n" +
                 "    \"ignored_files\" : [ {\n" +
                 "      \"path\" : \"obj3.txt\",\n" +
                 "      \"error_message\" : \"java.io.IOException: java.nio.file.NoSuchFileException: obj3.txt\"\n" +
