@@ -36,7 +36,7 @@ public class Main {
 
             final Ds3Client client = createClient(arguments);
             if (!Utils.isCliSupported(client)) {
-                System.out.println(String.format("ERROR: Minimum Black Pear supported is %s", Utils.MINIMUM_VERSION_SUPPORTED));
+                System.out.println(String.format("ERROR: Minimum Black Pearl supported is %s", Utils.MINIMUM_VERSION_SUPPORTED));
                 System.exit(2);
             }
 
