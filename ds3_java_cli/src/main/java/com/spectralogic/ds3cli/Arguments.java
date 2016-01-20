@@ -592,7 +592,7 @@ public class Arguments {
         return ignoreErrors;
     }
 
-    public void setIgnoreErrors(final boolean ignoreErrors) {
+    void setIgnoreErrors(final boolean ignoreErrors) {
         this.ignoreErrors = ignoreErrors;
     }
 }
