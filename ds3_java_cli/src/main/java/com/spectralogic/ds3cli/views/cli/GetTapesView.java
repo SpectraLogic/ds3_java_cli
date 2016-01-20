@@ -43,7 +43,7 @@ public class GetTapesView implements View<GetTapesResult> {
         final String [][] formatArray = new String[tapes.size()][];
         for(int i = 0; i < tapes.size(); i ++) {
             final Tape tape = tapes.get(i);
-            final String [] bucketArray = new String[5];
+            final String [] bucketArray = new String[6];
             bucketArray[0] = nullGuard(tape.getBarcode());
             bucketArray[1] = nullGuard(tape.getId().toString());
             bucketArray[2] = nullGuard(tape.getState().toString());
@@ -61,8 +61,8 @@ public class GetTapesView implements View<GetTapesResult> {
                 new ASCIITableHeader("ID", ASCIITable.ALIGN_LEFT),
                 new ASCIITableHeader("State", ASCIITable.ALIGN_LEFT),
                 new ASCIITableHeader("Last Modified", ASCIITable.ALIGN_LEFT),
-                new ASCIITableHeader("Available Raw Capacity", ASCIITable.ALIGN_RIGHT),
-                new ASCIITableHeader("Most Recent Failure", ASCIITable.ALIGN_RIGHT)
+                new ASCIITableHeader("Available Raw Capacity", ASCIITable.ALIGN_LEFT),
+                new ASCIITableHeader("Most Recent Failure", ASCIITable.ALIGN_LEFT)
         };
     }
 }
