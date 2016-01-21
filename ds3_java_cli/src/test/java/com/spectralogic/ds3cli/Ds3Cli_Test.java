@@ -1152,7 +1152,7 @@ public class Ds3Cli_Test {
         when(Utils.nullGuard(any(String.class))).thenCallRealMethod();
 
         final IOException ex = new IOException("java.nio.file.NoSuchFileException: obj3.txt");
-        when(Utils.getFileName(any(Path.class), eq(p3))).thenThrow(ex);
+        when(Utils.getFileSize(eq(p3))).thenThrow(ex);
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(null, helpers), args, mockedFileUtils);
         final CommandResponse result = cli.call();
@@ -1196,7 +1196,7 @@ public class Ds3Cli_Test {
         when(Utils.nullGuard(any(String.class))).thenCallRealMethod();
 
         final IOException ex = new IOException("java.nio.file.NoSuchFileException: obj3.txt");
-        when(Utils.getFileName(any(Path.class), eq(p3))).thenThrow(ex);
+        when(Utils.getFileSize(eq(p3))).thenThrow(ex);
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(null, helpers), args, mockedFileUtils);
         final CommandResponse result = cli.call();
