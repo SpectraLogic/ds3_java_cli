@@ -103,11 +103,11 @@ public class PutBulk extends CliCommand<PutBulkResult> {
 
         final Ds3ClientHelpers helpers = getClientHelpers();
         final Iterable<Ds3Object> ds3Objects;
-        final ObjectsForDirectory objectsForDirectory = new ObjectsForDirectory();
 
         /* Ensure the bucket exists and if not create it */
         helpers.ensureBucketExists(this.bucketName);
 
+        final ObjectsForDirectory objectsForDirectory;
         if (sync) {
             if (!SyncUtils.isSyncSupported(getClient())) {
                 return new PutBulkResult("Failed: The sync command is not supported with your version of BlackPearl.");
@@ -118,11 +118,12 @@ public class PutBulk extends CliCommand<PutBulkResult> {
             if (Iterables.isEmpty(filteredObjects)) {
                 return new PutBulkResult("SUCCESS: All files are up to date");
             }
-
-            ds3Objects = objectsForDirectory.getDs3Objects(filteredObjects);
+            objectsForDirectory = Utils.getObjectsForDirectory(filteredObjects, inputDirectory, ignoreErrors);
         } else {
-            ds3Objects = objectsForDirectory.getDs3Objects(this.inputDirectory);
+            objectsForDirectory = Utils.getObjectsForDirectory(this.inputDirectory, ignoreErrors);
         }
+
+        ds3Objects = objectsForDirectory.getDs3Objects();
 
         if (prefix != null) {
             LOG.info("Pre-appending " + prefix + " to all object names");
@@ -143,10 +144,10 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         LOG.info("Created bulk put job " + job.getJobId().toString() + ", starting transfer");
         job.transfer(new PrefixedFileObjectPutter(this.inputDirectory, prefix));
 
-        if (ignoreErrors && !objectsForDirectory.getIgnoredFiles().isEmpty()) {
+        if (ignoreErrors && !objectsForDirectory.ds3IgnoredObjects.isEmpty()) {
             return new PutBulkResult(
                     String.format("WARN: Not all of the files in %s were written to bucket %s", this.inputDirectory.toString(), this.bucketName),
-                    objectsForDirectory.getIgnoredFiles());
+                    objectsForDirectory.getDs3IgnoredObjects());
         }
 
         return new PutBulkResult(String.format("SUCCESS: Wrote all the files in %s to bucket %s", this.inputDirectory.toString(), this.bucketName));
@@ -220,45 +221,29 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         }
     }
 
-    private class ObjectsForDirectory {
 
-        private ImmutableList<IgnoreFile> ignoredFiles;
 
-        public ObjectsForDirectory() {
-            //pass
+    public static class ObjectsForDirectory {
+
+        private final ImmutableList<Ds3Object> ds3Objects;
+        private final ImmutableList<IgnoreFile> ds3IgnoredObjects;
+
+        public ObjectsForDirectory(final ImmutableList<Ds3Object> ds3Objects, final ImmutableList<IgnoreFile> ds3IgnoredObjects) {
+            this.ds3Objects = ds3Objects;
+            this.ds3IgnoredObjects = ds3IgnoredObjects;
         }
 
-        public ImmutableList<Ds3Object> getDs3Objects(final Iterable<Path> filteredObjects) throws IOException {
-            final ImmutableList.Builder<Ds3Object> objectsBuilder = ImmutableList.builder();
-            final ImmutableList.Builder<IgnoreFile> ignoredBuilder = ImmutableList.builder();
-
-            for (final Path path : filteredObjects) {
-                try {
-                    objectsBuilder.add(new Ds3Object(
-                            Utils.getFileName(inputDirectory, path),
-                            Utils.getFileSize(path)));
-                } catch (final IOException ex) {
-                    if (!ignoreErrors) throw ex;
-                    LOG.warn(String.format("WARN: file '%s' has an error and will be ignored", path.getFileName()));
-                    ignoredBuilder.add(new IgnoreFile(path, ex.toString()));
-                }
-            }
-
-            ignoredFiles = ignoredBuilder.build();
-            return objectsBuilder.build();
+        public ImmutableList<Ds3Object> getDs3Objects() {
+            return ds3Objects;
         }
 
-        public ImmutableList<Ds3Object> getDs3Objects(final Path directory) throws IOException {
-            final Iterable<Path> localFiles = Utils.listObjectsForDirectory(directory);
-            return getDs3Objects(localFiles);
-        }
-
-        public ImmutableList<IgnoreFile> getIgnoredFiles() {
-            return ignoredFiles;
+        public ImmutableList<IgnoreFile> getDs3IgnoredObjects() {
+            return ds3IgnoredObjects;
         }
     }
 
-    public class IgnoreFile {
+
+    public static class IgnoreFile {
         @JsonProperty("path")
         private final String path;
 
