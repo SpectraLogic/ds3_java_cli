@@ -58,6 +58,7 @@ public class GetBulk extends CliCommand<GetBulkResult> {
     private Priority priority;
     private boolean sync;
     private boolean force;
+    private int numberOfThreads;
 
     public GetBulk(final Ds3Provider provider, final FileUtils fileUtils) {
         super(provider, fileUtils);
@@ -92,6 +93,8 @@ public class GetBulk extends CliCommand<GetBulkResult> {
         }
 
         this.force = args.isForce();
+        this.numberOfThreads = Integer.valueOf(args.getNumberOfThreads());
+		
         return this;
     }
 
@@ -155,7 +158,7 @@ public class GetBulk extends CliCommand<GetBulkResult> {
         final Ds3ClientHelpers.Job job = helper.startReadJob(this.bucketName, objects,
                 ReadJobOptions.create()
                         .withPriority(this.priority));
-
+        job.withMaxParallelRequests(this.numberOfThreads);
         job.transfer(new LoggingFileObjectGetter(getter));
 
         if (sync) {
@@ -173,7 +176,7 @@ public class GetBulk extends CliCommand<GetBulkResult> {
         final Ds3ClientHelpers helper = getClientHelpers();
         final Ds3ClientHelpers.Job job = helper.startReadAllJob(this.bucketName,
                 ReadJobOptions.create().withPriority(this.priority));
-
+        job.withMaxParallelRequests(this.numberOfThreads);
         job.transfer(new LoggingFileObjectGetter(getter));
 
         return "SUCCESS: Wrote all the objects from " + this.bucketName + " to directory " + this.outputPath.toString();

@@ -45,6 +45,7 @@ public class PutObject extends CliCommand<PutObjectResult> {
     private String prefix;
     private boolean sync;
     private boolean force;
+    private int numberOfThreads;
 
     public PutObject(final Ds3Provider provider, final FileUtils fileUtils) {
         super(provider, fileUtils);
@@ -80,6 +81,8 @@ public class PutObject extends CliCommand<PutObjectResult> {
             LOG.info("Using sync command");
             this.sync = true;
         }
+
+        this.numberOfThreads = Integer.valueOf(args.getNumberOfThreads());
 
         return this;
     }
@@ -120,6 +123,7 @@ public class PutObject extends CliCommand<PutObjectResult> {
 
     private void Transfer(final Ds3ClientHelpers helpers, final Ds3Object ds3Obj) throws SignatureException, IOException, XmlProcessingException {
         final Ds3ClientHelpers.Job putJob = helpers.startWriteJob(bucketName, Lists.newArrayList(ds3Obj));
+        putJob.withMaxParallelRequests(this.numberOfThreads);
         putJob.transfer(new Ds3ClientHelpers.ObjectChannelBuilder() {
             @Override
             public SeekableByteChannel buildChannel(final String s) throws IOException {

@@ -62,7 +62,7 @@ public class PerformanceCommand extends CliCommand<PerformanceResult> {
         }
 
         bufferSize = Integer.valueOf(args.getBufferSize());
-        numberOfThreads = Integer.valueOf(args.getNumberOfThreads());
+        this.numberOfThreads = Integer.valueOf(args.getNumberOfThreads());
 
         return this;
     }
@@ -116,7 +116,7 @@ public class PerformanceCommand extends CliCommand<PerformanceResult> {
         } else {
             job = helpers.startReadJob(this.bucketName, objList);
         }
-        job.withMaxParallelRequests(numberOfThreads);
+        job.withMaxParallelRequests(this.numberOfThreads);
 
         final PerformanceListener getPerformanceListener = new PerformanceListener(
                 System.currentTimeMillis(),
