@@ -21,13 +21,14 @@ import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.command.PutBulk;
 import com.spectralogic.ds3cli.models.PutBulkResult;
+import com.spectralogic.ds3client.utils.Guard;
 
 import static com.spectralogic.ds3cli.util.Utils.nullGuard;
 
 public class PutBulkView implements View<PutBulkResult> {
     @Override
     public String render(final PutBulkResult result) {
-        if (result.getIgnoredFiles() == null || result.getIgnoredFiles().isEmpty()) {
+        if (Guard.isNullOrEmpty(result.getIgnoredFiles())) {
             return result.getResult();
         }
 

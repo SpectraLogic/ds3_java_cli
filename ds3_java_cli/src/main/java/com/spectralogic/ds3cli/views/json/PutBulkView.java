@@ -19,13 +19,14 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.models.PutBulkResult;
 import com.spectralogic.ds3cli.util.JsonMapper;
+import com.spectralogic.ds3client.utils.Guard;
 
 public class PutBulkView implements View<PutBulkResult> {
     @Override
     public String render(final PutBulkResult result) throws JsonProcessingException {
         final CommonJsonView view = CommonJsonView.newView(CommonJsonView.Status.OK);
 
-        if (result.getIgnoredFiles() == null || result.getIgnoredFiles().isEmpty()) {
+        if (Guard.isNullOrEmpty(result.getIgnoredFiles())) {
             view.message(result.getResult());
         }
         else {
