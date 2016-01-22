@@ -20,6 +20,7 @@ import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.DeleteResult;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
+import com.spectralogic.ds3cli.util.Parallel;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.DeleteBucketRequest;
 import com.spectralogic.ds3client.commands.DeleteObjectRequest;
@@ -78,7 +79,7 @@ public class DeleteBucket extends CliCommand<DeleteResult> {
         return "Success: Deleted bucket '" + bucketName + "'.";
     }
 
-    private String clearObjects() throws SignatureException, SSLSetupException, CommandException {
+    private String clearObjects() throws IOException, SignatureException, SSLSetupException, CommandException {
         // TODO when the multi object delete command has been added to DS3
         // Get the list of objects from the bucket
         LOG.debug("Deleting objects in bucket first");
@@ -87,15 +88,20 @@ public class DeleteBucket extends CliCommand<DeleteResult> {
 
         try {
             final Iterable<Contents> fileList = helper.listObjects(bucketName);
-            for (final Contents content : fileList) {
-                client.deleteObject(new DeleteObjectRequest(bucketName, content.getKey()));
-            }
+            Parallel.For(fileList, new Parallel.Operation<Contents>() {
+                @Override
+                public void perform(final Contents content) throws IOException, SignatureException {
+                    client.deleteObject(new DeleteObjectRequest(bucketName, content.getKey()));
+                }
+            });
+
             LOG.debug("Deleting bucket");
             getClient().deleteBucket(new DeleteBucketRequest(bucketName));
 
         } catch (final IOException e) {
             throw new CommandException("Error: Request failed with the following error: " + e.getMessage(), e);
         }
+
         return "Success: Deleted " + bucketName + " and all the objects contained in it.";
     }
 }
