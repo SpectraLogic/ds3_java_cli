@@ -58,7 +58,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
     private WriteOptimization writeOptimization;
     private boolean sync;
     private boolean force;
-	private int numberOfThreads;
+    private int numberOfThreads;
     private boolean pipe;
     private ImmutableList<String> pipedFiles;
     private ImmutableMap<String, String> mapNormalizedObjectNameToObjectName = null;
@@ -123,29 +123,31 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         if (pipe) {
             mapNormalizedObjectNameToObjectName = getNormalizedObjectNameToObjectName(pipedFiles);
             ds3Objects = getDs3Objects(mapNormalizedObjectNameToObjectName);
-        } else if (sync) {
-            if (!SyncUtils.isSyncSupported(getClient())) {
-                return new PutBulkResult("Failed: The sync command is not supported with your version of BlackPearl.");
-            }
-
-            final Iterable<Contents> contents = helpers.listObjects(bucketName, prefix);
-            final Iterable<Path> filteredObjects = filterObjects(this.inputDirectory, prefix != null ? prefix : "", contents);
-            if (Iterables.isEmpty(filteredObjects)) {
-                return new PutBulkResult("SUCCESS: All files are up to date");
-            }
-
-            ds3Objects = getDs3Objects(filteredObjects);
         } else {
-            ds3Objects = helpers.listObjectsForDirectory(this.inputDirectory);
-        }
+            if (sync) {
+                if (!SyncUtils.isSyncSupported(getClient())) {
+                    return new PutBulkResult("Failed: The sync command is not supported with your version of BlackPearl.");
+                }
 
-        if (prefix != null) {
-            LOG.info("Pre-appending " + prefix + " to all object names");
-            for (final Ds3Object obj : ds3Objects) {
-                obj.setName(prefix + obj.getName());
+                final Iterable<Contents> contents = helpers.listObjects(bucketName, prefix);
+                final Iterable<Path> filteredObjects = filterObjects(this.inputDirectory, prefix != null ? prefix : "", contents);
+                if (Iterables.isEmpty(filteredObjects)) {
+                    return new PutBulkResult("SUCCESS: All files are up to date");
+                }
+
+                ds3Objects = getDs3Objects(filteredObjects);
+            } else {
+                ds3Objects = helpers.listObjectsForDirectory(this.inputDirectory);
+            }
+
+            if (prefix != null) {
+                LOG.info("Pre-appending " + prefix + " to all object names");
+                for (final Ds3Object obj : ds3Objects) {
+                    obj.setName(prefix + obj.getName());
+                }
             }
         }
-
+        
         final Ds3ClientHelpers.Job job = helpers.startWriteJob(this.bucketName, ds3Objects,
                 WriteJobOptions.create()
                         .withPriority(this.priority)
