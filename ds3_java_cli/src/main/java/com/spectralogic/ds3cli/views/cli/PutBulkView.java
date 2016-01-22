@@ -15,12 +15,47 @@
 
 package com.spectralogic.ds3cli.views.cli;
 
+import com.bethecoder.ascii_table.ASCIITable;
+import com.bethecoder.ascii_table.ASCIITableHeader;
+import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3cli.View;
+import com.spectralogic.ds3cli.command.PutBulk;
 import com.spectralogic.ds3cli.models.PutBulkResult;
+import com.spectralogic.ds3client.utils.Guard;
+
+import static com.spectralogic.ds3cli.util.Utils.nullGuard;
 
 public class PutBulkView implements View<PutBulkResult> {
     @Override
     public String render(final PutBulkResult result) {
-        return result.getResult();
+        if (Guard.isNullOrEmpty(result.getIgnoredFiles())) {
+            return result.getResult();
+        }
+
+        return String.format("%s\n%s",
+                result.getResult(),
+                ASCIITable.getInstance().getTable(getHeaders(), formatIgnoreFileList(result.getIgnoredFiles())));
+    }
+
+    private String[][] formatIgnoreFileList(final ImmutableList<PutBulk.IgnoreFile> immutableList) {
+        final String[][] ignoreFileList = new String[immutableList.size()][];
+
+        int index = 0;
+
+        for (final PutBulk.IgnoreFile ignoreFile : immutableList) {
+            final String[] arrayEntry = new String[2];
+            arrayEntry[0] = nullGuard(ignoreFile.getPath());
+            arrayEntry[1] = nullGuard(ignoreFile.getErrorMessage());
+            ignoreFileList[index] = arrayEntry;
+            index++;
+        }
+
+        return ignoreFileList;
+    }
+
+    private ASCIITableHeader[] getHeaders() {
+        return new ASCIITableHeader[]{
+                new ASCIITableHeader("Ignored File", ASCIITable.ALIGN_LEFT),
+                new ASCIITableHeader("Reason", ASCIITable.ALIGN_LEFT)};
     }
 }

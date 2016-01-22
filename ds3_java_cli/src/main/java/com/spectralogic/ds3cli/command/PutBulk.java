@@ -15,15 +15,12 @@
 
 package com.spectralogic.ds3cli.command;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.models.PutBulkResult;
-import com.spectralogic.ds3cli.util.BlackPearlUtils;
-import com.spectralogic.ds3cli.util.Ds3Provider;
-import com.spectralogic.ds3cli.util.FileUtils;
-import com.spectralogic.ds3cli.util.SyncUtils;
-import com.spectralogic.ds3cli.util.Utils;
+import com.spectralogic.ds3cli.util.*;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.helpers.FileObjectPutter;
 import com.spectralogic.ds3client.helpers.options.WriteJobOptions;
@@ -57,6 +54,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
     private boolean sync;
     private boolean force;
     private int numberOfThreads;
+    private boolean ignoreErrors;
 
     public PutBulk(final Ds3Provider provider, final FileUtils fileUtils) {
         super(provider, fileUtils);
@@ -92,6 +90,11 @@ public class PutBulk extends CliCommand<PutBulkResult> {
 
         this.numberOfThreads = Integer.valueOf(args.getNumberOfThreads());
 
+        if (args.isIgnoreErrors()) {
+            LOG.info("Ignoring files that cause errors");
+            this.ignoreErrors = true;
+        }
+
         return this;
     }
 
@@ -107,6 +110,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         /* Ensure the bucket exists and if not create it */
         helpers.ensureBucketExists(this.bucketName);
 
+        final ObjectsForDirectory objectsForDirectory;
         if (sync) {
             if (!SyncUtils.isSyncSupported(getClient())) {
                 return new PutBulkResult("Failed: The sync command is not supported with your version of BlackPearl.");
@@ -117,11 +121,12 @@ public class PutBulk extends CliCommand<PutBulkResult> {
             if (Iterables.isEmpty(filteredObjects)) {
                 return new PutBulkResult("SUCCESS: All files are up to date");
             }
-
-            ds3Objects = getDs3Objects(filteredObjects);
+            objectsForDirectory = Utils.getObjectsForDirectory(filteredObjects, inputDirectory, ignoreErrors);
         } else {
-            ds3Objects = helpers.listObjectsForDirectory(this.inputDirectory);
+            objectsForDirectory = Utils.getObjectsForDirectory(this.inputDirectory, ignoreErrors);
         }
+
+        ds3Objects = objectsForDirectory.getDs3Objects();
 
         if (prefix != null) {
             LOG.info("Pre-appending " + prefix + " to all object names");
@@ -143,17 +148,13 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         LOG.info("Created bulk put job " + job.getJobId().toString() + ", starting transfer");
         job.transfer(new PrefixedFileObjectPutter(this.inputDirectory, prefix));
 
-        return new PutBulkResult("SUCCESS: Wrote all the files in " + this.inputDirectory.toString() + " to bucket " + this.bucketName);
-    }
-
-    private ImmutableList<Ds3Object> getDs3Objects(final Iterable<Path> filteredObjects) throws IOException {
-        final ImmutableList.Builder<Ds3Object> objectsBuilder = ImmutableList.builder();
-        for (final Path path : filteredObjects) {
-            objectsBuilder.add(new Ds3Object(
-                    Utils.getFileName(inputDirectory, path),
-                    Utils.getFileSize(path)));
+        if (ignoreErrors && !objectsForDirectory.ds3IgnoredObjects.isEmpty()) {
+            return new PutBulkResult(
+                    String.format("WARN: Not all of the files in %s were written to bucket %s", this.inputDirectory.toString(), this.bucketName),
+                    objectsForDirectory.getDs3IgnoredObjects());
         }
-        return objectsBuilder.build();
+
+        return new PutBulkResult(String.format("SUCCESS: Wrote all the files in %s to bucket %s", this.inputDirectory.toString(), this.bucketName));
     }
 
     private Iterable<Path> filterObjects(final Path inputDirectory, final String prefix, final Iterable<Contents> contents) throws IOException {
@@ -223,4 +224,48 @@ public class PutBulk extends CliCommand<PutBulkResult> {
             return this.objectPutter.buildChannel(s);
         }
     }
+
+
+
+    public static class ObjectsForDirectory {
+
+        private final ImmutableList<Ds3Object> ds3Objects;
+        private final ImmutableList<IgnoreFile> ds3IgnoredObjects;
+
+        public ObjectsForDirectory(final ImmutableList<Ds3Object> ds3Objects, final ImmutableList<IgnoreFile> ds3IgnoredObjects) {
+            this.ds3Objects = ds3Objects;
+            this.ds3IgnoredObjects = ds3IgnoredObjects;
+        }
+
+        public ImmutableList<Ds3Object> getDs3Objects() {
+            return ds3Objects;
+        }
+
+        public ImmutableList<IgnoreFile> getDs3IgnoredObjects() {
+            return ds3IgnoredObjects;
+        }
+    }
+
+
+    public static class IgnoreFile {
+        @JsonProperty("path")
+        private final String path;
+
+        @JsonProperty("error_message")
+        private final String errorMessage;
+
+        public IgnoreFile(final Path path, final String errorMessage) {
+            this.path = path.toString();
+            this.errorMessage = errorMessage;
+        }
+
+        public String getPath() {
+            return path;
+        }
+
+        public String getErrorMessage() {
+            return errorMessage;
+        }
+    }
+
 }

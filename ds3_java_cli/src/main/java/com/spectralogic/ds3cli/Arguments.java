@@ -65,6 +65,7 @@ public class Arguments {
     private String buildDate = "N/a";
     private String bufferSize;
     private String numberOfThreads;
+    private boolean ignoreErrors = false;
 
     public Arguments(final String[] args) throws BadArgumentException, ParseException {
         loadProperties();
@@ -131,6 +132,9 @@ public class Arguments {
         bufferSize.setArgName("bufferSize");
         final Option numberOfThreads = new Option("nt", true, "Set the number of threads");
         numberOfThreads.setArgName("numberOfThreads");
+        final Option ignoreErrors = new Option(null, false, "Ignore files that cause errors");
+        ignoreErrors.setLongOpt("ignore-errors");
+
         options.addOption(ds3Endpoint);
         options.addOption(bucket);
         options.addOption(directory);
@@ -160,6 +164,7 @@ public class Arguments {
         options.addOption(sizeOfFiles);
         options.addOption(bufferSize);
         options.addOption(numberOfThreads);
+        options.addOption(ignoreErrors);
 
         processCommandLine();
     }
@@ -319,6 +324,10 @@ public class Arguments {
         this.setNumberOfThreads(cmd.getOptionValue("nt"));
         if (getNumberOfThreads() == null) {
             this.numberOfThreads = "10"; //default to 20 threads
+        }
+
+        if (cmd.hasOption("ignore-errors")) {
+            this.setIgnoreErrors(true);
         }
     }
 
@@ -577,5 +586,13 @@ public class Arguments {
 
     public String getNumberOfThreads() {
         return this.numberOfThreads;
+    }
+
+    public boolean isIgnoreErrors() {
+        return ignoreErrors;
+    }
+
+    void setIgnoreErrors(final boolean ignoreErrors) {
+        this.ignoreErrors = ignoreErrors;
     }
 }
