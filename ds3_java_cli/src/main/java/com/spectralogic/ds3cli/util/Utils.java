@@ -16,6 +16,8 @@
 package com.spectralogic.ds3cli.util;
 
 import com.google.common.collect.ImmutableList;
+import com.spectralogic.ds3client.Ds3Client;
+import com.spectralogic.ds3client.commands.GetSystemInformationRequest;
 import com.spectralogic.ds3cli.command.PutBulk;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import org.slf4j.Logger;
@@ -27,12 +29,25 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.security.SignatureException;
+import java.util.regex.Pattern;
 
 import static com.spectralogic.ds3cli.command.PutBulk.*;
 
 public final class Utils {
 
     private final static Logger LOG = LoggerFactory.getLogger(Utils.class);
+    public final static double MINIMUM_VERSION_SUPPORTED = 1.2;
+
+    public static boolean isCliSupported(final Ds3Client client) throws IOException, SignatureException {
+        final String buildInfo = client.getSystemInformation(new GetSystemInformationRequest()).getSystemInformation().getBuildInformation().getVersion();
+        final String[] buildInfoArr = buildInfo.split((Pattern.quote(".")));
+        final double version = Double.valueOf(
+                String.format("%s.%s", buildInfoArr[0], buildInfoArr[1]));
+
+        return version >= MINIMUM_VERSION_SUPPORTED;
+
+    }
 
     public static ImmutableList<Path> listObjectsForDirectory(final Path directory) throws IOException {
         final ImmutableList.Builder<Path> objectsBuilder = ImmutableList.builder();

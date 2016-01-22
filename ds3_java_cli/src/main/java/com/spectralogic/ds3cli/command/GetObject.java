@@ -48,6 +48,7 @@ public class GetObject extends CliCommand<GetObjectResult> {
     private String prefix;
     private boolean sync;
     private boolean force;
+    private int numberOfThreads;
 
     public GetObject(final Ds3Provider provider, final FileUtils fileUtils) {
         super(provider, fileUtils);
@@ -76,6 +77,7 @@ public class GetObject extends CliCommand<GetObjectResult> {
         }
 
         this.force = args.isForce();
+        this.numberOfThreads = Integer.valueOf(args.getNumberOfThreads());
 
         return this;
     }
@@ -118,6 +120,7 @@ public class GetObject extends CliCommand<GetObjectResult> {
     private void Transfer(final Ds3ClientHelpers helpers, final Ds3Object ds3Obj) throws IOException, SignatureException, XmlProcessingException {
         final List<Ds3Object> ds3ObjectList = Lists.newArrayList(ds3Obj);
         final Ds3ClientHelpers.Job job = helpers.startReadJob(bucketName, ds3ObjectList);
+        job.withMaxParallelRequests(this.numberOfThreads);
         job.transfer(new FileObjectGetter(Paths.get(prefix)));
     }
 }

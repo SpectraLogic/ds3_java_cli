@@ -53,6 +53,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
     private WriteOptimization writeOptimization;
     private boolean sync;
     private boolean force;
+    private int numberOfThreads;
     private boolean ignoreErrors;
 
     public PutBulk(final Ds3Provider provider, final FileUtils fileUtils) {
@@ -86,6 +87,8 @@ public class PutBulk extends CliCommand<PutBulkResult> {
             LOG.info("Using sync command");
             this.sync = true;
         }
+
+        this.numberOfThreads = Integer.valueOf(args.getNumberOfThreads());
 
         if (args.isIgnoreErrors()) {
             LOG.info("Ignoring files that cause errors");
@@ -136,6 +139,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
                 WriteJobOptions.create()
                         .withPriority(this.priority)
                         .withWriteOptimization(this.writeOptimization));
+        job.withMaxParallelRequests(this.numberOfThreads);
         if (this.checksum) {
             throw new RuntimeException("Checksum calculation is not currently supported."); //TODO
 //            Logging.log("Performing bulk put with checksum computation enabled");
