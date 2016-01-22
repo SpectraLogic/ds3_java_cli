@@ -16,6 +16,12 @@
 package com.spectralogic.ds3cli.util;
 
 import com.google.common.collect.ImmutableList;
+import com.spectralogic.ds3client.Ds3Client;
+import com.spectralogic.ds3client.commands.GetSystemInformationRequest;
+import com.spectralogic.ds3cli.command.PutBulk;
+import com.spectralogic.ds3client.models.bulk.Ds3Object;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
@@ -23,8 +29,25 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.security.SignatureException;
+import java.util.regex.Pattern;
+
+import static com.spectralogic.ds3cli.command.PutBulk.*;
 
 public final class Utils {
+
+    private final static Logger LOG = LoggerFactory.getLogger(Utils.class);
+    public final static double MINIMUM_VERSION_SUPPORTED = 1.2;
+
+    public static boolean isCliSupported(final Ds3Client client) throws IOException, SignatureException {
+        final String buildInfo = client.getSystemInformation(new GetSystemInformationRequest()).getSystemInformation().getBuildInformation().getVersion();
+        final String[] buildInfoArr = buildInfo.split((Pattern.quote(".")));
+        final double version = Double.valueOf(
+                String.format("%s.%s", buildInfoArr[0], buildInfoArr[1]));
+
+        return version >= MINIMUM_VERSION_SUPPORTED;
+
+    }
 
     public static ImmutableList<Path> listObjectsForDirectory(final Path directory) throws IOException {
         final ImmutableList.Builder<Path> objectsBuilder = ImmutableList.builder();
@@ -58,7 +81,31 @@ public final class Utils {
         return message;
     }
 
-    public static String normalizeObjectName(final String objectName) {
+    public static ObjectsForDirectory getObjectsForDirectory(final Iterable<Path> filteredObjects, final Path inputDirectory, final boolean ignoreErrors) throws IOException {
+        final ImmutableList.Builder<Ds3Object> objectsBuilder = ImmutableList.builder();
+        final ImmutableList.Builder<PutBulk.IgnoreFile> ignoredBuilder = ImmutableList.builder();
+
+        for (final Path path : filteredObjects) {
+            try {
+                objectsBuilder.add(new Ds3Object(
+                        Utils.getFileName(inputDirectory, path),
+                        Utils.getFileSize(path)));
+            } catch (final IOException ex) {
+                if (!ignoreErrors) throw ex;
+                LOG.warn(String.format("WARN: file '%s' has an error and will be ignored", path.getFileName()));
+                ignoredBuilder.add(new PutBulk.IgnoreFile(path, ex.toString()));
+            }
+        }
+
+        return new ObjectsForDirectory(objectsBuilder.build(), ignoredBuilder.build());
+    }
+
+    public static ObjectsForDirectory getObjectsForDirectory(final Path inputDirectory, final boolean ignoreErrors) throws IOException {
+        final Iterable<Path> localFiles = Utils.listObjectsForDirectory(inputDirectory);
+        return getObjectsForDirectory(localFiles, inputDirectory, ignoreErrors);
+    }
+	
+	public static String normalizeObjectName(final String objectName) {
         final String path;
         final int colonIndex = objectName.indexOf(':');
         if (colonIndex != -1) {
@@ -76,4 +123,5 @@ public final class Utils {
         final String normalizedPath = path.replace("\\", "/");
         return normalizedPath;
     }
+	
 }

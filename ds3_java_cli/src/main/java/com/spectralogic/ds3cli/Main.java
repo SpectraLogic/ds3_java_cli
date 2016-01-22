@@ -17,6 +17,7 @@ package com.spectralogic.ds3cli;
 
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
+import com.spectralogic.ds3cli.util.Utils;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.Ds3ClientBuilder;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
@@ -32,7 +33,13 @@ public class Main {
     public static void main(final String[] args) {
         try {
             final Arguments arguments = new Arguments(args);
+
             final Ds3Client client = createClient(arguments);
+            if (!Utils.isCliSupported(client)) {
+                System.out.println(String.format("ERROR: Minimum Black Pearl supported is %s", Utils.MINIMUM_VERSION_SUPPORTED));
+                System.exit(2);
+            }
+
             final Ds3Provider provider = new Ds3ProviderImpl(client, Ds3ClientHelpers.wrap(client));
             final FileUtils fileUtils = new FileUtilsImpl();
             final Ds3Cli runner = new Ds3Cli(provider, arguments, fileUtils);

@@ -65,7 +65,8 @@ public class Arguments {
     private String buildDate = "N/a";
     private String bufferSize;
     private String numberOfThreads;
-    private boolean pipe;
+    private boolean ignoreErrors = false;
+	private boolean pipe;
 
     public Arguments(final String[] args) throws BadArgumentException, ParseException {
         loadProperties();
@@ -132,9 +133,11 @@ public class Arguments {
         bufferSize.setArgName("bufferSize");
         final Option numberOfThreads = new Option("nt", true, "Set the number of threads");
         numberOfThreads.setArgName("numberOfThreads");
+        final Option ignoreErrors = new Option(null, false, "Ignore files that cause errors");
+        ignoreErrors.setLongOpt("ignore-errors");
         final Option pipe = new Option(null, false, "Allow piping input when using put_bulk command");
         pipe.setLongOpt("pipe");
-
+		
         options.addOption(ds3Endpoint);
         options.addOption(bucket);
         options.addOption(directory);
@@ -164,8 +167,9 @@ public class Arguments {
         options.addOption(sizeOfFiles);
         options.addOption(bufferSize);
         options.addOption(numberOfThreads);
+        options.addOption(ignoreErrors);
         options.addOption(pipe);
-
+		
         processCommandLine();
     }
 
@@ -326,8 +330,11 @@ public class Arguments {
             this.numberOfThreads = "10"; //default to 20 threads
         }
 
-        this.setPipe(cmd.hasOption("pipe"));
-
+        if (cmd.hasOption("ignore-errors")) {
+            this.setIgnoreErrors(true);
+        }
+		
+		this.setPipe(cmd.hasOption("pipe"));
     }
 
     private WriteOptimization processWriteOptimization(final CommandLine cmd, final String writeOptimization) throws BadArgumentException {
@@ -587,11 +594,20 @@ public class Arguments {
         return this.numberOfThreads;
     }
 
-    public boolean isPipe() {
+    public boolean isIgnoreErrors() {
+        return ignoreErrors;
+    }
+
+    void setIgnoreErrors(final boolean ignoreErrors) {
+        this.ignoreErrors = ignoreErrors;
+    }
+	
+	public boolean isPipe() {
         return this.pipe;
     }
 
     public void setPipe(final boolean pipe) {
         this.pipe = pipe;
     }
+	
 }

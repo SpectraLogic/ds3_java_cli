@@ -94,7 +94,7 @@ public class GetBulk extends CliCommand<GetBulkResult> {
 
         this.force = args.isForce();
         this.numberOfThreads = Integer.valueOf(args.getNumberOfThreads());
-		
+
         return this;
     }
 

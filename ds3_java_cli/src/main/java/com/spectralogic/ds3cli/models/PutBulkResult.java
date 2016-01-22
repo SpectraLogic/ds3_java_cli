@@ -16,16 +16,35 @@
 package com.spectralogic.ds3cli.models;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.google.common.collect.ImmutableList;
+import com.spectralogic.ds3cli.command.PutBulk;
 
 public class PutBulkResult implements Result {
     @JsonProperty("status_message")
-    final private String result;
+    private final String result;
+
+    @JsonProperty("ignored_files")
+    @JacksonXmlElementWrapper(
+            useWrapping = true
+    )
+    private final ImmutableList<PutBulk.IgnoreFile> ignoredFiles;
+
+    public PutBulkResult(final String result){
+        this.result = result;
+        this.ignoredFiles = null;
+    }
+
+    public PutBulkResult(final String result, final ImmutableList<PutBulk.IgnoreFile> ignoredFiles) {
+        this.result = result;
+        this.ignoredFiles = ignoredFiles;
+    }
 
     final public String getResult(){
         return this.result;
     }
 
-    public PutBulkResult(final String result){
-        this.result = result;
+    public ImmutableList<PutBulk.IgnoreFile> getIgnoredFiles() {
+        return this.ignoredFiles;
     }
 }
