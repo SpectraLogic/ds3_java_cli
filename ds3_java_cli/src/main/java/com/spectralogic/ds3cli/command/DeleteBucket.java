@@ -78,7 +78,7 @@ public class DeleteBucket extends CliCommand<DeleteResult> {
         return "Success: Deleted bucket '" + bucketName + "'.";
     }
 
-    private String clearObjects() throws IOException, SignatureException, SSLSetupException, CommandException {
+    private String clearObjects() throws SignatureException, SSLSetupException, CommandException {
         // TODO when the multi object delete command has been added to DS3
         // Get the list of objects from the bucket
         LOG.debug("Deleting objects in bucket first");
