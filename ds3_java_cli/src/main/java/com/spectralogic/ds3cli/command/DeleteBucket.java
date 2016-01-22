@@ -22,7 +22,7 @@ import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.DeleteBucketRequest;
-import com.spectralogic.ds3client.commands.DeleteObjectRequest;
+import com.spectralogic.ds3client.commands.DeleteMultipleObjectsRequest;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.models.Contents;
 import com.spectralogic.ds3client.networking.FailedRequestException;
@@ -87,15 +87,15 @@ public class DeleteBucket extends CliCommand<DeleteResult> {
 
         try {
             final Iterable<Contents> fileList = helper.listObjects(bucketName);
-            for (final Contents content : fileList) {
-                client.deleteObject(new DeleteObjectRequest(bucketName, content.getKey()));
-            }
+            client.deleteMultipleObjects(new DeleteMultipleObjectsRequest(bucketName, fileList));
+
             LOG.debug("Deleting bucket");
             getClient().deleteBucket(new DeleteBucketRequest(bucketName));
 
         } catch (final IOException e) {
             throw new CommandException("Error: Request failed with the following error: " + e.getMessage(), e);
         }
+
         return "Success: Deleted " + bucketName + " and all the objects contained in it.";
     }
 }
