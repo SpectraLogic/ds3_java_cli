@@ -38,7 +38,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.channels.FileChannel;
 import java.nio.channels.SeekableByteChannel;
-import java.nio.file.FileSystems;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
@@ -87,7 +87,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
             if (srcDir == null) {
                 throw new MissingOptionException("The bulk put command required '-d' to be set.");
             }
-            this.inputDirectory = FileSystems.getDefault().getPath(srcDir);
+            this.inputDirectory = Paths.get(srcDir);
         }
 
         if (args.getObjectName() != null) {
@@ -127,10 +127,11 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         /* Ensure the bucket exists and if not create it */
         helpers.ensureBucketExists(this.bucketName);
 
-        ObjectsForDirectory objectsForDirectory = null;
+        final ObjectsForDirectory objectsForDirectory;
         if (pipe) {
             mapNormalizedObjectNameToObjectName = getNormalizedObjectNameToObjectName(pipedFiles);
-            ds3Objects = getDs3Objects(mapNormalizedObjectNameToObjectName);
+            objectsForDirectory = Utils.getObjectsForDirectory(mapNormalizedObjectNameToObjectName, ignoreErrors);
+            ds3Objects = objectsForDirectory.getDs3Objects();
         } else {
             if (sync) {
                 if (!SyncUtils.isSyncSupported(getClient())) {
@@ -142,8 +143,8 @@ public class PutBulk extends CliCommand<PutBulkResult> {
                 if (Iterables.isEmpty(filteredObjects)) {
                     return new PutBulkResult("SUCCESS: All files are up to date");
                 }
-                
-				objectsForDirectory = Utils.getObjectsForDirectory(filteredObjects, inputDirectory, ignoreErrors);
+
+                objectsForDirectory = Utils.getObjectsForDirectory(filteredObjects, inputDirectory, ignoreErrors);
             } else {
                 objectsForDirectory = Utils.getObjectsForDirectory(this.inputDirectory, ignoreErrors);
             }
@@ -170,48 +171,29 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         }
         LOG.info("Created bulk put job " + job.getJobId().toString() + ", starting transfer");
 
+        String resultMessage;
         if (pipe) {
-            job.transfer(new Ds3ClientHelpers.ObjectChannelBuilder() {
-                @Override
-                public SeekableByteChannel buildChannel(final String s) throws IOException {
-                    return FileChannel.open(Paths.get(mapNormalizedObjectNameToObjectName.get(s)), StandardOpenOption.READ);
-                }
-            });
-
-            return new PutBulkResult("SUCCESS: Wrote all piped files to bucket " + this.bucketName);
+            job.transfer(new PipeFileObjectPutter(this.mapNormalizedObjectNameToObjectName));
+            resultMessage = String.format("SUCCESS: Wrote all piped files to bucket %s", this.bucketName);
         } else {
             job.transfer(new PrefixedFileObjectPutter(this.inputDirectory, prefix));
-            if (ignoreErrors && objectsForDirectory != null && !objectsForDirectory.ds3IgnoredObjects.isEmpty()) {
-                return new PutBulkResult(
-                        String.format("WARN: Not all of the files in %s were written to bucket %s", this.inputDirectory.toString(), this.bucketName), objectsForDirectory.getDs3IgnoredObjects());
-            }
-
-            return new PutBulkResult("SUCCESS: Wrote all the files in " + this.inputDirectory.toString() + " to bucket " + this.bucketName);
+            resultMessage = String.format("SUCCESS: Wrote all the files in %s to bucket %s",this.inputDirectory.toString(), this.bucketName);
         }
+
+        if (ignoreErrors && !objectsForDirectory.ds3IgnoredObjects.isEmpty()) {
+            resultMessage = String.format("WARN: Not all of the files were written to bucket %s", this.bucketName);
+        }
+
+        return new PutBulkResult(resultMessage, objectsForDirectory.getDs3IgnoredObjects());
     }
 
     private ImmutableMap<String, String> getNormalizedObjectNameToObjectName(final ImmutableList<String> pipedFiles) {
         final ImmutableMap.Builder<String, String> map = ImmutableMap.builder();
         for (final String file : pipedFiles) {
-            if (!getFileUtils().isRegularFile(Paths.get(file))) {
-                System.out.println(String.format("WARN: piped data must be a file and not a directory ==> %s will be skipped", file));
-                continue;
-            }
             map.put(Utils.normalizeObjectName(file), file);
         }
 
         return map.build();
-    }
-
-    private Iterable<Ds3Object> getDs3Objects(final ImmutableMap<String, String> pipedFiles) throws IOException {
-        final ImmutableList.Builder<Ds3Object> objectsBuilder = ImmutableList.builder();
-        for (final Map.Entry<String, String> entry : pipedFiles.entrySet()) {
-            objectsBuilder.add(new Ds3Object(
-                    entry.getKey(),
-                    Utils.getFileSize(Paths.get(entry.getValue()))));
-        }
-
-        return objectsBuilder.build();
     }
 
     private Iterable<Path> filterObjects(final Path inputDirectory, final String prefix, final Iterable<Contents> contents) throws IOException {
@@ -250,6 +232,11 @@ public class PutBulk extends CliCommand<PutBulkResult> {
             LOG.info("Piped files are:");
             String line;
             while ((line = in.readLine()) != null) {
+                final Path file = Paths.get(line);
+                if (!getFileUtils().isRegularFile(file) && !Files.isSymbolicLink(file)) {
+                    LOG.warn(String.format("WARN: piped data must be a regular/symbolic link file and not a directory ==> %s will be skipped", line));
+                    continue;
+                }
                 LOG.info(line);
                 pipedFiles.add(line);
             }
@@ -302,8 +289,6 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         }
     }
 
-
-
     public static class ObjectsForDirectory {
 
         private final ImmutableList<Ds3Object> ds3Objects;
@@ -342,6 +327,21 @@ public class PutBulk extends CliCommand<PutBulkResult> {
 
         public String getErrorMessage() {
             return errorMessage;
+        }
+    }
+
+    static class PipeFileObjectPutter implements Ds3ClientHelpers.ObjectChannelBuilder {
+
+        private final ImmutableMap<String, String> mapNormalizedObjectNameToObjectName;
+
+        public PipeFileObjectPutter(final ImmutableMap<String, String> mapNormalizedObjectNameToObjectName) {
+            this.mapNormalizedObjectNameToObjectName = mapNormalizedObjectNameToObjectName;
+        }
+
+
+        @Override
+        public SeekableByteChannel buildChannel(final String s) throws IOException {
+            return FileChannel.open(Paths.get(this.mapNormalizedObjectNameToObjectName.get(s)), StandardOpenOption.READ);
         }
     }
 

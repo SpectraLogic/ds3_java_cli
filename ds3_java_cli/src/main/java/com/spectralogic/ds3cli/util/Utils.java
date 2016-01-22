@@ -16,6 +16,7 @@
 package com.spectralogic.ds3cli.util;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.GetSystemInformationRequest;
 import com.spectralogic.ds3cli.command.PutBulk;
@@ -24,12 +25,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
+import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.security.SignatureException;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 import static com.spectralogic.ds3cli.command.PutBulk.*;
@@ -104,8 +103,33 @@ public final class Utils {
         final Iterable<Path> localFiles = Utils.listObjectsForDirectory(inputDirectory);
         return getObjectsForDirectory(localFiles, inputDirectory, ignoreErrors);
     }
-	
-	public static String normalizeObjectName(final String objectName) {
+
+    public static ObjectsForDirectory getObjectsForDirectory(final ImmutableMap<String, String> pipedFiles, final boolean ignoreErrors) throws IOException {
+        final ImmutableList.Builder<Ds3Object> objectsBuilder = ImmutableList.builder();
+        final ImmutableList.Builder<PutBulk.IgnoreFile> ignoredBuilder = ImmutableList.builder();
+
+        for (final Map.Entry<String, String> entry : pipedFiles.entrySet()) {
+            try {
+                objectsBuilder.add(new Ds3Object(
+                        entry.getKey(),
+                        Utils.getFileSize(Paths.get(entry.getValue()))));
+            } catch (final IOException ex) {
+                if (!ignoreErrors) throw ex;
+                LOG.warn(String.format("WARN: file '%s' has an error and will be ignored", entry.getValue()));
+                ignoredBuilder.add(new PutBulk.IgnoreFile(Paths.get(entry.getValue()), ex.toString()));
+            }
+        }
+
+        return new ObjectsForDirectory(objectsBuilder.build(), ignoredBuilder.build());
+    }
+
+    /***
+     *
+     * @param objectName
+     * @return
+     */
+    public static String normalizeObjectName(final String objectName) {
+
         final String path;
         final int colonIndex = objectName.indexOf(':');
         if (colonIndex != -1) {
@@ -120,8 +144,8 @@ public final class Utils {
         if (!path.contains("\\")) {
             return path;
         }
-        final String normalizedPath = path.replace("\\", "/");
-        return normalizedPath;
+
+        return path.replace("\\", "/");
     }
-	
+
 }
