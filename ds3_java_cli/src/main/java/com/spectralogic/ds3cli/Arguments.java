@@ -65,6 +65,7 @@ public class Arguments {
     private String buildDate = "N/a";
     private String bufferSize;
     private String numberOfThreads;
+    private boolean pipe;
 
     public Arguments(final String[] args) throws BadArgumentException, ParseException {
         loadProperties();
@@ -131,6 +132,9 @@ public class Arguments {
         bufferSize.setArgName("bufferSize");
         final Option numberOfThreads = new Option("nt", true, "Set the number of threads");
         numberOfThreads.setArgName("numberOfThreads");
+        final Option pipe = new Option(null, false, "Allow piping input when using put_bulk command");
+        pipe.setLongOpt("pipe");
+
         options.addOption(ds3Endpoint);
         options.addOption(bucket);
         options.addOption(directory);
@@ -160,6 +164,7 @@ public class Arguments {
         options.addOption(sizeOfFiles);
         options.addOption(bufferSize);
         options.addOption(numberOfThreads);
+        options.addOption(pipe);
 
         processCommandLine();
     }
@@ -320,6 +325,9 @@ public class Arguments {
         if (getNumberOfThreads() == null) {
             this.numberOfThreads = "10"; //default to 20 threads
         }
+
+        this.setPipe(cmd.hasOption("pipe"));
+
     }
 
     private WriteOptimization processWriteOptimization(final CommandLine cmd, final String writeOptimization) throws BadArgumentException {
@@ -577,5 +585,13 @@ public class Arguments {
 
     public String getNumberOfThreads() {
         return this.numberOfThreads;
+    }
+
+    public boolean isPipe() {
+        return this.pipe;
+    }
+
+    public void setPipe(final boolean pipe) {
+        this.pipe = pipe;
     }
 }

@@ -19,10 +19,7 @@ import com.google.common.collect.Lists;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.exceptions.BadArgumentException;
 import com.spectralogic.ds3cli.models.PutObjectResult;
-import com.spectralogic.ds3cli.util.BlackPearlUtils;
-import com.spectralogic.ds3cli.util.Ds3Provider;
-import com.spectralogic.ds3cli.util.FileUtils;
-import com.spectralogic.ds3cli.util.SyncUtils;
+import com.spectralogic.ds3cli.util.*;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.serializer.XmlProcessingException;
@@ -94,7 +91,7 @@ public class PutObject extends CliCommand<PutObjectResult> {
         }
 
         final Ds3ClientHelpers helpers = getClientHelpers();
-        final Ds3Object ds3Obj = new Ds3Object(normalizeObjectName(objectName), getFileUtils().size(objectPath));
+        final Ds3Object ds3Obj = new Ds3Object(Utils.normalizeObjectName(objectName), getFileUtils().size(objectPath));
 
         if (prefix != null) {
             LOG.info("Pre-appending " + prefix + " to object name");
@@ -131,22 +128,4 @@ public class PutObject extends CliCommand<PutObjectResult> {
         });
     }
 
-    private static String normalizeObjectName(final String objectName) {
-        final String path;
-        final int colonIndex = objectName.indexOf(':');
-        if (colonIndex != -1) {
-            path = objectName.substring(colonIndex + 2);
-        } else if (objectName.startsWith("/")) {
-            return objectName.substring(1);
-        } else {
-            path = objectName;
-        }
-        if (!path.contains("\\")) {
-            return path;
-        }
-
-        final String normalizedPath = path.replace("\\", "/");
-        LOG.info("Normalized object name: " + normalizedPath);
-        return normalizedPath;
-    }
 }

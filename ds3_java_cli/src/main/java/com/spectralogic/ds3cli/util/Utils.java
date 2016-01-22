@@ -57,4 +57,23 @@ public final class Utils {
 
         return message;
     }
+
+    public static String normalizeObjectName(final String objectName) {
+        final String path;
+        final int colonIndex = objectName.indexOf(':');
+        if (colonIndex != -1) {
+            path = objectName.substring(colonIndex + 2);
+        } else if (objectName.startsWith("/")) {
+            return objectName.substring(1);
+        } else if (objectName.startsWith("./")) {
+            return objectName.substring(2);
+        } else {
+            path = objectName;
+        }
+        if (!path.contains("\\")) {
+            return path;
+        }
+        final String normalizedPath = path.replace("\\", "/");
+        return normalizedPath;
+    }
 }

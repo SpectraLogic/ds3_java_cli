@@ -16,14 +16,11 @@
 package com.spectralogic.ds3cli.command;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.models.PutBulkResult;
-import com.spectralogic.ds3cli.util.BlackPearlUtils;
-import com.spectralogic.ds3cli.util.Ds3Provider;
-import com.spectralogic.ds3cli.util.FileUtils;
-import com.spectralogic.ds3cli.util.SyncUtils;
-import com.spectralogic.ds3cli.util.Utils;
+import com.spectralogic.ds3cli.util.*;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.helpers.FileObjectPutter;
 import com.spectralogic.ds3client.helpers.options.WriteJobOptions;
@@ -35,10 +32,15 @@ import org.apache.commons.cli.MissingOptionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.channels.FileChannel;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -56,6 +58,9 @@ public class PutBulk extends CliCommand<PutBulkResult> {
     private WriteOptimization writeOptimization;
     private boolean sync;
     private boolean force;
+    private boolean pipe;
+    private ImmutableList<String> pipedFiles;
+    private ImmutableMap<String, String> mapNormalizedObjectNameToObjectName = null;
 
     public PutBulk(final Ds3Provider provider, final FileUtils fileUtils) {
         super(provider, fileUtils);
@@ -68,9 +73,18 @@ public class PutBulk extends CliCommand<PutBulkResult> {
             throw new MissingOptionException("The bulk put command requires '-b' to be set.");
         }
 
-        final String srcDir = args.getDirectory();
-        if (srcDir == null) {
-            throw new MissingOptionException("The bulk put command required '-d' to be set.");
+        pipe = args.isPipe();
+        if (pipe) {
+            this.pipedFiles = getPipedFilesFromStdin();
+            if (this.pipedFiles.isEmpty()) {
+                throw new MissingOptionException("Stdin is empty");
+            }
+        } else {
+            final String srcDir = args.getDirectory();
+            if (srcDir == null) {
+                throw new MissingOptionException("The bulk put command required '-d' to be set.");
+            }
+            this.inputDirectory = FileSystems.getDefault().getPath(srcDir);
         }
 
         if (args.getObjectName() != null) {
@@ -80,7 +94,6 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         this.prefix = args.getPrefix();
         this.priority = args.getPriority();
         this.writeOptimization = args.getWriteOptimization();
-        this.inputDirectory = FileSystems.getDefault().getPath(srcDir);
         this.checksum = args.isChecksum();
         this.force = args.isForce();
 
@@ -88,6 +101,8 @@ public class PutBulk extends CliCommand<PutBulkResult> {
             LOG.info("Using sync command");
             this.sync = true;
         }
+
+
 
         return this;
     }
@@ -104,7 +119,10 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         /* Ensure the bucket exists and if not create it */
         helpers.ensureBucketExists(this.bucketName);
 
-        if (sync) {
+        if (pipe) {
+            mapNormalizedObjectNameToObjectName = getNormalizedObjectNameToObjectName(pipedFiles);
+            ds3Objects = getDs3Objects(mapNormalizedObjectNameToObjectName);
+        } else if (sync) {
             if (!SyncUtils.isSyncSupported(getClient())) {
                 return new PutBulkResult("Failed: The sync command is not supported with your version of BlackPearl.");
             }
@@ -137,9 +155,44 @@ public class PutBulk extends CliCommand<PutBulkResult> {
 //            job.withRequestModifier(new ComputedChecksumModifier());
         }
         LOG.info("Created bulk put job " + job.getJobId().toString() + ", starting transfer");
-        job.transfer(new PrefixedFileObjectPutter(this.inputDirectory, prefix));
 
-        return new PutBulkResult("SUCCESS: Wrote all the files in " + this.inputDirectory.toString() + " to bucket " + this.bucketName);
+        if (pipe) {
+            job.transfer(new Ds3ClientHelpers.ObjectChannelBuilder() {
+                @Override
+                public SeekableByteChannel buildChannel(final String s) throws IOException {
+                    return FileChannel.open(Paths.get(mapNormalizedObjectNameToObjectName.get(s)), StandardOpenOption.READ);
+                }
+            });
+
+            return new PutBulkResult("SUCCESS: Wrote all piped files to bucket " + this.bucketName);
+        } else {
+            job.transfer(new PrefixedFileObjectPutter(this.inputDirectory, prefix));
+            return new PutBulkResult("SUCCESS: Wrote all the files in " + this.inputDirectory.toString() + " to bucket " + this.bucketName);
+        }
+    }
+
+    private ImmutableMap<String, String> getNormalizedObjectNameToObjectName(final ImmutableList<String> pipedFiles) {
+        final ImmutableMap.Builder<String, String> map = ImmutableMap.builder();
+        for (final String file : pipedFiles) {
+            if (!getFileUtils().isRegularFile(Paths.get(file))) {
+                System.out.println(String.format("WARN: piped data must be a file and not a directory ==> %s will be skipped", file));
+                continue;
+            }
+            map.put(Utils.normalizeObjectName(file), file);
+        }
+
+        return map.build();
+    }
+
+    private Iterable<Ds3Object> getDs3Objects(final ImmutableMap<String, String> pipedFiles) throws IOException {
+        final ImmutableList.Builder<Ds3Object> objectsBuilder = ImmutableList.builder();
+        for (final Map.Entry<String, String> entry : pipedFiles.entrySet()) {
+            objectsBuilder.add(new Ds3Object(
+                    entry.getKey(),
+                    Utils.getFileSize(Paths.get(entry.getValue()))));
+        }
+
+        return objectsBuilder.build();
     }
 
     private ImmutableList<Ds3Object> getDs3Objects(final Iterable<Path> filteredObjects) throws IOException {
@@ -174,6 +227,26 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         }
 
         return filteredObjects;
+    }
+
+    private ImmutableList<String> getPipedFilesFromStdin() throws IOException {
+        final ImmutableList.Builder<String> pipedFiles = new ImmutableList.Builder<>();
+        final int availableBytes = System.in.available();
+        if (availableBytes > 0) {
+            // Wrap the System.in inside BufferedReader
+            // But do not close it in a finally block, as we
+            // did no open System.in; enforcing the rule that
+            // he who opens it, closes it; leave the closing to the OS.
+            final BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+            LOG.info("Piped files are:");
+            String line;
+            while ((line = in.readLine()) != null) {
+                LOG.info(line);
+                pipedFiles.add(line);
+            }
+        }
+
+        return pipedFiles.build();
     }
 
     static class PrefixedFileObjectPutter implements Ds3ClientHelpers.ObjectChannelBuilder {
