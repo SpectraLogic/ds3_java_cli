@@ -20,10 +20,9 @@ import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.DeleteResult;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
-import com.spectralogic.ds3cli.util.Parallel;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.DeleteBucketRequest;
-import com.spectralogic.ds3client.commands.DeleteObjectRequest;
+import com.spectralogic.ds3client.commands.DeleteMultipleObjectsRequest;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.models.Contents;
 import com.spectralogic.ds3client.networking.FailedRequestException;
@@ -88,12 +87,7 @@ public class DeleteBucket extends CliCommand<DeleteResult> {
 
         try {
             final Iterable<Contents> fileList = helper.listObjects(bucketName);
-            Parallel.For(fileList, new Parallel.Operation<Contents>() {
-                @Override
-                public void perform(final Contents content) throws IOException, SignatureException {
-                    client.deleteObject(new DeleteObjectRequest(bucketName, content.getKey()));
-                }
-            });
+            client.deleteMultipleObjects(new DeleteMultipleObjectsRequest(bucketName, fileList));
 
             LOG.debug("Deleting bucket");
             getClient().deleteBucket(new DeleteBucketRequest(bucketName));
