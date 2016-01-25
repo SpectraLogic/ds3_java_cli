@@ -34,6 +34,8 @@ import com.spectralogic.ds3client.networking.WebResponse;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -1243,5 +1245,103 @@ public class Ds3Cli_Test {
 
         assertTrue(result.getMessage().startsWith(startWith));
         assertTrue(result.getMessage().endsWith(endsWith));
+    }
+
+    @Test
+    public void putBulkWithPipe() throws Exception {
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "put_bulk", "-b", "bucketName", "--pipe"});
+        final Ds3ClientHelpers helpers = mock(Ds3ClientHelpers.class);
+        final Ds3ClientHelpers.Job mockedGetJob = mock(Ds3ClientHelpers.Job.class);
+        final FileUtils mockedFileUtils = mock(FileUtils.class);
+
+        final UUID jobId = UUID.randomUUID();
+        when(mockedGetJob.getJobId()).thenReturn(jobId);
+        final Iterable<Ds3Object> retObj = Lists.newArrayList(new Ds3Object("obj1.txt", 1245), new Ds3Object("obj2.txt", 12345));
+        when(helpers.startWriteJob(eq("bucketName"), eq(retObj), any(WriteJobOptions.class))).thenReturn(mockedGetJob);
+
+        final Path p1 = Paths.get("obj1.txt");
+        final Path p2 = Paths.get("obj2.txt");
+        final ImmutableList<Path> retPath = ImmutableList.copyOf(Lists.newArrayList(p1, p2));
+
+        PowerMockito.mockStatic(Utils.class);
+        when(Utils.normalizeObjectName(any(String.class))).thenAnswer(new Answer<String>() {
+            @Override
+            public String answer(final InvocationOnMock invocation) throws Throwable {
+                final Object[] args = invocation.getArguments();
+                return (String) args[0];
+            }
+        });
+        when(Utils.getPipedFilesFromStdin(any(FileUtils.class))).thenReturn(retPath);
+        when(Utils.getObjectsToPut(eq(retPath), any(Path.class), any(Boolean.class))).thenCallRealMethod();
+        when(Utils.getFileName(any(Path.class), eq(p1))).thenReturn(p1.toString());
+        when(Utils.getFileSize(eq(p1))).thenReturn(1245L);
+        when(Utils.getFileName(any(Path.class), eq(p2))).thenReturn(p2.toString());
+        when(Utils.getFileSize(eq(p2))).thenReturn(12345L);
+
+        PowerMockito.mockStatic(BlackPearlUtils.class);
+
+        final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(null, helpers), args, mockedFileUtils);
+        final CommandResponse result = cli.call();
+        assertThat(result.getMessage(), is("SUCCESS: Wrote all piped files to bucket bucketName"));
+        assertThat(result.getReturnCode(), is(0));
+    }
+
+    @Test
+    public void putBulkWithPipeAndSync() throws Exception {
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "put_bulk", "-b", "bucketName", "--pipe", "--sync"});
+        final Ds3ClientHelpers helpers = mock(Ds3ClientHelpers.class);
+        final Ds3ClientHelpers.Job mockedGetJob = mock(Ds3ClientHelpers.Job.class);
+        final FileUtils mockedFileUtils = mock(FileUtils.class);
+
+        final UUID jobId = UUID.randomUUID();
+        when(mockedGetJob.getJobId()).thenReturn(jobId);
+        final Iterable<Ds3Object> retObj = Lists.newArrayList(new Ds3Object("obj1.txt", 1245), new Ds3Object("obj2.txt", 12345));
+        when(helpers.startWriteJob(eq("bucketName"), eq(retObj), any(WriteJobOptions.class))).thenReturn(mockedGetJob);
+
+        final Iterable<Contents> retCont = Lists.newArrayList();
+        when(helpers.listObjects(eq("bucketName"), any(String.class))).thenReturn(retCont);
+
+        final Path p1 = Paths.get("obj1.txt");
+        final Path p2 = Paths.get("obj2.txt");
+        final ImmutableList<Path> retPath = ImmutableList.copyOf(Lists.newArrayList(p1, p2));
+
+        PowerMockito.mockStatic(Utils.class);
+        when(Utils.normalizeObjectName(any(String.class))).thenAnswer(new Answer<String>() {
+            @Override
+            public String answer(final InvocationOnMock invocation) throws Throwable {
+                final Object[] args = invocation.getArguments();
+                return (String) args[0];
+            }
+        });
+
+        when(Utils.getPipedFilesFromStdin(any(FileUtils.class))).thenReturn(retPath);
+        when(Utils.getObjectsToPut(eq(retPath), any(Path.class), any(Boolean.class))).thenCallRealMethod();
+        when(Utils.getFileName(any(Path.class), eq(p1))).thenReturn(p1.toString());
+        when(Utils.getFileSize(eq(p1))).thenReturn(1245L);
+        when(Utils.getFileName(any(Path.class), eq(p2))).thenReturn(p2.toString());
+        when(Utils.getFileSize(eq(p2))).thenReturn(12345L);
+
+        PowerMockito.mockStatic(SyncUtils.class);
+        when(SyncUtils.isSyncSupported(any(Ds3Client.class))).thenReturn(true);
+
+        PowerMockito.mockStatic(BlackPearlUtils.class);
+
+
+        final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(null, helpers), args, mockedFileUtils);
+        final CommandResponse result = cli.call();
+        assertThat(result.getMessage(), is("SUCCESS: Wrote all piped files to bucket bucketName"));
+        assertThat(result.getReturnCode(), is(0));
+
+        final Contents c1 = new Contents();
+        c1.setKey("obj1.txt");
+        final Contents c2 = new Contents();
+        c2.setKey("obj2.txt");
+
+        final Iterable<Contents> retCont2 = Lists.newArrayList(c1, c2);
+        when(helpers.listObjects(eq("bucketName"), any(String.class))).thenReturn(retCont2);
+        final CommandResponse result2 = cli.call();
+        assertThat(result2.getMessage(), is("SUCCESS: All files are up to date"));
+        assertThat(result2.getReturnCode(), is(0));
+
     }
 }

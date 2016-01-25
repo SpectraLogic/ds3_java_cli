@@ -36,12 +36,9 @@ import org.apache.commons.cli.MissingOptionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.nio.channels.FileChannel;
 import java.nio.channels.SeekableByteChannel;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
@@ -82,7 +79,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
 
         pipe = args.isPipe();
         if (pipe) {
-            pipedFiles = getPipedFilesFromStdin();
+            pipedFiles = Utils.getPipedFilesFromStdin(getFileUtils());
             if (Guard.isNullOrEmpty(pipedFiles)) {
                 throw new MissingOptionException("Stdin is empty");
             }
@@ -230,31 +227,6 @@ public class PutBulk extends CliCommand<PutBulkResult> {
             filesToPut = Utils.listObjectsForDirectory(inputDirectory);
         }
         return filesToPut;
-    }
-
-    private ImmutableList<Path> getPipedFilesFromStdin() throws IOException {
-        final ImmutableList.Builder<Path> pipedFiles = new ImmutableList.Builder<>();
-        final int availableBytes = System.in.available();
-        if (availableBytes > 0) {
-            // Wrap the System.in inside BufferedReader
-            // But do not close it in a finally block, as we
-            // did no open System.in; enforcing the rule that
-            // he who opens it, closes it; leave the closing to the OS.
-            final BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
-            LOG.info("Piped files are:");
-            String line;
-            while ((line = in.readLine()) != null) {
-                final Path file = Paths.get(line);
-                if (!getFileUtils().isRegularFile(file) && !Files.isSymbolicLink(file)) {
-                    LOG.warn(String.format("WARN: piped data must be a regular/symbolic link file and not a directory ==> %s will be skipped", line));
-                    continue;
-                }
-                LOG.info(line);
-                pipedFiles.add(file);
-            }
-        }
-
-        return pipedFiles.build();
     }
 
     static class PrefixedFileObjectPutter implements Ds3ClientHelpers.ObjectChannelBuilder {

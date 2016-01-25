@@ -23,11 +23,11 @@ import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.security.SignatureException;
 import java.util.regex.Pattern;
@@ -37,8 +37,8 @@ import static com.spectralogic.ds3cli.command.PutBulk.ObjectsToPut;
 public final class Utils {
 
     private final static Logger LOG = LoggerFactory.getLogger(Utils.class);
-    private final static boolean isWindows = System.getProperty("os.name").contains("Windows");
 
+    public final static boolean isWindows = System.getProperty("os.name").contains("Windows");
     public final static double MINIMUM_VERSION_SUPPORTED = 1.2;
 
 
@@ -121,7 +121,12 @@ public final class Utils {
         if (colonIndex != -1) {
             path = objectName.substring(colonIndex + 2);
         }
-        else {
+        else if (objectName.startsWith("\\")) {
+            path = objectName.substring(1);
+        }
+        else if (objectName.startsWith(".\\")) {
+            path = objectName.substring(2);
+        } else {
             path = objectName;
         }
 
@@ -142,4 +147,29 @@ public final class Utils {
         return path;
     }
 
+    public static ImmutableList<Path> getPipedFilesFromStdin(final FileUtils fileUtils) throws IOException {
+        final ImmutableList.Builder<Path> pipedFiles = new ImmutableList.Builder<>();
+        final InputStream inputStream = System.in;
+        final int availableBytes = inputStream.available();
+        if (availableBytes > 0) {
+            // Wrap the System.in inside BufferedReader
+            // But do not close it in a finally block, as we
+            // did no open System.in; enforcing the rule that
+            // he who opens it, closes it; leave the closing to the OS.
+            final BufferedReader in = new BufferedReader(new InputStreamReader(inputStream));
+            LOG.info("Piped files are:");
+            String line;
+            while ((line = in.readLine()) != null) {
+                final Path file = Paths.get(line);
+                if (!fileUtils.isRegularFile(file) && !Files.isSymbolicLink(file)) {
+                    LOG.warn(String.format("WARN: piped data must be a regular/symbolic link file and not a directory ==> %s will be skipped", line));
+                    continue;
+                }
+                LOG.info(line);
+                pipedFiles.add(file);
+            }
+        }
+
+        return pipedFiles.build();
+    }
 }

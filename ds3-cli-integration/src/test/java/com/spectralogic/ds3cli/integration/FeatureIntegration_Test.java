@@ -33,7 +33,9 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.channels.FileChannel;
 import java.nio.file.*;
 
@@ -325,7 +327,7 @@ public class FeatureIntegration_Test {
 
     @Test
     public void putBulkObjectWithSync() throws Exception {
-        final String bucketName = "test_put_object";
+        final String bucketName = "test_put_bulk_object";
         try {
 
             Util.createBucket(client, bucketName);
@@ -338,11 +340,61 @@ public class FeatureIntegration_Test {
                 return;
             }
 
-            assertThat(response.getMessage(), is("SUCCESS: Wrote all the files in .\\src\\test\\resources\\books to bucket test_put_object"));
+            assertThat(response.getMessage(), is(String.format("SUCCESS: Wrote all the files in %s to bucket %s", ".\\src\\test\\resources\\books", bucketName)));
 
             response = Util.command(client, args);
             assertThat(response.getMessage(), is("SUCCESS: All files are up to date"));
 
+        } finally {
+            Util.deleteBucket(client, bucketName);
+        }
+    }
+
+    @Test
+    public void putBulkObjectWithPipe() throws Exception {
+        final String bucketName = "test_put_bulk_pipe_object";
+        try {
+
+            Util.createBucket(client, bucketName);
+            final Arguments args = new Arguments(new String[]{"--http", "-c", "put_bulk", "-b", bucketName, "--pipe"});
+            final String file;
+            if (Utils.isWindows) {
+                file = ".\\src\\test\\resources\\books\\beowulf.txt\n.\\src\\test\\resources\\books\\ulysses.txt";
+            } else {
+                file = "./src/test/resources/books/beowulf.txt\n./src/test/resources/books/ulysses.txt";
+            }
+            final InputStream testFile = new ByteArrayInputStream(file.getBytes("UTF-8"));
+            System.setIn(testFile);
+
+            final CommandResponse response = Util.command(client, args);
+            assertThat(response.getMessage(), is(String.format("SUCCESS: Wrote all piped files to bucket %s", bucketName)));
+        } finally {
+            Util.deleteBucket(client, bucketName);
+        }
+    }
+
+    @Test
+    public void putBulkObjectWithPipeAndSync() throws Exception {
+        final String bucketName = "test_put_bulk_pipe_object";
+        try {
+
+            Util.createBucket(client, bucketName);
+            final Arguments args = new Arguments(new String[]{"--http", "-c", "put_bulk", "-b", bucketName, "--pipe", "--sync"});
+            final String file;
+            if (Utils.isWindows) {
+                file = ".\\src\\test\\resources\\books\\beowulf.txt\n.\\src\\test\\resources\\books\\ulysses.txt";
+            } else {
+                file = "./src/test/resources/books/beowulf.txt\n./src/test/resources/books/ulysses.txt";
+            }
+            final InputStream testFile = new ByteArrayInputStream(file.getBytes("UTF-8"));
+            System.setIn(testFile);
+
+            final CommandResponse response = Util.command(client, args);
+            assertThat(response.getMessage(), is(String.format("SUCCESS: Wrote all piped files to bucket %s", bucketName)));
+
+            testFile.reset();
+            final CommandResponse response2 = Util.command(client, args);
+            assertThat(response2.getMessage(), is("SUCCESS: All files are up to date"));
         } finally {
             Util.deleteBucket(client, bucketName);
         }
