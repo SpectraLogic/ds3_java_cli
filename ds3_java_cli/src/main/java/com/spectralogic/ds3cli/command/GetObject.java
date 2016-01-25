@@ -19,11 +19,7 @@ import com.google.common.collect.Lists;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.GetObjectResult;
-import com.spectralogic.ds3cli.util.BlackPearlUtils;
-import com.spectralogic.ds3cli.util.Ds3Provider;
-import com.spectralogic.ds3cli.util.FileUtils;
-import com.spectralogic.ds3cli.util.SyncUtils;
-import com.spectralogic.ds3cli.util.Utils;
+import com.spectralogic.ds3cli.util.*;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.helpers.FileObjectGetter;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
@@ -73,11 +69,11 @@ public class GetObject extends CliCommand<GetObjectResult> {
 
         if (args.isSync()) {
             LOG.info("Using sync command");
-            this.sync = true;
+            sync = true;
         }
 
-        this.force = args.isForce();
-        this.numberOfThreads = Integer.valueOf(args.getNumberOfThreads());
+        force = args.isForce();
+        numberOfThreads = Integer.valueOf(args.getNumberOfThreads());
 
         return this;
     }
@@ -120,7 +116,7 @@ public class GetObject extends CliCommand<GetObjectResult> {
     private void Transfer(final Ds3ClientHelpers helpers, final Ds3Object ds3Obj) throws IOException, SignatureException, XmlProcessingException {
         final List<Ds3Object> ds3ObjectList = Lists.newArrayList(ds3Obj);
         final Ds3ClientHelpers.Job job = helpers.startReadJob(bucketName, ds3ObjectList);
-        job.withMaxParallelRequests(this.numberOfThreads);
+        job.withMaxParallelRequests(numberOfThreads);
         job.transfer(new FileObjectGetter(Paths.get(prefix)));
     }
 }

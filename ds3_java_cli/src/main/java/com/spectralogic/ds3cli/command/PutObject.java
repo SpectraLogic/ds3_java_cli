@@ -18,6 +18,7 @@ package com.spectralogic.ds3cli.command;
 import com.google.common.collect.Lists;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.exceptions.BadArgumentException;
+import com.spectralogic.ds3cli.exceptions.SyncNotSupportedException;
 import com.spectralogic.ds3cli.models.PutObjectResult;
 import com.spectralogic.ds3cli.util.*;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
@@ -74,15 +75,19 @@ public class PutObject extends CliCommand<PutObjectResult> {
             throw new BadArgumentException("The '-o' command must be a file and not a directory.");
         }
 
-        this.prefix = args.getPrefix();
-        this.force = args.isForce();
+        prefix = args.getPrefix();
+        force = args.isForce();
 
         if (args.isSync()) {
+            if (!SyncUtils.isSyncSupported(getClient())) {
+                throw new SyncNotSupportedException("The sync command is not supported with your version of BlackPearl.");
+            }
+
             LOG.info("Using sync command");
-            this.sync = true;
+            sync = true;
         }
 
-        this.numberOfThreads = Integer.valueOf(args.getNumberOfThreads());
+        numberOfThreads = Integer.valueOf(args.getNumberOfThreads());
 
         return this;
     }
@@ -102,7 +107,7 @@ public class PutObject extends CliCommand<PutObjectResult> {
         }
 
         /* Ensure the bucket exists and if not create it */
-        helpers.ensureBucketExists(this.bucketName);
+        helpers.ensureBucketExists(bucketName);
 
         if (sync) {
             if (!SyncUtils.isSyncSupported(getClient())) {
@@ -123,7 +128,7 @@ public class PutObject extends CliCommand<PutObjectResult> {
 
     private void Transfer(final Ds3ClientHelpers helpers, final Ds3Object ds3Obj) throws SignatureException, IOException, XmlProcessingException {
         final Ds3ClientHelpers.Job putJob = helpers.startWriteJob(bucketName, Lists.newArrayList(ds3Obj));
-        putJob.withMaxParallelRequests(this.numberOfThreads);
+        putJob.withMaxParallelRequests(numberOfThreads);
         putJob.transfer(new Ds3ClientHelpers.ObjectChannelBuilder() {
             @Override
             public SeekableByteChannel buildChannel(final String s) throws IOException {

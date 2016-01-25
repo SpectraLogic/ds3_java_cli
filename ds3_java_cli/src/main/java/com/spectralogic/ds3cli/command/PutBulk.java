@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.spectralogic.ds3cli.Arguments;
+import com.spectralogic.ds3cli.exceptions.SyncNotSupportedException;
 import com.spectralogic.ds3cli.models.PutBulkResult;
 import com.spectralogic.ds3cli.util.*;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
@@ -29,6 +30,8 @@ import com.spectralogic.ds3client.models.Contents;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.models.bulk.Priority;
 import com.spectralogic.ds3client.models.bulk.WriteOptimization;
+import com.spectralogic.ds3client.serializer.XmlProcessingException;
+import com.spectralogic.ds3client.utils.Guard;
 import org.apache.commons.cli.MissingOptionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,6 +45,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.security.SignatureException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -62,7 +66,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
     private int numberOfThreads;
     private boolean ignoreErrors;
     private boolean pipe;
-    private ImmutableList<String> pipedFiles;
+    private ImmutableList<Path> pipedFiles;
     private ImmutableMap<String, String> mapNormalizedObjectNameToObjectName = null;
 
     public PutBulk(final Ds3Provider provider, final FileUtils fileUtils) {
@@ -71,45 +75,51 @@ public class PutBulk extends CliCommand<PutBulkResult> {
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
-        this.bucketName = args.getBucket();
-        if (this.bucketName == null) {
+        bucketName = args.getBucket();
+        if (bucketName == null) {
             throw new MissingOptionException("The bulk put command requires '-b' to be set.");
         }
 
         pipe = args.isPipe();
         if (pipe) {
-            this.pipedFiles = getPipedFilesFromStdin();
-            if (this.pipedFiles.isEmpty()) {
+            pipedFiles = getPipedFilesFromStdin();
+            if (Guard.isNullOrEmpty(pipedFiles)) {
                 throw new MissingOptionException("Stdin is empty");
             }
+            mapNormalizedObjectNameToObjectName = getNormalizedObjectNameToObjectName(pipedFiles);
         } else {
             final String srcDir = args.getDirectory();
             if (srcDir == null) {
                 throw new MissingOptionException("The bulk put command required '-d' to be set.");
             }
-            this.inputDirectory = Paths.get(srcDir);
+            inputDirectory = Paths.get(srcDir);
+
+            if (args.getObjectName() != null) {
+                System.err.println("Warning: '-o' is not used with bulk put and is ignored.");
+            }
+
+            prefix = args.getPrefix();
         }
 
-        if (args.getObjectName() != null) {
-            System.err.println("Warning: '-o' is not used with bulk put and is ignored.");
-        }
-
-        this.prefix = args.getPrefix();
-        this.priority = args.getPriority();
-        this.writeOptimization = args.getWriteOptimization();
-        this.checksum = args.isChecksum();
-        this.force = args.isForce();
+        priority = args.getPriority();
+        writeOptimization = args.getWriteOptimization();
+        checksum = args.isChecksum();
+        force = args.isForce();
 
         if (args.isSync()) {
+            if (!SyncUtils.isSyncSupported(getClient())) {
+                throw new SyncNotSupportedException("The sync command is not supported with your version of BlackPearl.");
+            }
+
             LOG.info("Using sync command");
-            this.sync = true;
+            sync = true;
         }
 
-        this.numberOfThreads = Integer.valueOf(args.getNumberOfThreads());
+        numberOfThreads = Integer.valueOf(args.getNumberOfThreads());
 
         if (args.isIgnoreErrors()) {
             LOG.info("Ignoring files that cause errors");
-            this.ignoreErrors = true;
+            ignoreErrors = true;
         }
 
         return this;
@@ -121,50 +131,32 @@ public class PutBulk extends CliCommand<PutBulkResult> {
             BlackPearlUtils.checkBlackPearlForTapeFailure(getClient());
         }
 
-        final Ds3ClientHelpers helpers = getClientHelpers();
-        final Iterable<Ds3Object> ds3Objects;
-
         /* Ensure the bucket exists and if not create it */
-        helpers.ensureBucketExists(this.bucketName);
+        final Ds3ClientHelpers helpers = getClientHelpers();
+        helpers.ensureBucketExists(bucketName);
 
-        final ObjectsForDirectory objectsForDirectory;
-        if (pipe) {
-            mapNormalizedObjectNameToObjectName = getNormalizedObjectNameToObjectName(pipedFiles);
-            objectsForDirectory = Utils.getObjectsForDirectory(mapNormalizedObjectNameToObjectName, ignoreErrors);
-            ds3Objects = objectsForDirectory.getDs3Objects();
-        } else {
-            if (sync) {
-                if (!SyncUtils.isSyncSupported(getClient())) {
-                    return new PutBulkResult("Failed: The sync command is not supported with your version of BlackPearl.");
-                }
-
-                final Iterable<Contents> contents = helpers.listObjects(bucketName, prefix);
-                final Iterable<Path> filteredObjects = filterObjects(this.inputDirectory, prefix != null ? prefix : "", contents);
-                if (Iterables.isEmpty(filteredObjects)) {
-                    return new PutBulkResult("SUCCESS: All files are up to date");
-                }
-
-                objectsForDirectory = Utils.getObjectsForDirectory(filteredObjects, inputDirectory, ignoreErrors);
-            } else {
-                objectsForDirectory = Utils.getObjectsForDirectory(this.inputDirectory, ignoreErrors);
-            }
-
-            ds3Objects = objectsForDirectory.getDs3Objects();
-
-            if (prefix != null) {
-                LOG.info("Pre-appending " + prefix + " to all object names");
-                for (final Ds3Object obj : ds3Objects) {
-                    obj.setName(prefix + obj.getName());
-                }
+        Iterable<Path> filesToPut = getFilesToPut();
+        if (sync) {
+            filesToPut = filterObjects(filesToPut, prefix != null ? prefix : "");
+            if (Iterables.isEmpty(filesToPut)) {
+                return new PutBulkResult("SUCCESS: All files are up to date");
             }
         }
 
-        final Ds3ClientHelpers.Job job = helpers.startWriteJob(this.bucketName, ds3Objects,
+        final ObjectsToPut objectsToPut = Utils.getObjectsToPut(filesToPut, inputDirectory, ignoreErrors);
+        final Iterable<Ds3Object> ds3Objects = objectsToPut.getDs3Objects();
+        appendPrefix(ds3Objects);
+
+        return Transfer(helpers, ds3Objects, objectsToPut.getDs3IgnoredObjects());
+    }
+
+    private PutBulkResult Transfer(final Ds3ClientHelpers helpers, final Iterable<Ds3Object> ds3Objects, final ImmutableList<IgnoreFile> ds3IgnoredObjects) throws SignatureException, IOException, XmlProcessingException {
+        final Ds3ClientHelpers.Job job = helpers.startWriteJob(bucketName, ds3Objects,
                 WriteJobOptions.create()
-                        .withPriority(this.priority)
-                        .withWriteOptimization(this.writeOptimization));
-        job.withMaxParallelRequests(this.numberOfThreads);
-        if (this.checksum) {
+                        .withPriority(priority)
+                        .withWriteOptimization(writeOptimization));
+        job.withMaxParallelRequests(numberOfThreads);
+        if (checksum) {
             throw new RuntimeException("Checksum calculation is not currently supported."); //TODO
 //            Logging.log("Performing bulk put with checksum computation enabled");
 //            job.withRequestModifier(new ComputedChecksumModifier());
@@ -173,45 +165,54 @@ public class PutBulk extends CliCommand<PutBulkResult> {
 
         String resultMessage;
         if (pipe) {
-            job.transfer(new PipeFileObjectPutter(this.mapNormalizedObjectNameToObjectName));
-            resultMessage = String.format("SUCCESS: Wrote all piped files to bucket %s", this.bucketName);
+            job.transfer(new PipeFileObjectPutter(mapNormalizedObjectNameToObjectName));
+            resultMessage = String.format("SUCCESS: Wrote all piped files to bucket %s", bucketName);
         } else {
-            job.transfer(new PrefixedFileObjectPutter(this.inputDirectory, prefix));
-            resultMessage = String.format("SUCCESS: Wrote all the files in %s to bucket %s",this.inputDirectory.toString(), this.bucketName);
+            job.transfer(new PrefixedFileObjectPutter(inputDirectory, prefix));
+            resultMessage = String.format("SUCCESS: Wrote all the files in %s to bucket %s", inputDirectory.toString(), bucketName);
         }
 
-        if (ignoreErrors && !objectsForDirectory.ds3IgnoredObjects.isEmpty()) {
-            resultMessage = String.format("WARN: Not all of the files were written to bucket %s", this.bucketName);
+        if (ignoreErrors && !ds3IgnoredObjects.isEmpty()) {
+            resultMessage = String.format("WARN: Not all of the files were written to bucket %s", bucketName);
         }
 
-        return new PutBulkResult(resultMessage, objectsForDirectory.getDs3IgnoredObjects());
+        return new PutBulkResult(resultMessage, ds3IgnoredObjects);
     }
 
-    private ImmutableMap<String, String> getNormalizedObjectNameToObjectName(final ImmutableList<String> pipedFiles) {
+    private void appendPrefix(final Iterable<Ds3Object> ds3Objects) {
+        if (pipe || prefix == null) return;
+
+        LOG.info("Pre-appending " + prefix + " to all object names");
+        for (final Ds3Object obj : ds3Objects) {
+            obj.setName(prefix + obj.getName());
+        }
+    }
+
+    private ImmutableMap<String, String> getNormalizedObjectNameToObjectName(final ImmutableList<Path> pipedFiles) {
         final ImmutableMap.Builder<String, String> map = ImmutableMap.builder();
-        for (final String file : pipedFiles) {
-            map.put(Utils.normalizeObjectName(file), file);
+        for (final Path file : pipedFiles) {
+            map.put(Utils.normalizeObjectName(file.toString()), file.toString());
         }
 
         return map.build();
     }
 
-    private Iterable<Path> filterObjects(final Path inputDirectory, final String prefix, final Iterable<Contents> contents) throws IOException {
-        final Iterable<Path> localFiles = Utils.listObjectsForDirectory(inputDirectory);
+    private Iterable<Path> filterObjects(final Iterable<Path> filesToPut, final String prefix) throws IOException, SignatureException {
+        final Iterable<Contents> contents = getClientHelpers().listObjects(bucketName, prefix);
         final Map<String, Contents> mapBucketFiles = new HashMap<>();
         for (final Contents content : contents) {
             mapBucketFiles.put(content.getKey(), content);
         }
 
         final List<Path> filteredObjects = new ArrayList<>();
-        for (final Path localFile : localFiles) {
-            final String fileName = Utils.getFileName(inputDirectory, localFile);
+        for (final Path fileToPut : filesToPut) {
+            final String fileName = Utils.getFileName(inputDirectory, fileToPut);
             final Contents content = mapBucketFiles.get(prefix + fileName);
             if (content == null) {
-                filteredObjects.add(localFile);
-            } else if (SyncUtils.isNewFile(localFile, content, true)) {
+                filteredObjects.add(fileToPut);
+            } else if (SyncUtils.isNewFile(fileToPut, content, true)) {
                 LOG.info("Syncing new version of " + fileName);
-                filteredObjects.add(localFile);
+                filteredObjects.add(fileToPut);
             } else {
                 LOG.info("No need to sync " + fileName);
             }
@@ -220,8 +221,19 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         return filteredObjects;
     }
 
-    private ImmutableList<String> getPipedFilesFromStdin() throws IOException {
-        final ImmutableList.Builder<String> pipedFiles = new ImmutableList.Builder<>();
+    private Iterable<Path> getFilesToPut() throws IOException {
+        final Iterable<Path> filesToPut;
+        if (pipe) {
+            filesToPut = pipedFiles;
+        }
+        else {
+            filesToPut = Utils.listObjectsForDirectory(inputDirectory);
+        }
+        return filesToPut;
+    }
+
+    private ImmutableList<Path> getPipedFilesFromStdin() throws IOException {
+        final ImmutableList.Builder<Path> pipedFiles = new ImmutableList.Builder<>();
         final int availableBytes = System.in.available();
         if (availableBytes > 0) {
             // Wrap the System.in inside BufferedReader
@@ -238,7 +250,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
                     continue;
                 }
                 LOG.info(line);
-                pipedFiles.add(line);
+                pipedFiles.add(file);
             }
         }
 
@@ -251,7 +263,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         final private String prefix;
 
         public PrefixedFileObjectPutter(final Path inputDirectory, final String prefix) {
-            this.objectPutter = new LoggingFileObjectPutter(inputDirectory);
+            objectPutter = new LoggingFileObjectPutter(inputDirectory);
             this.prefix = prefix;
         }
 
@@ -279,22 +291,22 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         final private FileObjectPutter objectPutter;
 
         public LoggingFileObjectPutter(final Path inputDirectory) {
-            this.objectPutter = new FileObjectPutter(inputDirectory);
+            objectPutter = new FileObjectPutter(inputDirectory);
         }
 
         @Override
         public SeekableByteChannel buildChannel(final String s) throws IOException {
             LOG.info("Putting " + s + " to ds3 endpoint");
-            return this.objectPutter.buildChannel(s);
+            return objectPutter.buildChannel(s);
         }
     }
 
-    public static class ObjectsForDirectory {
+    public static class ObjectsToPut {
 
         private final ImmutableList<Ds3Object> ds3Objects;
         private final ImmutableList<IgnoreFile> ds3IgnoredObjects;
 
-        public ObjectsForDirectory(final ImmutableList<Ds3Object> ds3Objects, final ImmutableList<IgnoreFile> ds3IgnoredObjects) {
+        public ObjectsToPut(final ImmutableList<Ds3Object> ds3Objects, final ImmutableList<IgnoreFile> ds3IgnoredObjects) {
             this.ds3Objects = ds3Objects;
             this.ds3IgnoredObjects = ds3IgnoredObjects;
         }
@@ -341,7 +353,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
 
         @Override
         public SeekableByteChannel buildChannel(final String s) throws IOException {
-            return FileChannel.open(Paths.get(this.mapNormalizedObjectNameToObjectName.get(s)), StandardOpenOption.READ);
+            return FileChannel.open(Paths.get(mapNormalizedObjectNameToObjectName.get(s)), StandardOpenOption.READ);
         }
     }
 

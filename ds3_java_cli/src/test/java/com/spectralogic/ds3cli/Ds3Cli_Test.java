@@ -17,6 +17,7 @@ package com.spectralogic.ds3cli;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.spectralogic.ds3cli.exceptions.SyncNotSupportedException;
 import com.spectralogic.ds3cli.util.*;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.*;
@@ -48,9 +49,7 @@ import java.util.UUID;
 
 import static com.spectralogic.ds3client.utils.ResponseUtils.toImmutableIntList;
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -612,7 +611,7 @@ public class Ds3Cli_Test {
         assertThat(result.getReturnCode(), is(0));
     }
 
-    @Test
+    @Test(expected = SyncNotSupportedException.class)
     public void putObjectWithSyncNotSupportedVersion() throws Exception {
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "put_object", "-b", "bucketName", "-o", "obj.txt", "--sync"});
 
@@ -639,8 +638,6 @@ public class Ds3Cli_Test {
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, helpers), args, mockedFileUtils);
         final CommandResponse result = cli.call();
-        assertThat(result.getMessage(), is("Failed: The sync command is not supported with your version of BlackPearl."));
-        assertThat(result.getReturnCode(), is(0));
     }
 
     @Test
@@ -695,6 +692,9 @@ public class Ds3Cli_Test {
 
         PowerMockito.mockStatic(BlackPearlUtils.class);
 
+        PowerMockito.mockStatic(SyncUtils.class);
+        when(SyncUtils.isSyncSupported(any(Ds3Client.class))).thenReturn(true);
+
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(null, helpers), args, mockedFileUtils);
         CommandResponse result = cli.call();
         assertThat(result.getMessage(), is("SUCCESS: Finished downloading object.  The object was written to: ." + SterilizeString.getFileDelimiter() + "obj.txt"));
@@ -707,7 +707,6 @@ public class Ds3Cli_Test {
         final Iterable<Contents> retCont = Lists.newArrayList(c1);
         when(helpers.listObjects(eq("bucketName"))).thenReturn(retCont);
 
-        PowerMockito.mockStatic(SyncUtils.class);
         when(SyncUtils.needToSync(any(Ds3ClientHelpers.class), any(String.class), any(Path.class), any(String.class), any(Boolean.class))).thenReturn(true);
 
         result = cli.call();
@@ -855,6 +854,7 @@ public class Ds3Cli_Test {
         when(Utils.getFileName(any(Path.class), eq(p2))).thenReturn("obj2.txt");
 
         PowerMockito.mockStatic(SyncUtils.class);
+        when(SyncUtils.isSyncSupported(any(Ds3Client.class))).thenReturn(true);
         when(SyncUtils.isNewFile(any(Path.class), any(Contents.class), any(Boolean.class))).thenReturn(false);
 
         PowerMockito.mockStatic(BlackPearlUtils.class);
@@ -906,8 +906,7 @@ public class Ds3Cli_Test {
         when(helpers.startWriteJob(eq("bucketName"), eq(retObj), any(WriteJobOptions.class))).thenReturn(mockedGetJob);
 
         PowerMockito.mockStatic(Utils.class);
-        when(Utils.getObjectsForDirectory(eq(retPath), any(Path.class), any(Boolean.class))).thenCallRealMethod();
-        when(Utils.getObjectsForDirectory(any(Path.class), any(Boolean.class))).thenCallRealMethod();
+        when(Utils.getObjectsToPut(eq(retPath), any(Path.class), any(Boolean.class))).thenCallRealMethod();
         when(Utils.listObjectsForDirectory(any(Path.class))).thenReturn(retPath);
         when(Utils.getFileName(any(Path.class), eq(p1))).thenReturn("obj1.txt");
         when(Utils.getFileSize(eq(p1))).thenReturn(1245L);
@@ -951,8 +950,7 @@ public class Ds3Cli_Test {
         final ImmutableList<Path> retPath = ImmutableList.copyOf(Lists.newArrayList(p1, p2));
 
         PowerMockito.mockStatic(Utils.class);
-        when(Utils.getObjectsForDirectory(eq(retPath), any(Path.class), any(Boolean.class))).thenCallRealMethod();
-        when(Utils.getObjectsForDirectory(any(Path.class), any(Boolean.class))).thenCallRealMethod();
+        when(Utils.getObjectsToPut(eq(retPath), any(Path.class), any(Boolean.class))).thenCallRealMethod();
         when(Utils.listObjectsForDirectory(any(Path.class))).thenReturn(retPath);
         when(Utils.getFileName(any(Path.class), eq(p1))).thenReturn("obj1.txt");
         when(Utils.getFileName(any(Path.class), eq(p2))).thenReturn("obj2.txt");
@@ -974,7 +972,7 @@ public class Ds3Cli_Test {
 
     }
 
-    @Test
+    @Test(expected = SyncNotSupportedException.class)
     public void putBulkWithSyncWrongVersion() throws Exception {
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "put_bulk", "-b", "bucketName", "-d", "dir", "--sync"});
         final Ds3ClientHelpers helpers = mock(Ds3ClientHelpers.class);
@@ -1000,8 +998,6 @@ public class Ds3Cli_Test {
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, helpers), args, mockedFileUtils);
         final CommandResponse result = cli.call();
-        assertThat(result.getMessage(), is("Failed: The sync command is not supported with your version of BlackPearl."));
-        assertThat(result.getReturnCode(), is(0));
     }
 
     @Test
@@ -1019,8 +1015,7 @@ public class Ds3Cli_Test {
         final ImmutableList<Path> retPath = ImmutableList.copyOf(Lists.newArrayList(p1, p2));
 
         PowerMockito.mockStatic(Utils.class);
-        when(Utils.getObjectsForDirectory(eq(retPath), any(Path.class), any(Boolean.class))).thenCallRealMethod();
-        when(Utils.getObjectsForDirectory(any(Path.class), any(Boolean.class))).thenCallRealMethod();
+        when(Utils.getObjectsToPut(eq(retPath), any(Path.class), any(Boolean.class))).thenCallRealMethod();
         when(Utils.listObjectsForDirectory(any(Path.class))).thenReturn(retPath);
         when(Utils.getFileName(any(Path.class), eq(p1))).thenReturn("obj1.txt");
         when(Utils.getFileSize(eq(p1))).thenReturn(1245L);
@@ -1173,8 +1168,7 @@ public class Ds3Cli_Test {
         when(helpers.startWriteJob(eq("bucketName"), eq(retObj), any(WriteJobOptions.class))).thenReturn(mockedGetJob);
 
         PowerMockito.mockStatic(Utils.class);
-        when(Utils.getObjectsForDirectory(eq(retPath), any(Path.class), any(Boolean.class))).thenCallRealMethod();
-        when(Utils.getObjectsForDirectory(any(Path.class), any(Boolean.class))).thenCallRealMethod();
+        when(Utils.getObjectsToPut(eq(retPath), any(Path.class), any(Boolean.class))).thenCallRealMethod();
         when(Utils.listObjectsForDirectory(any(Path.class))).thenReturn(retPath);
         when(Utils.getFileName(any(Path.class), eq(p1))).thenReturn("obj1.txt");
         when(Utils.getFileSize(eq(p1))).thenReturn(1245L);
@@ -1187,7 +1181,7 @@ public class Ds3Cli_Test {
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(null, helpers), args, mockedFileUtils);
         final CommandResponse result = cli.call();
-        final String expected = "WARN: Not all of the files in dir were written to bucket bucketName\n" +
+        final String expected = "WARN: Not all of the files were written to bucket bucketName\n" +
                 "+--------------+------------------------------------------------------------------+\n" +
                 "| Ignored File |                              Reason                              |\n" +
                 "+--------------+------------------------------------------------------------------+\n" +
@@ -1219,8 +1213,7 @@ public class Ds3Cli_Test {
         when(helpers.startWriteJob(eq("bucketName"), eq(retObj), any(WriteJobOptions.class))).thenReturn(mockedGetJob);
 
         PowerMockito.mockStatic(Utils.class);
-        when(Utils.getObjectsForDirectory(eq(retPath), any(Path.class), any(Boolean.class))).thenCallRealMethod();
-        when(Utils.getObjectsForDirectory(any(Path.class), any(Boolean.class))).thenCallRealMethod();
+        when(Utils.getObjectsToPut(eq(retPath), any(Path.class), any(Boolean.class))).thenCallRealMethod();
         when(Utils.listObjectsForDirectory(any(Path.class))).thenReturn(retPath);
         when(Utils.getFileName(any(Path.class), eq(p1))).thenReturn("obj1.txt");
         when(Utils.getFileSize(eq(p1))).thenReturn(1245L);
@@ -1239,7 +1232,7 @@ public class Ds3Cli_Test {
 
         final String endsWith = "},\n" +
                 "  \"Data\" : {\n" +
-                "    \"status_message\" : \"WARN: Not all of the files in dir were written to bucket bucketName\",\n" +
+                "    \"status_message\" : \"WARN: Not all of the files were written to bucket bucketName\",\n" +
                 "    \"ignored_files\" : [ {\n" +
                 "      \"path\" : \"obj3.txt\",\n" +
                 "      \"error_message\" : \"java.io.IOException: java.nio.file.NoSuchFileException: obj3.txt\"\n" +
