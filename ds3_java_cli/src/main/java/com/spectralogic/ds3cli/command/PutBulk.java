@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.spectralogic.ds3cli.Arguments;
+import com.spectralogic.ds3cli.exceptions.BadArgumentException;
 import com.spectralogic.ds3cli.exceptions.SyncNotSupportedException;
 import com.spectralogic.ds3cli.models.PutBulkResult;
 import com.spectralogic.ds3cli.util.*;
@@ -77,11 +78,15 @@ public class PutBulk extends CliCommand<PutBulkResult> {
             throw new MissingOptionException("The bulk put command requires '-b' to be set.");
         }
 
-        pipe = args.isPipe();
+        pipe = Utils.isPipe();
         if (pipe) {
+            if (isOtherArgs(args)) {
+                throw new BadArgumentException("No other argument is supported when using piped input");
+            }
+
             pipedFiles = Utils.getPipedFilesFromStdin(getFileUtils());
             if (Guard.isNullOrEmpty(pipedFiles)) {
-                throw new MissingOptionException("Stdin is empty");
+                throw new MissingOptionException("Stdin is empty"); //We should never see that since we checked isPipe
             }
             mapNormalizedObjectNameToObjectName = getNormalizedObjectNameToObjectName(pipedFiles);
         } else {
@@ -227,6 +232,12 @@ public class PutBulk extends CliCommand<PutBulkResult> {
             filesToPut = Utils.listObjectsForDirectory(inputDirectory);
         }
         return filesToPut;
+    }
+
+    public boolean isOtherArgs(final Arguments args) {
+        return  args.getDirectory()  != null || //-d
+                args.getObjectName() != null || //-o
+                args.getPrefix()     != null;   //-p
     }
 
     static class PrefixedFileObjectPutter implements Ds3ClientHelpers.ObjectChannelBuilder {

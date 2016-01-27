@@ -356,7 +356,7 @@ public class FeatureIntegration_Test {
         try {
 
             Util.createBucket(client, bucketName);
-            final Arguments args = new Arguments(new String[]{"--http", "-c", "put_bulk", "-b", bucketName, "--pipe"});
+            final Arguments args = new Arguments(new String[]{"--http", "-c", "put_bulk", "-b", bucketName});
             final String file;
             if (Utils.isWindows) {
                 file = ".\\src\\test\\resources\\books\\beowulf.txt\n.\\src\\test\\resources\\books\\ulysses.txt";
@@ -379,7 +379,7 @@ public class FeatureIntegration_Test {
         try {
 
             Util.createBucket(client, bucketName);
-            final Arguments args = new Arguments(new String[]{"--http", "-c", "put_bulk", "-b", bucketName, "--pipe", "--sync"});
+            final Arguments args = new Arguments(new String[]{"--http", "-c", "put_bulk", "-b", bucketName, "--sync"});
             final String file;
             if (Utils.isWindows) {
                 file = ".\\src\\test\\resources\\books\\beowulf.txt\n.\\src\\test\\resources\\books\\ulysses.txt";

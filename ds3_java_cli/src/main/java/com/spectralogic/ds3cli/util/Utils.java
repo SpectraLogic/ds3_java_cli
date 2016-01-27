@@ -172,4 +172,8 @@ public final class Utils {
 
         return pipedFiles.build();
     }
+
+    public static boolean isPipe() throws IOException {
+        return System.in.available() > 0;
+    }
 }

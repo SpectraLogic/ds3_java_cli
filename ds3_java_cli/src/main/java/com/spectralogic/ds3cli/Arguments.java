@@ -66,7 +66,6 @@ public class Arguments {
     private String bufferSize;
     private String numberOfThreads;
     private boolean ignoreErrors = false;
-	private boolean pipe;
 
     public Arguments(final String[] args) throws BadArgumentException, ParseException {
         loadProperties();
@@ -135,9 +134,7 @@ public class Arguments {
         numberOfThreads.setArgName("numberOfThreads");
         final Option ignoreErrors = new Option(null, false, "Ignore files that cause errors");
         ignoreErrors.setLongOpt("ignore-errors");
-        final Option pipe = new Option(null, false, "Allow piping input when using put_bulk command");
-        pipe.setLongOpt("pipe");
-		
+
         options.addOption(ds3Endpoint);
         options.addOption(bucket);
         options.addOption(directory);
@@ -168,8 +165,7 @@ public class Arguments {
         options.addOption(bufferSize);
         options.addOption(numberOfThreads);
         options.addOption(ignoreErrors);
-        options.addOption(pipe);
-		
+
         processCommandLine();
     }
 
@@ -194,7 +190,7 @@ public class Arguments {
             rootLogger.setLevel(Level.OFF);
         }
 
-        rootLogger.info("Version: " + this.version);
+        rootLogger.info("Version: " + version);
 
         if (cmd.hasOption('h')) {
             printHelp();
@@ -209,7 +205,7 @@ public class Arguments {
         if (cmd.hasOption("output-format")) {
             try {
                 final String commandString = cmd.getOptionValue("output-format");
-                this.setOutputFormat(ViewType.valueOf(commandString.toUpperCase()));
+                setOutputFormat(ViewType.valueOf(commandString.toUpperCase()));
             } catch (final IllegalArgumentException e) {
                 throw new BadArgumentException("Unknown command", e);
             }
@@ -239,40 +235,40 @@ public class Arguments {
         try {
             final String commandString = cmd.getOptionValue("c");
             if (commandString == null) {
-                this.setCommand(null);
+                setCommand(null);
                 missingArgs.add("c");
             } else {
-                this.setCommand(CommandValue.valueOf(commandString.toUpperCase()));
+                setCommand(CommandValue.valueOf(commandString.toUpperCase()));
             }
         } catch (final IllegalArgumentException e) {
             throw new BadArgumentException("Unknown command", e);
         }
 
-        this.setPriority(processPriorityType(cmd, "priority"));
+        setPriority(processPriorityType(cmd, "priority"));
 
-        this.setWriteOptimization(processWriteOptimization(cmd, "writeOptimization"));
+        setWriteOptimization(processWriteOptimization(cmd, "writeOptimization"));
 
         if (cmd.hasOption("force")) {
-            this.setForce(true);
+            setForce(true);
         }
 
         if (cmd.hasOption("checksum")) {
-            this.setChecksum(true);
+            setChecksum(true);
         }
 
         if (cmd.hasOption("completed")) {
-            this.setCompleted(true);
+            setCompleted(true);
         }
 
-        this.setBucket(cmd.getOptionValue("b"));
-        this.setEndpoint(cmd.getOptionValue("e"));
-        this.setAccessKey(cmd.getOptionValue("a"));
-        this.setSecretKey(cmd.getOptionValue("k"));
-        this.setObjectName(cmd.getOptionValue("o"));
-        this.setProxy(cmd.getOptionValue("x"));
-        this.setDirectory(cmd.getOptionValue("d"));
-        this.setPrefix(cmd.getOptionValue("p"));
-        this.setId(cmd.getOptionValue("i"));
+        setBucket(cmd.getOptionValue("b"));
+        setEndpoint(cmd.getOptionValue("e"));
+        setAccessKey(cmd.getOptionValue("a"));
+        setSecretKey(cmd.getOptionValue("k"));
+        setObjectName(cmd.getOptionValue("o"));
+        setProxy(cmd.getOptionValue("x"));
+        setDirectory(cmd.getOptionValue("d"));
+        setPrefix(cmd.getOptionValue("p"));
+        setId(cmd.getOptionValue("i"));
 
         if (getEndpoint() == null) {
             final String endpoint = System.getenv("DS3_ENDPOINT");
@@ -314,27 +310,26 @@ public class Arguments {
         LOG.info("Access Key: " + getAccessKey() + " | Endpoint: " + getEndpoint());
 
         if (cmd.hasOption("sync")) {
-            this.setSync(true);
+            setSync(true);
         }
 
-        this.setNumberOfFiles(cmd.getOptionValue("n"));
-        this.setSizeOfFiles(cmd.getOptionValue("s"));
+        setNumberOfFiles(cmd.getOptionValue("n"));
+        setSizeOfFiles(cmd.getOptionValue("s"));
 
-        this.setBufferSize(cmd.getOptionValue("bs"));
+        setBufferSize(cmd.getOptionValue("bs"));
         if (getBufferSize() == null) {
-            this.bufferSize = "1048576"; //default to 1MB
+            bufferSize = "1048576"; //default to 1MB
         }
 
-        this.setNumberOfThreads(cmd.getOptionValue("nt"));
+        setNumberOfThreads(cmd.getOptionValue("nt"));
         if (getNumberOfThreads() == null) {
-            this.numberOfThreads = "10"; //default to 20 threads
+            numberOfThreads = "10"; //default to 20 threads
         }
 
         if (cmd.hasOption("ignore-errors")) {
-            this.setIgnoreErrors(true);
+            setIgnoreErrors(true);
         }
-		
-		this.setPipe(cmd.hasOption("pipe"));
+
     }
 
     private WriteOptimization processWriteOptimization(final CommandLine cmd, final String writeOptimization) throws BadArgumentException {
@@ -379,8 +374,8 @@ public class Arguments {
         } else {
             try {
                 props.load(input);
-                this.version = (String) props.get("version");
-                this.buildDate = (String) props.get("build.date");
+                version = (String) props.get("version");
+                buildDate = (String) props.get("build.date");
             } catch (final IOException e) {
                 System.err.println("Failed to load version property file.");
                 if (LOG.isInfoEnabled()) {
@@ -463,7 +458,7 @@ public class Arguments {
     }
 
     public String getProxy() {
-        return this.proxy;
+        return proxy;
     }
 
     void setForce(final boolean force) {
@@ -471,7 +466,7 @@ public class Arguments {
     }
 
     public boolean isForce() {
-        return this.force;
+        return force;
     }
 
     void setRetries(final int retries) {
@@ -479,7 +474,7 @@ public class Arguments {
     }
 
     public int getRetries() {
-        return this.retries;
+        return retries;
     }
 
     public String getPrefix() {
@@ -531,7 +526,7 @@ public class Arguments {
     }
 
     public ViewType getOutputFormat() {
-        return this.outputFormat;
+        return outputFormat;
     }
 
     void setOutputFormat(final ViewType outputFormat) {
@@ -547,7 +542,7 @@ public class Arguments {
     }
 
     public boolean isCompleted() {
-        return this.completed;
+        return completed;
     }
 
     void setCompleted(final boolean completed) {
@@ -567,7 +562,7 @@ public class Arguments {
     }
 
     public String getNumberOfFiles() {
-        return this.numberOfFiles;
+        return numberOfFiles;
     }
 
     void setSizeOfFiles(final String sizeOfFiles) {
@@ -575,7 +570,7 @@ public class Arguments {
     }
 
     public String getSizeOfFiles() {
-        return this.sizeOfFiles;
+        return sizeOfFiles;
     }
 
     void setBufferSize(final String bufferSize) {
@@ -583,7 +578,7 @@ public class Arguments {
     }
 
     public String getBufferSize() {
-        return this.bufferSize;
+        return bufferSize;
     }
 
     void setNumberOfThreads(final String numberOfThreads) {
@@ -591,7 +586,7 @@ public class Arguments {
     }
 
     public String getNumberOfThreads() {
-        return this.numberOfThreads;
+        return numberOfThreads;
     }
 
     public boolean isIgnoreErrors() {
@@ -601,13 +596,5 @@ public class Arguments {
     void setIgnoreErrors(final boolean ignoreErrors) {
         this.ignoreErrors = ignoreErrors;
     }
-	
-	public boolean isPipe() {
-        return this.pipe;
-    }
 
-    public void setPipe(final boolean pipe) {
-        this.pipe = pipe;
-    }
-	
 }

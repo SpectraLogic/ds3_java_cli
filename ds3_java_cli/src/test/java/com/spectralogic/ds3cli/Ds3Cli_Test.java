@@ -17,6 +17,7 @@ package com.spectralogic.ds3cli;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.spectralogic.ds3cli.exceptions.BadArgumentException;
 import com.spectralogic.ds3cli.exceptions.SyncNotSupportedException;
 import com.spectralogic.ds3cli.util.*;
 import com.spectralogic.ds3client.Ds3Client;
@@ -639,7 +640,8 @@ public class Ds3Cli_Test {
         PowerMockito.mockStatic(BlackPearlUtils.class);
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, helpers), args, mockedFileUtils);
-        final CommandResponse result = cli.call();
+        cli.call(); //should throw SyncNotSupportedException
+        fail();
     }
 
     @Test
@@ -999,7 +1001,8 @@ public class Ds3Cli_Test {
         PowerMockito.mockStatic(BlackPearlUtils.class);
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, helpers), args, mockedFileUtils);
-        final CommandResponse result = cli.call();
+        cli.call(); //should throw SyncNotSupportedException
+        fail();
     }
 
     @Test
@@ -1249,7 +1252,7 @@ public class Ds3Cli_Test {
 
     @Test
     public void putBulkWithPipe() throws Exception {
-        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "put_bulk", "-b", "bucketName", "--pipe"});
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "put_bulk", "-b", "bucketName"});
         final Ds3ClientHelpers helpers = mock(Ds3ClientHelpers.class);
         final Ds3ClientHelpers.Job mockedGetJob = mock(Ds3ClientHelpers.Job.class);
         final FileUtils mockedFileUtils = mock(FileUtils.class);
@@ -1271,6 +1274,7 @@ public class Ds3Cli_Test {
                 return (String) args[0];
             }
         });
+        when(Utils.isPipe()).thenReturn(true);
         when(Utils.getPipedFilesFromStdin(any(FileUtils.class))).thenReturn(retPath);
         when(Utils.getObjectsToPut(eq(retPath), any(Path.class), any(Boolean.class))).thenCallRealMethod();
         when(Utils.getFileName(any(Path.class), eq(p1))).thenReturn(p1.toString());
@@ -1288,7 +1292,7 @@ public class Ds3Cli_Test {
 
     @Test
     public void putBulkWithPipeAndSync() throws Exception {
-        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "put_bulk", "-b", "bucketName", "--pipe", "--sync"});
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "put_bulk", "-b", "bucketName", "--sync"});
         final Ds3ClientHelpers helpers = mock(Ds3ClientHelpers.class);
         final Ds3ClientHelpers.Job mockedGetJob = mock(Ds3ClientHelpers.Job.class);
         final FileUtils mockedFileUtils = mock(FileUtils.class);
@@ -1313,7 +1317,7 @@ public class Ds3Cli_Test {
                 return (String) args[0];
             }
         });
-
+        when(Utils.isPipe()).thenReturn(true);
         when(Utils.getPipedFilesFromStdin(any(FileUtils.class))).thenReturn(retPath);
         when(Utils.getObjectsToPut(eq(retPath), any(Path.class), any(Boolean.class))).thenCallRealMethod();
         when(Utils.getFileName(any(Path.class), eq(p1))).thenReturn(p1.toString());
@@ -1342,6 +1346,46 @@ public class Ds3Cli_Test {
         final CommandResponse result2 = cli.call();
         assertThat(result2.getMessage(), is("SUCCESS: All files are up to date"));
         assertThat(result2.getReturnCode(), is(0));
+    }
 
+    @Test
+    public void putBulkWithPipeAndOtherArgs() throws Exception {
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "put_bulk", "-b", "bucketName", "-d", "dir"});
+        final Ds3ClientHelpers helpers = mock(Ds3ClientHelpers.class);
+        final FileUtils mockedFileUtils = mock(FileUtils.class);
+
+        PowerMockito.mockStatic(Utils.class);
+        when(Utils.isPipe()).thenReturn(true);
+
+        PowerMockito.mockStatic(BlackPearlUtils.class);
+
+        final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(null, helpers), args, mockedFileUtils);
+        try {
+            cli.call();
+        } catch (final BadArgumentException ex) {
+            assertEquals("No other argument is supported when using piped input", ex.getMessage());
+        } catch (final Exception ex) {
+            fail(); //This is the wrong exception
+        }
+
+        final Arguments args2 = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "put_bulk", "-b", "bucketName", "-o", "obj"});
+        final Ds3Cli cli2 = new Ds3Cli(new Ds3ProviderImpl(null, helpers), args2, mockedFileUtils);
+        try {
+            cli2.call();
+        } catch (final BadArgumentException ex) {
+            assertEquals("No other argument is supported when using piped input", ex.getMessage());
+        } catch (final Exception ex) {
+            fail(); //This is the wrong exception
+        }
+
+        final Arguments args3 = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "put_bulk", "-b", "bucketName", "-p", "prefix"});
+        final Ds3Cli cli3 = new Ds3Cli(new Ds3ProviderImpl(null, helpers), args3, mockedFileUtils);
+        try {
+            cli3.call();
+        } catch (final BadArgumentException ex) {
+            assertEquals("No other argument is supported when using piped input", ex.getMessage());
+        } catch (final Exception ex) {
+            fail(); //This is the wrong exception
+        }
     }
 }
