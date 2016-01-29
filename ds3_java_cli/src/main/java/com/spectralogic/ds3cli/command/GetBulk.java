@@ -62,8 +62,8 @@ public class GetBulk extends CliCommand<GetBulkResult> {
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
-        bucketName = args.getBucket();
-        if (bucketName == null) {
+        this.bucketName = args.getBucket();
+        if (this.bucketName == null) {
             throw new MissingOptionException("The bulk get command requires '-b' to be set.");
         }
 
@@ -73,23 +73,23 @@ public class GetBulk extends CliCommand<GetBulkResult> {
 
         final String directory = args.getDirectory();
         if (directory == null || directory.equals(".")) {
-            outputPath = FileSystems.getDefault().getPath(".");
+            this.outputPath = FileSystems.getDefault().getPath(".");
         } else {
             final Path dirPath = FileSystems.getDefault().getPath(directory);
-            outputPath = FileSystems.getDefault().getPath(".").resolve(dirPath);
+            this.outputPath = FileSystems.getDefault().getPath(".").resolve(dirPath);
         }
 
-        priority = args.getPriority();
-        checksum = args.isChecksum();
-        prefix = args.getPrefix();
+        this.priority = args.getPriority();
+        this.checksum = args.isChecksum();
+        this.prefix = args.getPrefix();
 
         if (args.isSync()) {
             LOG.info("Using sync command");
-            sync = true;
+            this.sync = true;
         }
 
-        force = args.isForce();
-        numberOfThreads = Integer.valueOf(args.getNumberOfThreads());
+        this.force = args.isForce();
+        this.numberOfThreads = Integer.valueOf(args.getNumberOfThreads());
 
         return this;
     }
@@ -97,44 +97,44 @@ public class GetBulk extends CliCommand<GetBulkResult> {
     @Override
     public GetBulkResult call() throws Exception {
 
-        if (!force) {
+        if (!this.force) {
             BlackPearlUtils.checkBlackPearlForTapeFailure(getClient());
         }
 
         final Ds3ClientHelpers.ObjectChannelBuilder getter;
-        if (checksum) {
+        if (this.checksum) {
             throw new RuntimeException("Checksumming is currently not implemented.");//TODO
 //            Logging.log("Performing get_bulk with checksum verification");
 //            getter = new VerifyingFileObjectGetter(this.outputPath);
         } else {
-            getter = new FileObjectGetter(outputPath);
+            getter = new FileObjectGetter(this.outputPath);
         }
 
-        if (sync) {
-            if (Guard.isStringNullOrEmpty(prefix)) {
-                LOG.info("Syncing all objects from " + bucketName);
+        if (this.sync) {
+            if (Guard.isStringNullOrEmpty(this.prefix)) {
+                LOG.info("Syncing all objects from " + this.bucketName);
             } else {
-                LOG.info("Syncing only those objects that start with " + prefix);
+                LOG.info("Syncing only those objects that start with " + this.prefix);
             }
-            return new GetBulkResult(restoreSome(getter));
+            return new GetBulkResult(this.restoreSome(getter));
         }
 
-        if (prefix == null) {
-            LOG.info("Getting all objects from " + bucketName);
-            return new GetBulkResult(restoreAll(getter));
+        if (this.prefix == null) {
+            LOG.info("Getting all objects from " + this.bucketName);
+            return new GetBulkResult(this.restoreAll(getter));
         }
 
-        LOG.info("Getting only those objects that start with " + prefix);
-        return new GetBulkResult(restoreSome(getter));
+        LOG.info("Getting only those objects that start with " + this.prefix);
+        return new GetBulkResult(this.restoreSome(getter));
     }
 
     private String restoreSome(final Ds3ClientHelpers.ObjectChannelBuilder getter) throws IOException, SignatureException, XmlProcessingException, SSLSetupException {
         final Ds3ClientHelpers helper = getClientHelpers();
-        final Iterable<Contents> contents = helper.listObjects(bucketName, prefix);
+        final Iterable<Contents> contents = helper.listObjects(this.bucketName, this.prefix);
 
         final Iterable<Contents> filteredContents;
-        if (sync) {
-            filteredContents = filterContents(contents, outputPath);
+        if (this.sync) {
+            filteredContents = this.filterContents(contents, this.outputPath);
             if (Iterables.isEmpty(filteredContents)) {
                 return "SUCCESS: All files are up to date";
             }
@@ -151,31 +151,31 @@ public class GetBulk extends CliCommand<GetBulkResult> {
                     }
                 });
 
-        final Ds3ClientHelpers.Job job = helper.startReadJob(bucketName, objects,
+        final Ds3ClientHelpers.Job job = helper.startReadJob(this.bucketName, objects,
                 ReadJobOptions.create()
-                        .withPriority(priority));
-        job.withMaxParallelRequests(numberOfThreads);
+                        .withPriority(this.priority));
+        job.withMaxParallelRequests(this.numberOfThreads);
         job.transfer(new LoggingFileObjectGetter(getter));
 
-        if (sync) {
-            if (prefix != null) {
-                return "SUCCESS: Synced all the objects that start with '" + prefix + "' from " + bucketName + " to " + outputPath.toString();
+        if (this.sync) {
+            if (this.prefix != null) {
+                return "SUCCESS: Synced all the objects that start with '" + this.prefix + "' from " + this.bucketName + " to " + this.outputPath.toString();
             } else {
-                return "SUCCESS: Synced all the objects from " + bucketName + " to " + outputPath.toString();
+                return "SUCCESS: Synced all the objects from " + this.bucketName + " to " + this.outputPath.toString();
             }
         }
 
-        return "SUCCESS: Wrote all the objects that start with '" + prefix + "' from " + bucketName + " to " + outputPath.toString();
+        return "SUCCESS: Wrote all the objects that start with '" + this.prefix + "' from " + this.bucketName + " to " + this.outputPath.toString();
     }
 
     private String restoreAll(final Ds3ClientHelpers.ObjectChannelBuilder getter) throws XmlProcessingException, SignatureException, IOException, SSLSetupException {
         final Ds3ClientHelpers helper = getClientHelpers();
-        final Ds3ClientHelpers.Job job = helper.startReadAllJob(bucketName,
-                ReadJobOptions.create().withPriority(priority));
-        job.withMaxParallelRequests(numberOfThreads);
+        final Ds3ClientHelpers.Job job = helper.startReadAllJob(this.bucketName,
+                ReadJobOptions.create().withPriority(this.priority));
+        job.withMaxParallelRequests(this.numberOfThreads);
         job.transfer(new LoggingFileObjectGetter(getter));
 
-        return "SUCCESS: Wrote all the objects from " + bucketName + " to directory " + outputPath.toString();
+        return "SUCCESS: Wrote all the objects from " + this.bucketName + " to directory " + this.outputPath.toString();
     }
 
     private Iterable<Contents> filterContents(final Iterable<Contents> contents, final Path outputPath) throws IOException {
@@ -206,13 +206,13 @@ public class GetBulk extends CliCommand<GetBulkResult> {
         final private Ds3ClientHelpers.ObjectChannelBuilder objectGetter;
 
         public LoggingFileObjectGetter(final Ds3ClientHelpers.ObjectChannelBuilder getter) {
-            objectGetter = getter;
+            this.objectGetter = getter;
         }
 
         @Override
         public SeekableByteChannel buildChannel(final String s) throws IOException {
             LOG.info("Getting object " + s);
-            return objectGetter.buildChannel(s);
+            return this.objectGetter.buildChannel(s);
         }
     }
 }

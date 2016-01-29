@@ -54,12 +54,12 @@ public class PutObject extends CliCommand<PutObjectResult> {
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
-        bucketName = args.getBucket();
-        if (bucketName == null) {
+        this.bucketName = args.getBucket();
+        if (this.bucketName == null) {
             throw new MissingOptionException("The put object command requires '-b' to be set.");
         }
-        objectName = args.getObjectName();
-        if (objectName == null) {
+        this.objectName = args.getObjectName();
+        if (this.objectName == null) {
             throw new MissingOptionException("The put object command requires '-o' to be set.");
         }
 
@@ -67,16 +67,16 @@ public class PutObject extends CliCommand<PutObjectResult> {
             throw new BadArgumentException("'-d' should not be used with the command 'put_object'.  If you want to move an entire directory, use 'put_bulk' instead.");
         }
 
-        objectPath = FileSystems.getDefault().getPath(args.getObjectName());
-        if (!getFileUtils().exists(objectPath)) {
-            throw new BadArgumentException("File '" + objectName + "' does not exist.");
+        this.objectPath = FileSystems.getDefault().getPath(args.getObjectName());
+        if (!getFileUtils().exists(this.objectPath)) {
+            throw new BadArgumentException("File '" + this.objectName + "' does not exist.");
         }
-        if (!getFileUtils().isRegularFile(objectPath)) {
+        if (!getFileUtils().isRegularFile(this.objectPath)) {
             throw new BadArgumentException("The '-o' command must be a file and not a directory.");
         }
 
-        prefix = args.getPrefix();
-        force = args.isForce();
+        this.prefix = args.getPrefix();
+        this.force = args.isForce();
 
         if (args.isSync()) {
             if (!SyncUtils.isSyncSupported(getClient())) {
@@ -84,51 +84,51 @@ public class PutObject extends CliCommand<PutObjectResult> {
             }
 
             LOG.info("Using sync command");
-            sync = true;
+            this.sync = true;
         }
 
-        numberOfThreads = Integer.valueOf(args.getNumberOfThreads());
+        this.numberOfThreads = Integer.valueOf(args.getNumberOfThreads());
 
         return this;
     }
 
     @Override
     public PutObjectResult call() throws Exception {
-        if (!force) {
+        if (!this.force) {
             BlackPearlUtils.checkBlackPearlForTapeFailure(getClient());
         }
 
         final Ds3ClientHelpers helpers = getClientHelpers();
-        final Ds3Object ds3Obj = new Ds3Object(Utils.normalizeObjectName(objectName), getFileUtils().size(objectPath));
+        final Ds3Object ds3Obj = new Ds3Object(Utils.normalizeObjectName(this.objectName), getFileUtils().size(this.objectPath));
 
-        if (prefix != null) {
-            LOG.info("Pre-appending " + prefix + " to object name");
-            ds3Obj.setName(prefix + ds3Obj.getName());
+        if (this.prefix != null) {
+            LOG.info("Pre-appending " + this.prefix + " to object name");
+            ds3Obj.setName(this.prefix + ds3Obj.getName());
         }
 
         /* Ensure the bucket exists and if not create it */
-        helpers.ensureBucketExists(bucketName);
+        helpers.ensureBucketExists(this.bucketName);
 
-        if (sync) {
+        if (this.sync) {
             if (!SyncUtils.isSyncSupported(getClient())) {
                 return new PutObjectResult("Failed: The sync command is not supported with your version of BlackPearl.");
             }
 
-            if (SyncUtils.needToSync(helpers, bucketName, objectPath, ds3Obj.getName(), true)) {
-                Transfer(helpers, ds3Obj);
+            if (SyncUtils.needToSync(helpers, this.bucketName, this.objectPath, ds3Obj.getName(), true)) {
+                this.Transfer(helpers, ds3Obj);
                 return new PutObjectResult("Success: Finished syncing file to ds3 appliance.");
             } else {
-                return new PutObjectResult("Success: No need to sync " + objectName);
+                return new PutObjectResult("Success: No need to sync " + this.objectName);
             }
         }
 
-        Transfer(helpers, ds3Obj);
+        this.Transfer(helpers, ds3Obj);
         return new PutObjectResult("Success: Finished writing file to ds3 appliance.");
     }
 
     private void Transfer(final Ds3ClientHelpers helpers, final Ds3Object ds3Obj) throws SignatureException, IOException, XmlProcessingException {
-        final Ds3ClientHelpers.Job putJob = helpers.startWriteJob(bucketName, Lists.newArrayList(ds3Obj));
-        putJob.withMaxParallelRequests(numberOfThreads);
+        final Ds3ClientHelpers.Job putJob = helpers.startWriteJob(this.bucketName, Lists.newArrayList(ds3Obj));
+        putJob.withMaxParallelRequests(this.numberOfThreads);
         putJob.transfer(new Ds3ClientHelpers.ObjectChannelBuilder() {
             @Override
             public SeekableByteChannel buildChannel(final String s) throws IOException {

@@ -73,40 +73,40 @@ public class PutBulk extends CliCommand<PutBulkResult> {
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
-        bucketName = args.getBucket();
-        if (bucketName == null) {
+        this.bucketName = args.getBucket();
+        if (this.bucketName == null) {
             throw new MissingOptionException("The bulk put command requires '-b' to be set.");
         }
 
-        pipe = Utils.isPipe();
-        if (pipe) {
-            if (isOtherArgs(args)) {
+        this.pipe = Utils.isPipe();
+        if (this.pipe) {
+            if (this.isOtherArgs(args)) {
                 throw new BadArgumentException("No other argument is supported when using piped input");
             }
 
-            pipedFiles = Utils.getPipedFilesFromStdin(getFileUtils());
-            if (Guard.isNullOrEmpty(pipedFiles)) {
+            this.pipedFiles = Utils.getPipedFilesFromStdin(getFileUtils());
+            if (Guard.isNullOrEmpty(this.pipedFiles)) {
                 throw new MissingOptionException("Stdin is empty"); //We should never see that since we checked isPipe
             }
-            mapNormalizedObjectNameToObjectName = getNormalizedObjectNameToObjectName(pipedFiles);
+            this.mapNormalizedObjectNameToObjectName = this.getNormalizedObjectNameToObjectName(this.pipedFiles);
         } else {
             final String srcDir = args.getDirectory();
             if (srcDir == null) {
                 throw new MissingOptionException("The bulk put command required '-d' to be set.");
             }
-            inputDirectory = Paths.get(srcDir);
+            this.inputDirectory = Paths.get(srcDir);
 
             if (args.getObjectName() != null) {
                 System.err.println("Warning: '-o' is not used with bulk put and is ignored.");
             }
 
-            prefix = args.getPrefix();
+            this.prefix = args.getPrefix();
         }
 
-        priority = args.getPriority();
-        writeOptimization = args.getWriteOptimization();
-        checksum = args.isChecksum();
-        force = args.isForce();
+        this.priority = args.getPriority();
+        this.writeOptimization = args.getWriteOptimization();
+        this.checksum = args.isChecksum();
+        this.force = args.isForce();
 
         if (args.isSync()) {
             if (!SyncUtils.isSyncSupported(getClient())) {
@@ -114,14 +114,14 @@ public class PutBulk extends CliCommand<PutBulkResult> {
             }
 
             LOG.info("Using sync command");
-            sync = true;
+            this.sync = true;
         }
 
-        numberOfThreads = Integer.valueOf(args.getNumberOfThreads());
+        this.numberOfThreads = Integer.valueOf(args.getNumberOfThreads());
 
         if (args.isIgnoreErrors()) {
             LOG.info("Ignoring files that cause errors");
-            ignoreErrors = true;
+            this.ignoreErrors = true;
         }
 
         return this;
@@ -129,36 +129,36 @@ public class PutBulk extends CliCommand<PutBulkResult> {
 
     @Override
     public PutBulkResult call() throws Exception {
-        if (!force) {
+        if (!this.force) {
             BlackPearlUtils.checkBlackPearlForTapeFailure(getClient());
         }
 
         /* Ensure the bucket exists and if not create it */
         final Ds3ClientHelpers helpers = getClientHelpers();
-        helpers.ensureBucketExists(bucketName);
+        helpers.ensureBucketExists(this.bucketName);
 
-        Iterable<Path> filesToPut = getFilesToPut();
-        if (sync) {
-            filesToPut = filterObjects(filesToPut, prefix != null ? prefix : "");
+        Iterable<Path> filesToPut = this.getFilesToPut();
+        if (this.sync) {
+            filesToPut = this.filterObjects(filesToPut, this.prefix != null ? this.prefix : "");
             if (Iterables.isEmpty(filesToPut)) {
                 return new PutBulkResult("SUCCESS: All files are up to date");
             }
         }
 
-        final ObjectsToPut objectsToPut = Utils.getObjectsToPut(filesToPut, inputDirectory, ignoreErrors);
+        final ObjectsToPut objectsToPut = Utils.getObjectsToPut(filesToPut, this.inputDirectory, this.ignoreErrors);
         final Iterable<Ds3Object> ds3Objects = objectsToPut.getDs3Objects();
-        appendPrefix(ds3Objects);
+        this.appendPrefix(ds3Objects);
 
-        return Transfer(helpers, ds3Objects, objectsToPut.getDs3IgnoredObjects());
+        return this.Transfer(helpers, ds3Objects, objectsToPut.getDs3IgnoredObjects());
     }
 
     private PutBulkResult Transfer(final Ds3ClientHelpers helpers, final Iterable<Ds3Object> ds3Objects, final ImmutableList<IgnoreFile> ds3IgnoredObjects) throws SignatureException, IOException, XmlProcessingException {
-        final Ds3ClientHelpers.Job job = helpers.startWriteJob(bucketName, ds3Objects,
+        final Ds3ClientHelpers.Job job = helpers.startWriteJob(this.bucketName, ds3Objects,
                 WriteJobOptions.create()
-                        .withPriority(priority)
-                        .withWriteOptimization(writeOptimization));
-        job.withMaxParallelRequests(numberOfThreads);
-        if (checksum) {
+                        .withPriority(this.priority)
+                        .withWriteOptimization(this.writeOptimization));
+        job.withMaxParallelRequests(this.numberOfThreads);
+        if (this.checksum) {
             throw new RuntimeException("Checksum calculation is not currently supported."); //TODO
 //            Logging.log("Performing bulk put with checksum computation enabled");
 //            job.withRequestModifier(new ComputedChecksumModifier());
@@ -166,27 +166,27 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         LOG.info("Created bulk put job " + job.getJobId().toString() + ", starting transfer");
 
         String resultMessage;
-        if (pipe) {
-            job.transfer(new PipeFileObjectPutter(mapNormalizedObjectNameToObjectName));
-            resultMessage = String.format("SUCCESS: Wrote all piped files to bucket %s", bucketName);
+        if (this.pipe) {
+            job.transfer(new PipeFileObjectPutter(this.mapNormalizedObjectNameToObjectName));
+            resultMessage = String.format("SUCCESS: Wrote all piped files to bucket %s", this.bucketName);
         } else {
-            job.transfer(new PrefixedFileObjectPutter(inputDirectory, prefix));
-            resultMessage = String.format("SUCCESS: Wrote all the files in %s to bucket %s", inputDirectory.toString(), bucketName);
+            job.transfer(new PrefixedFileObjectPutter(this.inputDirectory, this.prefix));
+            resultMessage = String.format("SUCCESS: Wrote all the files in %s to bucket %s", this.inputDirectory.toString(), this.bucketName);
         }
 
-        if (ignoreErrors && !ds3IgnoredObjects.isEmpty()) {
-            resultMessage = String.format("WARN: Not all of the files were written to bucket %s", bucketName);
+        if (this.ignoreErrors && !ds3IgnoredObjects.isEmpty()) {
+            resultMessage = String.format("WARN: Not all of the files were written to bucket %s", this.bucketName);
         }
 
         return new PutBulkResult(resultMessage, ds3IgnoredObjects);
     }
 
     private void appendPrefix(final Iterable<Ds3Object> ds3Objects) {
-        if (pipe || prefix == null) return;
+        if (this.pipe || this.prefix == null) return;
 
-        LOG.info("Pre-appending " + prefix + " to all object names");
+        LOG.info("Pre-appending " + this.prefix + " to all object names");
         for (final Ds3Object obj : ds3Objects) {
-            obj.setName(prefix + obj.getName());
+            obj.setName(this.prefix + obj.getName());
         }
     }
 
@@ -200,7 +200,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
     }
 
     private Iterable<Path> filterObjects(final Iterable<Path> filesToPut, final String prefix) throws IOException, SignatureException {
-        final Iterable<Contents> contents = getClientHelpers().listObjects(bucketName, prefix);
+        final Iterable<Contents> contents = getClientHelpers().listObjects(this.bucketName, prefix);
         final Map<String, Contents> mapBucketFiles = new HashMap<>();
         for (final Contents content : contents) {
             mapBucketFiles.put(content.getKey(), content);
@@ -208,7 +208,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
 
         final List<Path> filteredObjects = new ArrayList<>();
         for (final Path fileToPut : filesToPut) {
-            final String fileName = Utils.getFileName(inputDirectory, fileToPut);
+            final String fileName = Utils.getFileName(this.inputDirectory, fileToPut);
             final Contents content = mapBucketFiles.get(prefix + fileName);
             if (content == null) {
                 filteredObjects.add(fileToPut);
@@ -225,11 +225,11 @@ public class PutBulk extends CliCommand<PutBulkResult> {
 
     private Iterable<Path> getFilesToPut() throws IOException {
         final Iterable<Path> filesToPut;
-        if (pipe) {
-            filesToPut = pipedFiles;
+        if (this.pipe) {
+            filesToPut = this.pipedFiles;
         }
         else {
-            filesToPut = Utils.listObjectsForDirectory(inputDirectory);
+            filesToPut = Utils.listObjectsForDirectory(this.inputDirectory);
         }
         return filesToPut;
     }
