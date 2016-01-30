@@ -19,11 +19,7 @@ import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.models.GetBulkResult;
-import com.spectralogic.ds3cli.util.BlackPearlUtils;
-import com.spectralogic.ds3cli.util.Ds3Provider;
-import com.spectralogic.ds3cli.util.FileUtils;
-import com.spectralogic.ds3cli.util.SyncUtils;
-import com.spectralogic.ds3cli.util.Utils;
+import com.spectralogic.ds3cli.util.*;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.helpers.FileObjectGetter;
 import com.spectralogic.ds3client.helpers.options.ReadJobOptions;
@@ -101,12 +97,12 @@ public class GetBulk extends CliCommand<GetBulkResult> {
     @Override
     public GetBulkResult call() throws Exception {
 
-        if (!force) {
+        if (!this.force) {
             BlackPearlUtils.checkBlackPearlForTapeFailure(getClient());
         }
 
         final Ds3ClientHelpers.ObjectChannelBuilder getter;
-        if (checksum) {
+        if (this.checksum) {
             throw new RuntimeException("Checksumming is currently not implemented.");//TODO
 //            Logging.log("Performing get_bulk with checksum verification");
 //            getter = new VerifyingFileObjectGetter(this.outputPath);
@@ -114,22 +110,22 @@ public class GetBulk extends CliCommand<GetBulkResult> {
             getter = new FileObjectGetter(this.outputPath);
         }
 
-        if (sync) {
+        if (this.sync) {
             if (Guard.isStringNullOrEmpty(this.prefix)) {
                 LOG.info("Syncing all objects from " + this.bucketName);
             } else {
                 LOG.info("Syncing only those objects that start with " + this.prefix);
             }
-            return new GetBulkResult(restoreSome(getter));
+            return new GetBulkResult(this.restoreSome(getter));
         }
 
         if (this.prefix == null) {
             LOG.info("Getting all objects from " + this.bucketName);
-            return new GetBulkResult(restoreAll(getter));
+            return new GetBulkResult(this.restoreAll(getter));
         }
 
         LOG.info("Getting only those objects that start with " + this.prefix);
-        return new GetBulkResult(restoreSome(getter));
+        return new GetBulkResult(this.restoreSome(getter));
     }
 
     private String restoreSome(final Ds3ClientHelpers.ObjectChannelBuilder getter) throws IOException, SignatureException, XmlProcessingException, SSLSetupException {
@@ -137,8 +133,8 @@ public class GetBulk extends CliCommand<GetBulkResult> {
         final Iterable<Contents> contents = helper.listObjects(this.bucketName, this.prefix);
 
         final Iterable<Contents> filteredContents;
-        if (sync) {
-            filteredContents = filterContents(contents, this.outputPath);
+        if (this.sync) {
+            filteredContents = this.filterContents(contents, this.outputPath);
             if (Iterables.isEmpty(filteredContents)) {
                 return "SUCCESS: All files are up to date";
             }
@@ -161,8 +157,8 @@ public class GetBulk extends CliCommand<GetBulkResult> {
         job.withMaxParallelRequests(this.numberOfThreads);
         job.transfer(new LoggingFileObjectGetter(getter));
 
-        if (sync) {
-            if (prefix != null) {
+        if (this.sync) {
+            if (this.prefix != null) {
                 return "SUCCESS: Synced all the objects that start with '" + this.prefix + "' from " + this.bucketName + " to " + this.outputPath.toString();
             } else {
                 return "SUCCESS: Synced all the objects from " + this.bucketName + " to " + this.outputPath.toString();

@@ -68,9 +68,9 @@ public class Arguments {
     private boolean ignoreErrors = false;
 
     public Arguments(final String[] args) throws BadArgumentException, ParseException {
-        loadProperties();
+        this.loadProperties();
         this.args = args;
-        options = new Options();
+        this.options = new Options();
 
         final Option ds3Endpoint = new Option("e", true, "The ds3 endpoint to connect to or have \"DS3_ENDPOINT\" set as an environment variable.");
         ds3Endpoint.setArgName("endpoint");
@@ -135,43 +135,43 @@ public class Arguments {
         final Option ignoreErrors = new Option(null, false, "Ignore files that cause errors");
         ignoreErrors.setLongOpt("ignore-errors");
 
-        options.addOption(ds3Endpoint);
-        options.addOption(bucket);
-        options.addOption(directory);
-        options.addOption(accessKey);
-        options.addOption(secretKey);
-        options.addOption(command);
-        options.addOption(objectName);
-        options.addOption(prefix);
-        options.addOption(proxy);
-        options.addOption(id);
-        options.addOption(force);
-        options.addOption(retries);
-        options.addOption(checksum);
-        options.addOption(priority);
-        options.addOption(writeOptimization);
-        options.addOption(help);
-        options.addOption(insecure);
-        options.addOption(http);
-        options.addOption(version);
-        options.addOption(verbose);
-        options.addOption(debug);
-        options.addOption(trace);
-        options.addOption(viewType);
-        options.addOption(completed);
-        options.addOption(sync);
-        options.addOption(numberOfFiles);
-        options.addOption(sizeOfFiles);
-        options.addOption(bufferSize);
-        options.addOption(numberOfThreads);
-        options.addOption(ignoreErrors);
+        this.options.addOption(ds3Endpoint);
+        this.options.addOption(bucket);
+        this.options.addOption(directory);
+        this.options.addOption(accessKey);
+        this.options.addOption(secretKey);
+        this.options.addOption(command);
+        this.options.addOption(objectName);
+        this.options.addOption(prefix);
+        this.options.addOption(proxy);
+        this.options.addOption(id);
+        this.options.addOption(force);
+        this.options.addOption(retries);
+        this.options.addOption(checksum);
+        this.options.addOption(priority);
+        this.options.addOption(writeOptimization);
+        this.options.addOption(help);
+        this.options.addOption(insecure);
+        this.options.addOption(http);
+        this.options.addOption(version);
+        this.options.addOption(verbose);
+        this.options.addOption(debug);
+        this.options.addOption(trace);
+        this.options.addOption(viewType);
+        this.options.addOption(completed);
+        this.options.addOption(sync);
+        this.options.addOption(numberOfFiles);
+        this.options.addOption(sizeOfFiles);
+        this.options.addOption(bufferSize);
+        this.options.addOption(numberOfThreads);
+        this.options.addOption(ignoreErrors);
 
-        processCommandLine();
+        this.processCommandLine();
     }
 
     private void processCommandLine() throws ParseException, BadArgumentException {
         final CommandLineParser parser = new BasicParser();
-        final CommandLine cmd = parser.parse(options, args);
+        final CommandLine cmd = parser.parse(this.options, this.args);
 
         final List<String> missingArgs = new ArrayList<>();
 
@@ -193,12 +193,12 @@ public class Arguments {
         rootLogger.info("Version: " + this.version);
 
         if (cmd.hasOption('h')) {
-            printHelp();
+            this.printHelp();
             System.exit(0);
         }
 
         if (cmd.hasOption("version")) {
-            printVersion();
+            this.printVersion();
             System.exit(0);
         }
 
@@ -214,17 +214,17 @@ public class Arguments {
 
 
         if (cmd.hasOption("insecure")) {
-            setCertificateVerification(false);
+            this.setCertificateVerification(false);
         }
 
         if (cmd.hasOption("http")) {
-            setHttps(false);
+            this.setHttps(false);
         }
 
         final String retryString = cmd.getOptionValue("r");
         try {
             if (retryString != null) {
-                setRetries(Integer.parseInt(retryString));
+                this.setRetries(Integer.parseInt(retryString));
             }
 
         } catch (final NumberFormatException e) {
@@ -244,9 +244,9 @@ public class Arguments {
             throw new BadArgumentException("Unknown command", e);
         }
 
-        this.setPriority(processPriorityType(cmd, "priority"));
+        this.setPriority(this.processPriorityType(cmd, "priority"));
 
-        this.setWriteOptimization(processWriteOptimization(cmd, "writeOptimization"));
+        this.setWriteOptimization(this.processWriteOptimization(cmd, "writeOptimization"));
 
         if (cmd.hasOption("force")) {
             this.setForce(true);
@@ -270,44 +270,44 @@ public class Arguments {
         this.setPrefix(cmd.getOptionValue("p"));
         this.setId(cmd.getOptionValue("i"));
 
-        if (getEndpoint() == null) {
+        if (this.getEndpoint() == null) {
             final String endpoint = System.getenv("DS3_ENDPOINT");
             if (endpoint == null) {
                 missingArgs.add("e");
             } else {
-                setEndpoint(endpoint);
+                this.setEndpoint(endpoint);
             }
         }
 
-        if (getSecretKey() == null) {
+        if (this.getSecretKey() == null) {
             final String key = System.getenv("DS3_SECRET_KEY");
             if (key == null) {
                 missingArgs.add("k");
             } else {
-                setSecretKey(key);
+                this.setSecretKey(key);
             }
         }
 
-        if (getAccessKey() == null) {
+        if (this.getAccessKey() == null) {
             final String key = System.getenv("DS3_ACCESS_KEY");
             if (key == null) {
                 missingArgs.add("a");
             } else {
-                setAccessKey(key);
+                this.setAccessKey(key);
             }
         }
 
         // check for the http_proxy env var
         final String proxy = System.getenv("http_proxy");
         if (proxy != null) {
-            setProxy(proxy);
-            LOG.info("Proxy: %s", getProxy());
+            this.setProxy(proxy);
+            LOG.info("Proxy: %s", this.getProxy());
         }
 
         if (!missingArgs.isEmpty()) {
             throw new MissingOptionException(missingArgs);
         }
-        LOG.info("Access Key: " + getAccessKey() + " | Endpoint: " + getEndpoint());
+        LOG.info("Access Key: " + this.getAccessKey() + " | Endpoint: " + this.getEndpoint());
 
         if (cmd.hasOption("sync")) {
             this.setSync(true);
@@ -317,18 +317,19 @@ public class Arguments {
         this.setSizeOfFiles(cmd.getOptionValue("s"));
 
         this.setBufferSize(cmd.getOptionValue("bs"));
-        if (getBufferSize() == null) {
+        if (this.getBufferSize() == null) {
             this.bufferSize = "1048576"; //default to 1MB
         }
 
         this.setNumberOfThreads(cmd.getOptionValue("nt"));
-        if (getNumberOfThreads() == null) {
+        if (this.getNumberOfThreads() == null) {
             this.numberOfThreads = "10"; //default to 20 threads
         }
 
         if (cmd.hasOption("ignore-errors")) {
             this.setIgnoreErrors(true);
         }
+
     }
 
     private WriteOptimization processWriteOptimization(final CommandLine cmd, final String writeOptimization) throws BadArgumentException {
@@ -358,11 +359,11 @@ public class Arguments {
     }
 
     public String getVersion() {
-        return version;
+        return this.version;
     }
 
     public String getBuildDate() {
-        return buildDate;
+        return this.buildDate;
     }
 
     private void loadProperties() {
@@ -387,17 +388,17 @@ public class Arguments {
     }
 
     private void printVersion() {
-        System.out.println("Version: " + getVersion());
-        System.out.println("Build Date: " + getBuildDate());
+        System.out.println("Version: " + this.getVersion());
+        System.out.println("Build Date: " + this.getBuildDate());
     }
 
     public void printHelp() {
         final HelpFormatter helpFormatter = new HelpFormatter();
-        helpFormatter.printHelp("ds3", options);
+        helpFormatter.printHelp("ds3", this.options);
     }
 
     public String getBucket() {
-        return bucket;
+        return this.bucket;
     }
 
     void setBucket(final String bucket) {
@@ -405,7 +406,7 @@ public class Arguments {
     }
 
     public String getDirectory() {
-        return directory;
+        return this.directory;
     }
 
     void setDirectory(final String directory) {
@@ -413,7 +414,7 @@ public class Arguments {
     }
 
     public String getEndpoint() {
-        return endpoint;
+        return this.endpoint;
     }
 
     void setEndpoint(final String endpoint) {
@@ -421,7 +422,7 @@ public class Arguments {
     }
 
     public String getAccessKey() {
-        return accessKey;
+        return this.accessKey;
     }
 
     void setAccessKey(final String accessKey) {
@@ -429,7 +430,7 @@ public class Arguments {
     }
 
     public String getSecretKey() {
-        return secretKey;
+        return this.secretKey;
     }
 
     void setSecretKey(final String secretKey) {
@@ -437,7 +438,7 @@ public class Arguments {
     }
 
     public CommandValue getCommand() {
-        return command;
+        return this.command;
     }
 
     void setCommand(final CommandValue command) {
@@ -449,7 +450,7 @@ public class Arguments {
     }
 
     public String getObjectName() {
-        return objectName;
+        return this.objectName;
     }
 
     void setProxy(final String proxy) {
@@ -477,7 +478,7 @@ public class Arguments {
     }
 
     public String getPrefix() {
-        return prefix;
+        return this.prefix;
     }
 
     void setPrefix(final String prefix) {
@@ -485,7 +486,7 @@ public class Arguments {
     }
 
     public boolean isChecksum() {
-        return checksum;
+        return this.checksum;
     }
 
     void setChecksum(final boolean checksum) {
@@ -493,7 +494,7 @@ public class Arguments {
     }
 
     public Priority getPriority() {
-        return priority;
+        return this.priority;
     }
 
     void setPriority(final Priority priority) {
@@ -501,7 +502,7 @@ public class Arguments {
     }
 
     public WriteOptimization getWriteOptimization() {
-        return writeOptimization;
+        return this.writeOptimization;
     }
 
     void setWriteOptimization(final WriteOptimization writeOptimization) {
@@ -509,7 +510,7 @@ public class Arguments {
     }
 
     public boolean isCertificateVerification() {
-        return certificateVerification;
+        return this.certificateVerification;
     }
 
     void setCertificateVerification(final boolean certificateVerification) {
@@ -517,7 +518,7 @@ public class Arguments {
     }
 
     public boolean isHttps() {
-        return https;
+        return this.https;
     }
 
     void setHttps(final boolean https) {
@@ -533,7 +534,7 @@ public class Arguments {
     }
 
     public String getId() {
-        return id;
+        return this.id;
     }
 
     void setId(final String id) {
@@ -553,7 +554,7 @@ public class Arguments {
     }
 
     public boolean isSync() {
-        return sync;
+        return this.sync;
     }
 
     void setNumberOfFiles(final String numberOfFiles) {
@@ -589,10 +590,11 @@ public class Arguments {
     }
 
     public boolean isIgnoreErrors() {
-        return ignoreErrors;
+        return this.ignoreErrors;
     }
 
     void setIgnoreErrors(final boolean ignoreErrors) {
         this.ignoreErrors = ignoreErrors;
     }
+
 }

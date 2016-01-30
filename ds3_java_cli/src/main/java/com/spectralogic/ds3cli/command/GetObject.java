@@ -19,11 +19,7 @@ import com.google.common.collect.Lists;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.GetObjectResult;
-import com.spectralogic.ds3cli.util.BlackPearlUtils;
-import com.spectralogic.ds3cli.util.Ds3Provider;
-import com.spectralogic.ds3cli.util.FileUtils;
-import com.spectralogic.ds3cli.util.SyncUtils;
-import com.spectralogic.ds3cli.util.Utils;
+import com.spectralogic.ds3cli.util.*;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.helpers.FileObjectGetter;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
@@ -56,19 +52,19 @@ public class GetObject extends CliCommand<GetObjectResult> {
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
-        bucketName = args.getBucket();
-        if (bucketName == null) {
+        this.bucketName = args.getBucket();
+        if (this.bucketName == null) {
             throw new MissingOptionException("The get object command requires '-b' to be set.");
         }
 
-        objectName = args.getObjectName();
-        if (objectName == null) {
+        this.objectName = args.getObjectName();
+        if (this.objectName == null) {
             throw new MissingOptionException("The get object command requires '-o' to be set.");
         }
 
-        prefix = args.getDirectory();
-        if (prefix == null) {
-            prefix = ".";
+        this.prefix = args.getDirectory();
+        if (this.prefix == null) {
+            this.prefix = ".";
         }
 
         if (args.isSync()) {
@@ -85,25 +81,25 @@ public class GetObject extends CliCommand<GetObjectResult> {
     @Override
     public GetObjectResult call() throws Exception {
         try {
-            if (!force) {
+            if (!this.force) {
                 BlackPearlUtils.checkBlackPearlForTapeFailure(getClient());
             }
 
             final Ds3ClientHelpers helpers = getClientHelpers();
-            final Path filePath = Paths.get(prefix, objectName);
+            final Path filePath = Paths.get(this.prefix, this.objectName);
             LOG.info("Output path: " + filePath.toString());
 
-            final Ds3Object ds3Obj = new Ds3Object(objectName.replace("\\", "/"));
-            if (sync && Utils.fileExists(filePath)) {
-                if (SyncUtils.needToSync(helpers, bucketName, filePath, ds3Obj.getName(), false)) {
-                    Transfer(helpers, ds3Obj);
+            final Ds3Object ds3Obj = new Ds3Object(this.objectName.replace("\\", "/"));
+            if (this.sync && Utils.fileExists(filePath)) {
+                if (SyncUtils.needToSync(helpers, this.bucketName, filePath, ds3Obj.getName(), false)) {
+                    this.Transfer(helpers, ds3Obj);
                     return new GetObjectResult("SUCCESS: Finished syncing object.");
                 } else {
-                    return new GetObjectResult("SUCCESS: No need to sync " + objectName);
+                    return new GetObjectResult("SUCCESS: No need to sync " + this.objectName);
                 }
             }
 
-            Transfer(helpers, ds3Obj);
+            this.Transfer(helpers, ds3Obj);
             return new GetObjectResult("SUCCESS: Finished downloading object.  The object was written to: " + filePath);
         } catch (final FailedRequestException e) {
             switch (e.getStatusCode()) {
@@ -119,8 +115,8 @@ public class GetObject extends CliCommand<GetObjectResult> {
 
     private void Transfer(final Ds3ClientHelpers helpers, final Ds3Object ds3Obj) throws IOException, SignatureException, XmlProcessingException {
         final List<Ds3Object> ds3ObjectList = Lists.newArrayList(ds3Obj);
-        final Ds3ClientHelpers.Job job = helpers.startReadJob(bucketName, ds3ObjectList);
+        final Ds3ClientHelpers.Job job = helpers.startReadJob(this.bucketName, ds3ObjectList);
         job.withMaxParallelRequests(this.numberOfThreads);
-        job.transfer(new FileObjectGetter(Paths.get(prefix)));
+        job.transfer(new FileObjectGetter(Paths.get(this.prefix)));
     }
 }
