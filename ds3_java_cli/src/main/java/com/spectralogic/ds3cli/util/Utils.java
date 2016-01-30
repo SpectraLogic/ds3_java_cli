@@ -154,7 +154,7 @@ public final class Utils {
         if (availableBytes > 0) {
             // Wrap the System.in inside BufferedReader
             // But do not close it in a finally block, as we
-            // did no open System.in; enforcing the rule that
+            // did not open System.in; enforcing the rule that
             // he who opens it, closes it; leave the closing to the OS.
             final BufferedReader in = new BufferedReader(new InputStreamReader(inputStream));
             LOG.info("Piped files are:");

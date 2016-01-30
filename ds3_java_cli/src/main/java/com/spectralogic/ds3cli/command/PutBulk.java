@@ -81,7 +81,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         this.pipe = Utils.isPipe();
         if (this.pipe) {
             if (this.isOtherArgs(args)) {
-                throw new BadArgumentException("No other argument is supported when using piped input");
+                throw new BadArgumentException("-d, -o and -p arguments are not supported when using piped input");
             }
 
             this.pipedFiles = Utils.getPipedFilesFromStdin(getFileUtils());
@@ -246,7 +246,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         final private String prefix;
 
         public PrefixedFileObjectPutter(final Path inputDirectory, final String prefix) {
-            objectPutter = new LoggingFileObjectPutter(inputDirectory);
+            this.objectPutter = new LoggingFileObjectPutter(inputDirectory);
             this.prefix = prefix;
         }
 
@@ -255,18 +255,18 @@ public class PutBulk extends CliCommand<PutBulkResult> {
 
             final String objectName;
 
-            if (prefix == null) {
+            if (this.prefix == null) {
                 objectName = s;
             } else {
-                if (!s.startsWith(prefix)) {
-                    LOG.info("The object (" + s + ") does not begin with prefix " + prefix + ".  Ignoring adding the prefix.");
+                if (!s.startsWith(this.prefix)) {
+                    LOG.info("The object (" + s + ") does not begin with prefix " + this.prefix + ".  Ignoring adding the prefix.");
                     objectName = s;
                 } else {
-                    objectName = s.substring(prefix.length());
+                    objectName = s.substring(this.prefix.length());
                 }
             }
 
-            return objectPutter.buildChannel(objectName);
+            return this.objectPutter.buildChannel(objectName);
         }
     }
 
@@ -274,13 +274,13 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         final private FileObjectPutter objectPutter;
 
         public LoggingFileObjectPutter(final Path inputDirectory) {
-            objectPutter = new FileObjectPutter(inputDirectory);
+            this.objectPutter = new FileObjectPutter(inputDirectory);
         }
 
         @Override
         public SeekableByteChannel buildChannel(final String s) throws IOException {
             LOG.info("Putting " + s + " to ds3 endpoint");
-            return objectPutter.buildChannel(s);
+            return this.objectPutter.buildChannel(s);
         }
     }
 
@@ -295,11 +295,11 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         }
 
         public ImmutableList<Ds3Object> getDs3Objects() {
-            return ds3Objects;
+            return this.ds3Objects;
         }
 
         public ImmutableList<IgnoreFile> getDs3IgnoredObjects() {
-            return ds3IgnoredObjects;
+            return this.ds3IgnoredObjects;
         }
     }
 
@@ -317,11 +317,11 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         }
 
         public String getPath() {
-            return path;
+            return this.path;
         }
 
         public String getErrorMessage() {
-            return errorMessage;
+            return this.errorMessage;
         }
     }
 
@@ -336,7 +336,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
 
         @Override
         public SeekableByteChannel buildChannel(final String s) throws IOException {
-            return FileChannel.open(Paths.get(mapNormalizedObjectNameToObjectName.get(s)), StandardOpenOption.READ);
+            return FileChannel.open(Paths.get(this.mapNormalizedObjectNameToObjectName.get(s)), StandardOpenOption.READ);
         }
     }
 

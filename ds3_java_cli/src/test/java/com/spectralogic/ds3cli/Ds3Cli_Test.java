@@ -641,7 +641,6 @@ public class Ds3Cli_Test {
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, helpers), args, mockedFileUtils);
         cli.call(); //should throw SyncNotSupportedException
-        fail();
     }
 
     @Test
@@ -1002,7 +1001,6 @@ public class Ds3Cli_Test {
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, helpers), args, mockedFileUtils);
         cli.call(); //should throw SyncNotSupportedException
-        fail();
     }
 
     @Test
