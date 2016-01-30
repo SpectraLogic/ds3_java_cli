@@ -1361,7 +1361,7 @@ public class Ds3Cli_Test {
         try {
             cli.call();
         } catch (final BadArgumentException ex) {
-            assertEquals("No other argument is supported when using piped input", ex.getMessage());
+            assertEquals("-d, -o and -p arguments are not supported when using piped input", ex.getMessage());
         } catch (final Exception ex) {
             fail(); //This is the wrong exception
         }
@@ -1371,7 +1371,7 @@ public class Ds3Cli_Test {
         try {
             cli2.call();
         } catch (final BadArgumentException ex) {
-            assertEquals("No other argument is supported when using piped input", ex.getMessage());
+            assertEquals("-d, -o and -p arguments are not supported when using piped input", ex.getMessage());
         } catch (final Exception ex) {
             fail(); //This is the wrong exception
         }
@@ -1381,7 +1381,7 @@ public class Ds3Cli_Test {
         try {
             cli3.call();
         } catch (final BadArgumentException ex) {
-            assertEquals("No other argument is supported when using piped input", ex.getMessage());
+            assertEquals("-d, -o and -p arguments are not supported when using piped input", ex.getMessage());
         } catch (final Exception ex) {
             fail(); //This is the wrong exception
         }
