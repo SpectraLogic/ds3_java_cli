@@ -305,7 +305,7 @@ public class FeatureIntegration_Test {
 
     @Test
     public void putObjectWithSync() throws Exception {
-        assumeThat(Util.getBlackPearlVersion(client), greaterThan(3.0));
+        assumeThat(Util.getBlackPearlVersion(client), greaterThan(1.2));
 
         final String bucketName = "test_put_object";
         try {
@@ -326,7 +326,7 @@ public class FeatureIntegration_Test {
 
     @Test
     public void putBulkObjectWithSync() throws Exception {
-        assumeThat(Util.getBlackPearlVersion(client), greaterThan(3.0));
+        assumeThat(Util.getBlackPearlVersion(client), greaterThan(1.2));
 
         final String bucketName = "test_put_bulk_object";
         try {
@@ -371,7 +371,7 @@ public class FeatureIntegration_Test {
 
     @Test
     public void putBulkObjectWithPipeAndSync() throws Exception {
-        assumeThat(Util.getBlackPearlVersion(client), greaterThan(3.0));
+        assumeThat(Util.getBlackPearlVersion(client), greaterThan(1.2));
 
         final String bucketName = "test_put_bulk_pipe_object";
         try {
