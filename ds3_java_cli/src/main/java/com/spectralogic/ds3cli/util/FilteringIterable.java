@@ -45,6 +45,11 @@ public class FilteringIterable<E> implements Iterable<E> {
         }
 
         @Override
+        public void remove() {
+            throw new IllegalStateException("remove is not supported on this iterator");
+        }
+
+        @Override
         public boolean hasNext() {
             return nextItem != null;
         }
