@@ -40,6 +40,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.nio.channels.SeekableByteChannel;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
@@ -66,6 +67,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
     private boolean pipe;
     private ImmutableList<Path> pipedFiles;
     private ImmutableMap<String, String> mapNormalizedObjectNameToObjectName = null;
+    private boolean followSymlinks;
 
     public PutBulk(final Ds3Provider provider, final FileUtils fileUtils) {
         super(provider, fileUtils);
@@ -124,6 +126,8 @@ public class PutBulk extends CliCommand<PutBulkResult> {
             this.ignoreErrors = true;
         }
 
+        this.followSymlinks = args.isFollowSymlinks();
+
         return this;
     }
 
@@ -139,7 +143,14 @@ public class PutBulk extends CliCommand<PutBulkResult> {
 
         Iterable<Path> filesToPut = this.getFilesToPut();
         if (this.sync) {
-            filesToPut = this.filterObjects(filesToPut, this.prefix != null ? this.prefix : "");
+            filesToPut = new FilteringIterable<>(filesToPut,
+                    new SyncFilter(this.prefix != null ? this.prefix : "",
+                        this.inputDirectory,
+                        this.getClientHelpers(),
+                        this.bucketName
+                    )
+            );
+
             if (Iterables.isEmpty(filesToPut)) {
                 return new PutBulkResult("SUCCESS: All files are up to date");
             }
@@ -149,10 +160,10 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         final Iterable<Ds3Object> ds3Objects = objectsToPut.getDs3Objects();
         this.appendPrefix(ds3Objects);
 
-        return this.Transfer(helpers, ds3Objects, objectsToPut.getDs3IgnoredObjects());
+        return this.transfer(helpers, ds3Objects, objectsToPut.getDs3IgnoredObjects());
     }
 
-    private PutBulkResult Transfer(final Ds3ClientHelpers helpers, final Iterable<Ds3Object> ds3Objects, final ImmutableList<IgnoreFile> ds3IgnoredObjects) throws SignatureException, IOException, XmlProcessingException {
+    private PutBulkResult transfer(final Ds3ClientHelpers helpers, final Iterable<Ds3Object> ds3Objects, final ImmutableList<IgnoreFile> ds3IgnoredObjects) throws SignatureException, IOException, XmlProcessingException {
         final Ds3ClientHelpers.Job job = helpers.startWriteJob(this.bucketName, ds3Objects,
                 WriteJobOptions.create()
                         .withPriority(this.priority)
@@ -199,28 +210,47 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         return map.build();
     }
 
-    private Iterable<Path> filterObjects(final Iterable<Path> filesToPut, final String prefix) throws IOException, SignatureException {
-        final Iterable<Contents> contents = getClientHelpers().listObjects(this.bucketName, prefix);
-        final Map<String, Contents> mapBucketFiles = new HashMap<>();
-        for (final Contents content : contents) {
-            mapBucketFiles.put(content.getKey(), content);
+    private static class SyncFilter implements FilteringIterable.FilterFunction<Path> {
+
+        private final String prefix;
+        private final Path inputDirectory;
+        private ImmutableMap<String, Contents> mapBucketFiles;
+
+        public SyncFilter(final String prefix, final Path inputDirectory, final Ds3ClientHelpers helpers, final String bucketName) throws IOException, SignatureException {
+            this.prefix = prefix;
+            this.inputDirectory = inputDirectory;
+            this.mapBucketFiles = generateBucketFileMap(prefix, helpers, bucketName);
         }
 
-        final List<Path> filteredObjects = new ArrayList<>();
-        for (final Path fileToPut : filesToPut) {
-            final String fileName = Utils.getFileName(this.inputDirectory, fileToPut);
+        private static ImmutableMap<String, Contents> generateBucketFileMap(final String prefix, final Ds3ClientHelpers helpers, final String bucketName) throws IOException, SignatureException {
+            final Iterable<Contents> contents = helpers.listObjects(bucketName, prefix);
+            final ImmutableMap.Builder<String, Contents> bucketFileMapBuilder = ImmutableMap.builder();
+            for (final Contents content : contents) {
+                bucketFileMapBuilder.put(content.getKey(), content);
+            }
+            return bucketFileMapBuilder.build();
+        }
+
+        @Override
+        public boolean filter(final Path item) {
+            final String fileName = Utils.getFileName(this.inputDirectory, item);
             final Contents content = mapBucketFiles.get(prefix + fileName);
-            if (content == null) {
-                filteredObjects.add(fileToPut);
-            } else if (SyncUtils.isNewFile(fileToPut, content, true)) {
-                LOG.info("Syncing new version of " + fileName);
-                filteredObjects.add(fileToPut);
-            } else {
-                LOG.info("No need to sync " + fileName);
+            try {
+                if (content == null) {
+                    return false;
+                } else if (SyncUtils.isNewFile(item, content, true)) {
+                    LOG.info("Syncing new version of " + fileName);
+                    return false;
+                } else {
+                    LOG.info("No need to sync " + fileName);
+                    return true;
+                }
+            } catch (final IOException e) {
+                LOG.error("Failed to check the status of a file", e);
+                // return false to let other code catch the exception when trying to access it
+                return false;
             }
         }
-
-        return filteredObjects;
     }
 
     private Iterable<Path> getFilesToPut() throws IOException {
@@ -231,7 +261,16 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         else {
             filesToPut = Utils.listObjectsForDirectory(this.inputDirectory);
         }
-        return filesToPut;
+        return new FilteringIterable<>(filesToPut, new FilteringIterable.FilterFunction<Path>() {
+            @Override
+            public boolean filter(final Path item) {
+                final boolean filter = !(followSymlinks || !Files.isSymbolicLink(item));
+                if (filter) {
+                    LOG.info("Skipping: " + item.toString());
+                }
+                return filter;
+            }
+        });
     }
 
     public boolean isOtherArgs(final Arguments args) {
@@ -303,7 +342,6 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         }
     }
 
-
     public static class IgnoreFile {
         @JsonProperty("path")
         private final String path;
@@ -332,7 +370,6 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         public PipeFileObjectPutter(final ImmutableMap<String, String> mapNormalizedObjectNameToObjectName) {
             this.mapNormalizedObjectNameToObjectName = mapNormalizedObjectNameToObjectName;
         }
-
 
         @Override
         public SeekableByteChannel buildChannel(final String s) throws IOException {

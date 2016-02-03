@@ -32,7 +32,6 @@ import java.util.Properties;
 public class Arguments {
 
     private final static Logger LOG = LoggerFactory.getLogger(Arguments.class);
-
     private final static String PROPERTY_FILE = "ds3_cli.properties";
 
     private final Options options;
@@ -66,6 +65,7 @@ public class Arguments {
     private String bufferSize;
     private String numberOfThreads;
     private boolean ignoreErrors = false;
+    private boolean followSymlinks = true;
 
     public Arguments(final String[] args) throws BadArgumentException, ParseException {
         this.loadProperties();
@@ -134,6 +134,8 @@ public class Arguments {
         numberOfThreads.setArgName("numberOfThreads");
         final Option ignoreErrors = new Option(null, false, "Ignore files that cause errors");
         ignoreErrors.setLongOpt("ignore-errors");
+        final Option noFollowSymlinks = new Option(null, false, "Set to not follow symlinks");
+        noFollowSymlinks.setLongOpt("no-follow-symlinks");
 
         this.options.addOption(ds3Endpoint);
         this.options.addOption(bucket);
@@ -165,6 +167,7 @@ public class Arguments {
         this.options.addOption(bufferSize);
         this.options.addOption(numberOfThreads);
         this.options.addOption(ignoreErrors);
+        this.options.addOption(noFollowSymlinks);
 
         this.processCommandLine();
     }
@@ -328,6 +331,10 @@ public class Arguments {
 
         if (cmd.hasOption("ignore-errors")) {
             this.setIgnoreErrors(true);
+        }
+
+        if (cmd.hasOption("no-follow-symlinks")) {
+            this.setFollowSymlinks(false);
         }
 
     }
@@ -597,4 +604,11 @@ public class Arguments {
         this.ignoreErrors = ignoreErrors;
     }
 
+    public boolean isFollowSymlinks() {
+        return followSymlinks;
+    }
+
+    void setFollowSymlinks(final boolean followSymlinks) {
+        this.followSymlinks = followSymlinks;
+    }
 }

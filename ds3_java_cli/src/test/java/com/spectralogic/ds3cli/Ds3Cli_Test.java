@@ -909,7 +909,7 @@ public class Ds3Cli_Test {
         when(helpers.startWriteJob(eq("bucketName"), eq(retObj), any(WriteJobOptions.class))).thenReturn(mockedGetJob);
 
         PowerMockito.mockStatic(Utils.class);
-        when(Utils.getObjectsToPut(eq(retPath), any(Path.class), any(Boolean.class))).thenCallRealMethod();
+        when(Utils.getObjectsToPut((Iterable<Path>)isNotNull(), any(Path.class), any(Boolean.class))).thenCallRealMethod();
         when(Utils.listObjectsForDirectory(any(Path.class))).thenReturn(retPath);
         when(Utils.getFileName(any(Path.class), eq(p1))).thenReturn("obj1.txt");
         when(Utils.getFileSize(eq(p1))).thenReturn(1245L);
@@ -953,7 +953,7 @@ public class Ds3Cli_Test {
         final ImmutableList<Path> retPath = ImmutableList.copyOf(Lists.newArrayList(p1, p2));
 
         PowerMockito.mockStatic(Utils.class);
-        when(Utils.getObjectsToPut(eq(retPath), any(Path.class), any(Boolean.class))).thenCallRealMethod();
+        when(Utils.getObjectsToPut((Iterable<Path>)isNotNull(), any(Path.class), any(Boolean.class))).thenCallRealMethod();
         when(Utils.listObjectsForDirectory(any(Path.class))).thenReturn(retPath);
         when(Utils.getFileName(any(Path.class), eq(p1))).thenReturn("obj1.txt");
         when(Utils.getFileName(any(Path.class), eq(p2))).thenReturn("obj2.txt");
@@ -1018,7 +1018,7 @@ public class Ds3Cli_Test {
         final ImmutableList<Path> retPath = ImmutableList.copyOf(Lists.newArrayList(p1, p2));
 
         PowerMockito.mockStatic(Utils.class);
-        when(Utils.getObjectsToPut(eq(retPath), any(Path.class), any(Boolean.class))).thenCallRealMethod();
+        when(Utils.getObjectsToPut((Iterable<Path>)isNotNull(), any(Path.class), any(Boolean.class))).thenCallRealMethod();
         when(Utils.listObjectsForDirectory(any(Path.class))).thenReturn(retPath);
         when(Utils.getFileName(any(Path.class), eq(p1))).thenReturn("obj1.txt");
         when(Utils.getFileSize(eq(p1))).thenReturn(1245L);
@@ -1171,7 +1171,7 @@ public class Ds3Cli_Test {
         when(helpers.startWriteJob(eq("bucketName"), eq(retObj), any(WriteJobOptions.class))).thenReturn(mockedGetJob);
 
         PowerMockito.mockStatic(Utils.class);
-        when(Utils.getObjectsToPut(eq(retPath), any(Path.class), any(Boolean.class))).thenCallRealMethod();
+        when(Utils.getObjectsToPut((Iterable<Path>)isNotNull(), any(Path.class), any(Boolean.class))).thenCallRealMethod();
         when(Utils.listObjectsForDirectory(any(Path.class))).thenReturn(retPath);
         when(Utils.getFileName(any(Path.class), eq(p1))).thenReturn("obj1.txt");
         when(Utils.getFileSize(eq(p1))).thenReturn(1245L);
@@ -1216,7 +1216,7 @@ public class Ds3Cli_Test {
         when(helpers.startWriteJob(eq("bucketName"), eq(retObj), any(WriteJobOptions.class))).thenReturn(mockedGetJob);
 
         PowerMockito.mockStatic(Utils.class);
-        when(Utils.getObjectsToPut(eq(retPath), any(Path.class), any(Boolean.class))).thenCallRealMethod();
+        when(Utils.getObjectsToPut((Iterable<Path>)isNotNull(), any(Path.class), any(Boolean.class))).thenCallRealMethod();
         when(Utils.listObjectsForDirectory(any(Path.class))).thenReturn(retPath);
         when(Utils.getFileName(any(Path.class), eq(p1))).thenReturn("obj1.txt");
         when(Utils.getFileSize(eq(p1))).thenReturn(1245L);
@@ -1274,7 +1274,7 @@ public class Ds3Cli_Test {
         });
         when(Utils.isPipe()).thenReturn(true);
         when(Utils.getPipedFilesFromStdin(any(FileUtils.class))).thenReturn(retPath);
-        when(Utils.getObjectsToPut(eq(retPath), any(Path.class), any(Boolean.class))).thenCallRealMethod();
+        when(Utils.getObjectsToPut((Iterable<Path>) isNotNull(), any(Path.class), any(Boolean.class))).thenCallRealMethod();
         when(Utils.getFileName(any(Path.class), eq(p1))).thenReturn(p1.toString());
         when(Utils.getFileSize(eq(p1))).thenReturn(1245L);
         when(Utils.getFileName(any(Path.class), eq(p2))).thenReturn(p2.toString());
@@ -1317,7 +1317,7 @@ public class Ds3Cli_Test {
         });
         when(Utils.isPipe()).thenReturn(true);
         when(Utils.getPipedFilesFromStdin(any(FileUtils.class))).thenReturn(retPath);
-        when(Utils.getObjectsToPut(eq(retPath), any(Path.class), any(Boolean.class))).thenCallRealMethod();
+        when(Utils.getObjectsToPut((Iterable<Path>)isNotNull(), any(Path.class), any(Boolean.class))).thenCallRealMethod();
         when(Utils.getFileName(any(Path.class), eq(p1))).thenReturn(p1.toString());
         when(Utils.getFileSize(eq(p1))).thenReturn(1245L);
         when(Utils.getFileName(any(Path.class), eq(p2))).thenReturn(p2.toString());
