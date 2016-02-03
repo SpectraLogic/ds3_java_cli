@@ -134,7 +134,7 @@ public class Arguments {
         numberOfThreads.setArgName("numberOfThreads");
         final Option ignoreErrors = new Option(null, false, "Ignore files that cause errors");
         ignoreErrors.setLongOpt("ignore-errors");
-        final Option noFollowSymlinks = new Option(null, true, "Set to not follow symlinks");
+        final Option noFollowSymlinks = new Option(null, false, "Set to not follow symlinks");
         noFollowSymlinks.setLongOpt("no-follow-symlinks");
 
         this.options.addOption(ds3Endpoint);

@@ -264,7 +264,11 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         return new FilteringIterable<>(filesToPut, new FilteringIterable.FilterFunction<Path>() {
             @Override
             public boolean filter(final Path item) {
-                return !(followSymlinks || !Files.isSymbolicLink(item));
+                final boolean filter = !(followSymlinks || !Files.isSymbolicLink(item));
+                if (filter) {
+                    LOG.info("Skipping: " + item.toString());
+                }
+                return filter;
             }
         });
     }
