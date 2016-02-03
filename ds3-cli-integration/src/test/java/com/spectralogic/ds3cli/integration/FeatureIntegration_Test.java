@@ -34,14 +34,17 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.channels.FileChannel;
 import java.nio.file.*;
 
 import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.number.OrderingComparison.greaterThan;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assume.assumeThat;
 
 public class FeatureIntegration_Test {
 
@@ -289,7 +292,7 @@ public class FeatureIntegration_Test {
             final Arguments args = new Arguments(new String[]{"--http", "-c", "get_bulk", "-b", bucketName,
                     "-d", Util.DOWNLOAD_BASE_NAME, "--sync"});
             CommandResponse response = Util.command(client, args);
-            assertThat(response.getMessage(), is("SUCCESS: Synced all the objects from test_get_object to .\\.\\output"));
+            assertThat(response.getMessage(), is("SUCCESS: Synced all the objects from test_get_object to ." + File.separator + "." + File.separator + "output"));
 
             response = Util.command(client, args);
             assertThat(response.getMessage(), is("SUCCESS: All files are up to date"));
@@ -302,18 +305,14 @@ public class FeatureIntegration_Test {
 
     @Test
     public void putObjectWithSync() throws Exception {
+        assumeThat(Util.getBlackPearlVersion(client), greaterThan(3.0));
+
         final String bucketName = "test_put_object";
         try {
             Util.createBucket(client, bucketName);
             final Arguments args = new Arguments(new String[]{"--http", "-c", "put_object", "-b", bucketName,
                     "-o", Utils.getFileName(Paths.get("."), Paths.get(Util.RESOURCE_BASE_NAME + "beowulf.txt")), "--sync"});
             CommandResponse response = Util.command(client, args);
-
-            final double bpVersion = Util.getBlackPearlVersion(client);
-            if (bpVersion < 3.0) {
-                assertThat(response.getMessage(), is("Failed: The sync command is not supported with your version of BlackPearl."));
-                return;
-            }
 
             assertThat(response.getMessage(), is("Success: Finished syncing file to ds3 appliance."));
 
@@ -327,18 +326,14 @@ public class FeatureIntegration_Test {
 
     @Test
     public void putBulkObjectWithSync() throws Exception {
+        assumeThat(Util.getBlackPearlVersion(client), greaterThan(3.0));
+
         final String bucketName = "test_put_bulk_object";
         try {
 
             Util.createBucket(client, bucketName);
             final Arguments args = new Arguments(new String[]{"--http", "-c", "put_bulk", "-b", bucketName, "-d", Util.RESOURCE_BASE_NAME, "--sync"});
             CommandResponse response = Util.command(client, args);
-
-            final double bpVersion = Util.getBlackPearlVersion(client);
-            if (bpVersion < 3.0) {
-                assertThat(response.getMessage(), is("Failed: The sync command is not supported with your version of BlackPearl."));
-                return;
-            }
 
             assertThat(response.getMessage(), is(String.format("SUCCESS: Wrote all the files in %s to bucket %s", ".\\src\\test\\resources\\books", bucketName)));
 
@@ -352,6 +347,7 @@ public class FeatureIntegration_Test {
 
     @Test
     public void putBulkObjectWithPipe() throws Exception {
+
         final String bucketName = "test_put_bulk_pipe_object";
         try {
 
@@ -375,6 +371,8 @@ public class FeatureIntegration_Test {
 
     @Test
     public void putBulkObjectWithPipeAndSync() throws Exception {
+        assumeThat(Util.getBlackPearlVersion(client), greaterThan(3.0));
+
         final String bucketName = "test_put_bulk_pipe_object";
         try {
 
