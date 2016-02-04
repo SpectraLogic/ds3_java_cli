@@ -15,6 +15,7 @@
 
 package com.spectralogic.ds3cli.command;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.exceptions.BadArgumentException;
@@ -24,6 +25,7 @@ import com.spectralogic.ds3cli.util.*;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.serializer.XmlProcessingException;
+import com.spectralogic.ds3client.utils.Guard;
 import org.apache.commons.cli.MissingOptionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,6 +37,7 @@ import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.security.SignatureException;
+import java.util.Map;
 
 public class PutObject extends CliCommand<PutObjectResult> {
 
@@ -47,6 +50,7 @@ public class PutObject extends CliCommand<PutObjectResult> {
     private boolean sync;
     private boolean force;
     private int numberOfThreads;
+    private ImmutableMap<String, String> metadata;
 
     public PutObject(final Ds3Provider provider, final FileUtils fileUtils) {
         super(provider, fileUtils);
@@ -89,6 +93,8 @@ public class PutObject extends CliCommand<PutObjectResult> {
 
         this.numberOfThreads = Integer.valueOf(args.getNumberOfThreads());
 
+        this.metadata = args.getMetadata();
+
         return this;
     }
 
@@ -115,19 +121,29 @@ public class PutObject extends CliCommand<PutObjectResult> {
             }
 
             if (SyncUtils.needToSync(helpers, this.bucketName, this.objectPath, ds3Obj.getName(), true)) {
-                this.Transfer(helpers, ds3Obj);
+                this.transfer(helpers, ds3Obj);
                 return new PutObjectResult("Success: Finished syncing file to ds3 appliance.");
             } else {
                 return new PutObjectResult("Success: No need to sync " + this.objectName);
             }
         }
 
-        this.Transfer(helpers, ds3Obj);
+        this.transfer(helpers, ds3Obj);
         return new PutObjectResult("Success: Finished writing file to ds3 appliance.");
     }
 
-    private void Transfer(final Ds3ClientHelpers helpers, final Ds3Object ds3Obj) throws SignatureException, IOException, XmlProcessingException {
+    private void transfer(final Ds3ClientHelpers helpers, final Ds3Object ds3Obj) throws SignatureException, IOException, XmlProcessingException {
         final Ds3ClientHelpers.Job putJob = helpers.startWriteJob(this.bucketName, Lists.newArrayList(ds3Obj));
+
+        if (!Guard.isMapNullOrEmpty(metadata)) {
+            putJob.withMetadata(new Ds3ClientHelpers.MetadataAccess() {
+                @Override
+                public Map<String, String> getMetadataValue(final String s) {
+                    return metadata;
+                }
+            });
+        }
+
         putJob.withMaxParallelRequests(this.numberOfThreads);
         putJob.transfer(new Ds3ClientHelpers.ObjectChannelBuilder() {
             @Override

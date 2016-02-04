@@ -13,25 +13,21 @@
  * ****************************************************************************
  */
 
-package com.spectralogic.ds3cli.util;
+package com.spectralogic.ds3cli.integration.models;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
-import com.fasterxml.jackson.datatype.guava.GuavaModule;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class JsonMapper {
-    private final static ObjectWriter writer;
-    private JsonMapper() {
+public class Meta {
+    @JsonProperty("Date")
+    private final String date;
+
+    @JsonCreator
+    public Meta(@JsonProperty("Date") final String date) {
+        this.date = date;
     }
 
-    static {
-        final ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new GuavaModule());
-        writer = mapper.writerWithDefaultPrettyPrinter();
-    }
-
-    public static String toJson(final Object obj) throws JsonProcessingException {
-        return SterilizeString.toUnix(writer.writeValueAsString(obj));
+    public String getDate() {
+        return date;
     }
 }

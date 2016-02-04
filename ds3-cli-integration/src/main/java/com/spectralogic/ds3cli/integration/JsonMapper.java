@@ -13,25 +13,24 @@
  * ****************************************************************************
  */
 
-package com.spectralogic.ds3cli.util;
+package com.spectralogic.ds3cli.integration;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
 
-public class JsonMapper {
-    private final static ObjectWriter writer;
-    private JsonMapper() {
-    }
+import java.io.IOException;
+
+public final class JsonMapper {
+
+    private static final ObjectMapper mapper;
 
     static {
-        final ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new GuavaModule());
-        writer = mapper.writerWithDefaultPrettyPrinter();
+        mapper = new ObjectMapper().registerModule(new GuavaModule());
     }
 
-    public static String toJson(final Object obj) throws JsonProcessingException {
-        return SterilizeString.toUnix(writer.writeValueAsString(obj));
+    private JsonMapper() {}
+
+    public static<T> T toModel(final String jsonBody, final Class<T> clazz) throws IOException {
+        return mapper.readValue(jsonBody, clazz);
     }
 }

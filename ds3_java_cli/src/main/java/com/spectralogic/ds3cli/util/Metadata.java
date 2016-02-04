@@ -15,23 +15,20 @@
 
 package com.spectralogic.ds3cli.util;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
-import com.fasterxml.jackson.datatype.guava.GuavaModule;
+import com.google.common.collect.ImmutableMap;
 
-public class JsonMapper {
-    private final static ObjectWriter writer;
-    private JsonMapper() {
-    }
+public final class Metadata {
+    public static ImmutableMap<String, String> parse(final String[] metadataArgs) {
+        final ImmutableMap.Builder<String, String> metadataBuilder = ImmutableMap.builder();
 
-    static {
-        final ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new GuavaModule());
-        writer = mapper.writerWithDefaultPrettyPrinter();
-    }
+        for (final String arg : metadataArgs) {
+            final String[] keyValue = arg.split(":");
+            if (keyValue.length != 2) {
+                throw new IllegalArgumentException("Malformed metadata entry: " + arg);
+            }
+            metadataBuilder.put(keyValue[0], keyValue[1]);
+        }
 
-    public static String toJson(final Object obj) throws JsonProcessingException {
-        return SterilizeString.toUnix(writer.writeValueAsString(obj));
+        return metadataBuilder.build();
     }
 }
