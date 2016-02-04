@@ -16,7 +16,9 @@
 package com.spectralogic.ds3cli;
 
 import ch.qos.logback.classic.Level;
+import com.google.common.collect.ImmutableMap;
 import com.spectralogic.ds3cli.exceptions.BadArgumentException;
+import com.spectralogic.ds3cli.util.Metadata;
 import com.spectralogic.ds3client.models.bulk.Priority;
 import com.spectralogic.ds3client.models.bulk.WriteOptimization;
 import org.apache.commons.cli.*;
@@ -66,6 +68,7 @@ public class Arguments {
     private String numberOfThreads;
     private boolean ignoreErrors = false;
     private boolean followSymlinks = true;
+    private ImmutableMap<String, String> metadata = null;
 
     public Arguments(final String[] args) throws BadArgumentException, ParseException {
         this.loadProperties();
@@ -136,6 +139,11 @@ public class Arguments {
         ignoreErrors.setLongOpt("ignore-errors");
         final Option noFollowSymlinks = new Option(null, false, "Set to not follow symlinks");
         noFollowSymlinks.setLongOpt("no-follow-symlinks");
+        final Option metadata = OptionBuilder.withLongOpt("metadata")
+                .withDescription("Metadata for when putting a single object.  Using the format: key:value,key2:value2")
+                .hasArgs()
+                .withValueSeparator(',')
+                .create();
 
         this.options.addOption(ds3Endpoint);
         this.options.addOption(bucket);
@@ -168,6 +176,7 @@ public class Arguments {
         this.options.addOption(numberOfThreads);
         this.options.addOption(ignoreErrors);
         this.options.addOption(noFollowSymlinks);
+        this.options.addOption(metadata);
 
         this.processCommandLine();
     }
@@ -337,6 +346,9 @@ public class Arguments {
             this.setFollowSymlinks(false);
         }
 
+        if (cmd.hasOption("metadata")) {
+            this.setMetadata(Metadata.parse(cmd.getOptionValues("metadata")));
+        }
     }
 
     private WriteOptimization processWriteOptimization(final CommandLine cmd, final String writeOptimization) throws BadArgumentException {
@@ -610,5 +622,13 @@ public class Arguments {
 
     void setFollowSymlinks(final boolean followSymlinks) {
         this.followSymlinks = followSymlinks;
+    }
+
+    public ImmutableMap<String, String> getMetadata() {
+        return metadata;
+    }
+
+    void setMetadata(final ImmutableMap<String, String> metadata) {
+        this.metadata = metadata;
     }
 }

@@ -18,6 +18,7 @@ package com.spectralogic.ds3cli.util;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.datatype.guava.GuavaModule;
 
 public class JsonMapper {
     private final static ObjectWriter writer;
@@ -26,6 +27,7 @@ public class JsonMapper {
 
     static {
         final ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new GuavaModule());
         writer = mapper.writerWithDefaultPrettyPrinter();
     }
 

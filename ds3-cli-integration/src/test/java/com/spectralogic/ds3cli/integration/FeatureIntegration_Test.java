@@ -15,11 +15,13 @@
 
 package com.spectralogic.ds3cli.integration;
 
+import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Lists;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.CommandResponse;
 import com.spectralogic.ds3cli.integration.helpers.JobResponse;
-import com.spectralogic.ds3cli.integration.helpers.JsonMapper;
+import com.spectralogic.ds3cli.integration.models.HeadObject;
 import com.spectralogic.ds3cli.util.SterilizeString;
 import com.spectralogic.ds3cli.util.Utils;
 import com.spectralogic.ds3client.Ds3Client;
@@ -188,7 +190,7 @@ public class FeatureIntegration_Test {
             final CommandResponse getJobResponse = Util.command(client, args);
 
             final String expectedBeginning = "JobId: " + readJob.getJobId() + " | Status: COMPLETED | Bucket: " + bucketName
-                    + " | Type: GET | Priority: HIGH | User Name: spectra | Creation Date: ";
+                    + " | Type: GET | Priority: HIGH |";
             final String expectedEnding = " | Total Size: " + objSize + " | Total Transferred: " ;//TODO add objSize when testing using BP 1.2 is not relevant anymore
 
             assertTrue(getJobResponse.getMessage().startsWith(expectedBeginning));
@@ -243,7 +245,6 @@ public class FeatureIntegration_Test {
             assertThat(cliJobResponse.getData().getJobDetails().getChunkClientProcessingOrderGuarantee(), is("NONE"));
             assertThat(cliJobResponse.getData().getJobDetails().getStatus(), is("COMPLETED"));
             assertThat(cliJobResponse.getData().getJobDetails().getObjects(), is(nullValue()));
-            assertThat(cliJobResponse.getData().getJobDetails().getUserName(), is("spectra"));
             assertThat(cliJobResponse.getData().getJobDetails().getPriority(), is("HIGH"));
             assertThat(cliJobResponse.getData().getJobDetails().getRequestType(), is("GET"));
             //TODO add those tests when testing using BP 1.2 is not relevant anymore
@@ -335,7 +336,7 @@ public class FeatureIntegration_Test {
             final Arguments args = new Arguments(new String[]{"--http", "-c", "put_bulk", "-b", bucketName, "-d", Util.RESOURCE_BASE_NAME, "--sync"});
             CommandResponse response = Util.command(client, args);
 
-            assertThat(response.getMessage(), is(String.format("SUCCESS: Wrote all the files in %s to bucket %s", ".\\src\\test\\resources\\books", bucketName)));
+            assertThat(response.getMessage(), is(String.format("SUCCESS: Wrote all the files in %s to bucket %s", "." + File.separator + "src" + File.separator + "test" + File.separator + "resources" + File.separator + "books", bucketName)));
 
             response = Util.command(client, args);
             assertThat(response.getMessage(), is("SUCCESS: All files are up to date"));
@@ -393,6 +394,41 @@ public class FeatureIntegration_Test {
             testFile.reset();
             final CommandResponse response2 = Util.command(client, args);
             assertThat(response2.getMessage(), is("SUCCESS: All files are up to date"));
+        } finally {
+            Util.deleteBucket(client, bucketName);
+        }
+    }
+
+    @Test
+    public void metadataPut() throws Exception {
+        final String bucketName = "test_put_with_metadata";
+
+        try {
+            Util.createBucket(client, bucketName);
+            final Arguments args = new Arguments(new String[]{"--http", "-c", "put_object", "-b", bucketName, "-o", Utils.getFileName(Paths.get("."), Paths.get(Util.RESOURCE_BASE_NAME + "beowulf.txt")), "--metadata", "key:value"});
+
+            final CommandResponse response = Util.command(client, args);
+
+            assertThat(response.getReturnCode(), is(0));
+
+            final Arguments headObjectArgs = new Arguments(new String[]{"--http", "-c", "head_object", "-b", bucketName, "-o", "src/test/resources/books/beowulf.txt", "--output-format", "json"});
+            final CommandResponse headResponse = Util.command(client, headObjectArgs);
+            assertThat(headResponse.getReturnCode(), is(0));
+
+            final HeadObject headObject = JsonMapper.toModel(headResponse.getMessage(), HeadObject.class);
+
+            assertThat(headObject, is(notNullValue()));
+
+            final ImmutableMultimap<String, String> metadata = headObject.getData().getMetadata();
+
+            assertThat(metadata, is(notNullValue()));
+            assertThat(metadata.size(), is(1));
+
+            final ImmutableCollection<String> collection = metadata.get("key");
+
+            assertThat(collection.size(), is(1));
+            assertThat(collection.asList().get(0), is("value"));
+
         } finally {
             Util.deleteBucket(client, bucketName);
         }
