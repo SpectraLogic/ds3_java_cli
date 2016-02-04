@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Lists;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.CommandResponse;
-import com.spectralogic.ds3cli.integration.helpers.JobResponse;
+import com.spectralogic.ds3cli.integration.models.JobResponse;
 import com.spectralogic.ds3cli.integration.models.HeadObject;
 import com.spectralogic.ds3cli.util.SterilizeString;
 import com.spectralogic.ds3cli.util.Utils;
@@ -428,6 +428,44 @@ public class FeatureIntegration_Test {
 
             assertThat(collection.size(), is(1));
             assertThat(collection.asList().get(0), is("value"));
+
+        } finally {
+            Util.deleteBucket(client, bucketName);
+        }
+    }
+
+    @Test
+    public void multiMetadataPut() throws Exception {
+        final String bucketName = "test_put_with_metadata";
+
+        try {
+            Util.createBucket(client, bucketName);
+            final Arguments args = new Arguments(new String[]{"--http", "-c", "put_object", "-b", bucketName, "-o", Utils.getFileName(Paths.get("."), Paths.get(Util.RESOURCE_BASE_NAME + "beowulf.txt")), "--metadata", "key:value,key2:value2"});
+
+            final CommandResponse response = Util.command(client, args);
+
+            assertThat(response.getReturnCode(), is(0));
+
+            final Arguments headObjectArgs = new Arguments(new String[]{"--http", "-c", "head_object", "-b", bucketName, "-o", "src/test/resources/books/beowulf.txt", "--output-format", "json"});
+            final CommandResponse headResponse = Util.command(client, headObjectArgs);
+            assertThat(headResponse.getReturnCode(), is(0));
+
+            final HeadObject headObject = JsonMapper.toModel(headResponse.getMessage(), HeadObject.class);
+
+            assertThat(headObject, is(notNullValue()));
+
+            final ImmutableMultimap<String, String> metadata = headObject.getData().getMetadata();
+
+            assertThat(metadata, is(notNullValue()));
+            assertThat(metadata.size(), is(2));
+
+            ImmutableCollection<String> collection = metadata.get("key");
+            assertThat(collection.size(), is(1));
+            assertThat(collection.asList().get(0), is("value"));
+
+            collection = metadata.get("key2");
+            assertThat(collection.size(), is(1));
+            assertThat(collection.asList().get(0), is("value2"));
 
         } finally {
             Util.deleteBucket(client, bucketName);
