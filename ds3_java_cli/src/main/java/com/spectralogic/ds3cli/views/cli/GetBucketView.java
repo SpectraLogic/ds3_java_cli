@@ -48,8 +48,8 @@ public class GetBucketView implements View<GetBucketResult> {
             arrayEntry[0] = nullGuard(content.getKey());
             arrayEntry[1] = nullGuard(Long.toString(content.getSize()));
             arrayEntry[2] = nullGuard(content.getOwner().getDisplayName());
-            arrayEntry[3] = nullGuard(content.getLastModified());
-            arrayEntry[4] = nullGuard(content.geteTag());
+            arrayEntry[3] = nullGuard(content.getLastModified().toString());
+            arrayEntry[4] = nullGuard(content.getETag());
             contents.add(arrayEntry);
         }
 

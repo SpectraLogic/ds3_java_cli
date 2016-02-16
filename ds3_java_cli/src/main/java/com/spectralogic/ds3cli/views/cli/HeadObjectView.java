@@ -19,7 +19,7 @@ public class HeadObjectView implements View<HeadObjectResult> {
 
         switch(obj.getStatus()) {
             case DOESNTEXIST: return "The object does not exist";
-            case NOTAUTHORIZED: return "Authentication failed";
+            case UNKNOWN: return "Authentication failed";
             default: {
                 if (obj.getMetadata().keys().size() == 0) {
                     return "The object exists and does not have any metadata";

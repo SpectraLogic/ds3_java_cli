@@ -20,8 +20,8 @@ import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.GetTapesResult;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
-import com.spectralogic.ds3client.commands.GetTapesRequest;
-import com.spectralogic.ds3client.commands.GetTapesResponse;
+import com.spectralogic.ds3client.commands.spectrads3.GetTapesSpectraS3Request;
+import com.spectralogic.ds3client.commands.spectrads3.GetTapesSpectraS3Response;
 import com.spectralogic.ds3client.networking.FailedRequestException;
 
 public class GetTapes extends CliCommand<GetTapesResult> {
@@ -36,9 +36,9 @@ public class GetTapes extends CliCommand<GetTapesResult> {
 
     @Override
     public GetTapesResult call() throws Exception {try {
-            final GetTapesResponse response = getClient().getTapes(new GetTapesRequest());
+            final GetTapesSpectraS3Response response = getClient().getTapesSpectraS3(new GetTapesSpectraS3Request());
 
-            return new GetTapesResult(response.getTapes());
+            return new GetTapesResult(response.getTapeListResult());
         } catch (final FailedRequestException e) {
             throw new CommandException("Failed Get Tapes", e);
         }

@@ -20,8 +20,8 @@ import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.GetServiceResult;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
-import com.spectralogic.ds3client.commands.GetServiceRequest;
-import com.spectralogic.ds3client.commands.GetServiceResponse;
+import com.spectralogic.ds3client.commands.GetBucketsRequest;
+import com.spectralogic.ds3client.commands.GetBucketsResponse;
 import com.spectralogic.ds3client.networking.FailedRequestException;
 import com.spectralogic.ds3client.utils.SSLSetupException;
 
@@ -42,9 +42,9 @@ public class GetService extends CliCommand<GetServiceResult> {
     @Override
     public GetServiceResult call() throws IOException, SignatureException, SSLSetupException, CommandException {
         try {
-            final GetServiceResponse response = getClient().getService(new GetServiceRequest());
+            final GetBucketsResponse response = getClient().getBuckets(new GetBucketsRequest()); // TODO revert to GetServiceRequest once the SDK is updated.
 
-            return new GetServiceResult(response.getResult());
+            return new GetServiceResult(response.getListAllMyBucketsResult());
         } catch (final FailedRequestException e) {
             throw new CommandException("Failed Get Service", e);
         }

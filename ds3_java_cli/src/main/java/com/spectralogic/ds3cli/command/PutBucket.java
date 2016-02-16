@@ -20,7 +20,7 @@ import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.PutBucketResult;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
-import com.spectralogic.ds3client.commands.PutBucketRequest;
+import com.spectralogic.ds3client.commands.CreateBucketRequest;
 import com.spectralogic.ds3client.networking.FailedRequestException;
 
 import org.apache.commons.cli.MissingOptionException;
@@ -48,8 +48,8 @@ public class PutBucket extends CliCommand<PutBucketResult> {
     @Override
     public PutBucketResult call() throws Exception {
         try {
-            final PutBucketRequest request = new PutBucketRequest(bucketName);
-            getClient().putBucket(request);
+            final CreateBucketRequest request = new CreateBucketRequest(bucketName);
+            getClient().createBucket(request);
             return new PutBucketResult("Success: created bucket " + bucketName + ".");
         }
         catch(final FailedRequestException e) {

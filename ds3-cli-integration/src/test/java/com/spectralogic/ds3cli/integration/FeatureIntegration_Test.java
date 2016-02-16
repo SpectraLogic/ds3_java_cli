@@ -41,6 +41,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.channels.FileChannel;
 import java.nio.file.*;
+import java.util.Collections;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.number.OrderingComparison.greaterThan;
@@ -182,7 +183,7 @@ public class FeatureIntegration_Test {
             final Ds3ClientHelpers.Job readJob = Ds3ClientHelpers.wrap(client)
                     .startReadJob(bucketName, Lists.newArrayList(obj));
 
-            final GetObjectResponse readResponse = client.getObject(new GetObjectRequest(bucketName, book, 0, readJob.getJobId(), channel));
+            final GetObjectResponse readResponse = client.getObject(new GetObjectRequest(bucketName, book, channel, readJob.getJobId(), 0));
             assertThat(readResponse, is(notNullValue()));
             assertThat(readResponse.getStatusCode(), is(equalTo(200)));
 
@@ -226,7 +227,7 @@ public class FeatureIntegration_Test {
             final Ds3ClientHelpers.Job readJob = Ds3ClientHelpers.wrap(client)
                     .startReadJob(bucketName, Lists.newArrayList(obj));
 
-            final GetObjectResponse readResponse = client.getObject(new GetObjectRequest(bucketName, book, 0, readJob.getJobId(), channel));
+            final GetObjectResponse readResponse = client.getObject(new GetObjectRequest(bucketName, book, channel, readJob.getJobId(), 0));
             assertThat(readResponse, is(notNullValue()));
             assertThat(readResponse.getStatusCode(), is(equalTo(200)));
 
@@ -244,12 +245,13 @@ public class FeatureIntegration_Test {
             assertThat(cliJobResponse.getData().getJobDetails().getJobId(), is(readJob.getJobId()));
             assertThat(cliJobResponse.getData().getJobDetails().getChunkClientProcessingOrderGuarantee(), is("NONE"));
             assertThat(cliJobResponse.getData().getJobDetails().getStatus(), is("COMPLETED"));
-            assertThat(cliJobResponse.getData().getJobDetails().getObjects(), is(nullValue()));
+            assertThat(cliJobResponse.getData().getJobDetails().getObjects(), is(Collections.<String>emptyList()));
             assertThat(cliJobResponse.getData().getJobDetails().getPriority(), is("HIGH"));
             assertThat(cliJobResponse.getData().getJobDetails().getRequestType(), is("GET"));
             //TODO add those tests when testing using BP 1.2 is not relevant anymore
             //assertThat(cliJobResponse.getData().getJobDetails().getCachedSizeInBytes(), is(objSize));
             //assertThat(cliJobResponse.getData().getJobDetails().getCompletedSizeInBytes(), is(objSize));
+            assertThat(cliJobResponse.getData().getJobDetails().getAggregating(), is(false));
 
             assertThat(cliJobResponse.getStatus(), is("OK"));
 

@@ -20,36 +20,33 @@ import com.bethecoder.ascii_table.ASCIITableHeader;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.models.GetTapesResult;
-import com.spectralogic.ds3client.models.tape.Tape;
-import com.spectralogic.ds3client.models.tape.Tapes;
-
-import java.util.List;
+import com.spectralogic.ds3client.models.Tape;
+import com.spectralogic.ds3client.models.TapeList;
 
 import static com.spectralogic.ds3cli.util.Utils.nullGuard;
 
 public class GetTapesView implements View<GetTapesResult> {
     @Override
     public String render(final GetTapesResult obj) throws JsonProcessingException {
-        final Tapes result = obj.getTapes();
-        if( (result == null) || (null == result.getTapes()) ){
+        final TapeList result = obj.getTapes();
+        if( (result == null) || (null == result.getTape()) ){
             return "You do not have any tapes";
         }
 
         return ASCIITable.getInstance().getTable(getHeaders(), formatTapeList(result));
     }
 
-    private String[][] formatTapeList(final Tapes result) {
-        final List<Tape> tapes = result.getTapes();
-        final String [][] formatArray = new String[tapes.size()][];
-        for(int i = 0; i < tapes.size(); i ++) {
-            final Tape tape = tapes.get(i);
-            final String [] bucketArray = new String[6];
-            bucketArray[0] = nullGuard(tape.getBarcode());
+    private String[][] formatTapeList(final TapeList tapeList) {
+        final String [][] formatArray = new String[tapeList.getTape().size()][];
+        for(int i = 0; i < tapeList.getTape().size(); i ++) {
+            final Tape tape = tapeList.getTape().get(i);
+            final String [] bucketArray = new String[5]; // TODO Decreased due to removing MostRecentFailure property
+            bucketArray[0] = nullGuard(tape.getBarCode());
             bucketArray[1] = nullGuard(tape.getId().toString());
             bucketArray[2] = nullGuard(tape.getState().toString());
-            bucketArray[3] = nullGuard(tape.getLastModified());
+            bucketArray[3] = nullGuard(tape.getLastModified().toString());
             bucketArray[4] = nullGuard(Long.toString(tape.getAvailableRawCapacity()));
-            bucketArray[5] = nullGuard(tape.getMostRecentFailure());
+            //bucketArray[5] = nullGuard(tape.getMostRecentFailure());  // TODO only applies to GetTapeWithFullDetailsRequestHandler
             formatArray[i] = bucketArray;
         }
         return formatArray;
@@ -62,7 +59,7 @@ public class GetTapesView implements View<GetTapesResult> {
                 new ASCIITableHeader("State", ASCIITable.ALIGN_LEFT),
                 new ASCIITableHeader("Last Modified", ASCIITable.ALIGN_LEFT),
                 new ASCIITableHeader("Available Raw Capacity", ASCIITable.ALIGN_LEFT),
-                new ASCIITableHeader("Most Recent Failure", ASCIITable.ALIGN_LEFT)
+                //new ASCIITableHeader("Most Recent Failure", ASCIITable.ALIGN_LEFT)
         };
     }
 }

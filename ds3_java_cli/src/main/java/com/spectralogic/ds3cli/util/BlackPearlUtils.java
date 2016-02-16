@@ -19,16 +19,17 @@ import com.google.common.collect.Iterables;
 import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.exceptions.TapeFailureException;
 import com.spectralogic.ds3client.Ds3Client;
-import com.spectralogic.ds3client.commands.GetTapeFailureRequest;
-import com.spectralogic.ds3client.models.tape.TapeFailure;
+import com.spectralogic.ds3client.commands.spectrads3.GetTapeFailuresSpectraS3Request;
+import com.spectralogic.ds3client.models.TapeFailure;
 
 import java.io.IOException;
 import java.security.SignatureException;
+import java.util.List;
 
 public final class BlackPearlUtils {
 
     public static void checkBlackPearlForTapeFailure(final Ds3Client client) throws IOException, SignatureException, CommandException {
-        final Iterable<TapeFailure> tapeFailures = client.getTapeFailure(new GetTapeFailureRequest()).getTapeFailures();
+        final List<TapeFailure> tapeFailures = client.getTapeFailuresSpectraS3(new GetTapeFailuresSpectraS3Request()).getTapeFailureListResult().getTapeFailure();
 
         if (tapeFailures != null && !Iterables.isEmpty(tapeFailures)) {
             throw new CommandException(new TapeFailureException(tapeFailures.iterator()));

@@ -22,9 +22,11 @@ import com.spectralogic.ds3cli.exceptions.SyncNotSupportedException;
 import com.spectralogic.ds3cli.util.*;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.*;
+import com.spectralogic.ds3client.commands.spectrads3.*;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.helpers.options.ReadJobOptions;
 import com.spectralogic.ds3client.helpers.options.WriteJobOptions;
+import com.spectralogic.ds3client.models.BuildInformation;
 import com.spectralogic.ds3client.models.Contents;
 import com.spectralogic.ds3client.models.Error;
 import com.spectralogic.ds3client.models.SystemInformation;
@@ -106,9 +108,9 @@ public class Ds3Cli_Test {
         });
         when(webResponse.getResponseStream()).thenReturn(stream);
 
-        final GetServiceResponse serviceResponse = new GetServiceResponse(webResponse);
+        final GetBucketsResponse serviceResponse = new GetBucketsResponse(webResponse);
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
-        when(client.getService(any(GetServiceRequest.class))).thenReturn(serviceResponse);
+        when(client.getBuckets(any(GetBucketsRequest.class))).thenReturn(serviceResponse);
 
         final CommandResponse result = cli.call();
         assertThat(result.getMessage(), is(expectedString));
@@ -167,9 +169,9 @@ public class Ds3Cli_Test {
         });
         when(webResponse.getResponseStream()).thenReturn(stream);
 
-        final GetServiceResponse serviceResponse = new GetServiceResponse(webResponse);
+        final GetBucketsResponse serviceResponse = new GetBucketsResponse(webResponse);
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
-        when(client.getService(any(GetServiceRequest.class))).thenReturn(serviceResponse);
+        when(client.getBuckets(any(GetBucketsRequest.class))).thenReturn(serviceResponse);
 
         final CommandResponse result = cli.call();
         assertTrue(result.getMessage().endsWith(expectedString));
@@ -180,7 +182,7 @@ public class Ds3Cli_Test {
     public void error() throws Exception {
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_service"});
         final Ds3Client client = mock(Ds3Client.class);
-        when(client.getService(any(GetServiceRequest.class)))
+        when(client.getBuckets(any(GetBucketsRequest.class)))
                 .thenThrow(new FailedRequestException(toImmutableIntList(new int[]{200}), 500, new Error(), ""));
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
@@ -202,7 +204,7 @@ public class Ds3Cli_Test {
 
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_service", "--output-format", "json"});
         final Ds3Client client = mock(Ds3Client.class);
-        when(client.getService(any(GetServiceRequest.class)))
+        when(client.getBuckets(any(GetBucketsRequest.class)))
                 .thenThrow(new FailedRequestException(toImmutableIntList(new int[]{200}), 500, new Error(), ""));
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
@@ -262,8 +264,8 @@ public class Ds3Cli_Test {
         when(webResponse.getStatusCode()).thenReturn(204);
         when(webResponse.getHeaders()).thenReturn(headers);
 
-        final DeleteFolderResponse deleteFolderResponse = new DeleteFolderResponse(webResponse);
-        when(client.deleteFolder(any(DeleteFolderRequest.class))).thenReturn(deleteFolderResponse);
+        final DeleteFolderRecursivelySpectraS3Response deleteFolderResponse = new DeleteFolderRecursivelySpectraS3Response(webResponse);
+        when(client.deleteFolderRecursivelySpectraS3(any(DeleteFolderRecursivelySpectraS3Request.class))).thenReturn(deleteFolderResponse);
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
         final CommandResponse result = cli.call();
@@ -285,8 +287,8 @@ public class Ds3Cli_Test {
         when(webResponse.getStatusCode()).thenReturn(204);
         when(webResponse.getHeaders()).thenReturn(headers);
 
-        final DeleteFolderResponse deleteFolderResponse = new DeleteFolderResponse(webResponse);
-        when(client.deleteFolder(any(DeleteFolderRequest.class))).thenReturn(deleteFolderResponse);
+        final DeleteFolderRecursivelySpectraS3Response deleteFolderResponse = new DeleteFolderRecursivelySpectraS3Response(webResponse);
+        when(client.deleteFolderRecursivelySpectraS3(any(DeleteFolderRecursivelySpectraS3Request.class))).thenReturn(deleteFolderResponse);
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
 
@@ -479,8 +481,8 @@ public class Ds3Cli_Test {
         when(webResponse.getStatusCode()).thenReturn(200);
         when(webResponse.getHeaders()).thenReturn(headers);
 
-        final PutBucketResponse response = new PutBucketResponse(webResponse);
-        when(client.putBucket(any(PutBucketRequest.class))).thenReturn(response);
+        final CreateBucketResponse response = new CreateBucketResponse(webResponse);
+        when(client.createBucket(any(CreateBucketRequest.class))).thenReturn(response);
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
 
@@ -501,8 +503,8 @@ public class Ds3Cli_Test {
         when(webResponse.getStatusCode()).thenReturn(200);
         when(webResponse.getHeaders()).thenReturn(headers);
 
-        final PutBucketResponse response = new PutBucketResponse(webResponse);
-        when(client.putBucket(any(PutBucketRequest.class))).thenReturn(response);
+        final CreateBucketResponse response = new CreateBucketResponse(webResponse);
+        when(client.createBucket(any(CreateBucketRequest.class))).thenReturn(response);
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
 
@@ -526,8 +528,8 @@ public class Ds3Cli_Test {
         when(webResponse.getStatusCode()).thenReturn(200);
         when(webResponse.getHeaders()).thenReturn(headers);
         when(webResponse.getResponseStream()).thenReturn(IOUtils.toInputStream(response));
-        final ModifyJobResponse modifyJobResponse = new ModifyJobResponse(webResponse);
-        when(client.modifyJob(any(ModifyJobRequest.class))).thenReturn(modifyJobResponse);
+        final ModifyJobSpectraS3Response modifyJobResponse = new ModifyJobSpectraS3Response(webResponse);
+        when(client.modifyJobSpectraS3(any(ModifyJobSpectraS3Request.class))).thenReturn(modifyJobResponse);
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
 
@@ -551,8 +553,8 @@ public class Ds3Cli_Test {
         when(webResponse.getStatusCode()).thenReturn(200);
         when(webResponse.getHeaders()).thenReturn(headers);
         when(webResponse.getResponseStream()).thenReturn(IOUtils.toInputStream(response));
-        final ModifyJobResponse modifyJobResponse = new ModifyJobResponse(webResponse);
-        when(client.modifyJob(any(ModifyJobRequest.class))).thenReturn(modifyJobResponse);
+        final ModifyJobSpectraS3Response modifyJobResponse = new ModifyJobSpectraS3Response(webResponse);
+        when(client.modifyJobSpectraS3(any(ModifyJobSpectraS3Request.class))).thenReturn(modifyJobResponse);
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
 
@@ -618,17 +620,17 @@ public class Ds3Cli_Test {
     public void putObjectWithSyncNotSupportedVersion() throws Exception {
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "put_object", "-b", "bucketName", "-o", "obj.txt", "--sync"});
 
-        final SystemInformation.BuildInformation buildInformation = mock(SystemInformation.BuildInformation.class);
+        final BuildInformation buildInformation = mock(BuildInformation.class);
         when(buildInformation.getVersion()).thenReturn("1.2.0");
 
         final SystemInformation systemInformation = mock(SystemInformation.class);
         when(systemInformation.getBuildInformation()).thenReturn(buildInformation);
 
-        final GetSystemInformationResponse systemInformationResponse = mock(GetSystemInformationResponse.class);
-        when(systemInformationResponse.getSystemInformation()).thenReturn(systemInformation);
+        final GetSystemInformationSpectraS3Response systemInformationResponse = mock(GetSystemInformationSpectraS3Response.class);
+        when(systemInformationResponse.getSystemInformationResult()).thenReturn(systemInformation);
 
         final Ds3Client client = mock(Ds3Client.class);
-        when(client.getSystemInformation(any(GetSystemInformationRequest.class))).thenReturn(systemInformationResponse);
+        when(client.getSystemInformationSpectraS3(any(GetSystemInformationSpectraS3Request.class))).thenReturn(systemInformationResponse);
 
         final Ds3ClientHelpers helpers = mock(Ds3ClientHelpers.class);
 
@@ -755,8 +757,8 @@ public class Ds3Cli_Test {
         when(webResponse.getStatusCode()).thenReturn(200);
         when(webResponse.getHeaders()).thenReturn(headers);
         when(webResponse.getResponseStream()).thenReturn(IOUtils.toInputStream(response));
-        final GetJobResponse getJobResponse = new GetJobResponse(webResponse);
-        when(client.getJob(any(GetJobRequest.class))).thenReturn(getJobResponse);
+        final GetJobSpectraS3Response getJobResponse = new GetJobSpectraS3Response(webResponse);
+        when(client.getJobSpectraS3(any(GetJobSpectraS3Request.class))).thenReturn(getJobResponse);
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
 
@@ -800,8 +802,8 @@ public class Ds3Cli_Test {
         when(webResponse.getStatusCode()).thenReturn(200);
         when(webResponse.getHeaders()).thenReturn(headers);
         when(webResponse.getResponseStream()).thenReturn(IOUtils.toInputStream(response));
-        final GetJobResponse getJobResponse = new GetJobResponse(webResponse);
-        when(client.getJob(any(GetJobRequest.class))).thenReturn(getJobResponse);
+        final GetJobSpectraS3Response getJobResponse = new GetJobSpectraS3Response(webResponse);
+        when(client.getJobSpectraS3(any(GetJobSpectraS3Request.class))).thenReturn(getJobResponse);
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
 
@@ -989,13 +991,13 @@ public class Ds3Cli_Test {
         when(helpers.startWriteJob(eq("bucketName"), eq(retObj), any(WriteJobOptions.class))).thenReturn(mockedGetJob);
 
         final Ds3Client client = mock(Ds3Client.class);
-        final GetSystemInformationResponse systemInformationResponse = mock(GetSystemInformationResponse.class);
+        final GetSystemInformationSpectraS3Response systemInformationResponse = mock(GetSystemInformationSpectraS3Response.class);
         final SystemInformation systemInformation = mock(SystemInformation.class);
-        final SystemInformation.BuildInformation buildInformation = mock(SystemInformation.BuildInformation.class);
+        final BuildInformation buildInformation = mock(BuildInformation.class);
         when(buildInformation.getVersion()).thenReturn("1.2.0");
         when(systemInformation.getBuildInformation()).thenReturn(buildInformation);
-        when(systemInformationResponse.getSystemInformation()).thenReturn(systemInformation);
-        when(client.getSystemInformation(any(GetSystemInformationRequest.class))).thenReturn(systemInformationResponse);
+        when(systemInformationResponse.getSystemInformationResult()).thenReturn(systemInformation);
+        when(client.getSystemInformationSpectraS3(any(GetSystemInformationSpectraS3Request.class))).thenReturn(systemInformationResponse);
 
         PowerMockito.mockStatic(BlackPearlUtils.class);
 
@@ -1049,8 +1051,8 @@ public class Ds3Cli_Test {
         when(webResponse.getStatusCode()).thenReturn(204);
         when(webResponse.getHeaders()).thenReturn(headers);
 
-        final DeleteTapeDriveResponse deleteTapeDriveResponse = new DeleteTapeDriveResponse(webResponse);
-        when(client.deleteTapeDrive(any(DeleteTapeDriveRequest.class))).thenReturn(deleteTapeDriveResponse);
+        final DeleteTapeDriveSpectraS3Response deleteTapeDriveResponse = new DeleteTapeDriveSpectraS3Response(webResponse);
+        when(client.deleteTapeDriveSpectraS3(any(DeleteTapeDriveSpectraS3Request.class))).thenReturn(deleteTapeDriveResponse);
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
 
@@ -1072,8 +1074,8 @@ public class Ds3Cli_Test {
         when(webResponse.getStatusCode()).thenReturn(204);
         when(webResponse.getHeaders()).thenReturn(headers);
 
-        final DeleteTapeDriveResponse deleteTapeDriveResponse = new DeleteTapeDriveResponse(webResponse);
-        when(client.deleteTapeDrive(any(DeleteTapeDriveRequest.class))).thenReturn(deleteTapeDriveResponse);
+        final DeleteTapeDriveSpectraS3Response deleteTapeDriveResponse = new DeleteTapeDriveSpectraS3Response(webResponse);
+        when(client.deleteTapeDriveSpectraS3(any(DeleteTapeDriveSpectraS3Request.class))).thenReturn(deleteTapeDriveResponse);
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
 
@@ -1094,8 +1096,8 @@ public class Ds3Cli_Test {
         when(webResponse.getStatusCode()).thenReturn(204);
         when(webResponse.getHeaders()).thenReturn(headers);
 
-        final DeleteTapePartitionResponse deleteTapePartitionResponse = new DeleteTapePartitionResponse(webResponse);
-        when(client.deleteTapePartition(any(DeleteTapePartitionRequest.class))).thenReturn(deleteTapePartitionResponse);
+        final DeleteTapePartitionSpectraS3Response deleteTapePartitionResponse = new DeleteTapePartitionSpectraS3Response(webResponse);
+        when(client.deleteTapePartitionSpectraS3(any(DeleteTapePartitionSpectraS3Request.class))).thenReturn(deleteTapePartitionResponse);
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
 
@@ -1118,8 +1120,8 @@ public class Ds3Cli_Test {
         when(webResponse.getStatusCode()).thenReturn(204);
         when(webResponse.getHeaders()).thenReturn(headers);
 
-        final DeleteTapePartitionResponse deleteTapePartitionResponse = new DeleteTapePartitionResponse(webResponse);
-        when(client.deleteTapePartition(any(DeleteTapePartitionRequest.class))).thenReturn(deleteTapePartitionResponse);
+        final DeleteTapePartitionSpectraS3Response deleteTapePartitionResponse = new DeleteTapePartitionSpectraS3Response(webResponse);
+        when(client.deleteTapePartitionSpectraS3(any(DeleteTapePartitionSpectraS3Request.class))).thenReturn(deleteTapePartitionResponse);
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
 
@@ -1131,13 +1133,13 @@ public class Ds3Cli_Test {
     @Test
     public void isCliSupportedTest() throws IOException, SignatureException {
         final Ds3Client client = mock(Ds3Client.class);
-        final GetSystemInformationResponse systemInformationResponse = mock(GetSystemInformationResponse.class);
+        final GetSystemInformationSpectraS3Response systemInformationResponse = mock(GetSystemInformationSpectraS3Response.class);
         final SystemInformation systemInformation = mock(SystemInformation.class);
-        final SystemInformation.BuildInformation buildInformation = mock(SystemInformation.BuildInformation.class);
+        final BuildInformation buildInformation = mock(BuildInformation.class);
 
         when(systemInformation.getBuildInformation()).thenReturn(buildInformation);
-        when(systemInformationResponse.getSystemInformation()).thenReturn(systemInformation);
-        when(client.getSystemInformation(any(GetSystemInformationRequest.class))).thenReturn(systemInformationResponse);
+        when(systemInformationResponse.getSystemInformationResult()).thenReturn(systemInformation);
+        when(client.getSystemInformationSpectraS3(any(GetSystemInformationSpectraS3Request.class))).thenReturn(systemInformationResponse);
 
         when(buildInformation.getVersion()).thenReturn("1.2.0");
         assertTrue(Utils.isCliSupported(client));

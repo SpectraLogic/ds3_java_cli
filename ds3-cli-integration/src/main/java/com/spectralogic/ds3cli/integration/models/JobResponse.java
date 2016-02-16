@@ -16,7 +16,11 @@
 package com.spectralogic.ds3cli.integration.models;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.spectralogic.ds3client.models.Contents;
 
+import java.util.Iterator;
+import java.util.List;
 import java.util.UUID;
 
 public class JobResponse {
@@ -65,47 +69,60 @@ public class JobResponse {
         @JsonProperty("Nodes")
         private String nodes;
 
-        @JsonProperty("CachedSizeInBytes")
+        @JsonProperty("cachedSizeInBytes")
         private long cachedSizeInBytes;
 
-        @JsonProperty("CompletedSizeInBytes")
+        @JsonProperty("completedSizeInBytes")
         private long completedSizeInBytes;
 
-        @JsonProperty("OriginalSizeInBytes")
+        @JsonProperty("originalSizeInBytes")
         private long originalSizeInBytes;
 
-        @JsonProperty("BucketName")
+        @JsonProperty("bucketName")
         private String bucketName;
 
-        @JsonProperty("JobId")
+        @JsonProperty("jobId")
         private UUID jobId;
 
-        @JsonProperty("UserId")
+        @JsonProperty("userId")
         private String userId;
 
-        @JsonProperty("UserName")
+        @JsonProperty("userName")
         private String userName;
 
-        @JsonProperty("WriteOptimization")
+        @JsonProperty("writeOptimization")
         private String writeOptimization;
 
-        @JsonProperty("Priority")
+        @JsonProperty("priority")
         private String priority;
 
-        @JsonProperty("RequestType")
+        @JsonProperty("requestType")
         private String requestType;
 
-        @JsonProperty("StartDate")
+        @JsonProperty("startDate")
         private String startDate;
 
-        @JsonProperty("ChunkClientProcessingOrderGuarantee")
+        @JsonProperty("chunkClientProcessingOrderGuarantee")
         private String chunkClientProcessingOrderGuarantee;
 
-        @JsonProperty("Status")
+        @JsonProperty("status")
         private String status;
 
         @JsonProperty("Objects")
-        private String objects;
+        @JacksonXmlElementWrapper(useWrapping = false)
+        final private List<String> objects = null;
+
+        //@JsonProperty("Objects")
+        //private String objects;
+
+        @JsonProperty("aggregating")
+        private boolean aggregating;
+
+        @JsonProperty("naked")
+        private boolean naked;
+
+        @JsonProperty("name")
+        private String name;
 
         public String getNodes() {
             return nodes;
@@ -163,9 +180,20 @@ public class JobResponse {
             return status;
         }
 
-        public String getObjects() {
+        public List<String> getObjects() {
             return objects;
         }
 
+        public boolean getAggregating() {
+            return aggregating;
+        }
+
+        public boolean getNaked() {
+            return naked;
+        }
+
+        public String getName() {
+            return name;
+        }
     }
 }

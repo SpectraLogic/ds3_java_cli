@@ -19,8 +19,8 @@ import ch.qos.logback.classic.Level;
 import com.google.common.collect.ImmutableMap;
 import com.spectralogic.ds3cli.exceptions.BadArgumentException;
 import com.spectralogic.ds3cli.util.Metadata;
-import com.spectralogic.ds3client.models.bulk.Priority;
-import com.spectralogic.ds3client.models.bulk.WriteOptimization;
+import com.spectralogic.ds3client.models.WriteOptimization;
+import com.spectralogic.ds3client.models.BlobStoreTaskPriority;
 import org.apache.commons.cli.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,7 +50,7 @@ public class Arguments {
     private String objectName;
     private String proxy;
     private int retries = 20;
-    private Priority priority;
+    private BlobStoreTaskPriority priority;
     private WriteOptimization writeOptimization;
     private boolean force = false;
     private boolean checksum = false;
@@ -101,10 +101,10 @@ public class Arguments {
         retries.setArgName("retries");
         final Option checksum = new Option(null, "Validate checksum values");
         checksum.setLongOpt("checksum");
-        final Option priority = new Option(null, true, "Set the bulk job priority.  Possible values: [" + Priority.valuesString() + "]");
+        final Option priority = new Option(null, true, "Set the bulk job priority.  Possible values: [" + BlobStoreTaskPriority.values() + "]");
         priority.setLongOpt("priority");
         priority.setArgName("priority");
-        final Option writeOptimization = new Option(null, true, "Set the job write optimization.  Possible values: [" + WriteOptimization.valuesString() + "]");
+        final Option writeOptimization = new Option(null, true, "Set the job write optimization.  Possible values: [" + WriteOptimization.values() + "]");
         writeOptimization.setLongOpt("writeOptimization");
         writeOptimization.setArgName("writeOptimization");
         final Option help = new Option("h", "Print Help Menu");
@@ -364,13 +364,13 @@ public class Arguments {
         }
     }
 
-    private Priority processPriorityType(final CommandLine cmd, final String priority) throws BadArgumentException {
+    private BlobStoreTaskPriority processPriorityType(final CommandLine cmd, final String priority) throws BadArgumentException {
         final String priorityString = cmd.getOptionValue(priority);
         try {
             if (priorityString == null) {
                 return null;
             } else {
-                return Priority.valueOf(priorityString.toUpperCase());
+                return BlobStoreTaskPriority.valueOf(priorityString.toUpperCase());
             }
         } catch (final IllegalArgumentException e) {
             throw new BadArgumentException("Unknown priority: " + priorityString, e);
@@ -512,11 +512,11 @@ public class Arguments {
         this.checksum = checksum;
     }
 
-    public Priority getPriority() {
+    public BlobStoreTaskPriority getPriority() {
         return this.priority;
     }
 
-    void setPriority(final Priority priority) {
+    void setPriority(final BlobStoreTaskPriority priority) {
         this.priority = priority;
     }
 

@@ -20,7 +20,7 @@ import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.DeleteResult;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
-import com.spectralogic.ds3client.commands.DeleteTapePartitionRequest;
+import com.spectralogic.ds3client.commands.spectrads3.DeleteTapePartitionSpectraS3Request;
 import org.apache.commons.cli.MissingOptionException;
 
 import java.io.IOException;
@@ -45,7 +45,7 @@ public class DeleteTapePartition extends CliCommand<DeleteResult> {
     @Override
     public DeleteResult call() throws Exception {
         try {
-            getClient().deleteTapePartition(new DeleteTapePartitionRequest(this.id));
+            getClient().deleteTapePartitionSpectraS3(new DeleteTapePartitionSpectraS3Request(this.id));
         }
         catch (final IOException e) {
             throw new CommandException("Error: Request failed with the following error: " + e.getMessage(), e);

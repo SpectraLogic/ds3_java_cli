@@ -1,18 +1,16 @@
 package com.spectralogic.ds3cli.models;
 
-import com.spectralogic.ds3client.models.bulk.JobInfo;
-
-import java.util.List;
+import com.spectralogic.ds3client.models.JobsApiBean;
 
 public class GetJobsResult implements Result {
 
-    private final List<JobInfo> jobs;
+    private final JobsApiBean jobs;
 
-    public GetJobsResult(final List<JobInfo> jobs) {
+    public GetJobsResult(final JobsApiBean jobs) {
         this.jobs = jobs;
     }
 
-    public List<JobInfo> getJobs() {
+    public JobsApiBean getJobs() {
         return jobs;
     }
 }

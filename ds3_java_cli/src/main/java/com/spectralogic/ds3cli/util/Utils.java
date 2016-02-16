@@ -18,7 +18,7 @@ package com.spectralogic.ds3cli.util;
 import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3cli.command.PutBulk;
 import com.spectralogic.ds3client.Ds3Client;
-import com.spectralogic.ds3client.commands.GetSystemInformationRequest;
+import com.spectralogic.ds3client.commands.spectrads3.GetSystemInformationSpectraS3Request;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,7 +43,7 @@ public final class Utils {
 
 
     public static boolean isCliSupported(final Ds3Client client) throws IOException, SignatureException {
-        final String buildInfo = client.getSystemInformation(new GetSystemInformationRequest()).getSystemInformation().getBuildInformation().getVersion();
+        final String buildInfo = client.getSystemInformationSpectraS3(new GetSystemInformationSpectraS3Request()).getSystemInformationResult().getBuildInformation().getVersion();
         final String[] buildInfoArr = buildInfo.split((Pattern.quote(".")));
         final double version = Double.valueOf(
                 String.format("%s.%s", buildInfoArr[0], buildInfoArr[1]));

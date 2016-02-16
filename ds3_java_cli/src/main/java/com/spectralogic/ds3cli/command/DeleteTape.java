@@ -20,7 +20,7 @@ import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.DeleteResult;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
-import com.spectralogic.ds3client.commands.DeleteTapeRequest;
+import com.spectralogic.ds3client.commands.spectrads3.DeletePermanentlyLostTapeSpectraS3Request;
 import org.apache.commons.cli.MissingArgumentException;
 
 import java.io.IOException;
@@ -50,7 +50,7 @@ public class DeleteTape extends CliCommand<DeleteResult> {
     public DeleteResult call() throws Exception {
 
         try {
-            this.getClient().deleteTape(new DeleteTapeRequest(id));
+            this.getClient().deletePermanentlyLostTapeSpectraS3(new DeletePermanentlyLostTapeSpectraS3Request(id));
         }
         catch (final IOException e) {
             throw new CommandException("Error: Request failed with the following error: " + e.getMessage(), e);
