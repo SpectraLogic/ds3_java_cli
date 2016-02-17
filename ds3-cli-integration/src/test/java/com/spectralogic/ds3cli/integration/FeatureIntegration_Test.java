@@ -20,8 +20,8 @@ import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Lists;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.CommandResponse;
-import com.spectralogic.ds3cli.integration.models.JobResponse;
 import com.spectralogic.ds3cli.integration.models.HeadObject;
+import com.spectralogic.ds3cli.integration.models.JobResponse;
 import com.spectralogic.ds3cli.util.SterilizeString;
 import com.spectralogic.ds3cli.util.Utils;
 import com.spectralogic.ds3client.Ds3Client;
@@ -265,11 +265,12 @@ public class FeatureIntegration_Test {
     public void getObjectWithSync() throws Exception {
         final String bucketName = "test_get_object";
         try {
+            // For a Get with sync, the local file needs to be older than the server copy
+            Util.copyFile("beowulf.txt", Util.RESOURCE_BASE_NAME, Util.DOWNLOAD_BASE_NAME);
 
             Util.createBucket(client, bucketName);
             Util.loadBookTestData(client, bucketName);
 
-            Util.copyFile("beowulf.txt", Util.RESOURCE_BASE_NAME, Util.DOWNLOAD_BASE_NAME);
             final Arguments args = new Arguments(new String[]{"--http", "-c", "get_object", "-b", bucketName,
                     "-o", "beowulf.txt", "-d", Util.DOWNLOAD_BASE_NAME, "--sync"});
             CommandResponse response = Util.command(client, args);

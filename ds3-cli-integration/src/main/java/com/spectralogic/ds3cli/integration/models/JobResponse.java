@@ -17,9 +17,7 @@ package com.spectralogic.ds3cli.integration.models;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.spectralogic.ds3client.models.Contents;
 
-import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 
@@ -111,9 +109,6 @@ public class JobResponse {
         @JsonProperty("Objects")
         @JacksonXmlElementWrapper(useWrapping = false)
         final private List<String> objects = null;
-
-        //@JsonProperty("Objects")
-        //private String objects;
 
         @JsonProperty("aggregating")
         private boolean aggregating;
