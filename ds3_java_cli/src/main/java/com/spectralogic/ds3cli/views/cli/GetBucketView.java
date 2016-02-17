@@ -21,9 +21,11 @@ import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.models.GetBucketResult;
 import com.spectralogic.ds3client.models.Contents;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.TimeZone;
 
 import static com.spectralogic.ds3cli.util.Utils.nullGuard;
 
@@ -48,7 +50,9 @@ public class GetBucketView implements View<GetBucketResult> {
             arrayEntry[0] = nullGuard(content.getKey());
             arrayEntry[1] = nullGuard(Long.toString(content.getSize()));
             arrayEntry[2] = nullGuard(content.getOwner().getDisplayName());
-            arrayEntry[3] = nullGuard(content.getLastModified().toString());
+            final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+            DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
+            arrayEntry[3] = nullGuard(DATE_FORMAT.format(content.getLastModified()));
             arrayEntry[4] = nullGuard(content.getETag());
             contents.add(arrayEntry);
         }

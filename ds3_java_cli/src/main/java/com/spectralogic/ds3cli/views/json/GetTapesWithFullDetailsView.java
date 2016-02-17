@@ -27,7 +27,7 @@ public class GetTapesWithFullDetailsView implements View<GetTapesWithFullDetails
         final NamedDetailedTapeList result = obj.getTapesWithDetails();
         final CommonJsonView view = CommonJsonView.newView(CommonJsonView.Status.OK);
 
-        if( (result == null) || (null == result.getNamedDetailedTape()) ){
+        if ((result == null) || (null == result.getNamedDetailedTape())) {
             view.message("You do not have any tapes");
             return JsonMapper.toJson(view);
         }

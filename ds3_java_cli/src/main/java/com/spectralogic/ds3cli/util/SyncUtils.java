@@ -55,7 +55,7 @@ public final class SyncUtils {
     }
 
     private static boolean isNewFileHelper(final String localFileLastModifiedTime, final String serverFileLastModifiedTime, final boolean isPutCommand) {
-        DateTimeFormatter fmt = DateTimeFormat.forPattern("EEE MMM dd H:m:s z Y");
+        final DateTimeFormatter fmt = DateTimeFormat.forPattern("EEE MMM dd H:m:s z Y");
         final DateTime localFileDateTime = new DateTime(localFileLastModifiedTime);
         final DateTime serverFileDateTime = new DateTime(DateTime.parse(serverFileLastModifiedTime, fmt));
 

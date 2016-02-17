@@ -9,8 +9,10 @@ import com.spectralogic.ds3client.models.BulkObject;
 import com.spectralogic.ds3client.models.MasterObjectList;
 import com.spectralogic.ds3client.models.Objects;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.TimeZone;
 
 import static com.spectralogic.ds3cli.util.Utils.nullGuard;
 
@@ -20,9 +22,11 @@ public class GetJobView implements View<GetJobResult> {
 
         final MasterObjectList mol = obj.getJobDetails();
 
+        final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+        DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
         final String returnString = String.format("JobId: %s | Status: %s | Bucket: %s | Type: %s | Priority: %s | User Name: %s | Creation Date: %s | Total Size: %d | Total Transferred: %d",
                 mol.getJobId().toString(), mol.getStatus().toString(), mol.getBucketName(), mol.getRequestType().toString(), mol.getPriority().toString(), mol.getUserName().toString(),
-                mol.getStartDate().toString(), mol.getOriginalSizeInBytes(), mol.getCompletedSizeInBytes());
+                DATE_FORMAT.format(mol.getStartDate()), mol.getOriginalSizeInBytes(), mol.getCompletedSizeInBytes());
 
         if (mol.getObjects() == null || mol.getObjects().isEmpty()) {
             return returnString;
@@ -34,7 +38,7 @@ public class GetJobView implements View<GetJobResult> {
     private String[][] formatJobDetails(final Iterator<Objects> iterator) {
         final ArrayList<String[]> contents = new ArrayList<>();
 
-        while(iterator.hasNext()) {
+        while (iterator.hasNext()) {
             final Objects chunk = iterator.next();
 
             for (final BulkObject obj : chunk.getObjects()) {

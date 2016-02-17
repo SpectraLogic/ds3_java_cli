@@ -79,7 +79,7 @@ public class Ds3Cli_Test {
         final WebResponse webResponse = mock(WebResponse.class);
         final InputStream stream = IOUtils.toInputStream("<ListAllMyBucketsResult>\n" +
                 "  <Owner>\n" +
-                "    <ID>bcaf1ffd86f461ca5fb16fd081034f</ID>\n" +
+                "    <ID>5df00f88-d5b2-11e5-ab30-625662870761</ID>\n" +
                 "    <DisplayName>webfile</DisplayName>\n" +
                 "  </Owner>\n" +
                 "  <Buckets>\n" +
@@ -120,17 +120,17 @@ public class Ds3Cli_Test {
     @Test
     public void getServiceJson() throws Exception {
         final String expectedString = "  \"Data\" : {\n" +
-                "    \"Owner\" : {\n" +
-                "      \"ID\" : \"bcaf1ffd86f461ca5fb16fd081034f\",\n" +
-                "      \"DisplayName\" : \"webfile\"\n" +
-                "    },\n" +
                 "    \"Buckets\" : [ {\n" +
-                "      \"Name\" : \"quotes\",\n" +
-                "      \"CreationDate\" : \"2006-02-03T16:45:09.000Z\"\n" +
+                "      \"CreationDate\" : \"2006-02-03T16:45:09.000Z\",\n" +
+                "      \"Name\" : \"quotes\"\n" +
                 "    }, {\n" +
-                "      \"Name\" : \"samples\",\n" +
-                "      \"CreationDate\" : \"2006-02-03T16:41:58.000Z\"\n" +
-                "    } ]\n" +
+                "      \"CreationDate\" : \"2006-02-03T16:41:58.000Z\",\n" +
+                "      \"Name\" : \"samples\"\n" +
+                "    } ],\n" +
+                "    \"Owner\" : {\n" +
+                "      \"DisplayName\" : \"webfile\",\n" +
+                "      \"ID\" : \"5df00f88-d5b2-11e5-ab30-625662870761\"\n" +
+                "    }\n" +
                 "  },\n" +
                 "  \"Status\" : \"OK\"\n" +
                 "}";
@@ -140,17 +140,17 @@ public class Ds3Cli_Test {
         final WebResponse webResponse = mock(WebResponse.class);
         final InputStream stream = IOUtils.toInputStream("<ListAllMyBucketsResult>\n" +
                 "  <Owner>\n" +
-                "    <ID>bcaf1ffd86f461ca5fb16fd081034f</ID>\n" +
+                "    <ID>5df00f88-d5b2-11e5-ab30-625662870761</ID>\n" +
                 "    <DisplayName>webfile</DisplayName>\n" +
                 "  </Owner>\n" +
                 "  <Buckets>\n" +
                 "    <Bucket>\n" +
-                "      <Name>quotes</Name>\n" +
                 "      <CreationDate>2006-02-03T16:45:09.000Z</CreationDate>\n" +
+                "      <Name>quotes</Name>\n" +
                 "    </Bucket>\n" +
                 "    <Bucket>\n" +
-                "      <Name>samples</Name>\n" +
                 "      <CreationDate>2006-02-03T16:41:58.000Z</CreationDate>\n" +
+                "      <Name>samples</Name>\n" +
                 "    </Bucket>\n" +
                 "  </Buckets>\n" +
                 "</ListAllMyBucketsResult>", "utf-8");
@@ -363,7 +363,7 @@ public class Ds3Cli_Test {
                 "        <Size>434234</Size>\n" +
                 "        <StorageClass>STANDARD</StorageClass>\n" +
                 "        <Owner>\n" +
-                "            <ID>75aa57f09aa0c8caeab4f8c24e99d10f8e7faeebf76c078efc7c6caea54ba06a</ID>\n" +
+                "            <ID>5df00f88-d5b2-11e5-ab30-625662870761</ID>\n" +
                 "            <DisplayName>mtd@amazon.com</DisplayName>\n" +
                 "        </Owner>\n" +
                 "    </Contents>\n" +
@@ -374,7 +374,7 @@ public class Ds3Cli_Test {
                 "        <Size>64994</Size>\n" +
                 "        <StorageClass>STANDARD</StorageClass>\n" +
                 "        <Owner>\n" +
-                "            <ID>75aa57f09aa0c8caeab4f8c24e99d10f8e7faeebf76c078efc7c6caea54ba06a</ID>\n" +
+                "            <ID>5df00f88-d5b2-11e5-ab30-625662870761</ID>\n" +
                 "            <DisplayName>mtd@amazon.com</DisplayName>\n" +
                 "        </Owner>\n" +
                 "    </Contents>\n" +
@@ -402,25 +402,25 @@ public class Ds3Cli_Test {
                 "  \"Data\" : {\n" +
                         "    \"BucketName\" : \"bucketName\",\n" +
                         "    \"Objects\" : [ {\n" +
+                        "      \"ETag\" : \"\\\"fba9dede5f27731c9771645a39863328\\\"\",\n" +
                         "      \"Key\" : \"my-image.jpg\",\n" +
                         "      \"LastModified\" : \"2009-10-12T17:50:30.000Z\",\n" +
-                        "      \"ETag\" : \"\\\"fba9dede5f27731c9771645a39863328\\\"\",\n" +
-                        "      \"Size\" : 434234,\n" +
-                        "      \"StorageClass\" : \"STANDARD\",\n" +
                         "      \"Owner\" : {\n" +
-                        "        \"ID\" : \"75aa57f09aa0c8caeab4f8c24e99d10f8e7faeebf76c078efc7c6caea54ba06a\",\n" +
-                        "        \"DisplayName\" : \"mtd@amazon.com\"\n" +
-                        "      }\n" +
+                        "        \"DisplayName\" : \"mtd@amazon.com\",\n" +
+                        "        \"ID\" : \"5df00f88-d5b2-11e5-ab30-625662870761\"\n" +
+                        "      },\n" +
+                        "      \"Size\" : 434234,\n" +
+                        "      \"StorageClass\" : \"STANDARD\"\n" +
                         "    }, {\n" +
+                        "      \"ETag\" : \"\\\"1b2cf535f27731c974343645a3985328\\\"\",\n" +
                         "      \"Key\" : \"my-third-image.jpg\",\n" +
                         "      \"LastModified\" : \"2009-10-12T17:50:30.000Z\",\n" +
-                        "      \"ETag\" : \"\\\"1b2cf535f27731c974343645a3985328\\\"\",\n" +
-                        "      \"Size\" : 64994,\n" +
-                        "      \"StorageClass\" : \"STANDARD\",\n" +
                         "      \"Owner\" : {\n" +
-                        "        \"ID\" : \"75aa57f09aa0c8caeab4f8c24e99d10f8e7faeebf76c078efc7c6caea54ba06a\",\n" +
-                        "        \"DisplayName\" : \"mtd@amazon.com\"\n" +
-                        "      }\n" +
+                        "        \"DisplayName\" : \"mtd@amazon.com\",\n" +
+                        "        \"ID\" : \"5df00f88-d5b2-11e5-ab30-625662870761\"\n" +
+                        "      },\n" +
+                        "      \"Size\" : 64994,\n" +
+                        "      \"StorageClass\" : \"STANDARD\"\n" +
                         "    } ]\n" +
                         "  },\n" +
                         "  \"Status\" : \"OK\"\n" +
@@ -440,7 +440,7 @@ public class Ds3Cli_Test {
                 "        <Size>434234</Size>\n" +
                 "        <StorageClass>STANDARD</StorageClass>\n" +
                 "        <Owner>\n" +
-                "            <ID>75aa57f09aa0c8caeab4f8c24e99d10f8e7faeebf76c078efc7c6caea54ba06a</ID>\n" +
+                "            <ID>5df00f88-d5b2-11e5-ab30-625662870761</ID>\n" +
                 "            <DisplayName>mtd@amazon.com</DisplayName>\n" +
                 "        </Owner>\n" +
                 "    </Contents>\n" +
@@ -451,7 +451,7 @@ public class Ds3Cli_Test {
                 "        <Size>64994</Size>\n" +
                 "        <StorageClass>STANDARD</StorageClass>\n" +
                 "        <Owner>\n" +
-                "            <ID>75aa57f09aa0c8caeab4f8c24e99d10f8e7faeebf76c078efc7c6caea54ba06a</ID>\n" +
+                "            <ID>5df00f88-d5b2-11e5-ab30-625662870761</ID>\n" +
                 "            <DisplayName>mtd@amazon.com</DisplayName>\n" +
                 "        </Owner>\n" +
                 "    </Contents>\n" +
@@ -775,21 +775,24 @@ public class Ds3Cli_Test {
 
         final String expected = "\"Data\" : {\n"
                 + "    \"jobDetails\" : {\n"
-                + "      \"Nodes\" : null,\n"
-                + "      \"CachedSizeInBytes\" : 0,\n"
-                + "      \"CompletedSizeInBytes\" : 0,\n"
-                + "      \"OriginalSizeInBytes\" : 32,\n"
-                + "      \"BucketName\" : \"bucket\",\n"
-                + "      \"JobId\" : \"aa5df0cc-b03a-4cb9-b69d-56e7367e917f\",\n"
-                + "      \"UserId\" : \"c2581493-058c-40d7-a3a1-9a50b20d6d3b\",\n"
-                + "      \"UserName\" : \"spectra\",\n"
-                + "      \"WriteOptimization\" : \"CAPACITY\",\n"
-                + "      \"Priority\" : \"HIGH\",\n"
-                + "      \"RequestType\" : \"GET\",\n"
-                + "      \"StartDate\" : \"2015-09-28T17:30:43.000Z\",\n"
-                + "      \"ChunkClientProcessingOrderGuarantee\" : \"NONE\",\n"
-                + "      \"Status\" : \"COMPLETED\",\n"
-                + "      \"Objects\" : null\n"
+                + "      \"aggregating\" : false,\n"
+                + "      \"bucketName\" : \"bucket\",\n"
+                + "      \"cachedSizeInBytes\" : 0,\n"
+                + "      \"chunkClientProcessingOrderGuarantee\" : \"NONE\",\n"
+                + "      \"completedSizeInBytes\" : 0,\n"
+                + "      \"jobId\" : \"aa5df0cc-b03a-4cb9-b69d-56e7367e917f\",\n"
+                + "      \"naked\" : false,\n"
+                + "      \"name\" : null,\n"
+                + "      \"originalSizeInBytes\" : 32,\n"
+                + "      \"priority\" : \"HIGH\",\n"
+                + "      \"requestType\" : \"GET\",\n"
+                + "      \"startDate\" : \"2015-09-28T17:30:43.000Z\",\n"
+                + "      \"status\" : \"COMPLETED\",\n"
+                + "      \"userId\" : \"c2581493-058c-40d7-a3a1-9a50b20d6d3b\",\n"
+                + "      \"userName\" : \"spectra\",\n"
+                + "      \"writeOptimization\" : \"CAPACITY\",\n"
+                + "      \"Nodes\" : [ ],\n"
+                + "      \"Objects\" : [ ]\n"
                 + "    }\n"
                 + "  },\n  \"Status\" : \"OK\"\n"
                 + "}";
@@ -808,6 +811,8 @@ public class Ds3Cli_Test {
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
 
         final CommandResponse result = cli.call();
+        System.out.println("expected:\n" + expected);
+        System.out.println("result:\n" + result.getMessage());
         assertTrue(result.getMessage().endsWith(expected));
         assertThat(result.getReturnCode(), is(0));
     }
@@ -1041,9 +1046,9 @@ public class Ds3Cli_Test {
 
     @Test
     public void deleteTapeDrive() throws Exception {
-        final String expected = "Success: Deleted tape drive 'someIdValue'.";
+        final String expected = "Success: Deleted tape drive 'c2581493-058c-40d7-a3a1-9a50b20d6d3b'.";
 
-        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "delete_tape_drive", "-i", "someIdValue"});
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "delete_tape_drive", "-i", "c2581493-058c-40d7-a3a1-9a50b20d6d3b"});
         final Ds3Client client = mock(Ds3Client.class);
 
         final WebResponse webResponse = mock(WebResponse.class);
@@ -1064,10 +1069,10 @@ public class Ds3Cli_Test {
     @Test
     public void deleteTapeDriveJson() throws Exception {
         final String expected = "  \"Status\" : \"OK\",\n" +
-                "  \"Message\" : \"Success: Deleted tape drive 'someIdValue'.\"\n" +
+                "  \"Message\" : \"Success: Deleted tape drive 'c2581493-058c-40d7-a3a1-9a50b20d6d3b'.\"\n" +
                 "}";
 
-        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "delete_tape_drive", "-i", "someIdValue", "--output-format", "json"});
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "delete_tape_drive", "-i", "c2581493-058c-40d7-a3a1-9a50b20d6d3b", "--output-format", "json"});
         final Ds3Client client = mock(Ds3Client.class);
         final WebResponse webResponse = mock(WebResponse.class);
         final Headers headers = mock(Headers.class);

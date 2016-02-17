@@ -19,11 +19,12 @@ import com.bethecoder.ascii_table.ASCIITable;
 import com.bethecoder.ascii_table.ASCIITableHeader;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.models.GetServiceResult;
-import com.spectralogic.ds3client.models.Bucket;
 import com.spectralogic.ds3client.models.Ds3Bucket;
 import com.spectralogic.ds3client.models.ListAllMyBucketsResult;
 
+import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.TimeZone;
 
 import static com.spectralogic.ds3cli.util.Utils.nullGuard;
 
@@ -46,7 +47,10 @@ public class GetServiceView implements View<GetServiceResult> {
             final Ds3Bucket bucket = buckets.get(i);
             final String [] bucketArray = new String[2];
             bucketArray[0] = nullGuard(bucket.getName());
-            bucketArray[1] = nullGuard(bucket.getCreationDate().toString());
+
+            final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+            DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
+            bucketArray[1] = DATE_FORMAT.format(bucket.getCreationDate());
             formatArray[i] = bucketArray;
         }
         return formatArray;

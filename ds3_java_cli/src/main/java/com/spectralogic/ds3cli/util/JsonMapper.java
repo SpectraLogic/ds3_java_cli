@@ -20,6 +20,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
 
+import java.text.SimpleDateFormat;
+import java.util.TimeZone;
+
 public class JsonMapper {
     private final static ObjectWriter writer;
     private JsonMapper() {
@@ -27,6 +30,9 @@ public class JsonMapper {
 
     static {
         final ObjectMapper mapper = new ObjectMapper();
+        final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+        DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
+        mapper.setDateFormat(DATE_FORMAT);
         mapper.registerModule(new GuavaModule());
         writer = mapper.writerWithDefaultPrettyPrinter();
     }
