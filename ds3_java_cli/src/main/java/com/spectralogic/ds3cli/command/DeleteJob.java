@@ -18,7 +18,7 @@ import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.models.DeleteResult;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
-import com.spectralogic.ds3client.commands.CancelJobRequest;
+import com.spectralogic.ds3client.commands.spectrads3.CancelJobSpectraS3Request;
 import org.apache.commons.cli.MissingOptionException;
 
 import java.util.UUID;
@@ -42,7 +42,7 @@ public class DeleteJob extends CliCommand<DeleteResult> {
 
     @Override
     public DeleteResult call() throws Exception {
-        getClient().cancelJob(new CancelJobRequest(id));
+        getClient().cancelJobSpectraS3(new CancelJobSpectraS3Request(id));
         return new DeleteResult("SUCCESS: Deleted job '"+ this.id.toString() +"'");
     }
 }

@@ -17,14 +17,14 @@ package com.spectralogic.ds3cli.command;
 
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.exceptions.CommandException;
-import com.spectralogic.ds3cli.models.GetTapesResult;
+import com.spectralogic.ds3cli.models.GetTapesWithFullDetailsResult;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
-import com.spectralogic.ds3client.commands.GetTapesRequest;
-import com.spectralogic.ds3client.commands.GetTapesResponse;
+import com.spectralogic.ds3client.commands.spectrads3.GetTapesWithFullDetailsSpectraS3Request;
+import com.spectralogic.ds3client.commands.spectrads3.GetTapesWithFullDetailsSpectraS3Response;
 import com.spectralogic.ds3client.networking.FailedRequestException;
 
-public class GetTapes extends CliCommand<GetTapesResult> {
+public class GetTapes extends CliCommand<GetTapesWithFullDetailsResult> {
     public GetTapes(final Ds3Provider ds3Provider, final FileUtils fileUtils) {
         super(ds3Provider, fileUtils);
     }
@@ -35,10 +35,10 @@ public class GetTapes extends CliCommand<GetTapesResult> {
     }
 
     @Override
-    public GetTapesResult call() throws Exception {try {
-            final GetTapesResponse response = getClient().getTapes(new GetTapesRequest());
+    public GetTapesWithFullDetailsResult call() throws Exception {try {
+            final GetTapesWithFullDetailsSpectraS3Response response = getClient().getTapesWithFullDetailsSpectraS3(new GetTapesWithFullDetailsSpectraS3Request());
 
-            return new GetTapesResult(response.getTapes());
+            return new GetTapesWithFullDetailsResult(response.getNamedDetailedTapeListResult());
         } catch (final FailedRequestException e) {
             throw new CommandException("Failed Get Tapes", e);
         }

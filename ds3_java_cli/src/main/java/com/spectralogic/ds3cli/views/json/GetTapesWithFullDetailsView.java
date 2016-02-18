@@ -17,17 +17,17 @@ package com.spectralogic.ds3cli.views.json;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.spectralogic.ds3cli.View;
-import com.spectralogic.ds3cli.models.GetTapesResult;
+import com.spectralogic.ds3cli.models.GetTapesWithFullDetailsResult;
 import com.spectralogic.ds3cli.util.JsonMapper;
-import com.spectralogic.ds3client.models.tape.Tapes;
+import com.spectralogic.ds3client.models.NamedDetailedTapeList;
 
-public class GetTapesView implements View<GetTapesResult> {
+public class GetTapesWithFullDetailsView implements View<GetTapesWithFullDetailsResult> {
     @Override
-    public String render(final GetTapesResult obj) throws JsonProcessingException {
-        final Tapes result = obj.getTapes();
+    public String render(final GetTapesWithFullDetailsResult obj) throws JsonProcessingException {
+        final NamedDetailedTapeList result = obj.getTapesWithDetails();
         final CommonJsonView view = CommonJsonView.newView(CommonJsonView.Status.OK);
 
-        if( (result == null) || (null == result.getTapes()) ){
+        if ((result == null) || (null == result.getNamedDetailedTape())) {
             view.message("You do not have any tapes");
             return JsonMapper.toJson(view);
         }
@@ -35,3 +35,4 @@ public class GetTapesView implements View<GetTapesResult> {
         return JsonMapper.toJson(view.data(result));
     }
 }
+

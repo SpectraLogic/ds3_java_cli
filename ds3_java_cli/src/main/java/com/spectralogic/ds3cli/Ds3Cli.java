@@ -15,8 +15,8 @@
 
 package com.spectralogic.ds3cli;
 
-import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.command.*;
+import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3cli.views.cli.CommandExceptionCliView;
@@ -70,7 +70,7 @@ public class Ds3Cli implements Callable<CommandResponse> {
         cliViews.put(CommandValue.GET_JOB,               new com.spectralogic.ds3cli.views.cli.GetJobView());
         cliViews.put(CommandValue.DELETE_FOLDER,         deleteView);
         cliViews.put(CommandValue.PUT_JOB,               new com.spectralogic.ds3cli.views.cli.PutJobView());
-        cliViews.put(CommandValue.GET_TAPES,             new com.spectralogic.ds3cli.views.cli.GetTapesView());
+        cliViews.put(CommandValue.GET_TAPES,             new com.spectralogic.ds3cli.views.cli.GetTapesWithFullDetailsView());
         cliViews.put(CommandValue.DELETE_TAPE,           deleteView);
         cliViews.put(CommandValue.PERFORMANCE,           new com.spectralogic.ds3cli.views.cli.PerformanceView());
         return cliViews;
@@ -97,7 +97,7 @@ public class Ds3Cli implements Callable<CommandResponse> {
         jsonViews.put(CommandValue.GET_JOB,               new com.spectralogic.ds3cli.views.json.GetJobView());
         jsonViews.put(CommandValue.DELETE_FOLDER,         deleteView);
         jsonViews.put(CommandValue.PUT_JOB,               new com.spectralogic.ds3cli.views.json.PutJobView());
-        jsonViews.put(CommandValue.GET_TAPES,             new com.spectralogic.ds3cli.views.json.GetTapesView());
+        jsonViews.put(CommandValue.GET_TAPES,             new com.spectralogic.ds3cli.views.json.GetTapesWithFullDetailsView());
         jsonViews.put(CommandValue.DELETE_TAPE,           deleteView);
         return jsonViews;
     }

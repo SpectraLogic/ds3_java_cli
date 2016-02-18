@@ -17,7 +17,7 @@ package com.spectralogic.ds3cli.exceptions;
 
 import com.bethecoder.ascii_table.ASCIITable;
 import com.bethecoder.ascii_table.ASCIITableHeader;
-import com.spectralogic.ds3client.models.tape.TapeFailure;
+import com.spectralogic.ds3client.models.TapeFailure;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -57,7 +57,7 @@ public class TapeFailureException extends Exception {
             arrayEntry[0] = nullGuard(tapeFailure.getId().toString());
             arrayEntry[1] = nullGuard(tapeFailure.getTapeDriveId().toString());
             arrayEntry[2] = nullGuard(tapeFailure.getTapeId().toString());
-            arrayEntry[3] = nullGuard(tapeFailure.getDate());
+            arrayEntry[3] = nullGuard(tapeFailure.getDate().toString());
             arrayEntry[4] = nullGuard(tapeFailure.getType().toString());
             arrayEntry[5] = nullGuard(tapeFailure.getErrorMessage());
 

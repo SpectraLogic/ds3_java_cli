@@ -20,8 +20,8 @@ import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.PutJobResult;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
-import com.spectralogic.ds3client.commands.ModifyJobRequest;
-import com.spectralogic.ds3client.models.bulk.Priority;
+import com.spectralogic.ds3client.commands.spectrads3.ModifyJobSpectraS3Request;
+import com.spectralogic.ds3client.models.BlobStoreTaskPriority;
 import org.apache.commons.cli.MissingOptionException;
 
 import java.io.IOException;
@@ -30,7 +30,7 @@ import java.util.UUID;
 public class PutJob extends CliCommand<PutJobResult> {
 
     private UUID jobId;
-    private Priority priority;
+    private BlobStoreTaskPriority priority;
 
     public PutJob(final Ds3Provider provider, final FileUtils fileUtils) { super(provider, fileUtils); }
 
@@ -47,11 +47,11 @@ public class PutJob extends CliCommand<PutJobResult> {
     @Override
     public PutJobResult call() throws Exception {
         try {
-            final ModifyJobRequest request = new ModifyJobRequest(jobId);
+            final ModifyJobSpectraS3Request request = new ModifyJobSpectraS3Request(jobId);
             if (priority != null) {
                 request.withPriority(priority);
             }
-            getClient().modifyJob(request);
+            getClient().modifyJobSpectraS3(request);
         }
         catch (final IOException e) {
             throw new CommandException("Error: Request failed with the following error: " + e.getMessage(), e);

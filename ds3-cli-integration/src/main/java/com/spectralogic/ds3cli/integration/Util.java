@@ -20,7 +20,7 @@ import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3cli.util.Utils;
 import com.spectralogic.ds3client.Ds3Client;
-import com.spectralogic.ds3client.commands.GetSystemInformationRequest;
+import com.spectralogic.ds3client.commands.spectrads3.GetSystemInformationSpectraS3Request;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 
 import java.io.IOException;
@@ -84,7 +84,7 @@ public class Util {
     }
 
     public static double getBlackPearlVersion(final Ds3Client client) throws IOException, SignatureException {
-        final String buildInfo = client.getSystemInformation(new GetSystemInformationRequest()).getSystemInformation().getBuildInformation().getVersion();
+        final String buildInfo = client.getSystemInformationSpectraS3(new GetSystemInformationSpectraS3Request()).getSystemInformationResult().getBuildInformation().getVersion();
         final String[] buildInfoArr = buildInfo.split((Pattern.quote(".")));
         return Double.valueOf(String.format("%s.%s", buildInfoArr[0], buildInfoArr[1]));
     }

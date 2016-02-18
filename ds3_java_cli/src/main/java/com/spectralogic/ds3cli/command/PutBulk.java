@@ -27,10 +27,10 @@ import com.spectralogic.ds3cli.util.*;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.helpers.FileObjectPutter;
 import com.spectralogic.ds3client.helpers.options.WriteJobOptions;
+import com.spectralogic.ds3client.models.BlobStoreTaskPriority;
 import com.spectralogic.ds3client.models.Contents;
+import com.spectralogic.ds3client.models.WriteOptimization;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
-import com.spectralogic.ds3client.models.bulk.Priority;
-import com.spectralogic.ds3client.models.bulk.WriteOptimization;
 import com.spectralogic.ds3client.serializer.XmlProcessingException;
 import com.spectralogic.ds3client.utils.Guard;
 import org.apache.commons.cli.MissingOptionException;
@@ -45,10 +45,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.security.SignatureException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 public class PutBulk extends CliCommand<PutBulkResult> {
 
@@ -58,7 +54,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
     private Path inputDirectory;
     private String prefix;
     private boolean checksum;
-    private Priority priority;
+    private BlobStoreTaskPriority priority;
     private WriteOptimization writeOptimization;
     private boolean sync;
     private boolean force;

@@ -4,8 +4,8 @@ import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.models.SystemInformationResult;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
-import com.spectralogic.ds3client.commands.GetSystemInformationRequest;
-import com.spectralogic.ds3client.commands.GetSystemInformationResponse;
+import com.spectralogic.ds3client.commands.spectrads3.GetSystemInformationSpectraS3Request;
+import com.spectralogic.ds3client.commands.spectrads3.GetSystemInformationSpectraS3Response;
 
 public class SystemInformation extends CliCommand<SystemInformationResult> {
     public SystemInformation(final Ds3Provider ds3Provider, final FileUtils fileUtils) {
@@ -19,8 +19,8 @@ public class SystemInformation extends CliCommand<SystemInformationResult> {
 
     @Override
     public SystemInformationResult call() throws Exception {
-        final GetSystemInformationResponse response = getClient().getSystemInformation(new GetSystemInformationRequest());
+        final GetSystemInformationSpectraS3Response response = getClient().getSystemInformationSpectraS3(new GetSystemInformationSpectraS3Request());
 
-        return new SystemInformationResult(response.getSystemInformation());
+        return new SystemInformationResult(response.getSystemInformationResult());
     }
 }

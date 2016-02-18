@@ -5,12 +5,14 @@ import com.bethecoder.ascii_table.ASCIITableHeader;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.models.GetJobResult;
-import com.spectralogic.ds3client.models.bulk.BulkObject;
-import com.spectralogic.ds3client.models.bulk.MasterObjectList;
-import com.spectralogic.ds3client.models.bulk.Objects;
+import com.spectralogic.ds3client.models.BulkObject;
+import com.spectralogic.ds3client.models.MasterObjectList;
+import com.spectralogic.ds3client.models.Objects;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.TimeZone;
 
 import static com.spectralogic.ds3cli.util.Utils.nullGuard;
 
@@ -20,12 +22,13 @@ public class GetJobView implements View<GetJobResult> {
 
         final MasterObjectList mol = obj.getJobDetails();
 
-        final String returnString = String.format("JobId: %s | Status: %s | Bucket: %s | Type: %s | Priority: %s | User Name: %s | Creation Date: %s | Total Size: %s | Total Transferred: %d",
-                mol.getJobId().toString(), mol.getStatus().toString(), mol.getBucketName(), mol.getRequestType().toString(), mol.getPriority().toString(), mol.getUserName(),
-                mol.getStartDate(), mol.getOriginalSizeInBytes(), mol.getCompletedSizeInBytes());
+        final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+        DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
+        final String returnString = String.format("JobId: %s | Status: %s | Bucket: %s | Type: %s | Priority: %s | User Name: %s | Creation Date: %s | Total Size: %d | Total Transferred: %d",
+                mol.getJobId().toString(), mol.getStatus().toString(), mol.getBucketName(), mol.getRequestType().toString(), mol.getPriority().toString(), mol.getUserName().toString(),
+                DATE_FORMAT.format(mol.getStartDate()), mol.getOriginalSizeInBytes(), mol.getCompletedSizeInBytes());
 
-
-        if (mol.getObjects() == null) {
+        if (mol.getObjects() == null || mol.getObjects().isEmpty()) {
             return returnString;
         }
 
@@ -35,15 +38,15 @@ public class GetJobView implements View<GetJobResult> {
     private String[][] formatJobDetails(final Iterator<Objects> iterator) {
         final ArrayList<String[]> contents = new ArrayList<>();
 
-        while(iterator.hasNext()) {
+        while (iterator.hasNext()) {
             final Objects chunk = iterator.next();
 
-            for (final BulkObject obj : chunk) {
+            for (final BulkObject obj : chunk.getObjects()) {
                 final String[] arrayEntry = new String[5];
 
                 arrayEntry[0] = nullGuard(obj.getName());
                 arrayEntry[1] = nullGuard(Long.toString(obj.getLength()));
-                arrayEntry[2] = nullGuard(Boolean.toString(obj.isInCache()));
+                arrayEntry[2] = nullGuard(Boolean.toString(obj.getInCache()));
                 arrayEntry[3] = nullGuard(Long.toString(chunk.getChunkNumber()));
                 arrayEntry[4] = nullGuard(chunk.getChunkId().toString());
 

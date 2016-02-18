@@ -20,7 +20,7 @@ import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.DeleteResult;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
-import com.spectralogic.ds3client.commands.DeleteFolderRequest;
+import com.spectralogic.ds3client.commands.spectrads3.DeleteFolderRecursivelySpectraS3Request;
 import org.apache.commons.cli.MissingOptionException;
 
 import java.io.IOException;
@@ -48,7 +48,7 @@ public class DeleteFolder extends CliCommand<DeleteResult> {
     @Override
     public DeleteResult call() throws Exception {
         try {
-            getClient().deleteFolder(new DeleteFolderRequest(bucketName, folderName));
+            getClient().deleteFolderRecursivelySpectraS3(new DeleteFolderRecursivelySpectraS3Request(bucketName, folderName));
         }
         catch (final IOException e) {
             throw new CommandException("Error: Request failed with the following error: " + e.getMessage(), e);

@@ -16,12 +16,14 @@
 package com.spectralogic.ds3cli.util;
 
 import com.spectralogic.ds3client.Ds3Client;
-import com.spectralogic.ds3client.commands.GetSystemInformationRequest;
+import com.spectralogic.ds3client.commands.spectrads3.GetSystemInformationSpectraS3Request;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.models.Contents;
 import com.spectralogic.ds3client.serializer.XmlProcessingException;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeComparator;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,7 +40,7 @@ public final class SyncUtils {
     private final static int MAJOR_INDEX = 0;
 
     public static boolean isSyncSupported(final Ds3Client client) throws IOException, SignatureException {
-        final String buildInfo = client.getSystemInformation(new GetSystemInformationRequest()).getSystemInformation().getBuildInformation().getVersion();
+        final String buildInfo = client.getSystemInformationSpectraS3(new GetSystemInformationSpectraS3Request()).getSystemInformationResult().getBuildInformation().getVersion();
         final String[] buildInfoArr = buildInfo.split((Pattern.quote(".")));
         if (Integer.parseInt(buildInfoArr[MAJOR_INDEX]) < VERSION_SUPPORTED) {
             LOG.info("The sync command can not be used with BlackPearl " + buildInfo);
@@ -49,13 +51,13 @@ public final class SyncUtils {
     }
 
     public static boolean isNewFile(final Path localFile, final Contents serverFile, final boolean isPutCommand) throws IOException {
-        return isNewFileHelper(Files.getLastModifiedTime(localFile).toString(), serverFile.getLastModified(), isPutCommand);
+        return isNewFileHelper(Files.getLastModifiedTime(localFile).toString(), serverFile.getLastModified().toString(), isPutCommand);
     }
 
     private static boolean isNewFileHelper(final String localFileLastModifiedTime, final String serverFileLastModifiedTime, final boolean isPutCommand) {
-
+        final DateTimeFormatter fmt = DateTimeFormat.forPattern("EEE MMM dd H:m:s z Y");
         final DateTime localFileDateTime = new DateTime(localFileLastModifiedTime);
-        final DateTime serverFileDateTime = new DateTime(serverFileLastModifiedTime);
+        final DateTime serverFileDateTime = new DateTime(DateTime.parse(serverFileLastModifiedTime, fmt));
 
         if (isPutCommand) {
             return DateTimeComparator.getInstance().compare(localFileDateTime, serverFileDateTime) > 0;

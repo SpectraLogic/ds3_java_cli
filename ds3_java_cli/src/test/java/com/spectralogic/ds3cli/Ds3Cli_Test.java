@@ -22,9 +22,11 @@ import com.spectralogic.ds3cli.exceptions.SyncNotSupportedException;
 import com.spectralogic.ds3cli.util.*;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.*;
+import com.spectralogic.ds3client.commands.spectrads3.*;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.helpers.options.ReadJobOptions;
 import com.spectralogic.ds3client.helpers.options.WriteJobOptions;
+import com.spectralogic.ds3client.models.BuildInformation;
 import com.spectralogic.ds3client.models.Contents;
 import com.spectralogic.ds3client.models.Error;
 import com.spectralogic.ds3client.models.SystemInformation;
@@ -77,7 +79,7 @@ public class Ds3Cli_Test {
         final WebResponse webResponse = mock(WebResponse.class);
         final InputStream stream = IOUtils.toInputStream("<ListAllMyBucketsResult>\n" +
                 "  <Owner>\n" +
-                "    <ID>bcaf1ffd86f461ca5fb16fd081034f</ID>\n" +
+                "    <ID>5df00f88-d5b2-11e5-ab30-625662870761</ID>\n" +
                 "    <DisplayName>webfile</DisplayName>\n" +
                 "  </Owner>\n" +
                 "  <Buckets>\n" +
@@ -106,9 +108,9 @@ public class Ds3Cli_Test {
         });
         when(webResponse.getResponseStream()).thenReturn(stream);
 
-        final GetServiceResponse serviceResponse = new GetServiceResponse(webResponse);
+        final GetBucketsResponse serviceResponse = new GetBucketsResponse(webResponse);
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
-        when(client.getService(any(GetServiceRequest.class))).thenReturn(serviceResponse);
+        when(client.getBuckets(any(GetBucketsRequest.class))).thenReturn(serviceResponse);
 
         final CommandResponse result = cli.call();
         assertThat(result.getMessage(), is(expectedString));
@@ -118,17 +120,17 @@ public class Ds3Cli_Test {
     @Test
     public void getServiceJson() throws Exception {
         final String expectedString = "  \"Data\" : {\n" +
-                "    \"Owner\" : {\n" +
-                "      \"ID\" : \"bcaf1ffd86f461ca5fb16fd081034f\",\n" +
-                "      \"DisplayName\" : \"webfile\"\n" +
-                "    },\n" +
                 "    \"Buckets\" : [ {\n" +
-                "      \"Name\" : \"quotes\",\n" +
-                "      \"CreationDate\" : \"2006-02-03T16:45:09.000Z\"\n" +
+                "      \"CreationDate\" : \"2006-02-03T16:45:09.000Z\",\n" +
+                "      \"Name\" : \"quotes\"\n" +
                 "    }, {\n" +
-                "      \"Name\" : \"samples\",\n" +
-                "      \"CreationDate\" : \"2006-02-03T16:41:58.000Z\"\n" +
-                "    } ]\n" +
+                "      \"CreationDate\" : \"2006-02-03T16:41:58.000Z\",\n" +
+                "      \"Name\" : \"samples\"\n" +
+                "    } ],\n" +
+                "    \"Owner\" : {\n" +
+                "      \"DisplayName\" : \"webfile\",\n" +
+                "      \"ID\" : \"5df00f88-d5b2-11e5-ab30-625662870761\"\n" +
+                "    }\n" +
                 "  },\n" +
                 "  \"Status\" : \"OK\"\n" +
                 "}";
@@ -138,17 +140,17 @@ public class Ds3Cli_Test {
         final WebResponse webResponse = mock(WebResponse.class);
         final InputStream stream = IOUtils.toInputStream("<ListAllMyBucketsResult>\n" +
                 "  <Owner>\n" +
-                "    <ID>bcaf1ffd86f461ca5fb16fd081034f</ID>\n" +
+                "    <ID>5df00f88-d5b2-11e5-ab30-625662870761</ID>\n" +
                 "    <DisplayName>webfile</DisplayName>\n" +
                 "  </Owner>\n" +
                 "  <Buckets>\n" +
                 "    <Bucket>\n" +
-                "      <Name>quotes</Name>\n" +
                 "      <CreationDate>2006-02-03T16:45:09.000Z</CreationDate>\n" +
+                "      <Name>quotes</Name>\n" +
                 "    </Bucket>\n" +
                 "    <Bucket>\n" +
-                "      <Name>samples</Name>\n" +
                 "      <CreationDate>2006-02-03T16:41:58.000Z</CreationDate>\n" +
+                "      <Name>samples</Name>\n" +
                 "    </Bucket>\n" +
                 "  </Buckets>\n" +
                 "</ListAllMyBucketsResult>", "utf-8");
@@ -167,9 +169,9 @@ public class Ds3Cli_Test {
         });
         when(webResponse.getResponseStream()).thenReturn(stream);
 
-        final GetServiceResponse serviceResponse = new GetServiceResponse(webResponse);
+        final GetBucketsResponse serviceResponse = new GetBucketsResponse(webResponse);
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
-        when(client.getService(any(GetServiceRequest.class))).thenReturn(serviceResponse);
+        when(client.getBuckets(any(GetBucketsRequest.class))).thenReturn(serviceResponse);
 
         final CommandResponse result = cli.call();
         assertTrue(result.getMessage().endsWith(expectedString));
@@ -180,7 +182,7 @@ public class Ds3Cli_Test {
     public void error() throws Exception {
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_service"});
         final Ds3Client client = mock(Ds3Client.class);
-        when(client.getService(any(GetServiceRequest.class)))
+        when(client.getBuckets(any(GetBucketsRequest.class)))
                 .thenThrow(new FailedRequestException(toImmutableIntList(new int[]{200}), 500, new Error(), ""));
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
@@ -202,7 +204,7 @@ public class Ds3Cli_Test {
 
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_service", "--output-format", "json"});
         final Ds3Client client = mock(Ds3Client.class);
-        when(client.getService(any(GetServiceRequest.class)))
+        when(client.getBuckets(any(GetBucketsRequest.class)))
                 .thenThrow(new FailedRequestException(toImmutableIntList(new int[]{200}), 500, new Error(), ""));
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
@@ -262,8 +264,8 @@ public class Ds3Cli_Test {
         when(webResponse.getStatusCode()).thenReturn(204);
         when(webResponse.getHeaders()).thenReturn(headers);
 
-        final DeleteFolderResponse deleteFolderResponse = new DeleteFolderResponse(webResponse);
-        when(client.deleteFolder(any(DeleteFolderRequest.class))).thenReturn(deleteFolderResponse);
+        final DeleteFolderRecursivelySpectraS3Response deleteFolderResponse = new DeleteFolderRecursivelySpectraS3Response(webResponse);
+        when(client.deleteFolderRecursivelySpectraS3(any(DeleteFolderRecursivelySpectraS3Request.class))).thenReturn(deleteFolderResponse);
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
         final CommandResponse result = cli.call();
@@ -285,8 +287,8 @@ public class Ds3Cli_Test {
         when(webResponse.getStatusCode()).thenReturn(204);
         when(webResponse.getHeaders()).thenReturn(headers);
 
-        final DeleteFolderResponse deleteFolderResponse = new DeleteFolderResponse(webResponse);
-        when(client.deleteFolder(any(DeleteFolderRequest.class))).thenReturn(deleteFolderResponse);
+        final DeleteFolderRecursivelySpectraS3Response deleteFolderResponse = new DeleteFolderRecursivelySpectraS3Response(webResponse);
+        when(client.deleteFolderRecursivelySpectraS3(any(DeleteFolderRecursivelySpectraS3Request.class))).thenReturn(deleteFolderResponse);
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
 
@@ -361,7 +363,7 @@ public class Ds3Cli_Test {
                 "        <Size>434234</Size>\n" +
                 "        <StorageClass>STANDARD</StorageClass>\n" +
                 "        <Owner>\n" +
-                "            <ID>75aa57f09aa0c8caeab4f8c24e99d10f8e7faeebf76c078efc7c6caea54ba06a</ID>\n" +
+                "            <ID>5df00f88-d5b2-11e5-ab30-625662870761</ID>\n" +
                 "            <DisplayName>mtd@amazon.com</DisplayName>\n" +
                 "        </Owner>\n" +
                 "    </Contents>\n" +
@@ -372,7 +374,7 @@ public class Ds3Cli_Test {
                 "        <Size>64994</Size>\n" +
                 "        <StorageClass>STANDARD</StorageClass>\n" +
                 "        <Owner>\n" +
-                "            <ID>75aa57f09aa0c8caeab4f8c24e99d10f8e7faeebf76c078efc7c6caea54ba06a</ID>\n" +
+                "            <ID>5df00f88-d5b2-11e5-ab30-625662870761</ID>\n" +
                 "            <DisplayName>mtd@amazon.com</DisplayName>\n" +
                 "        </Owner>\n" +
                 "    </Contents>\n" +
@@ -400,25 +402,27 @@ public class Ds3Cli_Test {
                 "  \"Data\" : {\n" +
                         "    \"BucketName\" : \"bucketName\",\n" +
                         "    \"Objects\" : [ {\n" +
+                        "      \"etag\" : \"\\\"fba9dede5f27731c9771645a39863328\\\"\",\n" + // TODO investigate double printing of etag
+                        "      \"ETag\" : \"\\\"fba9dede5f27731c9771645a39863328\\\"\",\n" +
                         "      \"Key\" : \"my-image.jpg\",\n" +
                         "      \"LastModified\" : \"2009-10-12T17:50:30.000Z\",\n" +
-                        "      \"ETag\" : \"\\\"fba9dede5f27731c9771645a39863328\\\"\",\n" +
-                        "      \"Size\" : 434234,\n" +
-                        "      \"StorageClass\" : \"STANDARD\",\n" +
                         "      \"Owner\" : {\n" +
-                        "        \"ID\" : \"75aa57f09aa0c8caeab4f8c24e99d10f8e7faeebf76c078efc7c6caea54ba06a\",\n" +
-                        "        \"DisplayName\" : \"mtd@amazon.com\"\n" +
-                        "      }\n" +
+                        "        \"DisplayName\" : \"mtd@amazon.com\",\n" +
+                        "        \"ID\" : \"5df00f88-d5b2-11e5-ab30-625662870761\"\n" +
+                        "      },\n" +
+                        "      \"Size\" : 434234,\n" +
+                        "      \"StorageClass\" : \"STANDARD\"\n" +
                         "    }, {\n" +
+                        "      \"etag\" : \"\\\"1b2cf535f27731c974343645a3985328\\\"\",\n" + // TODO investigate double printing of etag
+                        "      \"ETag\" : \"\\\"1b2cf535f27731c974343645a3985328\\\"\",\n" +
                         "      \"Key\" : \"my-third-image.jpg\",\n" +
                         "      \"LastModified\" : \"2009-10-12T17:50:30.000Z\",\n" +
-                        "      \"ETag\" : \"\\\"1b2cf535f27731c974343645a3985328\\\"\",\n" +
-                        "      \"Size\" : 64994,\n" +
-                        "      \"StorageClass\" : \"STANDARD\",\n" +
                         "      \"Owner\" : {\n" +
-                        "        \"ID\" : \"75aa57f09aa0c8caeab4f8c24e99d10f8e7faeebf76c078efc7c6caea54ba06a\",\n" +
-                        "        \"DisplayName\" : \"mtd@amazon.com\"\n" +
-                        "      }\n" +
+                        "        \"DisplayName\" : \"mtd@amazon.com\",\n" +
+                        "        \"ID\" : \"5df00f88-d5b2-11e5-ab30-625662870761\"\n" +
+                        "      },\n" +
+                        "      \"Size\" : 64994,\n" +
+                        "      \"StorageClass\" : \"STANDARD\"\n" +
                         "    } ]\n" +
                         "  },\n" +
                         "  \"Status\" : \"OK\"\n" +
@@ -438,7 +442,7 @@ public class Ds3Cli_Test {
                 "        <Size>434234</Size>\n" +
                 "        <StorageClass>STANDARD</StorageClass>\n" +
                 "        <Owner>\n" +
-                "            <ID>75aa57f09aa0c8caeab4f8c24e99d10f8e7faeebf76c078efc7c6caea54ba06a</ID>\n" +
+                "            <ID>5df00f88-d5b2-11e5-ab30-625662870761</ID>\n" +
                 "            <DisplayName>mtd@amazon.com</DisplayName>\n" +
                 "        </Owner>\n" +
                 "    </Contents>\n" +
@@ -449,7 +453,7 @@ public class Ds3Cli_Test {
                 "        <Size>64994</Size>\n" +
                 "        <StorageClass>STANDARD</StorageClass>\n" +
                 "        <Owner>\n" +
-                "            <ID>75aa57f09aa0c8caeab4f8c24e99d10f8e7faeebf76c078efc7c6caea54ba06a</ID>\n" +
+                "            <ID>5df00f88-d5b2-11e5-ab30-625662870761</ID>\n" +
                 "            <DisplayName>mtd@amazon.com</DisplayName>\n" +
                 "        </Owner>\n" +
                 "    </Contents>\n" +
@@ -479,8 +483,8 @@ public class Ds3Cli_Test {
         when(webResponse.getStatusCode()).thenReturn(200);
         when(webResponse.getHeaders()).thenReturn(headers);
 
-        final PutBucketResponse response = new PutBucketResponse(webResponse);
-        when(client.putBucket(any(PutBucketRequest.class))).thenReturn(response);
+        final CreateBucketResponse response = new CreateBucketResponse(webResponse);
+        when(client.createBucket(any(CreateBucketRequest.class))).thenReturn(response);
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
 
@@ -501,8 +505,8 @@ public class Ds3Cli_Test {
         when(webResponse.getStatusCode()).thenReturn(200);
         when(webResponse.getHeaders()).thenReturn(headers);
 
-        final PutBucketResponse response = new PutBucketResponse(webResponse);
-        when(client.putBucket(any(PutBucketRequest.class))).thenReturn(response);
+        final CreateBucketResponse response = new CreateBucketResponse(webResponse);
+        when(client.createBucket(any(CreateBucketRequest.class))).thenReturn(response);
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
 
@@ -526,8 +530,8 @@ public class Ds3Cli_Test {
         when(webResponse.getStatusCode()).thenReturn(200);
         when(webResponse.getHeaders()).thenReturn(headers);
         when(webResponse.getResponseStream()).thenReturn(IOUtils.toInputStream(response));
-        final ModifyJobResponse modifyJobResponse = new ModifyJobResponse(webResponse);
-        when(client.modifyJob(any(ModifyJobRequest.class))).thenReturn(modifyJobResponse);
+        final ModifyJobSpectraS3Response modifyJobResponse = new ModifyJobSpectraS3Response(webResponse);
+        when(client.modifyJobSpectraS3(any(ModifyJobSpectraS3Request.class))).thenReturn(modifyJobResponse);
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
 
@@ -551,8 +555,8 @@ public class Ds3Cli_Test {
         when(webResponse.getStatusCode()).thenReturn(200);
         when(webResponse.getHeaders()).thenReturn(headers);
         when(webResponse.getResponseStream()).thenReturn(IOUtils.toInputStream(response));
-        final ModifyJobResponse modifyJobResponse = new ModifyJobResponse(webResponse);
-        when(client.modifyJob(any(ModifyJobRequest.class))).thenReturn(modifyJobResponse);
+        final ModifyJobSpectraS3Response modifyJobResponse = new ModifyJobSpectraS3Response(webResponse);
+        when(client.modifyJobSpectraS3(any(ModifyJobSpectraS3Request.class))).thenReturn(modifyJobResponse);
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
 
@@ -618,17 +622,17 @@ public class Ds3Cli_Test {
     public void putObjectWithSyncNotSupportedVersion() throws Exception {
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "put_object", "-b", "bucketName", "-o", "obj.txt", "--sync"});
 
-        final SystemInformation.BuildInformation buildInformation = mock(SystemInformation.BuildInformation.class);
+        final BuildInformation buildInformation = mock(BuildInformation.class);
         when(buildInformation.getVersion()).thenReturn("1.2.0");
 
         final SystemInformation systemInformation = mock(SystemInformation.class);
         when(systemInformation.getBuildInformation()).thenReturn(buildInformation);
 
-        final GetSystemInformationResponse systemInformationResponse = mock(GetSystemInformationResponse.class);
-        when(systemInformationResponse.getSystemInformation()).thenReturn(systemInformation);
+        final GetSystemInformationSpectraS3Response systemInformationResponse = mock(GetSystemInformationSpectraS3Response.class);
+        when(systemInformationResponse.getSystemInformationResult()).thenReturn(systemInformation);
 
         final Ds3Client client = mock(Ds3Client.class);
-        when(client.getSystemInformation(any(GetSystemInformationRequest.class))).thenReturn(systemInformationResponse);
+        when(client.getSystemInformationSpectraS3(any(GetSystemInformationSpectraS3Request.class))).thenReturn(systemInformationResponse);
 
         final Ds3ClientHelpers helpers = mock(Ds3ClientHelpers.class);
 
@@ -755,8 +759,8 @@ public class Ds3Cli_Test {
         when(webResponse.getStatusCode()).thenReturn(200);
         when(webResponse.getHeaders()).thenReturn(headers);
         when(webResponse.getResponseStream()).thenReturn(IOUtils.toInputStream(response));
-        final GetJobResponse getJobResponse = new GetJobResponse(webResponse);
-        when(client.getJob(any(GetJobRequest.class))).thenReturn(getJobResponse);
+        final GetJobSpectraS3Response getJobResponse = new GetJobSpectraS3Response(webResponse);
+        when(client.getJobSpectraS3(any(GetJobSpectraS3Request.class))).thenReturn(getJobResponse);
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
 
@@ -773,21 +777,24 @@ public class Ds3Cli_Test {
 
         final String expected = "\"Data\" : {\n"
                 + "    \"jobDetails\" : {\n"
-                + "      \"Nodes\" : null,\n"
-                + "      \"CachedSizeInBytes\" : 0,\n"
-                + "      \"CompletedSizeInBytes\" : 0,\n"
-                + "      \"OriginalSizeInBytes\" : 32,\n"
-                + "      \"BucketName\" : \"bucket\",\n"
-                + "      \"JobId\" : \"aa5df0cc-b03a-4cb9-b69d-56e7367e917f\",\n"
-                + "      \"UserId\" : \"c2581493-058c-40d7-a3a1-9a50b20d6d3b\",\n"
-                + "      \"UserName\" : \"spectra\",\n"
-                + "      \"WriteOptimization\" : \"CAPACITY\",\n"
-                + "      \"Priority\" : \"HIGH\",\n"
-                + "      \"RequestType\" : \"GET\",\n"
-                + "      \"StartDate\" : \"2015-09-28T17:30:43.000Z\",\n"
-                + "      \"ChunkClientProcessingOrderGuarantee\" : \"NONE\",\n"
-                + "      \"Status\" : \"COMPLETED\",\n"
-                + "      \"Objects\" : null\n"
+                + "      \"aggregating\" : false,\n"
+                + "      \"bucketName\" : \"bucket\",\n"
+                + "      \"cachedSizeInBytes\" : 0,\n"
+                + "      \"chunkClientProcessingOrderGuarantee\" : \"NONE\",\n"
+                + "      \"completedSizeInBytes\" : 0,\n"
+                + "      \"jobId\" : \"aa5df0cc-b03a-4cb9-b69d-56e7367e917f\",\n"
+                + "      \"naked\" : false,\n"
+                + "      \"name\" : null,\n"
+                + "      \"originalSizeInBytes\" : 32,\n"
+                + "      \"priority\" : \"HIGH\",\n"
+                + "      \"requestType\" : \"GET\",\n"
+                + "      \"startDate\" : \"2015-09-28T17:30:43.000Z\",\n"
+                + "      \"status\" : \"COMPLETED\",\n"
+                + "      \"userId\" : \"c2581493-058c-40d7-a3a1-9a50b20d6d3b\",\n"
+                + "      \"userName\" : \"spectra\",\n"
+                + "      \"writeOptimization\" : \"CAPACITY\",\n"
+                + "      \"Nodes\" : [ ],\n"
+                + "      \"Objects\" : [ ]\n"
                 + "    }\n"
                 + "  },\n  \"Status\" : \"OK\"\n"
                 + "}";
@@ -800,12 +807,14 @@ public class Ds3Cli_Test {
         when(webResponse.getStatusCode()).thenReturn(200);
         when(webResponse.getHeaders()).thenReturn(headers);
         when(webResponse.getResponseStream()).thenReturn(IOUtils.toInputStream(response));
-        final GetJobResponse getJobResponse = new GetJobResponse(webResponse);
-        when(client.getJob(any(GetJobRequest.class))).thenReturn(getJobResponse);
+        final GetJobSpectraS3Response getJobResponse = new GetJobSpectraS3Response(webResponse);
+        when(client.getJobSpectraS3(any(GetJobSpectraS3Request.class))).thenReturn(getJobResponse);
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
 
         final CommandResponse result = cli.call();
+        System.out.println("expected:\n" + expected);
+        System.out.println("result:\n" + result.getMessage());
         assertTrue(result.getMessage().endsWith(expected));
         assertThat(result.getReturnCode(), is(0));
     }
@@ -989,13 +998,13 @@ public class Ds3Cli_Test {
         when(helpers.startWriteJob(eq("bucketName"), eq(retObj), any(WriteJobOptions.class))).thenReturn(mockedGetJob);
 
         final Ds3Client client = mock(Ds3Client.class);
-        final GetSystemInformationResponse systemInformationResponse = mock(GetSystemInformationResponse.class);
+        final GetSystemInformationSpectraS3Response systemInformationResponse = mock(GetSystemInformationSpectraS3Response.class);
         final SystemInformation systemInformation = mock(SystemInformation.class);
-        final SystemInformation.BuildInformation buildInformation = mock(SystemInformation.BuildInformation.class);
+        final BuildInformation buildInformation = mock(BuildInformation.class);
         when(buildInformation.getVersion()).thenReturn("1.2.0");
         when(systemInformation.getBuildInformation()).thenReturn(buildInformation);
-        when(systemInformationResponse.getSystemInformation()).thenReturn(systemInformation);
-        when(client.getSystemInformation(any(GetSystemInformationRequest.class))).thenReturn(systemInformationResponse);
+        when(systemInformationResponse.getSystemInformationResult()).thenReturn(systemInformation);
+        when(client.getSystemInformationSpectraS3(any(GetSystemInformationSpectraS3Request.class))).thenReturn(systemInformationResponse);
 
         PowerMockito.mockStatic(BlackPearlUtils.class);
 
@@ -1039,9 +1048,9 @@ public class Ds3Cli_Test {
 
     @Test
     public void deleteTapeDrive() throws Exception {
-        final String expected = "Success: Deleted tape drive 'someIdValue'.";
+        final String expected = "Success: Deleted tape drive 'c2581493-058c-40d7-a3a1-9a50b20d6d3b'.";
 
-        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "delete_tape_drive", "-i", "someIdValue"});
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "delete_tape_drive", "-i", "c2581493-058c-40d7-a3a1-9a50b20d6d3b"});
         final Ds3Client client = mock(Ds3Client.class);
 
         final WebResponse webResponse = mock(WebResponse.class);
@@ -1049,8 +1058,8 @@ public class Ds3Cli_Test {
         when(webResponse.getStatusCode()).thenReturn(204);
         when(webResponse.getHeaders()).thenReturn(headers);
 
-        final DeleteTapeDriveResponse deleteTapeDriveResponse = new DeleteTapeDriveResponse(webResponse);
-        when(client.deleteTapeDrive(any(DeleteTapeDriveRequest.class))).thenReturn(deleteTapeDriveResponse);
+        final DeleteTapeDriveSpectraS3Response deleteTapeDriveResponse = new DeleteTapeDriveSpectraS3Response(webResponse);
+        when(client.deleteTapeDriveSpectraS3(any(DeleteTapeDriveSpectraS3Request.class))).thenReturn(deleteTapeDriveResponse);
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
 
@@ -1062,18 +1071,18 @@ public class Ds3Cli_Test {
     @Test
     public void deleteTapeDriveJson() throws Exception {
         final String expected = "  \"Status\" : \"OK\",\n" +
-                "  \"Message\" : \"Success: Deleted tape drive 'someIdValue'.\"\n" +
+                "  \"Message\" : \"Success: Deleted tape drive 'c2581493-058c-40d7-a3a1-9a50b20d6d3b'.\"\n" +
                 "}";
 
-        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "delete_tape_drive", "-i", "someIdValue", "--output-format", "json"});
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "delete_tape_drive", "-i", "c2581493-058c-40d7-a3a1-9a50b20d6d3b", "--output-format", "json"});
         final Ds3Client client = mock(Ds3Client.class);
         final WebResponse webResponse = mock(WebResponse.class);
         final Headers headers = mock(Headers.class);
         when(webResponse.getStatusCode()).thenReturn(204);
         when(webResponse.getHeaders()).thenReturn(headers);
 
-        final DeleteTapeDriveResponse deleteTapeDriveResponse = new DeleteTapeDriveResponse(webResponse);
-        when(client.deleteTapeDrive(any(DeleteTapeDriveRequest.class))).thenReturn(deleteTapeDriveResponse);
+        final DeleteTapeDriveSpectraS3Response deleteTapeDriveResponse = new DeleteTapeDriveSpectraS3Response(webResponse);
+        when(client.deleteTapeDriveSpectraS3(any(DeleteTapeDriveSpectraS3Request.class))).thenReturn(deleteTapeDriveResponse);
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
 
@@ -1094,8 +1103,8 @@ public class Ds3Cli_Test {
         when(webResponse.getStatusCode()).thenReturn(204);
         when(webResponse.getHeaders()).thenReturn(headers);
 
-        final DeleteTapePartitionResponse deleteTapePartitionResponse = new DeleteTapePartitionResponse(webResponse);
-        when(client.deleteTapePartition(any(DeleteTapePartitionRequest.class))).thenReturn(deleteTapePartitionResponse);
+        final DeleteTapePartitionSpectraS3Response deleteTapePartitionResponse = new DeleteTapePartitionSpectraS3Response(webResponse);
+        when(client.deleteTapePartitionSpectraS3(any(DeleteTapePartitionSpectraS3Request.class))).thenReturn(deleteTapePartitionResponse);
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
 
@@ -1118,8 +1127,8 @@ public class Ds3Cli_Test {
         when(webResponse.getStatusCode()).thenReturn(204);
         when(webResponse.getHeaders()).thenReturn(headers);
 
-        final DeleteTapePartitionResponse deleteTapePartitionResponse = new DeleteTapePartitionResponse(webResponse);
-        when(client.deleteTapePartition(any(DeleteTapePartitionRequest.class))).thenReturn(deleteTapePartitionResponse);
+        final DeleteTapePartitionSpectraS3Response deleteTapePartitionResponse = new DeleteTapePartitionSpectraS3Response(webResponse);
+        when(client.deleteTapePartitionSpectraS3(any(DeleteTapePartitionSpectraS3Request.class))).thenReturn(deleteTapePartitionResponse);
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
 
@@ -1131,13 +1140,13 @@ public class Ds3Cli_Test {
     @Test
     public void isCliSupportedTest() throws IOException, SignatureException {
         final Ds3Client client = mock(Ds3Client.class);
-        final GetSystemInformationResponse systemInformationResponse = mock(GetSystemInformationResponse.class);
+        final GetSystemInformationSpectraS3Response systemInformationResponse = mock(GetSystemInformationSpectraS3Response.class);
         final SystemInformation systemInformation = mock(SystemInformation.class);
-        final SystemInformation.BuildInformation buildInformation = mock(SystemInformation.BuildInformation.class);
+        final BuildInformation buildInformation = mock(BuildInformation.class);
 
         when(systemInformation.getBuildInformation()).thenReturn(buildInformation);
-        when(systemInformationResponse.getSystemInformation()).thenReturn(systemInformation);
-        when(client.getSystemInformation(any(GetSystemInformationRequest.class))).thenReturn(systemInformationResponse);
+        when(systemInformationResponse.getSystemInformationResult()).thenReturn(systemInformation);
+        when(client.getSystemInformationSpectraS3(any(GetSystemInformationSpectraS3Request.class))).thenReturn(systemInformationResponse);
 
         when(buildInformation.getVersion()).thenReturn("1.2.0");
         assertTrue(Utils.isCliSupported(client));

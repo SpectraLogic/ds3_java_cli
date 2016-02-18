@@ -17,9 +17,9 @@ public class HeadObjectView implements View<HeadObjectResult> {
     @Override
     public String render(final HeadObjectResult obj) throws JsonProcessingException {
 
-        switch(obj.getStatus()) {
+        switch (obj.getStatus()) {
             case DOESNTEXIST: return "The object does not exist";
-            case NOTAUTHORIZED: return "Authentication failed";
+            case UNKNOWN: return "Authentication failed";
             default: {
                 if (obj.getMetadata().keys().size() == 0) {
                     return "The object exists and does not have any metadata";
@@ -36,7 +36,7 @@ public class HeadObjectView implements View<HeadObjectResult> {
         final String [][] formatArray = new String[keys.size()][];
         int arrayIndex = 0;
 
-        for(final String key : keys) {
+        for (final String key : keys) {
             final List<String> values = metadata.get(key);
             final String [] bucketArray = new String[2];
             bucketArray[0] = nullGuard(key);

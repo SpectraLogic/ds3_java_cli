@@ -4,8 +4,8 @@ import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.models.GetJobResult;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
-import com.spectralogic.ds3client.commands.GetJobRequest;
-import com.spectralogic.ds3client.commands.GetJobResponse;
+import com.spectralogic.ds3client.commands.spectrads3.GetJobSpectraS3Request;
+import com.spectralogic.ds3client.commands.spectrads3.GetJobSpectraS3Response;
 import org.apache.commons.cli.MissingArgumentException;
 
 import java.util.UUID;
@@ -33,8 +33,8 @@ public class GetJob extends CliCommand<GetJobResult> {
 
     @Override
     public GetJobResult call() throws Exception {
-        final GetJobResponse response = getClient().getJob(new GetJobRequest(this.jobId));
+        final GetJobSpectraS3Response response = getClient().getJobSpectraS3(new GetJobSpectraS3Request(this.jobId));
 
-        return new GetJobResult(response.getMasterObjectList());
+        return new GetJobResult(response.getMasterObjectListResult());
     }
 }

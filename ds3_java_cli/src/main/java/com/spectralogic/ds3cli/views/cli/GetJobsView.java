@@ -5,32 +5,31 @@ import com.bethecoder.ascii_table.ASCIITableHeader;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.models.GetJobsResult;
-import com.spectralogic.ds3client.models.bulk.JobInfo;
-
-import java.util.List;
+import com.spectralogic.ds3client.models.JobApiBean;
+import com.spectralogic.ds3client.models.JobsApiBean;
 
 import static com.spectralogic.ds3cli.util.Utils.nullGuard;
 
 public class GetJobsView implements View<GetJobsResult> {
     @Override
-    public String render(final GetJobsResult obj) throws JsonProcessingException {
+    public String render(final GetJobsResult result) throws JsonProcessingException {
 
-        final List<JobInfo> info = obj.getJobs();
-        if (info == null || info.isEmpty()) {
+        final JobsApiBean jobsInfo = result.getJobs();
+        if (jobsInfo == null || jobsInfo.getJobs().isEmpty()) {
             return "There are not jobs currently running.";
         }
 
-        return ASCIITable.getInstance().getTable(getHeaders(), fromJobInfoList(obj.getJobs()));
+        return ASCIITable.getInstance().getTable(getHeaders(), fromJobInfoList(jobsInfo));
     }
 
-    private String[][] fromJobInfoList(final List<JobInfo> result) {
-        final String [][] formatArray = new String[result.size()][];
-        for(int i = 0; i < result.size(); i ++) {
-            final JobInfo job = result.get(i);
+    private String[][] fromJobInfoList(final JobsApiBean jobs) {
+        final String [][] formatArray = new String[jobs.getJobs().size()][];
+        for (int i = 0; i < jobs.getJobs().size(); i ++) {
+            final JobApiBean job = jobs.getJobs().get(i);
             final String [] jobArray = new String[6];
             jobArray[0] = nullGuard(job.getBucketName());
             jobArray[1] = nullGuard(job.getJobId().toString());
-            jobArray[2] = nullGuard(job.getStartDate());
+            jobArray[2] = nullGuard(job.getStartDate().toString());
             jobArray[3] = nullGuard(job.getUserName());
             jobArray[4] = nullGuard(job.getRequestType().toString());
             jobArray[5] = nullGuard(job.getStatus().toString());

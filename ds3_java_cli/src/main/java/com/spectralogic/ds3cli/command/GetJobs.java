@@ -19,7 +19,7 @@ import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.models.GetJobsResult;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
-import com.spectralogic.ds3client.commands.GetJobsRequest;
+import com.spectralogic.ds3client.commands.spectrads3.GetJobsSpectraS3Request;
 
 public class GetJobs extends CliCommand<GetJobsResult> {
 
@@ -37,10 +37,11 @@ public class GetJobs extends CliCommand<GetJobsResult> {
 
     @Override
     public GetJobsResult call() throws Exception {
-        final GetJobsRequest request = new GetJobsRequest();
+        final GetJobsSpectraS3Request request = new GetJobsSpectraS3Request();
         if(completed) {
             request.withFullDetails(completed);
         }
-        return new GetJobsResult(getClient().getJobs(request).getJobs());
+
+        return new GetJobsResult(getClient().getJobsSpectraS3(request).getJobsApiBeanResult());
     }
 }
