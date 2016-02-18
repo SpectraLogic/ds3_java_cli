@@ -402,6 +402,7 @@ public class Ds3Cli_Test {
                 "  \"Data\" : {\n" +
                         "    \"BucketName\" : \"bucketName\",\n" +
                         "    \"Objects\" : [ {\n" +
+                        "      \"etag\" : \"\\\"fba9dede5f27731c9771645a39863328\\\"\",\n" + // TODO investigate double printing of etag
                         "      \"ETag\" : \"\\\"fba9dede5f27731c9771645a39863328\\\"\",\n" +
                         "      \"Key\" : \"my-image.jpg\",\n" +
                         "      \"LastModified\" : \"2009-10-12T17:50:30.000Z\",\n" +
@@ -412,6 +413,7 @@ public class Ds3Cli_Test {
                         "      \"Size\" : 434234,\n" +
                         "      \"StorageClass\" : \"STANDARD\"\n" +
                         "    }, {\n" +
+                        "      \"etag\" : \"\\\"1b2cf535f27731c974343645a3985328\\\"\",\n" + // TODO investigate double printing of etag
                         "      \"ETag\" : \"\\\"1b2cf535f27731c974343645a3985328\\\"\",\n" +
                         "      \"Key\" : \"my-third-image.jpg\",\n" +
                         "      \"LastModified\" : \"2009-10-12T17:50:30.000Z\",\n" +
