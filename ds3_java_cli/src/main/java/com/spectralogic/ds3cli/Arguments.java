@@ -19,8 +19,8 @@ import ch.qos.logback.classic.Level;
 import com.google.common.collect.ImmutableMap;
 import com.spectralogic.ds3cli.exceptions.BadArgumentException;
 import com.spectralogic.ds3cli.util.Metadata;
-import com.spectralogic.ds3client.models.WriteOptimization;
 import com.spectralogic.ds3client.models.BlobStoreTaskPriority;
+import com.spectralogic.ds3client.models.WriteOptimization;
 import org.apache.commons.cli.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -335,7 +335,7 @@ public class Arguments {
 
         this.setNumberOfThreads(cmd.getOptionValue("nt"));
         if (this.getNumberOfThreads() == null) {
-            this.numberOfThreads = "10"; //default to 20 threads
+            this.numberOfThreads = "10"; //default to 10 threads
         }
 
         if (cmd.hasOption("ignore-errors")) {

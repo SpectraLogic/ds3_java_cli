@@ -234,9 +234,7 @@ public class FeatureIntegration_Test {
             final Arguments args = new Arguments(new String[]{"--http", "-c", "get_job", "-i", readJob.getJobId().toString(), "--output-format", "json"});
             final CommandResponse getJobResponse = Util.command(client, args);
 
-            System.out.println("getJobResponse: " + getJobResponse.getMessage());
             final JobResponse cliJobResponse = JsonMapper.toModel(getJobResponse.getMessage(), JobResponse.class);
-            System.out.println("cliJobResponse: " + cliJobResponse.getData().getJobDetails().toString());
 
             assertThat(cliJobResponse.getMeta(), is(notNullValue()));
 
