@@ -43,6 +43,7 @@ import java.nio.channels.FileChannel;
 import java.nio.file.*;
 import java.util.Collections;
 
+import static java.lang.Thread.sleep;
 import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.number.OrderingComparison.greaterThan;
 import static org.junit.Assert.assertThat;
@@ -469,6 +470,28 @@ public class FeatureIntegration_Test {
             collection = metadata.get("key2");
             assertThat(collection.size(), is(1));
             assertThat(collection.asList().get(0), is("value2"));
+
+        } finally {
+            Util.deleteBucket(client, bucketName);
+        }
+    }
+
+    @Test
+    public void getPhysicalPlacement() throws Exception {
+        final String bucketName = "test_physical_placement";
+        try {
+            //final String expected = "Success: created bucket " + bucketName + ".";
+
+            Util.createBucket(client, bucketName);
+            final CommandResponse putResponse = Util.loadBookTestData(client, bucketName);
+            System.out.println(putResponse.getMessage());
+
+            sleep(5);
+
+            final Arguments args = new Arguments(new String[]{"--http", "-c", "get_physical_placement", "-b", bucketName, "-o", "beowulf.txt" });
+            final CommandResponse response = Util.command(client, args);
+            System.out.println("GetPhysicalPlacement response:\n" + response.getMessage());
+            //assertThat(response.getMessage(), is(expected));
 
         } finally {
             Util.deleteBucket(client, bucketName);

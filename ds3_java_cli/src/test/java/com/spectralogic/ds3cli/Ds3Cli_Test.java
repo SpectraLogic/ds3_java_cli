@@ -26,14 +26,13 @@ import com.spectralogic.ds3client.commands.spectrads3.*;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.helpers.options.ReadJobOptions;
 import com.spectralogic.ds3client.helpers.options.WriteJobOptions;
-import com.spectralogic.ds3client.models.BuildInformation;
-import com.spectralogic.ds3client.models.Contents;
+import com.spectralogic.ds3client.models.*;
 import com.spectralogic.ds3client.models.Error;
-import com.spectralogic.ds3client.models.SystemInformation;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.networking.FailedRequestException;
 import com.spectralogic.ds3client.networking.Headers;
 import com.spectralogic.ds3client.networking.WebResponse;
+import com.spectralogic.ds3client.serializer.XmlOutput;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -60,7 +59,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 
-@PrepareForTest({Utils.class, SyncUtils.class, BlackPearlUtils.class})
+@PrepareForTest({Utils.class, SyncUtils.class, BlackPearlUtils.class, GetPhysicalPlacementForObjectsWithFullDetailsSpectraS3Response.class})
 @RunWith(PowerMockRunner.class)
 public class Ds3Cli_Test {
 
@@ -108,9 +107,9 @@ public class Ds3Cli_Test {
         });
         when(webResponse.getResponseStream()).thenReturn(stream);
 
-        final GetBucketsResponse serviceResponse = new GetBucketsResponse(webResponse);
+        final GetServiceResponse serviceResponse = new GetServiceResponse(webResponse);
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
-        when(client.getBuckets(any(GetBucketsRequest.class))).thenReturn(serviceResponse);
+        when(client.getService(any(GetServiceRequest.class))).thenReturn(serviceResponse);
 
         final CommandResponse result = cli.call();
         assertThat(result.getMessage(), is(expectedString));
@@ -169,9 +168,9 @@ public class Ds3Cli_Test {
         });
         when(webResponse.getResponseStream()).thenReturn(stream);
 
-        final GetBucketsResponse serviceResponse = new GetBucketsResponse(webResponse);
+        final GetServiceResponse serviceResponse = new GetServiceResponse(webResponse);
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
-        when(client.getBuckets(any(GetBucketsRequest.class))).thenReturn(serviceResponse);
+        when(client.getService(any(GetServiceRequest.class))).thenReturn(serviceResponse);
 
         final CommandResponse result = cli.call();
         assertTrue(result.getMessage().endsWith(expectedString));
@@ -182,7 +181,7 @@ public class Ds3Cli_Test {
     public void error() throws Exception {
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_service"});
         final Ds3Client client = mock(Ds3Client.class);
-        when(client.getBuckets(any(GetBucketsRequest.class)))
+        when(client.getService(any(GetServiceRequest.class)))
                 .thenThrow(new FailedRequestException(toImmutableIntList(new int[]{200}), 500, new Error(), ""));
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
@@ -204,7 +203,7 @@ public class Ds3Cli_Test {
 
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_service", "--output-format", "json"});
         final Ds3Client client = mock(Ds3Client.class);
-        when(client.getBuckets(any(GetBucketsRequest.class)))
+        when(client.getService(any(GetServiceRequest.class)))
                 .thenThrow(new FailedRequestException(toImmutableIntList(new int[]{200}), 500, new Error(), ""));
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
@@ -483,8 +482,8 @@ public class Ds3Cli_Test {
         when(webResponse.getStatusCode()).thenReturn(200);
         when(webResponse.getHeaders()).thenReturn(headers);
 
-        final CreateBucketResponse response = new CreateBucketResponse(webResponse);
-        when(client.createBucket(any(CreateBucketRequest.class))).thenReturn(response);
+        final PutBucketResponse response = new PutBucketResponse(webResponse);
+        when(client.putBucket(any(PutBucketRequest.class))).thenReturn(response);
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
 
@@ -505,8 +504,8 @@ public class Ds3Cli_Test {
         when(webResponse.getStatusCode()).thenReturn(200);
         when(webResponse.getHeaders()).thenReturn(headers);
 
-        final CreateBucketResponse response = new CreateBucketResponse(webResponse);
-        when(client.createBucket(any(CreateBucketRequest.class))).thenReturn(response);
+        final PutBucketResponse response = new PutBucketResponse(webResponse);
+        when(client.putBucket(any(PutBucketRequest.class))).thenReturn(response);
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
 
@@ -813,8 +812,6 @@ public class Ds3Cli_Test {
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
 
         final CommandResponse result = cli.call();
-        System.out.println("expected:\n" + expected);
-        System.out.println("result:\n" + result.getMessage());
         assertTrue(result.getMessage().endsWith(expected));
         assertThat(result.getReturnCode(), is(0));
     }
@@ -1394,5 +1391,76 @@ public class Ds3Cli_Test {
         } catch (final Exception ex) {
             fail(); //This is the wrong exception
         }
+    }
+
+    @Test
+    public void testGetPhysicalPlacementOnTape() throws Exception {
+        final Tape tape1 = new Tape();
+        tape1.setAssignedToStorageDomain(false);
+        tape1.setAvailableRawCapacity(10000L);
+        tape1.setBarCode("t1");
+        tape1.setFullOfData(false);
+        final UUID tape1Id = UUID.randomUUID();
+        tape1.setId(tape1Id);
+        final UUID tape1PartitionId = UUID.randomUUID();
+        tape1.setPartitionId(tape1PartitionId);
+        tape1.setState(TapeState.PENDING_INSPECTION);
+        final UUID tape1StorageDomainId = UUID.randomUUID();
+        tape1.setStorageDomainId(tape1StorageDomainId);
+        tape1.setTakeOwnershipPending(false);
+        tape1.setTotalRawCapacity(20000L);
+        tape1.setType(TapeType.LTO6);
+        tape1.setWriteProtected(false);
+
+        final Tape tape2 = new Tape();
+        tape2.setAssignedToStorageDomain(false);
+        tape2.setAvailableRawCapacity(10000L);
+        tape2.setBarCode("t2");
+        tape2.setFullOfData(false);
+        final UUID tape2Id = UUID.randomUUID();
+        tape2.setId(tape2Id);
+        final UUID tape2PartitionId = UUID.randomUUID();
+        tape2.setPartitionId(tape2PartitionId);
+        tape2.setState(TapeState.PENDING_INSPECTION);
+        final UUID tape2StorageDomainId = UUID.randomUUID();
+        tape2.setStorageDomainId(tape2StorageDomainId);
+        tape2.setTakeOwnershipPending(false);
+        tape2.setTotalRawCapacity(20000L);
+        tape2.setType(TapeType.LTO6);
+        tape2.setWriteProtected(false);
+
+        final BulkObject testObject = new BulkObject();
+        testObject.setName("testObject");
+        testObject.setLength(1024L);
+        final PhysicalPlacement physicalPlacement = new PhysicalPlacement();
+        physicalPlacement.setPools(null);
+        physicalPlacement.setTapes(Lists.newArrayList(tape1, tape2));
+        testObject.setPhysicalPlacement(physicalPlacement);
+        final BulkObjectList bulkObjectList = new BulkObjectList();
+        bulkObjectList.setObjects(Lists.newArrayList(testObject));
+
+        final Ds3Client client = mock(Ds3Client.class);
+        final WebResponse webResponse = mock(WebResponse.class);
+        final Headers headers = mock(Headers.class);
+        when(webResponse.getStatusCode()).thenReturn(200);
+        when(webResponse.getHeaders()).thenReturn(headers);
+        when(webResponse.getResponseStream()).thenReturn(IOUtils.toInputStream(XmlOutput.toXml(bulkObjectList), "utf-8"));
+
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_physical_placement", "-b", "bucketName", "-o", "testObject"});
+
+        final GetPhysicalPlacementForObjectsWithFullDetailsSpectraS3Response response = PowerMockito.spy(new GetPhysicalPlacementForObjectsWithFullDetailsSpectraS3Response(webResponse));
+        PowerMockito.doNothing().when(response, "processResponse");
+
+        when(response.getBulkObjectListResult()).thenReturn(bulkObjectList);
+        when(client.getPhysicalPlacementForObjectsWithFullDetailsSpectraS3(any(GetPhysicalPlacementForObjectsWithFullDetailsSpectraS3Request.class))).thenReturn(response);
+
+        final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
+        final CommandResponse result = cli.call();
+        System.out.println("result:\n" + result.getMessage());
+
+        assertTrue(result.getMessage().contains("| testObject |    | Unknown  | 1024   | 0      |"));
+        assertTrue(result.getMessage().contains("| t1       | PENDING_INSPECTION | LTO6 | N/A         |"));
+        assertTrue(result.getMessage().contains("| t2       | PENDING_INSPECTION | LTO6 | N/A         |"));
+        assertThat(result.getReturnCode(), is(0));
     }
 }

@@ -29,7 +29,7 @@ import java.util.List;
 public final class BlackPearlUtils {
 
     public static void checkBlackPearlForTapeFailure(final Ds3Client client) throws IOException, SignatureException, CommandException {
-        final List<TapeFailure> tapeFailures = client.getTapeFailuresSpectraS3(new GetTapeFailuresSpectraS3Request()).getTapeFailureListResult().getTapeFailure();
+        final List<TapeFailure> tapeFailures = client.getTapeFailuresSpectraS3(new GetTapeFailuresSpectraS3Request()).getTapeFailureListResult().getTapeFailures();
 
         if (Guard.isNotNullAndNotEmpty(tapeFailures)) {
             throw new CommandException(new TapeFailureException(tapeFailures.iterator()));

@@ -27,8 +27,8 @@ import com.spectralogic.ds3cli.util.*;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.helpers.FileObjectPutter;
 import com.spectralogic.ds3client.helpers.options.WriteJobOptions;
-import com.spectralogic.ds3client.models.BlobStoreTaskPriority;
 import com.spectralogic.ds3client.models.Contents;
+import com.spectralogic.ds3client.models.Priority;
 import com.spectralogic.ds3client.models.WriteOptimization;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.serializer.XmlProcessingException;
@@ -54,7 +54,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
     private Path inputDirectory;
     private String prefix;
     private boolean checksum;
-    private BlobStoreTaskPriority priority;
+    private Priority priority;
     private WriteOptimization writeOptimization;
     private boolean sync;
     private boolean force;
