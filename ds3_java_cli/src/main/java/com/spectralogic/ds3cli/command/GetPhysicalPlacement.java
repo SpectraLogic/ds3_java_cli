@@ -42,7 +42,6 @@ public class GetPhysicalPlacement extends CliCommand<GetPhysicalPlacementWithFul
     @Override
     public GetPhysicalPlacementWithFullDetailsResult call() throws Exception {
         try {
-            System.out.println("GetPhysicalPlacementWithFullDetails command: " + bucketName + " : " + objectName);
             final List<Ds3Object> objectsList = Arrays.asList(new Ds3Object(objectName));
 
             final GetPhysicalPlacementForObjectsWithFullDetailsSpectraS3Response response = getClient().

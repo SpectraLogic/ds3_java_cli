@@ -51,13 +51,14 @@ public class GetPhysicalPlacementWithFullDetailsView  implements View<GetPhysica
     private String[][] formatBulkObjectList(final BulkObject obj) {
         final String [][] formatArray = new String[1][];
 
-            final String[] bulkObjectArray = new String[5];
+            final String[] bulkObjectArray = new String[7];
             bulkObjectArray[0] = nullGuard(obj.getName());
             bulkObjectArray[1] = nullGuard(obj.getId() != null ? obj.getId().toString() : "");
             bulkObjectArray[2] = nullGuard(obj.getInCache() != null ? obj.getInCache().toString() : "Unknown");
             bulkObjectArray[3] = nullGuard(Long.toString(obj.getLength()));
             bulkObjectArray[4] = nullGuard(Long.toString(obj.getOffset()));
-            // bulkObjectArray[5] = nullGuard(Boolean.toString(obj.getLatest())); // Versioning not supported yet.
+            bulkObjectArray[5] = nullGuard(Boolean.toString(obj.getLatest()));
+            bulkObjectArray[6] = nullGuard(Long.toString(obj.getVersion()));
             formatArray[0] = bulkObjectArray;
 
         return formatArray;
@@ -65,11 +66,13 @@ public class GetPhysicalPlacementWithFullDetailsView  implements View<GetPhysica
 
     private ASCIITableHeader[] getBulkObjectHeaders() {
         return new ASCIITableHeader[]{
-                new ASCIITableHeader("Name", ASCIITable.ALIGN_LEFT),
+                new ASCIITableHeader("Object Name", ASCIITable.ALIGN_LEFT),
                 new ASCIITableHeader("ID", ASCIITable.ALIGN_LEFT),
                 new ASCIITableHeader("In Cache", ASCIITable.ALIGN_LEFT),
                 new ASCIITableHeader("Length", ASCIITable.ALIGN_LEFT),
-                new ASCIITableHeader("Offset", ASCIITable.ALIGN_LEFT)
+                new ASCIITableHeader("Offset", ASCIITable.ALIGN_LEFT),
+                new ASCIITableHeader("Latest", ASCIITable.ALIGN_LEFT),
+                new ASCIITableHeader("Version", ASCIITable.ALIGN_LEFT)
         };
     }
 
@@ -81,11 +84,11 @@ public class GetPhysicalPlacementWithFullDetailsView  implements View<GetPhysica
             final String[] poolPlacementArray = new String[7];
             poolPlacementArray[0] = nullGuard(pool.getName());
             poolPlacementArray[1] = nullGuard(pool.getId().toString());
-            poolPlacementArray[2] = nullGuard(pool.getBucketId().toString());
+            poolPlacementArray[2] = nullGuard(pool.getBucketId() != null ? pool.getBucketId().toString() : "");
             poolPlacementArray[3] = nullGuard(pool.getState().toString());
             poolPlacementArray[4] = nullGuard(pool.getHealth().toString());
             poolPlacementArray[5] = nullGuard(pool.getType().toString());
-            poolPlacementArray[6] = nullGuard(pool.getPartitionId().toString());
+            poolPlacementArray[6] = nullGuard(pool.getPartitionId() != null ? pool.getPartitionId().toString() : "");
             formatArray[i] = poolPlacementArray;
         }
 
@@ -94,13 +97,13 @@ public class GetPhysicalPlacementWithFullDetailsView  implements View<GetPhysica
 
     private ASCIITableHeader[] getPoolsPlacementHeaders() {
         return new ASCIITableHeader[]{
-                new ASCIITableHeader("Name", ASCIITable.ALIGN_LEFT),
+                new ASCIITableHeader("Pool Name", ASCIITable.ALIGN_LEFT),
                 new ASCIITableHeader("ID", ASCIITable.ALIGN_LEFT),
                 new ASCIITableHeader("Bucket ID", ASCIITable.ALIGN_LEFT),
                 new ASCIITableHeader("State", ASCIITable.ALIGN_LEFT),
                 new ASCIITableHeader("Health", ASCIITable.ALIGN_LEFT),
                 new ASCIITableHeader("Type", ASCIITable.ALIGN_LEFT),
-                new ASCIITableHeader("Partition ID", ASCIITable.ALIGN_LEFT),
+                new ASCIITableHeader("Partition ID", ASCIITable.ALIGN_LEFT)
         };
     }
 
@@ -122,10 +125,10 @@ public class GetPhysicalPlacementWithFullDetailsView  implements View<GetPhysica
 
     private ASCIITableHeader[] getTapesPlacementHeaders() {
         return new ASCIITableHeader[]{
-                new ASCIITableHeader("Bar Code", ASCIITable.ALIGN_LEFT),
+                new ASCIITableHeader("Tape Bar Code", ASCIITable.ALIGN_LEFT),
                 new ASCIITableHeader("State", ASCIITable.ALIGN_LEFT),
                 new ASCIITableHeader("Type", ASCIITable.ALIGN_LEFT),
-                new ASCIITableHeader("Description", ASCIITable.ALIGN_LEFT),
+                new ASCIITableHeader("Description", ASCIITable.ALIGN_LEFT)
         };
     }
 }

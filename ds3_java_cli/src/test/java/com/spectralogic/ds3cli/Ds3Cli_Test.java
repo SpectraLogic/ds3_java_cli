@@ -1398,7 +1398,7 @@ public class Ds3Cli_Test {
         final Tape tape1 = new Tape();
         tape1.setAssignedToStorageDomain(false);
         tape1.setAvailableRawCapacity(10000L);
-        tape1.setBarCode("t1");
+        tape1.setBarCode("121557L6");
         tape1.setFullOfData(false);
         final UUID tape1Id = UUID.randomUUID();
         tape1.setId(tape1Id);
@@ -1415,7 +1415,7 @@ public class Ds3Cli_Test {
         final Tape tape2 = new Tape();
         tape2.setAssignedToStorageDomain(false);
         tape2.setAvailableRawCapacity(10000L);
-        tape2.setBarCode("t2");
+        tape2.setBarCode("421555L7");
         tape2.setFullOfData(false);
         final UUID tape2Id = UUID.randomUUID();
         tape2.setId(tape2Id);
@@ -1426,7 +1426,7 @@ public class Ds3Cli_Test {
         tape2.setStorageDomainId(tape2StorageDomainId);
         tape2.setTakeOwnershipPending(false);
         tape2.setTotalRawCapacity(20000L);
-        tape2.setType(TapeType.LTO6);
+        tape2.setType(TapeType.LTO7);
         tape2.setWriteProtected(false);
 
         final BulkObject testObject = new BulkObject();
@@ -1456,11 +1456,90 @@ public class Ds3Cli_Test {
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
         final CommandResponse result = cli.call();
-        System.out.println("result:\n" + result.getMessage());
 
-        assertTrue(result.getMessage().contains("| testObject |    | Unknown  | 1024   | 0      |"));
-        assertTrue(result.getMessage().contains("| t1       | PENDING_INSPECTION | LTO6 | N/A         |"));
-        assertTrue(result.getMessage().contains("| t2       | PENDING_INSPECTION | LTO6 | N/A         |"));
+        assertTrue(result.getMessage().contains("| Object Name | ID | In Cache | Length | Offset | Latest | Version |"));
+        assertTrue(result.getMessage().contains("| testObject  |    | Unknown  | 1024   | 0      | false  | 0       |"));
+
+        assertTrue(result.getMessage().contains("| Tape Bar Code |        State       | Type | Description |"));
+        assertTrue(result.getMessage().contains("| 121557L6      | PENDING_INSPECTION | LTO6 | N/A         |"));
+        assertTrue(result.getMessage().contains("| 421555L7      | PENDING_INSPECTION | LTO7 | N/A         |"));
+
+        assertThat(result.getReturnCode(), is(0));
+    }
+
+    @Test
+    public void testGetPhysicalPlacementOnPool() throws Exception {
+        final Pool pool1 = new Pool();
+        final UUID pool1Id = UUID.randomUUID();
+        pool1.setId(pool1Id);
+        pool1.setAssignedToStorageDomain(false);
+        pool1.setHealth(PoolHealth.OK);
+        pool1.setAvailableCapacity(42000L);
+        pool1.setMountpoint("mountpoint-1");
+        pool1.setName("pool1");
+        pool1.setPoweredOn(true);
+        pool1.setQuiesced(Quiesced.NO);
+        pool1.setReservedCapacity(0L);
+        pool1.setState(PoolState.NORMAL);
+        final UUID pool1StorageDomainId = UUID.randomUUID();
+        pool1.setStorageDomainId(pool1StorageDomainId);
+        pool1.setTotalCapacity(420000L);
+        pool1.setType(PoolType.NEARLINE);
+        pool1.setUsedCapacity(6L*7L);
+
+        final Pool pool2 = new Pool();
+        final UUID pool2Id = UUID.randomUUID();
+        pool2.setId(pool2Id);
+        pool2.setAssignedToStorageDomain(false);
+        pool2.setHealth(PoolHealth.OK);
+        pool2.setAvailableCapacity(42000L);
+        pool2.setMountpoint("mountpoint-2");
+        pool2.setName("pool2");
+        pool2.setPoweredOn(true);
+        pool2.setQuiesced(Quiesced.NO);
+        pool2.setReservedCapacity(0L);
+        pool2.setState(PoolState.NORMAL);
+        final UUID pool2StorageDomainId = UUID.randomUUID();
+        pool2.setStorageDomainId(pool2StorageDomainId);
+        pool2.setTotalCapacity(420000L);
+        pool2.setType(PoolType.NEARLINE);
+        pool2.setUsedCapacity(6L*7L);
+
+        final BulkObject testObject = new BulkObject();
+        testObject.setName("testObject");
+        testObject.setLength(1024L);
+        final PhysicalPlacement physicalPlacement = new PhysicalPlacement();
+        physicalPlacement.setPools(Lists.newArrayList(pool1, pool2));
+        physicalPlacement.setTapes(null);
+        testObject.setPhysicalPlacement(physicalPlacement);
+        final BulkObjectList bulkObjectList = new BulkObjectList();
+        bulkObjectList.setObjects(Lists.newArrayList(testObject));
+
+        final Ds3Client client = mock(Ds3Client.class);
+        final WebResponse webResponse = mock(WebResponse.class);
+        final Headers headers = mock(Headers.class);
+        when(webResponse.getStatusCode()).thenReturn(200);
+        when(webResponse.getHeaders()).thenReturn(headers);
+        when(webResponse.getResponseStream()).thenReturn(IOUtils.toInputStream(XmlOutput.toXml(bulkObjectList), "utf-8"));
+
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_physical_placement", "-b", "bucketName", "-o", "testObject"});
+
+        final GetPhysicalPlacementForObjectsWithFullDetailsSpectraS3Response response = PowerMockito.spy(new GetPhysicalPlacementForObjectsWithFullDetailsSpectraS3Response(webResponse));
+        PowerMockito.doNothing().when(response, "processResponse");
+
+        when(response.getBulkObjectListResult()).thenReturn(bulkObjectList);
+        when(client.getPhysicalPlacementForObjectsWithFullDetailsSpectraS3(any(GetPhysicalPlacementForObjectsWithFullDetailsSpectraS3Request.class))).thenReturn(response);
+
+        final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
+        final CommandResponse result = cli.call();
+
+        assertTrue(result.getMessage().contains("| Object Name | ID | In Cache | Length | Offset | Latest | Version |"));
+        assertTrue(result.getMessage().contains("| testObject  |    | Unknown  | 1024   | 0      | false  | 0       |"));
+
+        assertTrue(result.getMessage().contains("| Pool Name |                  ID                  | Bucket ID |  State | Health |   Type   | Partition ID |"));
+        assertTrue(result.getMessage().contains("| pool1     | " + pool1Id.toString() +            " |           | NORMAL | OK     | NEARLINE |              |"));
+        assertTrue(result.getMessage().contains("| pool2     | " + pool2Id.toString() +            " |           | NORMAL | OK     | NEARLINE |              |"));
+
         assertThat(result.getReturnCode(), is(0));
     }
 }
