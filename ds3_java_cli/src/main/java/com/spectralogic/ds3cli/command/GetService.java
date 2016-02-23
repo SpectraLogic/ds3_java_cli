@@ -42,7 +42,7 @@ public class GetService extends CliCommand<GetServiceResult> {
     @Override
     public GetServiceResult call() throws IOException, SignatureException, SSLSetupException, CommandException {
         try {
-            final GetServiceResponse response = getClient().getService(new GetServiceRequest()); // TODO revert to GetServiceRequest once the SDK is updated.
+            final GetServiceResponse response = getClient().getService(new GetServiceRequest());
 
             return new GetServiceResult(response.getListAllMyBucketsResult());
         } catch (final FailedRequestException e) {
