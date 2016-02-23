@@ -16,6 +16,8 @@ To install the latest ds3_java_cli download the latest release(either a zip or t
 
 After the release bundle has been extracted you can then execute `bin/ds3_java_cli -h` on Linux or `bin/ds3_java_cli.bat -h` on Windows to get the help menu.
 
+**Note:** By default the CLI will attempt to verify the SSL/TLS certificates to make sure they are correctly signed.  This has the side affect that any connections to Black Pearl will fail.  You must either use `--http` or `--insecure` in order to connect to a Black Pearl system.
+
 ### Linux Configuration
 
 On Linux you can create a RC or resource file that you use to store common configurations without having to specify those arguments from the command line each time the cli is executed.  The following is an example of a resource file in linux:
