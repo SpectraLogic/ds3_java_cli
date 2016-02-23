@@ -1,3 +1,18 @@
+/*
+ * ******************************************************************************
+ *   Copyright 2014 Spectra Logic Corporation. All Rights Reserved.
+ *   Licensed under the Apache License, Version 2.0 (the "License"). You may not use
+ *   this file except in compliance with the License. A copy of the License is located at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   or in the "license" file accompanying this file.
+ *   This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+ *   CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ *   specific language governing permissions and limitations under the License.
+ * ****************************************************************************
+ */
+
 package com.spectralogic.ds3cli.command;
 
 import com.spectralogic.ds3cli.Arguments;
@@ -10,6 +25,7 @@ import com.spectralogic.ds3client.commands.spectrads3.GetPhysicalPlacementForObj
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.networking.FailedRequestException;
 import org.apache.commons.cli.MissingOptionException;
+import org.apache.commons.cli.UnrecognizedOptionException;
 
 import java.util.Arrays;
 import java.util.List;
@@ -26,14 +42,18 @@ public class GetPhysicalPlacement extends CliCommand<GetPhysicalPlacementWithFul
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
+        if (args.getDirectory() != null) {
+            throw new UnrecognizedOptionException("The get_physical_placement command does not work with '-d' as it only applies to a single object.");
+        }
+
         this.bucketName = args.getBucket();
         if (this.bucketName == null) {
-            throw new MissingOptionException("The get physical placement command requires '-b' to be set.");
+            throw new MissingOptionException("The get_physical_placement command requires '-b' to be set.");
         }
 
         this.objectName = args.getObjectName();
         if (this.objectName == null) {
-            throw new MissingOptionException("The get physical placement command requires '-o' to be set.");
+            throw new MissingOptionException("The get_physical_placement command requires '-o' to be set.");
         }
 
         return this;
