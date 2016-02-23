@@ -23,8 +23,8 @@ import com.spectralogic.ds3cli.util.*;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.helpers.FileObjectGetter;
 import com.spectralogic.ds3client.helpers.options.ReadJobOptions;
-import com.spectralogic.ds3client.models.BlobStoreTaskPriority;
 import com.spectralogic.ds3client.models.Contents;
+import com.spectralogic.ds3client.models.Priority;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.serializer.XmlProcessingException;
 import com.spectralogic.ds3client.utils.Guard;
@@ -51,7 +51,7 @@ public class GetBulk extends CliCommand<GetBulkResult> {
     private Path outputPath;
     private String prefix;
     private boolean checksum;
-    private BlobStoreTaskPriority priority;
+    private Priority priority;
     private boolean sync;
     private boolean force;
     private int numberOfThreads;

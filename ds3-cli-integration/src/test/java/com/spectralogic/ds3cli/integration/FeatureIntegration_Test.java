@@ -474,4 +474,21 @@ public class FeatureIntegration_Test {
             Util.deleteBucket(client, bucketName);
         }
     }
+
+    @Test
+    public void getPhysicalPlacement() throws Exception {
+        final String bucketName = "test_physical_placement";
+        try {
+            Util.createBucket(client, bucketName);
+            Util.loadBookTestData(client, bucketName);
+
+            final Arguments args = new Arguments(new String[]{"--http", "-c", "get_physical_placement", "-b", bucketName, "-o", "beowulf.txt" });
+            final CommandResponse response = Util.command(client, args);
+            assertTrue(response.getMessage().contains("| Object Name | ID | In Cache | Length | Offset | Latest | Version |"));
+            assertTrue(response.getMessage().contains("| beowulf.txt |    | Unknown  | 294059 | 0      | true   | 1       |"));
+
+        } finally {
+            Util.deleteBucket(client, bucketName);
+        }
+    }
 }

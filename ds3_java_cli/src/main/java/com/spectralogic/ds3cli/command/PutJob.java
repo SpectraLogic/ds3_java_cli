@@ -21,7 +21,7 @@ import com.spectralogic.ds3cli.models.PutJobResult;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3client.commands.spectrads3.ModifyJobSpectraS3Request;
-import com.spectralogic.ds3client.models.BlobStoreTaskPriority;
+import com.spectralogic.ds3client.models.Priority;
 import org.apache.commons.cli.MissingOptionException;
 
 import java.io.IOException;
@@ -30,7 +30,7 @@ import java.util.UUID;
 public class PutJob extends CliCommand<PutJobResult> {
 
     private UUID jobId;
-    private BlobStoreTaskPriority priority;
+    private Priority priority;
 
     public PutJob(final Ds3Provider provider, final FileUtils fileUtils) { super(provider, fileUtils); }
 

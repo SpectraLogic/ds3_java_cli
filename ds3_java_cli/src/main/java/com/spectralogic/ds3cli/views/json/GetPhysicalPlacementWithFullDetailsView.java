@@ -1,6 +1,6 @@
 /*
  * ******************************************************************************
- *   Copyright 2014-2015 Spectra Logic Corporation. All Rights Reserved.
+ *   Copyright 2014 Spectra Logic Corporation. All Rights Reserved.
  *   Licensed under the Apache License, Version 2.0 (the "License"). You may not use
  *   this file except in compliance with the License. A copy of the License is located at
  *
@@ -17,22 +17,13 @@ package com.spectralogic.ds3cli.views.json;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.spectralogic.ds3cli.View;
-import com.spectralogic.ds3cli.models.GetTapesWithFullDetailsResult;
+import com.spectralogic.ds3cli.models.GetPhysicalPlacementWithFullDetailsResult;
 import com.spectralogic.ds3cli.util.JsonMapper;
-import com.spectralogic.ds3client.models.NamedDetailedTapeList;
 
-public class GetTapesWithFullDetailsView implements View<GetTapesWithFullDetailsResult> {
+public class GetPhysicalPlacementWithFullDetailsView  implements View<GetPhysicalPlacementWithFullDetailsResult> {
     @Override
-    public String render(final GetTapesWithFullDetailsResult obj) throws JsonProcessingException {
-        final NamedDetailedTapeList result = obj.getTapesWithDetails();
+    public String render(final GetPhysicalPlacementWithFullDetailsResult result) throws JsonProcessingException {
         final CommonJsonView view = CommonJsonView.newView(CommonJsonView.Status.OK);
-
-        if ((result == null) || (null == result.getNamedDetailedTapes())) {
-            view.message("You do not have any tapes");
-            return JsonMapper.toJson(view);
-        }
-
         return JsonMapper.toJson(view.data(result));
     }
 }
-

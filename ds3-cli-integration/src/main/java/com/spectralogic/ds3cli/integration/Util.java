@@ -57,9 +57,9 @@ public class Util {
         return command(client, args);
     }
 
-    public static void loadBookTestData(final Ds3Client client, final String bucketName) throws Exception {
+    public static CommandResponse loadBookTestData(final Ds3Client client, final String bucketName) throws Exception {
         final Arguments args = new Arguments(new String[]{"--http", "-c", "put_bulk", "-b", bucketName, "-d", RESOURCE_BASE_NAME});
-        command(client, args);
+        return command(client, args);
     }
 
     public static void deleteLocalFile(final String fileName) throws IOException {

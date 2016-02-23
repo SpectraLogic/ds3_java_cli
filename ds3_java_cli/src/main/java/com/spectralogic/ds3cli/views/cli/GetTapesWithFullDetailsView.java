@@ -29,7 +29,7 @@ public class GetTapesWithFullDetailsView implements View<GetTapesWithFullDetails
     @Override
     public String render(final GetTapesWithFullDetailsResult obj) throws JsonProcessingException {
         final NamedDetailedTapeList result = obj.getTapesWithDetails();
-        if ((result == null) || (null == result.getNamedDetailedTape())){
+        if ((result == null) || (null == result.getNamedDetailedTapes())){
             return "You do not have any tapes";
         }
 
@@ -37,9 +37,9 @@ public class GetTapesWithFullDetailsView implements View<GetTapesWithFullDetails
     }
 
     private String[][] formatTapeList(final NamedDetailedTapeList tapeList) {
-        final String [][] formatArray = new String[tapeList.getNamedDetailedTape().size()][];
-        for (int i = 0; i < tapeList.getNamedDetailedTape().size(); i ++) {
-            final NamedDetailedTape tape = tapeList.getNamedDetailedTape().get(i);
+        final String [][] formatArray = new String[tapeList.getNamedDetailedTapes().size()][];
+        for (int i = 0; i < tapeList.getNamedDetailedTapes().size(); i ++) {
+            final NamedDetailedTape tape = tapeList.getNamedDetailedTapes().get(i);
             final String [] bucketArray = new String[6];
             bucketArray[0] = nullGuard(tape.getBarCode());
             bucketArray[1] = nullGuard(tape.getId().toString());

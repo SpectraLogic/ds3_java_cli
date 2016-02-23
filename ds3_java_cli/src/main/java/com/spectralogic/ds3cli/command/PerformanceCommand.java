@@ -8,9 +8,9 @@ import com.spectralogic.ds3cli.models.PerformanceResult;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3client.Ds3Client;
-import com.spectralogic.ds3client.commands.CreateBucketRequest;
 import com.spectralogic.ds3client.commands.DeleteBucketRequest;
 import com.spectralogic.ds3client.commands.DeleteObjectRequest;
+import com.spectralogic.ds3client.commands.PutBucketRequest;
 import com.spectralogic.ds3client.helpers.DataTransferredListener;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.helpers.ObjectCompletedListener;
@@ -75,8 +75,8 @@ public class PerformanceCommand extends CliCommand<PerformanceResult> {
 
         try {
             try {
-                final CreateBucketRequest request = new CreateBucketRequest(bucketName);
-                getClient().createBucket(request);
+                final PutBucketRequest request = new PutBucketRequest(bucketName);
+                getClient().putBucket(request);
             } catch(final FailedRequestException e) {
                 this.doNotDelete = true;
                 if (e.getStatusCode() == 409) {

@@ -19,7 +19,7 @@ import ch.qos.logback.classic.Level;
 import com.google.common.collect.ImmutableMap;
 import com.spectralogic.ds3cli.exceptions.BadArgumentException;
 import com.spectralogic.ds3cli.util.Metadata;
-import com.spectralogic.ds3client.models.BlobStoreTaskPriority;
+import com.spectralogic.ds3client.models.Priority;
 import com.spectralogic.ds3client.models.WriteOptimization;
 import org.apache.commons.cli.*;
 import org.slf4j.Logger;
@@ -50,7 +50,7 @@ public class Arguments {
     private String objectName;
     private String proxy;
     private int retries = 20;
-    private BlobStoreTaskPriority priority;
+    private Priority priority;
     private WriteOptimization writeOptimization;
     private boolean force = false;
     private boolean checksum = false;
@@ -101,7 +101,7 @@ public class Arguments {
         retries.setArgName("retries");
         final Option checksum = new Option(null, "Validate checksum values");
         checksum.setLongOpt("checksum");
-        final Option priority = new Option(null, true, "Set the bulk job priority.  Possible values: [" + BlobStoreTaskPriority.values() + "]");
+        final Option priority = new Option(null, true, "Set the bulk job priority.  Possible values: [" + Priority.values() + "]");
         priority.setLongOpt("priority");
         priority.setArgName("priority");
         final Option writeOptimization = new Option(null, true, "Set the job write optimization.  Possible values: [" + WriteOptimization.values() + "]");
@@ -364,13 +364,13 @@ public class Arguments {
         }
     }
 
-    private BlobStoreTaskPriority processPriorityType(final CommandLine cmd, final String priority) throws BadArgumentException {
+    private Priority processPriorityType(final CommandLine cmd, final String priority) throws BadArgumentException {
         final String priorityString = cmd.getOptionValue(priority);
         try {
             if (priorityString == null) {
                 return null;
             } else {
-                return BlobStoreTaskPriority.valueOf(priorityString.toUpperCase());
+                return Priority.valueOf(priorityString.toUpperCase());
             }
         } catch (final IllegalArgumentException e) {
             throw new BadArgumentException("Unknown priority: " + priorityString, e);
@@ -512,11 +512,11 @@ public class Arguments {
         this.checksum = checksum;
     }
 
-    public BlobStoreTaskPriority getPriority() {
+    public Priority getPriority() {
         return this.priority;
     }
 
-    void setPriority(final BlobStoreTaskPriority priority) {
+    void setPriority(final Priority priority) {
         this.priority = priority;
     }
 
