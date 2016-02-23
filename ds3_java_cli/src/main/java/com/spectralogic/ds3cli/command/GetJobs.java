@@ -42,6 +42,6 @@ public class GetJobs extends CliCommand<GetJobsResult> {
             request.withFullDetails(completed);
         }
 
-        return new GetJobsResult(getClient().getJobsSpectraS3(request).getJobsApiBeanResult());
+        return new GetJobsResult(getClient().getJobsSpectraS3(request).getJobListResult());
     }
 }

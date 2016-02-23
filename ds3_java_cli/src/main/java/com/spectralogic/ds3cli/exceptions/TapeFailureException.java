@@ -17,7 +17,7 @@ package com.spectralogic.ds3cli.exceptions;
 
 import com.bethecoder.ascii_table.ASCIITable;
 import com.bethecoder.ascii_table.ASCIITableHeader;
-import com.spectralogic.ds3client.models.TapeFailure;
+import com.spectralogic.ds3client.models.DetailedTapeFailure;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -27,11 +27,11 @@ import static com.spectralogic.ds3cli.util.Utils.nullGuard;
 
 public class TapeFailureException extends Exception {
 
-    public TapeFailureException(final Iterator<TapeFailure> tapeFailures) {
+    public TapeFailureException(final Iterator<DetailedTapeFailure> tapeFailures) {
         super(BuildTapeFailureMessage(tapeFailures));
     }
 
-    private static String BuildTapeFailureMessage(final Iterator<TapeFailure> tapeFailures) {
+    private static String BuildTapeFailureMessage(final Iterator<DetailedTapeFailure> tapeFailures) {
         return String.format("There are tape failures found in BlackPearl\n%sTo ignore this error use --force",
                 ASCIITable.getInstance().getTable(getHeaders(), formatBucketList(tapeFailures)));
     }
@@ -47,12 +47,12 @@ public class TapeFailureException extends Exception {
         };
     }
 
-    private static String[][] formatBucketList(final Iterator<TapeFailure> iterator) {
+    private static String[][] formatBucketList(final Iterator<DetailedTapeFailure> iterator) {
         final List<String[]> contents = new ArrayList<>();
 
         while (iterator.hasNext()) {
 
-            final TapeFailure tapeFailure = iterator.next();
+            final DetailedTapeFailure tapeFailure = iterator.next();
             final String[] arrayEntry = new String[6];
             arrayEntry[0] = nullGuard(tapeFailure.getId().toString());
             arrayEntry[1] = nullGuard(tapeFailure.getTapeDriveId().toString());
