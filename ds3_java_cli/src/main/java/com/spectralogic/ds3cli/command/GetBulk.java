@@ -240,7 +240,7 @@ public class GetBulk extends CliCommand<GetBulkResult> {
                 }
 
             } else {
-                LOG.info("Object ("+ filename + ") does not contain a last modified field");
+                LOG.warn("Object ("+ filename + ") does not contain a last modified field");
             }
         }
     }
