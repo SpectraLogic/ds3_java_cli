@@ -22,10 +22,13 @@ import com.spectralogic.ds3cli.models.GetBulkResult;
 import com.spectralogic.ds3cli.util.*;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.helpers.FileObjectGetter;
+import com.spectralogic.ds3client.helpers.MetadataReceivedListener;
 import com.spectralogic.ds3client.helpers.options.ReadJobOptions;
 import com.spectralogic.ds3client.models.Contents;
 import com.spectralogic.ds3client.models.Priority;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
+import com.spectralogic.ds3client.networking.*;
+import com.spectralogic.ds3client.networking.Metadata;
 import com.spectralogic.ds3client.serializer.XmlProcessingException;
 import com.spectralogic.ds3client.utils.Guard;
 import com.spectralogic.ds3client.utils.SSLSetupException;
@@ -36,12 +39,15 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.FileSystems;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.FileTime;
 import java.security.SignatureException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 public class GetBulk extends CliCommand<GetBulkResult> {
 
@@ -155,7 +161,9 @@ public class GetBulk extends CliCommand<GetBulkResult> {
                 ReadJobOptions.create()
                         .withPriority(this.priority));
         job.withMaxParallelRequests(this.numberOfThreads);
-        job.transfer(new LoggingFileObjectGetter(getter));
+        final LoggingFileObjectGetter loggingFileObjectGetter = new LoggingFileObjectGetter(getter, this.outputPath);
+        job.attachMetadataReceivedListener(loggingFileObjectGetter);
+        job.transfer(loggingFileObjectGetter);
 
         if (this.sync) {
             if (this.prefix != null) {
@@ -173,7 +181,9 @@ public class GetBulk extends CliCommand<GetBulkResult> {
         final Ds3ClientHelpers.Job job = helper.startReadAllJob(this.bucketName,
                 ReadJobOptions.create().withPriority(this.priority));
         job.withMaxParallelRequests(this.numberOfThreads);
-        job.transfer(new LoggingFileObjectGetter(getter));
+        final LoggingFileObjectGetter loggingFileObjectGetter = new LoggingFileObjectGetter(getter, this.outputPath);
+        job.attachMetadataReceivedListener(loggingFileObjectGetter);
+        job.transfer(loggingFileObjectGetter);
 
         return "SUCCESS: Wrote all the objects from " + this.bucketName + " to directory " + this.outputPath.toString();
     }
@@ -201,18 +211,37 @@ public class GetBulk extends CliCommand<GetBulkResult> {
         return filteredContents;
     }
 
-    class LoggingFileObjectGetter implements Ds3ClientHelpers.ObjectChannelBuilder {
+    class LoggingFileObjectGetter implements Ds3ClientHelpers.ObjectChannelBuilder, MetadataReceivedListener {
 
         final private Ds3ClientHelpers.ObjectChannelBuilder objectGetter;
+        final private Path outputPath;
 
-        public LoggingFileObjectGetter(final Ds3ClientHelpers.ObjectChannelBuilder getter) {
+        public LoggingFileObjectGetter(final Ds3ClientHelpers.ObjectChannelBuilder getter, final Path outputPath) {
             this.objectGetter = getter;
+            this.outputPath = outputPath;
         }
 
         @Override
         public SeekableByteChannel buildChannel(final String s) throws IOException {
             LOG.info("Getting object " + s);
             return this.objectGetter.buildChannel(s);
+        }
+
+        @Override
+        public void metadataReceived(final String filename, final Metadata metadata) {
+            if (metadata.keys().contains("ds3-last-modified")) {
+                try {
+                    final long lastModifiedMs = Long.parseLong(metadata.get("ds3-last-modified").get(0));
+                    final Path path = outputPath.resolve(filename);
+                    final FileTime lastModified = FileTime.from(lastModifiedMs, TimeUnit.MILLISECONDS);
+                    Files.setLastModifiedTime(path, lastModified);
+                } catch (final Throwable t) {
+                    LOG.error("Failed to restore the last modified date for object: " + filename, t);
+                }
+
+            } else {
+                LOG.info("Object ("+ filename + ") does not contain a last modified field");
+            }
         }
     }
 }
