@@ -17,7 +17,6 @@ package com.spectralogic.ds3cli.util;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.spectralogic.ds3cli.command.Constants;
 import com.spectralogic.ds3cli.command.PutBulk;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.spectrads3.GetSystemInformationSpectraS3Request;
