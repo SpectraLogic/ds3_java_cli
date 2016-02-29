@@ -40,11 +40,9 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.nio.channels.SeekableByteChannel;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
+import java.nio.file.*;
 import java.security.SignatureException;
+import java.util.Map;
 
 public class PutBulk extends CliCommand<PutBulkResult> {
 
@@ -174,10 +172,13 @@ public class PutBulk extends CliCommand<PutBulkResult> {
 
         String resultMessage;
         if (this.pipe) {
-            job.transfer(new PipeFileObjectPutter(this.mapNormalizedObjectNameToObjectName));
+
+            final PipeFileObjectPutter pipeFileObjectPutter = new PipeFileObjectPutter(this.mapNormalizedObjectNameToObjectName);
+            job.withMetadata(pipeFileObjectPutter).transfer(pipeFileObjectPutter);
             resultMessage = String.format("SUCCESS: Wrote all piped files to bucket %s", this.bucketName);
         } else {
-            job.transfer(new PrefixedFileObjectPutter(this.inputDirectory, this.prefix));
+            final PrefixedFileObjectPutter prefixedFileObjectPutter = new PrefixedFileObjectPutter(this.inputDirectory, this.prefix);
+            job.withMetadata(prefixedFileObjectPutter).transfer(prefixedFileObjectPutter);
             resultMessage = String.format("SUCCESS: Wrote all the files in %s to bucket %s", this.inputDirectory.toString(), this.bucketName);
         }
 
@@ -275,33 +276,43 @@ public class PutBulk extends CliCommand<PutBulkResult> {
                 args.getPrefix()     != null;   //-p
     }
 
-    static class PrefixedFileObjectPutter implements Ds3ClientHelpers.ObjectChannelBuilder {
+    static class PrefixedFileObjectPutter implements Ds3ClientHelpers.ObjectChannelBuilder, Ds3ClientHelpers.MetadataAccess {
 
         final private LoggingFileObjectPutter objectPutter;
         final private String prefix;
+        final private Path inputDirectory;
 
         public PrefixedFileObjectPutter(final Path inputDirectory, final String prefix) {
             this.objectPutter = new LoggingFileObjectPutter(inputDirectory);
             this.prefix = prefix;
+            this.inputDirectory = inputDirectory;
         }
 
         @Override
-        public SeekableByteChannel buildChannel(final String s) throws IOException {
+        public SeekableByteChannel buildChannel(final String fileName) throws IOException {
+            final String objectName = removePrefix(fileName);
+            return this.objectPutter.buildChannel(objectName);
+        }
 
-            final String objectName;
+        @Override
+        public Map<String, String> getMetadataValue(final String fileName) {
+            final String unPrefixedFile = removePrefix(fileName);
 
+            final Path path = inputDirectory.resolve(unPrefixedFile);
+            return Utils.getMetadataValues(path);
+        }
+
+        private String removePrefix(final String fileName) {
             if (this.prefix == null) {
-                objectName = s;
+                return fileName;
             } else {
-                if (!s.startsWith(this.prefix)) {
-                    LOG.info("The object (" + s + ") does not begin with prefix " + this.prefix + ".  Ignoring adding the prefix.");
-                    objectName = s;
+                if (!fileName.startsWith(this.prefix)) {
+                    LOG.info("The object (" + fileName + ") does not begin with prefix " + this.prefix + ".  Ignoring adding the prefix.");
+                    return fileName;
                 } else {
-                    objectName = s.substring(this.prefix.length());
+                    return fileName.substring(this.prefix.length());
                 }
             }
-
-            return this.objectPutter.buildChannel(objectName);
         }
     }
 
@@ -359,7 +370,10 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         }
     }
 
-    static class PipeFileObjectPutter implements Ds3ClientHelpers.ObjectChannelBuilder {
+    /**
+     * Returns a channel and metadata for files that have been piped in via stdin
+     */
+    static class PipeFileObjectPutter implements Ds3ClientHelpers.ObjectChannelBuilder, Ds3ClientHelpers.MetadataAccess {
 
         private final ImmutableMap<String, String> mapNormalizedObjectNameToObjectName;
 
@@ -371,6 +385,11 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         public SeekableByteChannel buildChannel(final String s) throws IOException {
             return FileChannel.open(Paths.get(this.mapNormalizedObjectNameToObjectName.get(s)), StandardOpenOption.READ);
         }
-    }
 
+        @Override
+        public Map<String, String> getMetadataValue(final String s) {
+            final Path path = Paths.get(this.mapNormalizedObjectNameToObjectName.get(s));
+            return Utils.getMetadataValues(path);
+        }
+    }
 }

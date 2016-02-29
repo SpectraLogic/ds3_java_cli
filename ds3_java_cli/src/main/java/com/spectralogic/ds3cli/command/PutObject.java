@@ -145,7 +145,12 @@ public class PutObject extends CliCommand<PutObjectResult> {
         }
 
         putJob.withMaxParallelRequests(this.numberOfThreads);
-        putJob.transfer(new Ds3ClientHelpers.ObjectChannelBuilder() {
+        putJob.withMetadata(new Ds3ClientHelpers.MetadataAccess() {
+            @Override
+            public Map<String, String> getMetadataValue(final String filename) {
+                return Utils.getMetadataValues(objectPath);
+            }
+        }).transfer(new Ds3ClientHelpers.ObjectChannelBuilder() {
             @Override
             public SeekableByteChannel buildChannel(final String s) throws IOException {
                 return FileChannel.open(objectPath, StandardOpenOption.READ);

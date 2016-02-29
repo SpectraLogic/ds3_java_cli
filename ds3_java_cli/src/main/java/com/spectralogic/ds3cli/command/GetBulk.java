@@ -22,10 +22,12 @@ import com.spectralogic.ds3cli.models.GetBulkResult;
 import com.spectralogic.ds3cli.util.*;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.helpers.FileObjectGetter;
+import com.spectralogic.ds3client.helpers.MetadataReceivedListener;
 import com.spectralogic.ds3client.helpers.options.ReadJobOptions;
 import com.spectralogic.ds3client.models.Contents;
 import com.spectralogic.ds3client.models.Priority;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
+import com.spectralogic.ds3client.networking.Metadata;
 import com.spectralogic.ds3client.serializer.XmlProcessingException;
 import com.spectralogic.ds3client.utils.Guard;
 import com.spectralogic.ds3client.utils.SSLSetupException;
@@ -155,7 +157,9 @@ public class GetBulk extends CliCommand<GetBulkResult> {
                 ReadJobOptions.create()
                         .withPriority(this.priority));
         job.withMaxParallelRequests(this.numberOfThreads);
-        job.transfer(new LoggingFileObjectGetter(getter));
+        final LoggingFileObjectGetter loggingFileObjectGetter = new LoggingFileObjectGetter(getter, this.outputPath);
+        job.attachMetadataReceivedListener(loggingFileObjectGetter);
+        job.transfer(loggingFileObjectGetter);
 
         if (this.sync) {
             if (this.prefix != null) {
@@ -173,7 +177,9 @@ public class GetBulk extends CliCommand<GetBulkResult> {
         final Ds3ClientHelpers.Job job = helper.startReadAllJob(this.bucketName,
                 ReadJobOptions.create().withPriority(this.priority));
         job.withMaxParallelRequests(this.numberOfThreads);
-        job.transfer(new LoggingFileObjectGetter(getter));
+        final LoggingFileObjectGetter loggingFileObjectGetter = new LoggingFileObjectGetter(getter, this.outputPath);
+        job.attachMetadataReceivedListener(loggingFileObjectGetter);
+        job.transfer(loggingFileObjectGetter);
 
         return "SUCCESS: Wrote all the objects from " + this.bucketName + " to directory " + this.outputPath.toString();
     }
@@ -201,12 +207,14 @@ public class GetBulk extends CliCommand<GetBulkResult> {
         return filteredContents;
     }
 
-    class LoggingFileObjectGetter implements Ds3ClientHelpers.ObjectChannelBuilder {
+    class LoggingFileObjectGetter implements Ds3ClientHelpers.ObjectChannelBuilder, MetadataReceivedListener {
 
         final private Ds3ClientHelpers.ObjectChannelBuilder objectGetter;
+        final private Path outputPath;
 
-        public LoggingFileObjectGetter(final Ds3ClientHelpers.ObjectChannelBuilder getter) {
+        public LoggingFileObjectGetter(final Ds3ClientHelpers.ObjectChannelBuilder getter, final Path outputPath) {
             this.objectGetter = getter;
+            this.outputPath = outputPath;
         }
 
         @Override
@@ -214,5 +222,12 @@ public class GetBulk extends CliCommand<GetBulkResult> {
             LOG.info("Getting object " + s);
             return this.objectGetter.buildChannel(s);
         }
+
+        @Override
+        public void metadataReceived(final String filename, final Metadata metadata) {
+            final Path path = outputPath.resolve(filename);
+            Utils.restoreLastModified(filename, metadata, path);
+        }
     }
+
 }
