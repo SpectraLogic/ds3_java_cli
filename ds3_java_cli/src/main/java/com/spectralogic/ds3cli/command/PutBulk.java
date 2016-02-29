@@ -397,7 +397,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
     private static Map<String, String> getMetadataValues(final Path path) {
         try {
             final FileTime lastModifiedTime = Files.getLastModifiedTime(path);
-            return ImmutableMap.of("ds3-last-modified", Long.toString(lastModifiedTime.toMillis()));
+            return ImmutableMap.of(Constants.DS3_LAST_MODIFIED, Long.toString(lastModifiedTime.toMillis()));
         } catch (final IOException e) {
             LOG.error("Could not get the last modified time for file: " + path, e);
             return null;

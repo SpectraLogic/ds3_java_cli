@@ -229,9 +229,9 @@ public class GetBulk extends CliCommand<GetBulkResult> {
 
         @Override
         public void metadataReceived(final String filename, final Metadata metadata) {
-            if (metadata.keys().contains("ds3-last-modified")) {
+            if (metadata.keys().contains(Constants.DS3_LAST_MODIFIED)) {
                 try {
-                    final long lastModifiedMs = Long.parseLong(metadata.get("ds3-last-modified").get(0));
+                    final long lastModifiedMs = Long.parseLong(metadata.get(Constants.DS3_LAST_MODIFIED).get(0));
                     final Path path = outputPath.resolve(filename);
                     final FileTime lastModified = FileTime.from(lastModifiedMs, TimeUnit.MILLISECONDS);
                     Files.setLastModifiedTime(path, lastModified);
