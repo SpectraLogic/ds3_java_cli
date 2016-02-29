@@ -27,7 +27,6 @@ import com.spectralogic.ds3client.helpers.options.ReadJobOptions;
 import com.spectralogic.ds3client.models.Contents;
 import com.spectralogic.ds3client.models.Priority;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
-import com.spectralogic.ds3client.networking.*;
 import com.spectralogic.ds3client.networking.Metadata;
 import com.spectralogic.ds3client.serializer.XmlProcessingException;
 import com.spectralogic.ds3client.utils.Guard;
@@ -39,15 +38,12 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.FileSystems;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.attribute.FileTime;
 import java.security.SignatureException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 public class GetBulk extends CliCommand<GetBulkResult> {
 
@@ -229,19 +225,9 @@ public class GetBulk extends CliCommand<GetBulkResult> {
 
         @Override
         public void metadataReceived(final String filename, final Metadata metadata) {
-            if (metadata.keys().contains(Constants.DS3_LAST_MODIFIED)) {
-                try {
-                    final long lastModifiedMs = Long.parseLong(metadata.get(Constants.DS3_LAST_MODIFIED).get(0));
-                    final Path path = outputPath.resolve(filename);
-                    final FileTime lastModified = FileTime.from(lastModifiedMs, TimeUnit.MILLISECONDS);
-                    Files.setLastModifiedTime(path, lastModified);
-                } catch (final Throwable t) {
-                    LOG.error("Failed to restore the last modified date for object: " + filename, t);
-                }
-
-            } else {
-                LOG.warn("Object ("+ filename + ") does not contain a last modified field");
-            }
+            final Path path = outputPath.resolve(filename);
+            Utils.restoreLastModified(filename, metadata, path);
         }
     }
+
 }

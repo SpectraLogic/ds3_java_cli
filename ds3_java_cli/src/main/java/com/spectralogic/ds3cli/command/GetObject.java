@@ -22,8 +22,10 @@ import com.spectralogic.ds3cli.models.GetObjectResult;
 import com.spectralogic.ds3cli.util.*;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.helpers.FileObjectGetter;
+import com.spectralogic.ds3client.helpers.MetadataReceivedListener;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
-import com.spectralogic.ds3client.networking.FailedRequestException;
+import com.spectralogic.ds3client.networking.*;
+import com.spectralogic.ds3client.networking.Metadata;
 import com.spectralogic.ds3client.serializer.XmlProcessingException;
 import org.apache.commons.cli.MissingOptionException;
 import org.slf4j.Logger;
@@ -117,6 +119,12 @@ public class GetObject extends CliCommand<GetObjectResult> {
         final List<Ds3Object> ds3ObjectList = Lists.newArrayList(ds3Obj);
         final Ds3ClientHelpers.Job job = helpers.startReadJob(this.bucketName, ds3ObjectList);
         job.withMaxParallelRequests(this.numberOfThreads);
+        job.attachMetadataReceivedListener(new MetadataReceivedListener() {
+            @Override
+            public void metadataReceived(final String filename, final Metadata metadata) {
+                Utils.restoreLastModified(filename, metadata, Paths.get(prefix, filename));
+            }
+        });
         job.transfer(new FileObjectGetter(Paths.get(this.prefix)));
     }
 }

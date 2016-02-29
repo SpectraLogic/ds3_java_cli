@@ -574,6 +574,7 @@ public class Ds3Cli_Test {
         when(mockedFileUtils.isRegularFile(any(Path.class))).thenReturn(true);
         when(mockedFileUtils.size(any(Path.class))).thenReturn(100L);
         when(helpers.startWriteJob(eq("bucketName"), (Iterable<Ds3Object>) isNotNull())).thenReturn(mockedPutJob);
+        when(mockedPutJob.withMetadata((Ds3ClientHelpers.MetadataAccess) isNotNull())).thenReturn(mockedPutJob);
 
         PowerMockito.mockStatic(BlackPearlUtils.class);
 
@@ -594,6 +595,7 @@ public class Ds3Cli_Test {
         final Iterable<Contents> retObj = Lists.newArrayList(c);
         when(helpers.listObjects(eq("bucketName"))).thenReturn(retObj);
         when(helpers.startWriteJob(eq("bucketName"), (Iterable<Ds3Object>) isNotNull())).thenReturn(mockedPutJob);
+        when(mockedPutJob.withMetadata((Ds3ClientHelpers.MetadataAccess) isNotNull())).thenReturn(mockedPutJob);
 
         final FileUtils mockedFileUtils = mock(FileUtils.class);
         when(mockedFileUtils.exists(any(Path.class))).thenReturn(true);
@@ -658,6 +660,7 @@ public class Ds3Cli_Test {
         when(mockedFileUtils.isRegularFile(any(Path.class))).thenReturn(true);
         when(mockedFileUtils.size(any(Path.class))).thenReturn(100L);
         when(helpers.startWriteJob(eq("bucketName"), (Iterable<Ds3Object>) isNotNull())).thenReturn(mockedPutJob);
+        when(mockedPutJob.withMetadata((Ds3ClientHelpers.MetadataAccess) isNotNull())).thenReturn(mockedPutJob);
 
         PowerMockito.mockStatic(BlackPearlUtils.class);
 
@@ -902,7 +905,7 @@ public class Ds3Cli_Test {
     public void putBulk() throws Exception {
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "put_bulk", "-b", "bucketName", "-d", "dir"});
         final Ds3ClientHelpers helpers = mock(Ds3ClientHelpers.class);
-        final Ds3ClientHelpers.Job mockedGetJob = mock(Ds3ClientHelpers.Job.class);
+        final Ds3ClientHelpers.Job mockedPutJob = mock(Ds3ClientHelpers.Job.class);
         final FileUtils mockedFileUtils = mock(FileUtils.class);
 
         final Path p1 = Paths.get("obj1.txt");
@@ -910,9 +913,10 @@ public class Ds3Cli_Test {
         final ImmutableList<Path> retPath = ImmutableList.copyOf(Lists.newArrayList(p1, p2));
 
         final UUID jobId = UUID.randomUUID();
-        when(mockedGetJob.getJobId()).thenReturn(jobId);
+        when(mockedPutJob.getJobId()).thenReturn(jobId);
         final Iterable<Ds3Object> retObj = Lists.newArrayList(new Ds3Object("obj1.txt", 1245), new Ds3Object("obj2.txt", 12345));
-        when(helpers.startWriteJob(eq("bucketName"), eq(retObj), any(WriteJobOptions.class))).thenReturn(mockedGetJob);
+        when(helpers.startWriteJob(eq("bucketName"), eq(retObj), any(WriteJobOptions.class))).thenReturn(mockedPutJob);
+        when(mockedPutJob.withMetadata((Ds3ClientHelpers.MetadataAccess) isNotNull())).thenReturn(mockedPutJob);
 
         PowerMockito.mockStatic(Utils.class);
         when(Utils.getObjectsToPut((Iterable<Path>)isNotNull(), any(Path.class), any(Boolean.class))).thenCallRealMethod();
@@ -934,14 +938,15 @@ public class Ds3Cli_Test {
     public void putBulkWithSync() throws Exception {
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "put_bulk", "-b", "bucketName", "-d", "dir", "--sync"});
         final Ds3ClientHelpers helpers = mock(Ds3ClientHelpers.class);
-        final Ds3ClientHelpers.Job mockedGetJob = mock(Ds3ClientHelpers.Job.class);
+        final Ds3ClientHelpers.Job mockedPutJob = mock(Ds3ClientHelpers.Job.class);
         final FileUtils mockedFileUtils = mock(FileUtils.class);
         final Iterable<Ds3Object> retObj = Lists.newArrayList(new Ds3Object("obj1.txt", 1245L), new Ds3Object("obj2.txt", 1245L));
 
         final UUID jobId = UUID.randomUUID();
-        when(mockedGetJob.getJobId()).thenReturn(jobId);
+        when(mockedPutJob.getJobId()).thenReturn(jobId);
         when(helpers.listObjectsForDirectory(any(Path.class))).thenReturn(retObj);
-        when(helpers.startWriteJob(eq("bucketName"), eq(retObj), any(WriteJobOptions.class))).thenReturn(mockedGetJob);
+        when(helpers.startWriteJob(eq("bucketName"), eq(retObj), any(WriteJobOptions.class))).thenReturn(mockedPutJob);
+        when(mockedPutJob.withMetadata((Ds3ClientHelpers.MetadataAccess) isNotNull())).thenReturn(mockedPutJob);
 
         final Contents c1 = new Contents();
         c1.setKey("obj1.txt");
@@ -1015,7 +1020,7 @@ public class Ds3Cli_Test {
 
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "put_bulk", "-b", "bucketName", "-d", "dir", "--output-format", "json"});
         final Ds3ClientHelpers helpers = mock(Ds3ClientHelpers.class);
-        final Ds3ClientHelpers.Job mockedGetJob = mock(Ds3ClientHelpers.Job.class);
+        final Ds3ClientHelpers.Job mockedPutJob = mock(Ds3ClientHelpers.Job.class);
         final FileUtils mockedFileUtils = mock(FileUtils.class);
         final Iterable<Ds3Object> retObj = Lists.newArrayList(new Ds3Object("obj1.txt", 1245), new Ds3Object("obj2.txt", 12345));
 
@@ -1032,8 +1037,9 @@ public class Ds3Cli_Test {
         when(Utils.getFileSize(eq(p2))).thenReturn(12345L);
 
         final UUID jobId = UUID.randomUUID();
-        when(mockedGetJob.getJobId()).thenReturn(jobId);
-        when(helpers.startWriteJob(eq("bucketName"), eq(retObj), any(WriteJobOptions.class))).thenReturn(mockedGetJob);
+        when(mockedPutJob.withMetadata((Ds3ClientHelpers.MetadataAccess) isNotNull())).thenReturn(mockedPutJob);
+        when(mockedPutJob.getJobId()).thenReturn(jobId);
+        when(helpers.startWriteJob(eq("bucketName"), eq(retObj), any(WriteJobOptions.class))).thenReturn(mockedPutJob);
 
         PowerMockito.mockStatic(BlackPearlUtils.class);
 
@@ -1159,7 +1165,7 @@ public class Ds3Cli_Test {
     public void putBulkWithIgnoreErrors() throws Exception {
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "put_bulk", "-b", "bucketName", "-d", "dir", "--ignore-errors"});
         final Ds3ClientHelpers helpers = mock(Ds3ClientHelpers.class);
-        final Ds3ClientHelpers.Job mockedGetJob = mock(Ds3ClientHelpers.Job.class);
+        final Ds3ClientHelpers.Job mockedPutJob = mock(Ds3ClientHelpers.Job.class);
         final FileUtils mockedFileUtils = mock(FileUtils.class);
 
         PowerMockito.mockStatic(BlackPearlUtils.class);
@@ -1170,13 +1176,14 @@ public class Ds3Cli_Test {
         final ImmutableList<Path> retPath = ImmutableList.copyOf(Lists.newArrayList(p1, p2, p3));
 
         final UUID jobId = UUID.randomUUID();
-        when(mockedGetJob.getJobId()).thenReturn(jobId);
+        when(mockedPutJob.getJobId()).thenReturn(jobId);
         final Iterable<Ds3Object> retObj = Lists.newArrayList(
                 new Ds3Object("obj1.txt", 1245),
                 new Ds3Object("obj2.txt", 12345));
-        when(helpers.startWriteJob(eq("bucketName"), eq(retObj), any(WriteJobOptions.class))).thenReturn(mockedGetJob);
+        when(helpers.startWriteJob(eq("bucketName"), eq(retObj), any(WriteJobOptions.class))).thenReturn(mockedPutJob);
 
         PowerMockito.mockStatic(Utils.class);
+        when(mockedPutJob.withMetadata((Ds3ClientHelpers.MetadataAccess) isNotNull())).thenReturn(mockedPutJob);
         when(Utils.getObjectsToPut((Iterable<Path>)isNotNull(), any(Path.class), any(Boolean.class))).thenCallRealMethod();
         when(Utils.listObjectsForDirectory(any(Path.class))).thenReturn(retPath);
         when(Utils.getFileName(any(Path.class), eq(p1))).thenReturn("obj1.txt");
@@ -1204,7 +1211,7 @@ public class Ds3Cli_Test {
     public void putBulkWithIgnoreErrorsJson() throws Exception {
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "put_bulk", "-b", "bucketName", "-d", "dir", "--ignore-errors", "--output-format", "json"});
         final Ds3ClientHelpers helpers = mock(Ds3ClientHelpers.class);
-        final Ds3ClientHelpers.Job mockedGetJob = mock(Ds3ClientHelpers.Job.class);
+        final Ds3ClientHelpers.Job mockedPutJob = mock(Ds3ClientHelpers.Job.class);
         final FileUtils mockedFileUtils = mock(FileUtils.class);
 
         PowerMockito.mockStatic(BlackPearlUtils.class);
@@ -1215,13 +1222,14 @@ public class Ds3Cli_Test {
         final ImmutableList<Path> retPath = ImmutableList.copyOf(Lists.newArrayList(p1, p2, p3));
 
         final UUID jobId = UUID.randomUUID();
-        when(mockedGetJob.getJobId()).thenReturn(jobId);
+        when(mockedPutJob.getJobId()).thenReturn(jobId);
         final Iterable<Ds3Object> retObj = Lists.newArrayList(
                 new Ds3Object("obj1.txt", 1245),
                 new Ds3Object("obj2.txt", 12345));
-        when(helpers.startWriteJob(eq("bucketName"), eq(retObj), any(WriteJobOptions.class))).thenReturn(mockedGetJob);
+        when(helpers.startWriteJob(eq("bucketName"), eq(retObj), any(WriteJobOptions.class))).thenReturn(mockedPutJob);
 
         PowerMockito.mockStatic(Utils.class);
+        when(mockedPutJob.withMetadata((Ds3ClientHelpers.MetadataAccess) isNotNull())).thenReturn(mockedPutJob);
         when(Utils.getObjectsToPut((Iterable<Path>)isNotNull(), any(Path.class), any(Boolean.class))).thenCallRealMethod();
         when(Utils.listObjectsForDirectory(any(Path.class))).thenReturn(retPath);
         when(Utils.getFileName(any(Path.class), eq(p1))).thenReturn("obj1.txt");
@@ -1258,13 +1266,13 @@ public class Ds3Cli_Test {
     public void putBulkWithPipe() throws Exception {
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "put_bulk", "-b", "bucketName"});
         final Ds3ClientHelpers helpers = mock(Ds3ClientHelpers.class);
-        final Ds3ClientHelpers.Job mockedGetJob = mock(Ds3ClientHelpers.Job.class);
+        final Ds3ClientHelpers.Job mockedPutJob = mock(Ds3ClientHelpers.Job.class);
         final FileUtils mockedFileUtils = mock(FileUtils.class);
 
         final UUID jobId = UUID.randomUUID();
-        when(mockedGetJob.getJobId()).thenReturn(jobId);
+        when(mockedPutJob.getJobId()).thenReturn(jobId);
         final Iterable<Ds3Object> retObj = Lists.newArrayList(new Ds3Object("obj1.txt", 1245), new Ds3Object("obj2.txt", 12345));
-        when(helpers.startWriteJob(eq("bucketName"), eq(retObj), any(WriteJobOptions.class))).thenReturn(mockedGetJob);
+        when(helpers.startWriteJob(eq("bucketName"), eq(retObj), any(WriteJobOptions.class))).thenReturn(mockedPutJob);
 
         final Path p1 = Paths.get("obj1.txt");
         final Path p2 = Paths.get("obj2.txt");
@@ -1279,6 +1287,7 @@ public class Ds3Cli_Test {
             }
         });
         when(Utils.isPipe()).thenReturn(true);
+        when(mockedPutJob.withMetadata((Ds3ClientHelpers.MetadataAccess) isNotNull())).thenReturn(mockedPutJob);
         when(Utils.getPipedFilesFromStdin(any(FileUtils.class))).thenReturn(retPath);
         when(Utils.getObjectsToPut((Iterable<Path>) isNotNull(), any(Path.class), any(Boolean.class))).thenCallRealMethod();
         when(Utils.getFileName(any(Path.class), eq(p1))).thenReturn(p1.toString());
@@ -1298,13 +1307,13 @@ public class Ds3Cli_Test {
     public void putBulkWithPipeAndSync() throws Exception {
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "put_bulk", "-b", "bucketName", "--sync"});
         final Ds3ClientHelpers helpers = mock(Ds3ClientHelpers.class);
-        final Ds3ClientHelpers.Job mockedGetJob = mock(Ds3ClientHelpers.Job.class);
+        final Ds3ClientHelpers.Job mockedPutJob = mock(Ds3ClientHelpers.Job.class);
         final FileUtils mockedFileUtils = mock(FileUtils.class);
 
         final UUID jobId = UUID.randomUUID();
-        when(mockedGetJob.getJobId()).thenReturn(jobId);
+        when(mockedPutJob.getJobId()).thenReturn(jobId);
         final Iterable<Ds3Object> retObj = Lists.newArrayList(new Ds3Object("obj1.txt", 1245), new Ds3Object("obj2.txt", 12345));
-        when(helpers.startWriteJob(eq("bucketName"), eq(retObj), any(WriteJobOptions.class))).thenReturn(mockedGetJob);
+        when(helpers.startWriteJob(eq("bucketName"), eq(retObj), any(WriteJobOptions.class))).thenReturn(mockedPutJob);
 
         final Iterable<Contents> retCont = Lists.newArrayList();
         when(helpers.listObjects(eq("bucketName"), any(String.class))).thenReturn(retCont);
@@ -1321,6 +1330,8 @@ public class Ds3Cli_Test {
                 return (String) args[0];
             }
         });
+
+        when(mockedPutJob.withMetadata((Ds3ClientHelpers.MetadataAccess) isNotNull())).thenReturn(mockedPutJob);
         when(Utils.isPipe()).thenReturn(true);
         when(Utils.getPipedFilesFromStdin(any(FileUtils.class))).thenReturn(retPath);
         when(Utils.getObjectsToPut((Iterable<Path>)isNotNull(), any(Path.class), any(Boolean.class))).thenCallRealMethod();

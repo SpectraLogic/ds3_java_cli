@@ -41,7 +41,6 @@ import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.*;
-import java.nio.file.attribute.FileTime;
 import java.security.SignatureException;
 import java.util.Map;
 
@@ -300,7 +299,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
             final String unPrefixedFile = removePrefix(fileName);
 
             final Path path = inputDirectory.resolve(unPrefixedFile);
-            return getMetadataValues(path);
+            return Utils.getMetadataValues(path);
         }
 
         private String removePrefix(final String fileName) {
@@ -390,17 +389,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         @Override
         public Map<String, String> getMetadataValue(final String s) {
             final Path path = Paths.get(this.mapNormalizedObjectNameToObjectName.get(s));
-            return getMetadataValues(path);
-        }
-    }
-
-    private static Map<String, String> getMetadataValues(final Path path) {
-        try {
-            final FileTime lastModifiedTime = Files.getLastModifiedTime(path);
-            return ImmutableMap.of(Constants.DS3_LAST_MODIFIED, Long.toString(lastModifiedTime.toMillis()));
-        } catch (final IOException e) {
-            LOG.error("Could not get the last modified time for file: " + path, e);
-            return null;
+            return Utils.getMetadataValues(path);
         }
     }
 }
