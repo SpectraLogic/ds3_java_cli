@@ -1422,6 +1422,8 @@ public class Ds3Cli_Test {
         tape1.setTotalRawCapacity(20000L);
         tape1.setType(TapeType.LTO6);
         tape1.setWriteProtected(false);
+        tape1.setEjectLabel("Tape1EjectLabel");
+        tape1.setEjectLocation("Tape1EjectLocation");
 
         final Tape tape2 = new Tape();
         tape2.setAssignedToStorageDomain(false);
@@ -1439,6 +1441,8 @@ public class Ds3Cli_Test {
         tape2.setTotalRawCapacity(20000L);
         tape2.setType(TapeType.LTO7);
         tape2.setWriteProtected(false);
+        tape2.setEjectLabel("Tape2EjectLabel");
+        tape2.setEjectLocation("Tape2EjectLocation");
 
         final BulkObject testObject = new BulkObject();
         testObject.setName("testObject");
@@ -1471,9 +1475,9 @@ public class Ds3Cli_Test {
         assertTrue(result.getMessage().contains("| Object Name | ID | In Cache | Length | Offset | Latest | Version |"));
         assertTrue(result.getMessage().contains("| testObject  |    | Unknown  | 1024   | 0      | false  | 0       |"));
 
-        assertTrue(result.getMessage().contains("| Tape Bar Code |        State       | Type | Description |"));
-        assertTrue(result.getMessage().contains("| 121557L6      | PENDING_INSPECTION | LTO6 | N/A         |"));
-        assertTrue(result.getMessage().contains("| 421555L7      | PENDING_INSPECTION | LTO7 | N/A         |"));
+        assertTrue(result.getMessage().contains("| Tape Bar Code |        State       | Type | Description |   Eject Label   |   Eject Location   |"));
+        assertTrue(result.getMessage().contains("| 121557L6      | PENDING_INSPECTION | LTO6 | N/A         | Tape1EjectLabel | Tape1EjectLocation |"));
+        assertTrue(result.getMessage().contains("| 421555L7      | PENDING_INSPECTION | LTO7 | N/A         | Tape2EjectLabel | Tape2EjectLocation |"));
 
         assertThat(result.getReturnCode(), is(0));
     }
