@@ -127,11 +127,14 @@ public class GetPhysicalPlacementWithFullDetailsView  implements View<GetPhysica
 
         for (int i = 0; i < tapesList.size(); i ++) {
             final Tape tape = tapesList.get(i);
-            final String[] tapePlacementArray = new String[4];
+            final String[] tapePlacementArray = new String[6];
             tapePlacementArray[0] = nullGuard(tape.getBarCode());
             tapePlacementArray[1] = nullGuard(tape.getState().toString());
             tapePlacementArray[2] = nullGuard(tape.getType().toString());
             tapePlacementArray[3] = nullGuard(tape.getDescriptionForIdentification());
+            tapePlacementArray[4] = nullGuard(tape.getEjectLabel());
+            tapePlacementArray[5] = nullGuard(tape.getEjectLocation());
+
             formatArray[i] = tapePlacementArray;
         }
 
@@ -143,7 +146,9 @@ public class GetPhysicalPlacementWithFullDetailsView  implements View<GetPhysica
                 new ASCIITableHeader("Tape Bar Code", ASCIITable.ALIGN_LEFT),
                 new ASCIITableHeader("State", ASCIITable.ALIGN_LEFT),
                 new ASCIITableHeader("Type", ASCIITable.ALIGN_LEFT),
-                new ASCIITableHeader("Description", ASCIITable.ALIGN_LEFT)
+                new ASCIITableHeader("Description", ASCIITable.ALIGN_LEFT),
+                new ASCIITableHeader("Eject Label", ASCIITable.ALIGN_LEFT),
+                new ASCIITableHeader("Eject Location", ASCIITable.ALIGN_LEFT)
         };
     }
 }
