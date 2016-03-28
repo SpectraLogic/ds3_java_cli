@@ -130,6 +130,8 @@ public final class Utils {
         }
         else if (objectName.startsWith(".\\")) {
             path = objectName.substring(2);
+        } else if (objectName.startsWith("..\\")) {
+            path = objectName.substring(3);
         } else {
             path = objectName;
         }
@@ -144,6 +146,8 @@ public final class Utils {
             path = objectName.substring(1);
         } else if (objectName.startsWith("./")) {
             path = objectName.substring(2);
+        } else if (objectName.startsWith("../")) {
+            path = objectName.substring(3);
         } else {
             path = objectName;
         }
