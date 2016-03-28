@@ -205,7 +205,7 @@ public class PerformanceCommand extends CliCommand<PerformanceResult> {
             }
 
 
-            System.out.print(String.format("\r%s Statistics: (%d/%d MB), files (%d/%d), Time (%.03f sec), MBps (%.03f), Highest MBps (%.03f)",
+            System.out.print(String.format("\r%s Statistics: (%d/%d MB), files (%d/%d completed), Time (%.03f sec), MBps (%.03f), Highest MBps (%.03f)",
                     messagePrefix, content, numberOfMB, numberOfFiles, totalNumberOfFiles, time, mbps, highestMbps));
         }
     }
