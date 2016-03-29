@@ -21,6 +21,7 @@ import com.spectralogic.ds3cli.command.PutBulk;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.spectrads3.GetSystemInformationSpectraS3Request;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
+import com.spectralogic.ds3client.utils.Guard;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -118,7 +119,11 @@ public final class Utils {
         return unixNormalizeObjectName(objectName);
     }
 
-    private static String windowsNormalizeObjectName(final String objectName) {
+    /**
+     * Normalizes the object name to remove windows path from beginning
+     * of object name
+     */
+    protected static String windowsNormalizeObjectName(final String objectName) {
         final String path;
 
         final int colonIndex = objectName.indexOf(':');
@@ -130,6 +135,8 @@ public final class Utils {
         }
         else if (objectName.startsWith(".\\")) {
             path = objectName.substring(2);
+        } else if (objectName.startsWith("..\\")) {
+            path = removePrefixRecursively(objectName, "..\\");
         } else {
             path = objectName;
         }
@@ -137,13 +144,33 @@ public final class Utils {
         return path.replace("\\", "/");
     }
 
-    private static String unixNormalizeObjectName(final String objectName) {
+    /**
+     * Recursively removes the specified prefix from the beginning of the
+     * object name
+     */
+    protected static String removePrefixRecursively(final String objectName, final String prefix) {
+        if (Guard.isStringNullOrEmpty(objectName)) {
+            return "";
+        }
+        if (Guard.isStringNullOrEmpty(prefix) || !objectName.startsWith(prefix)) {
+            return objectName;
+        }
+        return removePrefixRecursively(objectName.substring(prefix.length()), prefix);
+    }
+
+    /**
+     * Normalizes the object name to remove linux path from beginning
+     * of object name
+     */
+    protected static String unixNormalizeObjectName(final String objectName) {
         final String path;
 
         if (objectName.startsWith("/")) {
             path = objectName.substring(1);
         } else if (objectName.startsWith("./")) {
             path = objectName.substring(2);
+        } else if (objectName.startsWith("../")) {
+            path = removePrefixRecursively(objectName, "../");
         } else {
             path = objectName;
         }
