@@ -47,3 +47,9 @@ task genConfigProperties << {
 }
 
 jar.dependsOn genConfigProperties
+
+run {
+    if(project.hasProperty('args')){
+        args project.args.split('\\s')
+    }
+}
