@@ -30,7 +30,9 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.FileTime;
 import java.security.SignatureException;
+import java.util.Date;
 import java.util.regex.Pattern;
 
 public final class SyncUtils {
@@ -51,13 +53,13 @@ public final class SyncUtils {
     }
 
     public static boolean isNewFile(final Path localFile, final Contents serverFile, final boolean isPutCommand) throws IOException {
-        return isNewFileHelper(Files.getLastModifiedTime(localFile).toString(), serverFile.getLastModified().toString(), isPutCommand);
+        return isNewFileHelper(Files.getLastModifiedTime(localFile), serverFile.getLastModified(), isPutCommand);
     }
 
-    private static boolean isNewFileHelper(final String localFileLastModifiedTime, final String serverFileLastModifiedTime, final boolean isPutCommand) {
-        final DateTimeFormatter fmt = DateTimeFormat.forPattern("EEE MMM dd H:m:s z Y");
-        final DateTime localFileDateTime = new DateTime(localFileLastModifiedTime);
-        final DateTime serverFileDateTime = new DateTime(DateTime.parse(serverFileLastModifiedTime, fmt));
+    private static boolean isNewFileHelper(final FileTime localFileLastModifiedTime, final Date serverFileLastModifiedTime, final boolean isPutCommand) {
+
+        final DateTime localFileDateTime = new DateTime(localFileLastModifiedTime.toMillis());
+        final DateTime serverFileDateTime = new DateTime(serverFileLastModifiedTime);
 
         if (isPutCommand) {
             return DateTimeComparator.getInstance().compare(localFileDateTime, serverFileDateTime) > 0;
