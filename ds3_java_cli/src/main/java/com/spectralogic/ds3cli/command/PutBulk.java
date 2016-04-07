@@ -122,6 +122,8 @@ public class PutBulk extends CliCommand<PutBulkResult> {
 
         this.followSymlinks = args.isFollowSymlinks();
 
+        LOG.info("Follow symlinks has been set to: " + this.followSymlinks);
+
         return this;
     }
 
