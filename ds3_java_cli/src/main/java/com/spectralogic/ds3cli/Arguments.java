@@ -67,7 +67,7 @@ public class Arguments {
     private String bufferSize;
     private String numberOfThreads;
     private boolean ignoreErrors = false;
-    private boolean followSymlinks = true;
+    private boolean followSymlinks = false;
     private ImmutableMap<String, String> metadata = null;
 
     public Arguments(final String[] args) throws BadArgumentException, ParseException {
@@ -137,8 +137,10 @@ public class Arguments {
         numberOfThreads.setArgName("numberOfThreads");
         final Option ignoreErrors = new Option(null, false, "Ignore files that cause errors");
         ignoreErrors.setLongOpt("ignore-errors");
-        final Option noFollowSymlinks = new Option(null, false, "Set to not follow symlinks");
+        final Option noFollowSymlinks = new Option(null, false, "Set to not follow symlinks, this is the default behavior");
         noFollowSymlinks.setLongOpt("no-follow-symlinks");
+        final Option followSymLinks = new Option(null, false, "Set to follow symlinks");
+        followSymLinks.setLongOpt("follow-symlinks");
         final Option metadata = OptionBuilder.withLongOpt("metadata")
                 .withDescription("Metadata for when putting a single object.  Using the format: key:value,key2:value2")
                 .hasArgs()
@@ -176,6 +178,7 @@ public class Arguments {
         this.options.addOption(numberOfThreads);
         this.options.addOption(ignoreErrors);
         this.options.addOption(noFollowSymlinks);
+        this.options.addOption(followSymLinks);
         this.options.addOption(metadata);
 
         this.processCommandLine();
@@ -223,7 +226,6 @@ public class Arguments {
             }
 
         }
-
 
         if (cmd.hasOption("insecure")) {
             this.setCertificateVerification(false);
@@ -342,6 +344,10 @@ public class Arguments {
             this.setIgnoreErrors(true);
         }
 
+        if (cmd.hasOption("follow-symlinks")) {
+            this.setFollowSymlinks(true);
+        }
+
         if (cmd.hasOption("no-follow-symlinks")) {
             this.setFollowSymlinks(false);
         }
@@ -400,10 +406,8 @@ public class Arguments {
                 if (LOG.isInfoEnabled()) {
                     e.printStackTrace();
                 }
-
             }
         }
-
     }
 
     private void printVersion() {
