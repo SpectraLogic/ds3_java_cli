@@ -21,12 +21,16 @@ import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3cli.views.cli.CommandExceptionCliView;
 import com.spectralogic.ds3cli.views.json.CommandExceptionJsonView;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
 public class Ds3Cli implements Callable<CommandResponse> {
+
+    private final static Logger LOG = LoggerFactory.getLogger(Ds3Cli.class);
 
     private final Map<ViewType, Map<CommandValue, View>> views;
     private final Arguments args;
@@ -74,6 +78,8 @@ public class Ds3Cli implements Callable<CommandResponse> {
         cliViews.put(CommandValue.DELETE_TAPE,            deleteView);
         cliViews.put(CommandValue.PERFORMANCE,            new com.spectralogic.ds3cli.views.cli.PerformanceView());
         cliViews.put(CommandValue.GET_PHYSICAL_PLACEMENT, new com.spectralogic.ds3cli.views.cli.GetPhysicalPlacementWithFullDetailsView());
+        cliViews.put(CommandValue.GET_TAPE_FAILURE,       new com.spectralogic.ds3cli.views.cli.GetTapeFailureView());
+        cliViews.put(CommandValue.DELETE_TAPE_FAILURE,    deleteView);
         return cliViews;
     }
 
@@ -101,6 +107,8 @@ public class Ds3Cli implements Callable<CommandResponse> {
         jsonViews.put(CommandValue.GET_TAPES,              new com.spectralogic.ds3cli.views.json.GetTapesWithFullDetailsView());
         jsonViews.put(CommandValue.DELETE_TAPE,            deleteView);
         jsonViews.put(CommandValue.GET_PHYSICAL_PLACEMENT, new com.spectralogic.ds3cli.views.json.GetPhysicalPlacementWithFullDetailsView());
+        jsonViews.put(CommandValue.GET_TAPE_FAILURE,       new com.spectralogic.ds3cli.views.json.GetTapeFailureView());
+        jsonViews.put(CommandValue.DELETE_TAPE_FAILURE,    deleteView);
         return jsonViews;
     }
 
@@ -193,8 +201,17 @@ public class Ds3Cli implements Callable<CommandResponse> {
             case GET_PHYSICAL_PLACEMENT: {
                 return new GetPhysicalPlacement(this.ds3Provider, this.fileUtils);
             }
-            case GET_SERVICE:
+            case GET_TAPE_FAILURE: {
+                return new GetTapeFailure(this.ds3Provider, this.fileUtils);
+            }
+            case DELETE_TAPE_FAILURE: {
+                return new DeleteTapeFailure(this.ds3Provider, this.fileUtils);
+            }
+            case GET_SERVICE: {
+                return new GetService(this.ds3Provider, this.fileUtils);
+            }
             default: {
+                LOG.error("Unimplemented command: " + command.name());
                 return new GetService(this.ds3Provider, this.fileUtils);
             }
         }
