@@ -21,12 +21,16 @@ import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3cli.views.cli.CommandExceptionCliView;
 import com.spectralogic.ds3cli.views.json.CommandExceptionJsonView;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
 public class Ds3Cli implements Callable<CommandResponse> {
+
+    private final static Logger LOG = LoggerFactory.getLogger(Ds3Cli.class);
 
     private final Map<ViewType, Map<CommandValue, View>> views;
     private final Arguments args;
@@ -207,7 +211,7 @@ public class Ds3Cli implements Callable<CommandResponse> {
                 return new GetService(this.ds3Provider, this.fileUtils);
             }
             default: {
-                System.err.println("Command not recognized");
+                LOG.error("Unimplemented command: " + command.name());
                 return new GetService(this.ds3Provider, this.fileUtils);
             }
         }

@@ -33,8 +33,7 @@ import java.util.Iterator;
 
 
 public class GetTapeFailure extends CliCommand<GetTapeFailureResult> {
-    private String bucketName;
-    private String prefix;
+
     public GetTapeFailure(final Ds3Provider provider, final FileUtils fileUtils) {
         super(provider, fileUtils);
     }
