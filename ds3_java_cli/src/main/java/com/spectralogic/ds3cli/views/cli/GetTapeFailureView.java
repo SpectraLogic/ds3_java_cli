@@ -37,7 +37,7 @@ public class GetTapeFailureView implements View<GetTapeFailureResult> {
         if( (result == null)
                 || (null == result.getDetailedTapeFailures())
                 || (result.getDetailedTapeFailures().size() == 0) ) {
-            return "No taoe failures on remote appliance";
+            return "No tape failures on remote appliance";
         }
 
         return "" + result.getDetailedTapeFailures().size() + " Tape Failures:\n" +
@@ -48,7 +48,7 @@ public class GetTapeFailureView implements View<GetTapeFailureResult> {
         final List<DetailedTapeFailure> failures = result.getDetailedTapeFailures();
         final String [][] formatArray = new String[failures.size()][];
         int i = 0;
-        for(DetailedTapeFailure failure : failures) {
+        for(final DetailedTapeFailure failure : failures) {
             final String [] bucketArray = new String[4];
             bucketArray[0] = nullGuard(failure.getType().toString());
             bucketArray[1] = nullGuard(failure.getErrorMessage().toString());
