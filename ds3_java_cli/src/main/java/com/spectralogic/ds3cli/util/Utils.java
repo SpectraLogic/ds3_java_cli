@@ -92,6 +92,13 @@ public final class Utils {
         return message;
     }
 
+    public static String nullGuardToString(final Object o) {
+        if (o == null) {
+            return "N/A";
+        }
+        return o.toString();
+    }
+
     public static ObjectsToPut getObjectsToPut(final Iterable<Path> filteredObjects, final Path inputDirectory, final boolean ignoreErrors) throws IOException {
         final ImmutableList.Builder<Ds3Object> objectsBuilder = ImmutableList.builder();
         final ImmutableList.Builder<PutBulk.IgnoreFile> ignoredBuilder = ImmutableList.builder();
