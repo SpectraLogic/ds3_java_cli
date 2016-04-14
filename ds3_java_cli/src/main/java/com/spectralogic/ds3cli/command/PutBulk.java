@@ -130,7 +130,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
     @Override
     public PutBulkResult call() throws Exception {
         if (!this.force) {
-            BlackPearlUtils.checkBlackPearlForTapeFailure(getClient());
+            BlackPearlUtils.clearToWrite(getClient(), this.bucketName);
         }
 
         /* Ensure the bucket exists and if not create it */
