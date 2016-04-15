@@ -88,8 +88,19 @@ public final class Utils {
         if (message == null) {
             return "N/A";
         }
-
         return message;
+    }
+
+    public static String nullGuardToString(final Object o) {
+        // default alternate
+        return nullGuardToString(o, "N/A");
+    }
+
+    public static String nullGuardToString(final Object o, final String alternate) {
+        if (o == null) {
+            return alternate;
+        }
+        return o.toString();
     }
 
     public static ObjectsToPut getObjectsToPut(final Iterable<Path> filteredObjects, final Path inputDirectory, final boolean ignoreErrors) throws IOException {
