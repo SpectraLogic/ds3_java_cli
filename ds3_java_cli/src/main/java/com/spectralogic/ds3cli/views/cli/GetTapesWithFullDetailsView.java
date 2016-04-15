@@ -23,7 +23,11 @@ import com.spectralogic.ds3cli.models.GetTapesWithFullDetailsResult;
 import com.spectralogic.ds3client.models.NamedDetailedTape;
 import com.spectralogic.ds3client.models.NamedDetailedTapeList;
 
+import java.text.SimpleDateFormat;
+import java.util.TimeZone;
+
 import static com.spectralogic.ds3cli.util.Utils.nullGuard;
+import static com.spectralogic.ds3cli.util.Utils.nullGuardToString;
 
 public class GetTapesWithFullDetailsView implements View<GetTapesWithFullDetailsResult> {
     @Override
@@ -42,11 +46,11 @@ public class GetTapesWithFullDetailsView implements View<GetTapesWithFullDetails
             final NamedDetailedTape tape = tapeList.getNamedDetailedTapes().get(i);
             final String [] bucketArray = new String[6];
             bucketArray[0] = nullGuard(tape.getBarCode());
-            bucketArray[1] = nullGuard(tape.getId().toString());
-            bucketArray[2] = nullGuard(tape.getState().toString());
-            bucketArray[3] = nullGuard(tape.getLastModified().toString());
+            bucketArray[1] = nullGuardToString(tape.getId());
+            bucketArray[2] = nullGuardToString(tape.getState());
+            bucketArray[3] = nullGuardToString(tape.getLastModified(), "---");
             bucketArray[4] = nullGuard(Long.toString(tape.getAvailableRawCapacity()));
-            bucketArray[5] = nullGuard(tape.getMostRecentFailure().toString());
+            bucketArray[5] = nullGuardToString(tape.getMostRecentFailure());
             formatArray[i] = bucketArray;
         }
         return formatArray;
