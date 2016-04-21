@@ -22,6 +22,7 @@ import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.models.GetTapesWithFullDetailsResult;
 import com.spectralogic.ds3client.models.NamedDetailedTape;
 import com.spectralogic.ds3client.models.NamedDetailedTapeList;
+import com.spectralogic.ds3client.utils.Guard;
 
 import java.text.SimpleDateFormat;
 import java.util.TimeZone;
@@ -33,7 +34,7 @@ public class GetTapesWithFullDetailsView implements View<GetTapesWithFullDetails
     @Override
     public String render(final GetTapesWithFullDetailsResult obj) throws JsonProcessingException {
         final NamedDetailedTapeList result = obj.getTapesWithDetails();
-        if ((result == null) || (null == result.getNamedDetailedTapes())){
+        if ((result == null) || (Guard.isNullOrEmpty(result.getNamedDetailedTapes())) ){
             return "You do not have any tapes";
         }
 
