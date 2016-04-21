@@ -33,7 +33,7 @@ public class GetTapesWithFullDetailsView implements View<GetTapesWithFullDetails
     @Override
     public String render(final GetTapesWithFullDetailsResult obj) throws JsonProcessingException {
         final NamedDetailedTapeList result = obj.getTapesWithDetails();
-        if ((result == null) || (null == result.getNamedDetailedTapes())){
+        if ((result == null) || (null == result.getNamedDetailedTapes()) || (result.getNamedDetailedTapes().size() == 0 ) ){
             return "You do not have any tapes";
         }
 
