@@ -207,7 +207,7 @@ public final class Utils {
                     LOG.warn(String.format("WARN: piped data must be a regular/symbolic link file and not a directory ==> %s will be skipped", line));
                     continue;
                 }
-                LOG.info(line);
+                LOG.info("File \"" + file.toString() + "\" from stdin");
                 pipedFiles.add(file);
             }
         }
