@@ -26,6 +26,7 @@ import java.util.UUID;
 public class DeleteJob extends CliCommand<DeleteResult> {
 
     private UUID id;
+    private boolean force;
 
     public DeleteJob(final Ds3Provider ds3Provider, final FileUtils fileUtils) {
         super(ds3Provider, fileUtils);
@@ -37,12 +38,14 @@ public class DeleteJob extends CliCommand<DeleteResult> {
             throw new MissingOptionException("The delete job command requires '-i' to be set.");
         }
         this.id = UUID.fromString(args.getId());
+        this.force = args.isForce();
         return this;
     }
 
     @Override
     public DeleteResult call() throws Exception {
-        getClient().cancelJobSpectraS3(new CancelJobSpectraS3Request(id));
+        final CancelJobSpectraS3Request request = new CancelJobSpectraS3Request(id).withForce(this.force);
+        getClient().cancelJobSpectraS3(request);
         return new DeleteResult("SUCCESS: Deleted job '"+ this.id.toString() +"'");
     }
 }
