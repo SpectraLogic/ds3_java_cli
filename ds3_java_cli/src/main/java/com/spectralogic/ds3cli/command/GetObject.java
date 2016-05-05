@@ -83,10 +83,6 @@ public class GetObject extends CliCommand<GetObjectResult> {
     @Override
     public GetObjectResult call() throws Exception {
         try {
-            if (!this.force) {
-                BlackPearlUtils.checkBlackPearlForTapeFailure(getClient());
-            }
-
             final Ds3ClientHelpers helpers = getClientHelpers();
             final Path filePath = Paths.get(this.prefix, this.objectName);
             LOG.info("Output path: " + filePath.toString());

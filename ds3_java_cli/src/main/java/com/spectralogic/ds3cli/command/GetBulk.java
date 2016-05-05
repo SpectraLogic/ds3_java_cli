@@ -99,10 +99,6 @@ public class GetBulk extends CliCommand<GetBulkResult> {
     @Override
     public GetBulkResult call() throws Exception {
 
-        if (!this.force) {
-            BlackPearlUtils.checkBlackPearlForTapeFailure(getClient());
-        }
-
         final Ds3ClientHelpers.ObjectChannelBuilder getter;
         if (this.checksum) {
             throw new RuntimeException("Checksumming is currently not implemented.");//TODO
