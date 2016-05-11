@@ -100,10 +100,6 @@ public class PutObject extends CliCommand<PutObjectResult> {
 
     @Override
     public PutObjectResult call() throws Exception {
-        if (!this.force) {
-            BlackPearlUtils.checkBlackPearlForTapeFailure(getClient());
-        }
-
         final Ds3ClientHelpers helpers = getClientHelpers();
         final Ds3Object ds3Obj = new Ds3Object(Utils.normalizeObjectName(this.objectName), getFileUtils().size(this.objectPath));
 

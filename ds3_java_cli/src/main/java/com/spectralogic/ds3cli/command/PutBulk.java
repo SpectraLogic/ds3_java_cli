@@ -129,10 +129,6 @@ public class PutBulk extends CliCommand<PutBulkResult> {
 
     @Override
     public PutBulkResult call() throws Exception {
-        if (!this.force) {
-            BlackPearlUtils.checkBlackPearlForTapeFailure(getClient());
-        }
-
         /* Ensure the bucket exists and if not create it */
         final Ds3ClientHelpers helpers = getClientHelpers();
         helpers.ensureBucketExists(this.bucketName);
