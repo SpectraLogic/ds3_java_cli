@@ -18,19 +18,12 @@ package com.spectralogic.ds3cli.command;
 
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.exceptions.CommandException;
-import com.spectralogic.ds3cli.models.GetBucketResult;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3client.commands.spectrads3.GetTapeFailuresSpectraS3Request;
 import com.spectralogic.ds3client.commands.spectrads3.GetTapeFailuresSpectraS3Response;
-import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
-import com.spectralogic.ds3client.models.Contents;
 import com.spectralogic.ds3client.networking.FailedRequestException;
 import com.spectralogic.ds3cli.models.GetTapeFailureResult;
-import org.apache.commons.cli.MissingOptionException;
-
-import java.util.Iterator;
-
 
 public class GetTapeFailure extends CliCommand<GetTapeFailureResult> {
 

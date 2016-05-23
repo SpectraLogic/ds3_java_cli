@@ -24,9 +24,6 @@ import com.spectralogic.ds3client.models.NamedDetailedTape;
 import com.spectralogic.ds3client.models.NamedDetailedTapeList;
 import com.spectralogic.ds3client.utils.Guard;
 
-import java.text.SimpleDateFormat;
-import java.util.TimeZone;
-
 import static com.spectralogic.ds3cli.util.Utils.nullGuard;
 import static com.spectralogic.ds3cli.util.Utils.nullGuardToString;
 

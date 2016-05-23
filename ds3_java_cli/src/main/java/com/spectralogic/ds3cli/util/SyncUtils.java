@@ -22,8 +22,6 @@ import com.spectralogic.ds3client.models.Contents;
 import com.spectralogic.ds3client.serializer.XmlProcessingException;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeComparator;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

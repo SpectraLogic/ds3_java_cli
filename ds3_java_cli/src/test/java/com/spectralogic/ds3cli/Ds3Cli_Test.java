@@ -34,6 +34,7 @@ import com.spectralogic.ds3client.networking.Headers;
 import com.spectralogic.ds3client.networking.WebResponse;
 import com.spectralogic.ds3client.serializer.XmlOutput;
 import org.apache.commons.io.IOUtils;
+import org.hamcrest.core.StringEndsWith;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.invocation.InvocationOnMock;
@@ -794,7 +795,6 @@ public class Ds3Cli_Test {
                 + "      \"status\" : \"COMPLETED\",\n"
                 + "      \"userId\" : \"c2581493-058c-40d7-a3a1-9a50b20d6d3b\",\n"
                 + "      \"userName\" : \"spectra\",\n"
-                + "      \"writeOptimization\" : \"CAPACITY\",\n"
                 + "      \"Nodes\" : [ ],\n"
                 + "      \"Objects\" : [ ]\n"
                 + "    }\n"
@@ -815,7 +815,7 @@ public class Ds3Cli_Test {
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
 
         final CommandResponse result = cli.call();
-        assertTrue(result.getMessage().endsWith(expected));
+        assertThat(result.getMessage(), StringEndsWith.endsWith(expected));
         assertThat(result.getReturnCode(), is(0));
     }
 

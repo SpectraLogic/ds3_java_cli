@@ -19,7 +19,7 @@ import com.bethecoder.ascii_table.ASCIITable;
 import com.bethecoder.ascii_table.ASCIITableHeader;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.models.GetServiceResult;
-import com.spectralogic.ds3client.models.Ds3Bucket;
+import com.spectralogic.ds3client.models.BucketDetails;
 import com.spectralogic.ds3client.models.ListAllMyBucketsResult;
 
 import java.text.SimpleDateFormat;
@@ -41,10 +41,10 @@ public class GetServiceView implements View<GetServiceResult> {
     }
 
     private String[][] formatBucketList(final ListAllMyBucketsResult result) {
-        final List<Ds3Bucket> buckets = result.getBuckets();
+        final List<BucketDetails> buckets = result.getBuckets();
         final String [][] formatArray = new String[buckets.size()][];
         for(int i = 0; i < buckets.size(); i ++) {
-            final Ds3Bucket bucket = buckets.get(i);
+            final BucketDetails bucket = buckets.get(i);
             final String [] bucketArray = new String[2];
             bucketArray[0] = nullGuard(bucket.getName());
 

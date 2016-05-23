@@ -21,8 +21,6 @@ import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.models.GetTapeFailureResult;
 import com.spectralogic.ds3client.models.DetailedTapeFailure;
 import com.spectralogic.ds3client.models.DetailedTapeFailureList;
-import com.spectralogic.ds3client.models.Ds3Bucket;
-import com.spectralogic.ds3client.models.ListAllMyBucketsResult;
 
 import java.text.SimpleDateFormat;
 import java.util.List;
@@ -51,7 +49,7 @@ public class GetTapeFailureView implements View<GetTapeFailureResult> {
         for(final DetailedTapeFailure failure : failures) {
             final String [] bucketArray = new String[4];
             bucketArray[0] = nullGuard(failure.getType().toString());
-            bucketArray[1] = nullGuard(failure.getErrorMessage().toString());
+            bucketArray[1] = nullGuard(failure.getErrorMessage());
             bucketArray[2] = nullGuard(failure.getId().toString());
             final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
             DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
