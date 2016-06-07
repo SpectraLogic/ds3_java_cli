@@ -33,6 +33,8 @@ import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
 import java.security.SignatureException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
@@ -101,6 +103,13 @@ public final class Utils {
             return alternate;
         }
         return o.toString();
+    }
+
+    public static String nullGuardToDate(final Object o, SimpleDateFormat dateFormat) {
+        if (o == null) {
+            return dateFormat.format(new Date(0L));
+        }
+        return dateFormat.format(o);
     }
 
     public static ObjectsToPut getObjectsToPut(final Iterable<Path> filteredObjects, final Path inputDirectory, final boolean ignoreErrors) throws IOException {

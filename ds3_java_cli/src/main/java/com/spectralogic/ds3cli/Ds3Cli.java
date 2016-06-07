@@ -79,6 +79,8 @@ public class Ds3Cli implements Callable<CommandResponse> {
         cliViews.put(CommandValue.PERFORMANCE,            new com.spectralogic.ds3cli.views.cli.PerformanceView());
         cliViews.put(CommandValue.GET_PHYSICAL_PLACEMENT, new com.spectralogic.ds3cli.views.cli.GetPhysicalPlacementWithFullDetailsView());
         cliViews.put(CommandValue.GET_TAPE_FAILURE,       new com.spectralogic.ds3cli.views.cli.GetTapeFailureView());
+        cliViews.put(CommandValue.GET_DATA_POLICIES,      new com.spectralogic.ds3cli.views.cli.GetDataPoliciesView());
+        cliViews.put(CommandValue.GET_DATA_POLICY,        new com.spectralogic.ds3cli.views.cli.GetDataPoliciesView());
         cliViews.put(CommandValue.DELETE_TAPE_FAILURE,    deleteView);
         return cliViews;
     }
@@ -108,6 +110,8 @@ public class Ds3Cli implements Callable<CommandResponse> {
         jsonViews.put(CommandValue.DELETE_TAPE,            deleteView);
         jsonViews.put(CommandValue.GET_PHYSICAL_PLACEMENT, new com.spectralogic.ds3cli.views.json.GetPhysicalPlacementWithFullDetailsView());
         jsonViews.put(CommandValue.GET_TAPE_FAILURE,       new com.spectralogic.ds3cli.views.json.GetTapeFailureView());
+        jsonViews.put(CommandValue.GET_DATA_POLICIES,      new com.spectralogic.ds3cli.views.json.GetDataPoliciesView());
+        jsonViews.put(CommandValue.GET_DATA_POLICY,        new com.spectralogic.ds3cli.views.json.GetDataPoliciesView());
         jsonViews.put(CommandValue.DELETE_TAPE_FAILURE,    deleteView);
         return jsonViews;
     }
@@ -209,6 +213,12 @@ public class Ds3Cli implements Callable<CommandResponse> {
             }
             case GET_SERVICE: {
                 return new GetService(this.ds3Provider, this.fileUtils);
+            }
+            case GET_DATA_POLICY: {
+                return new GetDataPolicy(this.ds3Provider, this.fileUtils);
+            }
+            case GET_DATA_POLICIES: {
+                return new GetDataPolicies(this.ds3Provider, this.fileUtils);
             }
             default: {
                 LOG.error("Unimplemented command: " + command.name());
