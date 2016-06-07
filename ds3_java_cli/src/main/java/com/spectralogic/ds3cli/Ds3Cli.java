@@ -81,6 +81,7 @@ public class Ds3Cli implements Callable<CommandResponse> {
         cliViews.put(CommandValue.GET_TAPE_FAILURE,       new com.spectralogic.ds3cli.views.cli.GetTapeFailureView());
         cliViews.put(CommandValue.GET_DATA_POLICIES,      new com.spectralogic.ds3cli.views.cli.GetDataPoliciesView());
         cliViews.put(CommandValue.GET_DATA_POLICY,        new com.spectralogic.ds3cli.views.cli.GetDataPoliciesView());
+        cliViews.put(CommandValue.MODIFY_DATA_POLICY,     new com.spectralogic.ds3cli.views.cli.GetDataPoliciesView());
         cliViews.put(CommandValue.DELETE_TAPE_FAILURE,    deleteView);
         return cliViews;
     }
@@ -112,6 +113,7 @@ public class Ds3Cli implements Callable<CommandResponse> {
         jsonViews.put(CommandValue.GET_TAPE_FAILURE,       new com.spectralogic.ds3cli.views.json.GetTapeFailureView());
         jsonViews.put(CommandValue.GET_DATA_POLICIES,      new com.spectralogic.ds3cli.views.json.GetDataPoliciesView());
         jsonViews.put(CommandValue.GET_DATA_POLICY,        new com.spectralogic.ds3cli.views.json.GetDataPoliciesView());
+        jsonViews.put(CommandValue.MODIFY_DATA_POLICY,     new com.spectralogic.ds3cli.views.json.GetDataPoliciesView());
         jsonViews.put(CommandValue.DELETE_TAPE_FAILURE,    deleteView);
         return jsonViews;
     }
@@ -219,6 +221,9 @@ public class Ds3Cli implements Callable<CommandResponse> {
             }
             case GET_DATA_POLICIES: {
                 return new GetDataPolicies(this.ds3Provider, this.fileUtils);
+            }
+            case MODIFY_DATA_POLICY: {
+                return new ModifyDataPolicy(this.ds3Provider, this.fileUtils);
             }
             default: {
                 LOG.error("Unimplemented command: " + command.name());
