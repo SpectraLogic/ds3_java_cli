@@ -18,6 +18,7 @@ package com.spectralogic.ds3cli;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.spectralogic.ds3cli.exceptions.BadArgumentException;
+import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.exceptions.SyncNotSupportedException;
 import com.spectralogic.ds3cli.util.*;
 import com.spectralogic.ds3client.Ds3Client;
@@ -1557,4 +1558,190 @@ public class Ds3Cli_Test {
 
         assertThat(result.getReturnCode(), is(0));
     }
+
+    @Test
+    public void getDataPolicies() throws Exception {
+
+        final String expected = "+------+--------------------------+------------+---------------+-------------------------+------------------+-------------------+--------------------------+--------------------------+-----------------------------+--------------------------------------+--------------------+\n"
+                +"| Name |          Created         | Versioning | Checksum Type | End-to-End CRC Required | Blobbing Enabled | Default Blob Size | Default Get Job Priority | Default Put Job Priority | Default Verify Job Priority |                  Id                  | LTFS Object Naming |\n"
+                +"+------+--------------------------+------------+---------------+-------------------------+------------------+-------------------+--------------------------+--------------------------+-----------------------------+--------------------------------------+--------------------+\n"
+                +"| fred | 2016-04-26T14:17:04.000Z |       NONE |           MD5 |                   false |            false |        1073741824 |                     HIGH |                   NORMAL |                         LOW | d3e6e795-fc85-4163-9d2f-4bc271d995d0 |               true |\n"
+                +"+------+--------------------------+------------+---------------+-------------------------+------------------+-------------------+--------------------------+--------------------------+-----------------------------+--------------------------------------+--------------------+\n";
+
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_data_policies"});
+        final String response = "<Data><DataPolicy>" +
+                "<BlobbingEnabled>false</BlobbingEnabled>" +
+                "<ChecksumType>MD5</ChecksumType>" +
+                "<CreationDate>2016-04-26T14:17:04.000Z</CreationDate>" +
+                "<DefaultBlobSize>1073741824</DefaultBlobSize>" +
+                "<DefaultGetJobPriority>HIGH</DefaultGetJobPriority>" +
+                "<DefaultPutJobPriority>NORMAL</DefaultPutJobPriority>" +
+                "<DefaultVerifyJobPriority>LOW</DefaultVerifyJobPriority>" +
+                "<EndToEndCrcRequired>false</EndToEndCrcRequired>" +
+                "<Id>d3e6e795-fc85-4163-9d2f-4bc271d995d0</Id>" +
+                "<LtfsObjectNamingAllowed>true</LtfsObjectNamingAllowed>" +
+                "<Name>fred</Name>" +
+                "<RebuildPriority>LOW</RebuildPriority>" +
+                "<Versioning>NONE</Versioning></DataPolicy></Data>";
+
+        final Ds3Client client = mock(Ds3Client.class);
+        final WebResponse webResponse = mock(WebResponse.class);
+        final Headers headers = mock(Headers.class);
+        when(webResponse.getStatusCode()).thenReturn(200);
+        when(webResponse.getHeaders()).thenReturn(headers);
+        when(webResponse.getResponseStream()).thenReturn(IOUtils.toInputStream(response));
+        final GetDataPoliciesSpectraS3Response GetDataPoliciesResponse = new GetDataPoliciesSpectraS3Response(webResponse);
+        when(client.getDataPoliciesSpectraS3(any(GetDataPoliciesSpectraS3Request.class))).thenReturn(GetDataPoliciesResponse);
+
+        final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
+        final CommandResponse result = cli.call();
+        assertThat(result.getMessage(), is(expected));
+        assertThat(result.getReturnCode(), is(0));
+    }
+
+    @Test
+    public void getDataPolicy() throws Exception {
+
+        final String expected = "+------+--------------------------+------------+---------------+-------------------------+------------------+-------------------+--------------------------+--------------------------+-----------------------------+--------------------------------------+--------------------+\n"
+                +"| Name |          Created         | Versioning | Checksum Type | End-to-End CRC Required | Blobbing Enabled | Default Blob Size | Default Get Job Priority | Default Put Job Priority | Default Verify Job Priority |                  Id                  | LTFS Object Naming |\n"
+                +"+------+--------------------------+------------+---------------+-------------------------+------------------+-------------------+--------------------------+--------------------------+-----------------------------+--------------------------------------+--------------------+\n"
+                +"| fake | 2016-04-26T14:17:04.000Z |       NONE |           MD5 |                   false |            false |        1073741824 |                     HIGH |                   NORMAL |                         LOW | d3e6e795-fc85-4163-9d2f-4bc271d995d0 |               true |\n"
+                +"+------+--------------------------+------------+---------------+-------------------------+------------------+-------------------+--------------------------+--------------------------+-----------------------------+--------------------------------------+--------------------+\n";
+
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_data_policy", "-i", "fake"});
+        final String response = "<Data>" +
+                "<BlobbingEnabled>false</BlobbingEnabled>" +
+                "<ChecksumType>MD5</ChecksumType>" +
+                "<CreationDate>2016-04-26T14:17:04.000Z</CreationDate>" +
+                "<DefaultBlobSize>1073741824</DefaultBlobSize>" +
+                "<DefaultGetJobPriority>HIGH</DefaultGetJobPriority>" +
+                "<DefaultPutJobPriority>NORMAL</DefaultPutJobPriority>" +
+                "<DefaultVerifyJobPriority>LOW</DefaultVerifyJobPriority>" +
+                "<EndToEndCrcRequired>false</EndToEndCrcRequired>" +
+                "<Id>d3e6e795-fc85-4163-9d2f-4bc271d995d0</Id>" +
+                "<LtfsObjectNamingAllowed>true</LtfsObjectNamingAllowed>" +
+                "<Name>fake</Name>" +
+                "<RebuildPriority>LOW</RebuildPriority>" +
+                "<Versioning>NONE</Versioning></Data>";
+
+        final Ds3Client client = mock(Ds3Client.class);
+        final WebResponse webResponse = mock(WebResponse.class);
+        final Headers headers = mock(Headers.class);
+        when(webResponse.getStatusCode()).thenReturn(200);
+        when(webResponse.getHeaders()).thenReturn(headers);
+        when(webResponse.getResponseStream()).thenReturn(IOUtils.toInputStream(response));
+        final GetDataPolicySpectraS3Response GetDataPolicyResponse = new GetDataPolicySpectraS3Response(webResponse);
+        when(client.getDataPolicySpectraS3(any(GetDataPolicySpectraS3Request.class))).thenReturn(GetDataPolicyResponse);
+
+        final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
+        final CommandResponse result = cli.call();
+        assertThat(result.getMessage(), is(expected));
+        assertThat(result.getReturnCode(), is(0));
+    }
+
+    @Test
+    public void modifyDataPolicy() throws Exception {
+
+        final String expected = "+------+--------------------------+------------+---------------+-------------------------+------------------+-------------------+--------------------------+--------------------------+-----------------------------+--------------------------------------+--------------------+\n"
+                +"| Name |          Created         | Versioning | Checksum Type | End-to-End CRC Required | Blobbing Enabled | Default Blob Size | Default Get Job Priority | Default Put Job Priority | Default Verify Job Priority |                  Id                  | LTFS Object Naming |\n"
+                +"+------+--------------------------+------------+---------------+-------------------------+------------------+-------------------+--------------------------+--------------------------+-----------------------------+--------------------------------------+--------------------+\n"
+                +"| fred | 2016-04-26T14:17:04.000Z |       NONE |           MD5 |                   false |            false |        1073741824 |                     HIGH |                   NORMAL |                         LOW | d3e6e795-fc85-4163-9d2f-4bc271d995d0 |               true |\n"
+                +"+------+--------------------------+------------+---------------+-------------------------+------------------+-------------------+--------------------------+--------------------------+-----------------------------+--------------------------------------+--------------------+\n";
+
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "modify_data_policy", "-i", "fake",
+                "--metadata",  "name:fred,blobbing_enabled:false,default_blob_size:1073741824,default_get_job_priority:HIGH,end_to_end_crc_required:false,rebuild_priority:LOW,versioning:NONE"});
+        final String response = "<Data>" +
+                "<BlobbingEnabled>false</BlobbingEnabled>" +
+                "<ChecksumType>MD5</ChecksumType>" +
+                "<CreationDate>2016-04-26T14:17:04.000Z</CreationDate>" +
+                "<DefaultBlobSize>1073741824</DefaultBlobSize>" +
+                "<DefaultGetJobPriority>HIGH</DefaultGetJobPriority>" +
+                "<DefaultPutJobPriority>NORMAL</DefaultPutJobPriority>" +
+                "<DefaultVerifyJobPriority>LOW</DefaultVerifyJobPriority>" +
+                "<EndToEndCrcRequired>false</EndToEndCrcRequired>" +
+                "<Id>d3e6e795-fc85-4163-9d2f-4bc271d995d0</Id>" +
+                "<LtfsObjectNamingAllowed>true</LtfsObjectNamingAllowed>" +
+                "<Name>fred</Name>" +
+                "<RebuildPriority>LOW</RebuildPriority>" +
+                "<Versioning>NONE</Versioning>" +
+                "</Data>";
+
+        final Ds3Client client = mock(Ds3Client.class);
+
+        // mock client for "get" call
+        final WebResponse webResponse1 = mock(WebResponse.class);
+        final Headers headers1 = mock(Headers.class);
+        when(webResponse1.getStatusCode()).thenReturn(200);
+        when(webResponse1.getHeaders()).thenReturn(headers1);
+        when(webResponse1.getResponseStream()).thenReturn(IOUtils.toInputStream(response));
+        final GetDataPolicySpectraS3Response GetDataPolicyResponse = new GetDataPolicySpectraS3Response(webResponse1);
+
+        // mock client for "modofy" call
+        final WebResponse webResponse = mock(WebResponse.class);
+        final Headers headers = mock(Headers.class);
+        when(webResponse.getStatusCode()).thenReturn(200);
+        when(webResponse.getHeaders()).thenReturn(headers);
+        when(webResponse.getResponseStream()).thenReturn(IOUtils.toInputStream(response));
+
+        final ModifyDataPolicySpectraS3Response ModifyDataPolicyResponse = new ModifyDataPolicySpectraS3Response(webResponse);
+        when(client.modifyDataPolicySpectraS3(any(ModifyDataPolicySpectraS3Request.class))).thenReturn(ModifyDataPolicyResponse);
+        when(client.getDataPolicySpectraS3(any(GetDataPolicySpectraS3Request.class))).thenReturn(GetDataPolicyResponse);
+
+        final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
+        final CommandResponse result = cli.call();
+        assertThat(result.getMessage(), is(expected));
+        assertThat(result.getReturnCode(), is(0));
+    }
+
+    @Test
+    public void modifyDataPolicyWithBadParam() throws Exception {
+
+        final String expected = "Unrecognized Data Policy parameter: cat";
+
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "modify_data_policy", "-i", "fake",
+                "--metadata",  "name:fred,blobbing_enabled:false,default_blob_size:1073741824,default_get_job_priority:HIGH,end_to_end_crc_required:false,rebuild_priority:LOW,versioning:NONE,cat:dog"});
+
+        // set up the mock to retrieve the policy to modify
+        final String response = "<Data>" +
+                "<BlobbingEnabled>false</BlobbingEnabled>" +
+                "<ChecksumType>MD5</ChecksumType>" +
+                "<CreationDate>2016-04-26T14:17:04.000Z</CreationDate>" +
+                "<DefaultBlobSize>1073741824</DefaultBlobSize>" +
+                "<DefaultGetJobPriority>HIGH</DefaultGetJobPriority>" +
+                "<DefaultPutJobPriority>NORMAL</DefaultPutJobPriority>" +
+                "<DefaultVerifyJobPriority>LOW</DefaultVerifyJobPriority>" +
+                "<EndToEndCrcRequired>false</EndToEndCrcRequired>" +
+                "<Id>d3e6e795-fc85-4163-9d2f-4bc271d995d0</Id>" +
+                "<LtfsObjectNamingAllowed>true</LtfsObjectNamingAllowed>" +
+                "<Name>fred</Name>" +
+                "<RebuildPriority>LOW</RebuildPriority>" +
+                "<Versioning>NONE</Versioning>" +
+                "</Data>";
+
+        final Ds3Client client = mock(Ds3Client.class);
+
+        // mock client for "get" call
+        final WebResponse webResponse1 = mock(WebResponse.class);
+        final Headers headers1 = mock(Headers.class);
+        when(webResponse1.getStatusCode()).thenReturn(200);
+        when(webResponse1.getHeaders()).thenReturn(headers1);
+        when(webResponse1.getResponseStream()).thenReturn(IOUtils.toInputStream(response));
+        final GetDataPolicySpectraS3Response GetDataPolicyResponse = new GetDataPolicySpectraS3Response(webResponse1);
+
+        // mock client for "modofy" call
+        final WebResponse webResponse = mock(WebResponse.class);
+        final Headers headers = mock(Headers.class);
+        when(webResponse.getStatusCode()).thenReturn(200);
+        when(webResponse.getHeaders()).thenReturn(headers);
+        when(webResponse.getResponseStream()).thenReturn(IOUtils.toInputStream(response));
+
+        final ModifyDataPolicySpectraS3Response ModifyDataPolicyResponse = new ModifyDataPolicySpectraS3Response(webResponse);
+        when(client.modifyDataPolicySpectraS3(any(ModifyDataPolicySpectraS3Request.class))).thenReturn(ModifyDataPolicyResponse);
+        when(client.getDataPolicySpectraS3(any(GetDataPolicySpectraS3Request.class))).thenReturn(GetDataPolicyResponse);
+
+        final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
+        final CommandResponse result = cli.call();
+        assertThat(result.getMessage(), is(expected));
+    }
+
 }

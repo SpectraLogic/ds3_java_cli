@@ -130,10 +130,7 @@ public class ModifyDataPolicy extends CliCommand<GetDataPoliciesResult> {
             // Apply changes
             final ModifyDataPolicySpectraS3Response modifyResponse = getClient().modifyDataPolicySpectraS3(modifyRequest);
 
-            //get the updated policy and display
-            final GetDataPolicySpectraS3Response updatedResponse = getClient().getDataPolicySpectraS3(new GetDataPolicySpectraS3Request(this.policyId));
-            return new GetDataPoliciesResult(updatedResponse.getDataPolicyResult());
-
+            return new GetDataPoliciesResult(modifyResponse.getDataPolicyResult());
 
         } catch (final FailedRequestException e) {
             throw new CommandException("Failed Modify Data Policies: " + e.getMessage(), e);
