@@ -95,32 +95,35 @@ public class ModifyDataPolicy extends CliCommand<GetDataPoliciesResult> {
                 if("blobbing_enabled".equalsIgnoreCase(paramChange)) {
                     modifyRequest.withBlobbingEnabled(Boolean.parseBoolean(paramNewValue));
                 }
-                if("name".equalsIgnoreCase(paramChange)) {
+                else if("name".equalsIgnoreCase(paramChange)) {
                     modifyRequest.withName(paramNewValue);
                 }
-                if("checksum_type".equalsIgnoreCase(paramChange)) {
+                else if("checksum_type".equalsIgnoreCase(paramChange)) {
                     modifyRequest.withChecksumType(ChecksumType.Type.valueOf(paramNewValue));
                 }
-                if("default_blob_size".equalsIgnoreCase(paramChange)) {
+                else if("default_blob_size".equalsIgnoreCase(paramChange)) {
                     modifyRequest.withDefaultBlobSize(Long.getLong(paramNewValue));
                 }
-                if("default_get_job_priority".equalsIgnoreCase(paramChange)) {
+                else if("default_get_job_priority".equalsIgnoreCase(paramChange)) {
                     modifyRequest.withDefaultGetJobPriority(Priority.valueOf(paramNewValue));
                 }
-                if("default_put_job_priority".equalsIgnoreCase(paramChange)) {
+                else if("default_put_job_priority".equalsIgnoreCase(paramChange)) {
                     modifyRequest.withDefaultPutJobPriority(Priority.valueOf(paramNewValue));
                 }
-                if("default_verify_job_priority".equalsIgnoreCase(paramChange)) {
+                else if("default_verify_job_priority".equalsIgnoreCase(paramChange)) {
                     modifyRequest.withDefaultVerifyJobPriority(Priority.valueOf(paramNewValue));
                 }
-                if("rebuild_priority".equalsIgnoreCase(paramChange)) {
+                else if("rebuild_priority".equalsIgnoreCase(paramChange)) {
                     modifyRequest.withRebuildPriority(Priority.valueOf(paramNewValue));
                 }
-                if("end_to_end_crc_required".equalsIgnoreCase(paramChange)) {
+                else if("end_to_end_crc_required".equalsIgnoreCase(paramChange)) {
                     modifyRequest.withEndToEndCrcRequired(Boolean.parseBoolean(paramNewValue));
                 }
-                if("versioning".equalsIgnoreCase(paramChange)) {
+                else if("versioning".equalsIgnoreCase(paramChange)) {
                     modifyRequest.withVersioning(VersioningLevel.valueOf(paramNewValue));
+                }
+                else {
+                    throw new CommandException("Unrecognized Data Policy parameter: " + paramChange);
                 }
             } // for
 
