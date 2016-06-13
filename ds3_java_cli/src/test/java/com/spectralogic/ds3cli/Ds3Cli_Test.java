@@ -1728,7 +1728,7 @@ public class Ds3Cli_Test {
         when(webResponse1.getResponseStream()).thenReturn(IOUtils.toInputStream(response));
         final GetDataPolicySpectraS3Response GetDataPolicyResponse = new GetDataPolicySpectraS3Response(webResponse1);
 
-        // mock client for "modofy" call
+        // mock client for "modify" call
         final WebResponse webResponse = mock(WebResponse.class);
         final Headers headers = mock(Headers.class);
         when(webResponse.getStatusCode()).thenReturn(200);
@@ -1738,6 +1738,152 @@ public class Ds3Cli_Test {
         final ModifyDataPolicySpectraS3Response ModifyDataPolicyResponse = new ModifyDataPolicySpectraS3Response(webResponse);
         when(client.modifyDataPolicySpectraS3(any(ModifyDataPolicySpectraS3Request.class))).thenReturn(ModifyDataPolicyResponse);
         when(client.getDataPolicySpectraS3(any(GetDataPolicySpectraS3Request.class))).thenReturn(GetDataPolicyResponse);
+
+        final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
+        final CommandResponse result = cli.call();
+        assertThat(result.getMessage(), is(expected));
+    }
+
+    @Test
+    public void getUser() throws Exception {
+
+        final String expected = "+---------+------------+--------------------------------------+--------------------------------------+------------------+\n" +
+                "|   Name  | Secret Key |                  Id                  |        Default Data Policy Id        | Authorization Id |\n" +
+                "+---------+------------+--------------------------------------+--------------------------------------+------------------+\n" +
+                "| testguy | QBVe7jAu   | a1e149b9-3dfa-49c2-b7d0-25e831932fff | a85aa599-7a58-4141-adbe-79bfd1d42e48 |     dGVzdGd1eQ== |\n" +
+                "+---------+------------+--------------------------------------+--------------------------------------+------------------+\n";
+
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_user", "-i", "testguy"});
+        final String response = "<Data>" +
+                "<AuthId>dGVzdGd1eQ==</AuthId>" +
+                "<DefaultDataPolicyId>a85aa599-7a58-4141-adbe-79bfd1d42e48</DefaultDataPolicyId>" +
+                "<Id>a1e149b9-3dfa-49c2-b7d0-25e831932fff</Id>" +
+                "<Name>testguy</Name>" +
+                "<SecretKey>QBVe7jAu</SecretKey>" +
+                "</Data>";
+
+        final Ds3Client client = mock(Ds3Client.class);
+        final WebResponse webResponse = mock(WebResponse.class);
+        final Headers headers = mock(Headers.class);
+        when(webResponse.getStatusCode()).thenReturn(200);
+        when(webResponse.getHeaders()).thenReturn(headers);
+        when(webResponse.getResponseStream()).thenReturn(IOUtils.toInputStream(response));
+        final GetUserSpectraS3Response GetUserResponse = new GetUserSpectraS3Response(webResponse);
+        when(client.getUserSpectraS3(any(GetUserSpectraS3Request.class))).thenReturn(GetUserResponse);
+
+        final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
+        final CommandResponse result = cli.call();
+        assertThat(result.getMessage(), is(expected));
+        assertThat(result.getReturnCode(), is(0));
+    }
+
+    @Test
+    public void getUsers() throws Exception {
+
+        final String expected = "+---------+------------+--------------------------------------+--------------------------------------+------------------+\n" +
+                "|   Name  | Secret Key |                  Id                  |        Default Data Policy Id        | Authorization Id |\n" +
+                "+---------+------------+--------------------------------------+--------------------------------------+------------------+\n" +
+                "| jk      | QRfhLkgU   | 0f4e6e4a-bc48-427d-820e-9c0a050064be | d3e6e795-fc85-4163-9d2f-4bc271d995d0 |             ams= |\n" +
+                "| spectra | L28VgwAr   | dcea9717-4326-49bb-bc46-7150b1c515bd | d3e6e795-fc85-4163-9d2f-4bc271d995d0 |     c3BlY3RyYQ== |\n" +
+                "| testguy | QBVe7jAu   | a1e149b9-3dfa-49c2-b7d0-25e831932fff | a85aa599-7a58-4141-adbe-79bfd1d42e48 |     dGVzdGd1eQ== |\n" +
+                "+---------+------------+--------------------------------------+--------------------------------------+------------------+\n";
+
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_users"});
+        final String response = "<Data>" +
+                "<User><AuthId>ams=</AuthId>" +
+                    "<DefaultDataPolicyId>d3e6e795-fc85-4163-9d2f-4bc271d995d0</DefaultDataPolicyId>" +
+                    "<Id>0f4e6e4a-bc48-427d-820e-9c0a050064be</Id>" +
+                    "<Name>jk</Name>" +
+                    "<SecretKey>QRfhLkgU</SecretKey></User>" +
+                "<User><AuthId>c3BlY3RyYQ==</AuthId>" +
+                    "<DefaultDataPolicyId>d3e6e795-fc85-4163-9d2f-4bc271d995d0</DefaultDataPolicyId>" +
+                    "<Id>dcea9717-4326-49bb-bc46-7150b1c515bd</Id>" +
+                    "<Name>spectra</Name>" +
+                    "<SecretKey>L28VgwAr</SecretKey></User>" +
+                "<User><AuthId>dGVzdGd1eQ==</AuthId>" +
+                    "<DefaultDataPolicyId>a85aa599-7a58-4141-adbe-79bfd1d42e48</DefaultDataPolicyId>" +
+                    "<Id>a1e149b9-3dfa-49c2-b7d0-25e831932fff</Id>" +
+                    "<Name>testguy</Name>" +
+                    "<SecretKey>QBVe7jAu</SecretKey></User>" +
+                "</Data>";
+
+        final Ds3Client client = mock(Ds3Client.class);
+        final WebResponse webResponse = mock(WebResponse.class);
+        final Headers headers = mock(Headers.class);
+        when(webResponse.getStatusCode()).thenReturn(200);
+        when(webResponse.getHeaders()).thenReturn(headers);
+        when(webResponse.getResponseStream()).thenReturn(IOUtils.toInputStream(response));
+        final GetUsersSpectraS3Response GetUsersResponse = new GetUsersSpectraS3Response(webResponse);
+        when(client.getUsersSpectraS3(any(GetUsersSpectraS3Request.class))).thenReturn(GetUsersResponse);
+
+        final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
+        final CommandResponse result = cli.call();
+        assertThat(result.getMessage(), is(expected));
+        assertThat(result.getReturnCode(), is(0));
+    }
+
+    @Test
+    public void modifyUser() throws Exception {
+
+        final String expected = "+---------+------------+--------------------------------------+--------------------------------------+------------------+\n" +
+                "|   Name  | Secret Key |                  Id                  |        Default Data Policy Id        | Authorization Id |\n" +
+                "+---------+------------+--------------------------------------+--------------------------------------+------------------+\n" +
+                "| testguy | QBVe7jAu   | a1e149b9-3dfa-49c2-b7d0-25e831932fff | a85aa599-7a58-4141-adbe-79bfd1d42e48 |     dGVzdGd1eQ== |\n" +
+                "+---------+------------+--------------------------------------+--------------------------------------+------------------+\n";
+
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "modify_user",
+                "-i", "testguy", "--metadata",  "default_data_policy_id:a85aa599-7a58-4141-adbe-79bfd1d42e48"});
+        final String response = "<Data>" +
+                "<AuthId>dGVzdGd1eQ==</AuthId>" +
+                "<DefaultDataPolicyId>a85aa599-7a58-4141-adbe-79bfd1d42e48</DefaultDataPolicyId>" +
+                "<Id>a1e149b9-3dfa-49c2-b7d0-25e831932fff</Id>" +
+                "<Name>testguy</Name>" +
+                "<SecretKey>QBVe7jAu</SecretKey>" +
+                "</Data>";
+
+        final Ds3Client client = mock(Ds3Client.class);
+
+        // mock client for "modify" call
+        final WebResponse webResponse = mock(WebResponse.class);
+        final Headers headers = mock(Headers.class);
+        when(webResponse.getStatusCode()).thenReturn(200);
+        when(webResponse.getHeaders()).thenReturn(headers);
+        when(webResponse.getResponseStream()).thenReturn(IOUtils.toInputStream(response));
+
+        final ModifyUserSpectraS3Response ModifyUserResponse = new ModifyUserSpectraS3Response(webResponse);
+        when(client.modifyUserSpectraS3(any(ModifyUserSpectraS3Request.class))).thenReturn(ModifyUserResponse);
+
+        final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
+        final CommandResponse result = cli.call();
+        assertThat(result.getMessage(), is(expected));
+        assertThat(result.getReturnCode(), is(0));
+    }
+
+    @Test(expected = FailedRequestException.class)
+    public void getUserNonExisting() throws Exception {
+
+        final String expected = "Unknown user: nosuchuser";
+
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_user", "-i", "nosuchuser"});
+
+        final String response = "<Error>" +
+                "<Code>NotFound</Code>" +
+                "<HttpErrorCode>404</HttpErrorCode>" +
+                "<Message>interface com.spectralogic.s3.common.dao.domain.ds3.User not found via identifier / bean property value &apos;nosuchuser&apos;.</Message>" +
+                "<Resource>/_rest_/user/nosuchuser</Resource><ResourceId>578</ResourceId>" +
+                "</Error>";
+
+        final Ds3Client client = mock(Ds3Client.class);
+
+        // mock client for "get" call0
+        final WebResponse webResponse = mock(WebResponse.class);
+        final Headers headers = mock(Headers.class);
+        when(webResponse.getStatusCode()).thenReturn(404);
+        when(webResponse.getHeaders()).thenReturn(headers);
+        when(webResponse.getResponseStream()).thenReturn(IOUtils.toInputStream(response));
+
+        final GetUserSpectraS3Response GetUserResponse = new GetUserSpectraS3Response(webResponse);
+        when(client.getUserSpectraS3(any(GetUserSpectraS3Request.class))).thenReturn(GetUserResponse);
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
         final CommandResponse result = cli.call();
