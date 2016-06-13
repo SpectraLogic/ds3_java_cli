@@ -148,7 +148,7 @@ public class Arguments {
                 .withValueSeparator(',')
                 .create();
         final Option modifyParams = OptionBuilder.withLongOpt("modify-params")
-                .withDescription("Parameters for modifying features.  Using the format: key:value,key2:value2")
+                .withDescription("Parameters for modifying features using the format key:value,key2:value2. For modify_user: default_data_policy_id")
                 .hasArgs()
                 .withValueSeparator(',')
                 .create();
