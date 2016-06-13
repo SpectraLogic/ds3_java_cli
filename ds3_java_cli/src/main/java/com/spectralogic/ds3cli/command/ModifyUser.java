@@ -36,7 +36,7 @@ public class ModifyUser extends CliCommand<GetUsersResult> {
     // name or guid
     private String userId;
     private String defaultPolicyId;
-    private ImmutableMap<String, String> metadata;
+    private ImmutableMap<String, String> modifyParams;
 
 
     public ModifyUser(final Ds3Provider provider, final FileUtils fileUtils) {
@@ -49,9 +49,9 @@ public class ModifyUser extends CliCommand<GetUsersResult> {
         if (this.userId == null) {
             throw new MissingOptionException("The alter policy command requires '-i' to be set with the username or Id");
         }
-        this.metadata = args.getMetadata();
-        if ((this.metadata == null) || (this.metadata.isEmpty())) {
-            throw new MissingOptionException("The alter policy command requires '--metatdata' to be set with at least one key:value default_data_policy_id:a85aa599-7a58-4141-adbe-79bfd1d42e48,key2:value2");
+        this.modifyParams = args.getModifyParams();
+        if ((this.modifyParams == null) || (this.modifyParams.isEmpty())) {
+            throw new MissingOptionException("The modify_user command requires '--modify-params' to be set with at least one key:value default_data_policy_id:a85aa599-7a58-4141-adbe-79bfd1d42e48,key2:value2");
         }
         return this;
     }
@@ -61,8 +61,8 @@ public class ModifyUser extends CliCommand<GetUsersResult> {
         try {
             // apply changes from metadata
             ModifyUserSpectraS3Request modifyRequest = new ModifyUserSpectraS3Request(this.userId);
-            for (String paramChange : this.metadata.keySet() ) {
-                String paramNewValue = this.metadata.get(paramChange);
+            for (String paramChange : this.modifyParams.keySet() ) {
+                String paramNewValue = this.modifyParams.get(paramChange);
                 if("default_data_policy_id".equalsIgnoreCase(paramChange)) {
                     modifyRequest.withDefaultDataPolicyId(paramNewValue);
                 }
