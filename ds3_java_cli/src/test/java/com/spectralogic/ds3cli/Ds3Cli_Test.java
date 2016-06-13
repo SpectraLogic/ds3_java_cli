@@ -1832,7 +1832,7 @@ public class Ds3Cli_Test {
                 "+---------+------------+--------------------------------------+--------------------------------------+------------------+\n";
 
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "modify_user",
-                "-i", "testguy", "--metadata",  "default_data_policy_id:a85aa599-7a58-4141-adbe-79bfd1d42e48"});
+                "-i", "testguy", "--modify-params",  "default_data_policy_id:a85aa599-7a58-4141-adbe-79bfd1d42e48"});
         final String response = "<Data>" +
                 "<AuthId>dGVzdGd1eQ==</AuthId>" +
                 "<DefaultDataPolicyId>a85aa599-7a58-4141-adbe-79bfd1d42e48</DefaultDataPolicyId>" +
