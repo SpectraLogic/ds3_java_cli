@@ -15,8 +15,10 @@
 
 package com.spectralogic.ds3cli.models;
 
+import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3client.models.SpectraUser;
 import com.spectralogic.ds3client.models.SpectraUserList;
+import com.spectralogic.ds3client.utils.Guard;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -25,31 +27,30 @@ import java.util.List;
 
 public class GetUsersResult implements Result {
 
-    private SpectraUserList SpectraUserListResult;
+    private SpectraUserList spectraUserListResult;
 
     public GetUsersResult(final SpectraUserList users) {
-        this.SpectraUserListResult = users;
+        this.spectraUserListResult = users;
     }
 
     // build from SpectraUser to leverage views
     public GetUsersResult(final SpectraUser user) {
 
         // put it in a List of one to use data users view
-        this.SpectraUserListResult = new SpectraUserList();
-        final List<SpectraUser> listOfOne = new ArrayList<SpectraUser>();
-        listOfOne.add(user);
-        this.SpectraUserListResult.setSpectraUsers(listOfOne);
+        this.spectraUserListResult = new SpectraUserList();
+        final ImmutableList<SpectraUser> listOfOne = ImmutableList.of(user);
+        this.spectraUserListResult.setSpectraUsers(listOfOne);
     }
 
     public SpectraUserList getuserList() {
-        return SpectraUserListResult;
+        return spectraUserListResult;
     }
 
     public Iterator<SpectraUser> getObjIterator() {
         final SpectraUserList userlist = getuserList();
         if (userlist != null) {
             final List<SpectraUser> users = userlist.getSpectraUsers();
-            if (users != null) {
+            if (Guard.isNotNullAndNotEmpty(users)) {
                 return users.iterator();
             }
         }

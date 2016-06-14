@@ -26,6 +26,7 @@ import com.spectralogic.ds3client.commands.spectrads3.GetDataPolicySpectraS3Resp
 import com.spectralogic.ds3client.commands.spectrads3.GetUserSpectraS3Request;
 import com.spectralogic.ds3client.commands.spectrads3.GetUserSpectraS3Response;
 import com.spectralogic.ds3client.networking.FailedRequestException;
+import com.spectralogic.ds3client.utils.Guard;
 import com.spectralogic.ds3client.utils.SSLSetupException;
 import org.apache.commons.cli.MissingOptionException;
 
@@ -44,7 +45,7 @@ public class GetUser extends CliCommand<GetUsersResult> {
     @Override
     public CliCommand init(final Arguments args) throws Exception {
         this.userId = args.getId();
-        if (this.userId == null) {
+        if (Guard.isStringNullOrEmpty(this.userId)) {
             throw new MissingOptionException("The get_user command requires '-i' to be set with the username or Id");
         }
         return this;

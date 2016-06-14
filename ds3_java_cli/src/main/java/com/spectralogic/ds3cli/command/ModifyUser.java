@@ -27,9 +27,9 @@ import com.spectralogic.ds3cli.util.Utils;
 import com.spectralogic.ds3client.commands.spectrads3.*;
 import com.spectralogic.ds3client.models.*;
 import com.spectralogic.ds3client.networking.FailedRequestException;
+import com.spectralogic.ds3client.utils.Guard;
 import com.spectralogic.ds3client.utils.SSLSetupException;
 import org.apache.commons.cli.MissingOptionException;
-import static com.spectralogic.ds3cli.util.Utils.isCollectionNullOrEmpty;
 
 import java.io.IOException;
 import java.security.SignatureException;
@@ -49,11 +49,11 @@ public class ModifyUser extends CliCommand<GetUsersResult> {
     @Override
     public CliCommand init(final Arguments args) throws Exception {
         this.userId = args.getId();
-        if (this.userId == null) {
+        if (Guard.isStringNullOrEmpty(this.userId)) {
             throw new MissingOptionException("The modify_user command requires '-i' to be set with the username or Id");
         }
         this.modifyParams = args.getModifyParams();
-        if (isCollectionNullOrEmpty(this.modifyParams)) {
+        if (Guard.isMapNullOrEmpty(this.modifyParams)) {
             throw new MissingOptionException("The modify_user command requires '--modify-params' to be set with at least one key:value default_data_policy_id:a85aa599-7a58-4141-adbe-79bfd1d42e48,key2:value2");
         }
         return this;

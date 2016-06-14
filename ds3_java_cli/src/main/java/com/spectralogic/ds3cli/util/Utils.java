@@ -252,12 +252,4 @@ public final class Utils {
         }
     }
 
-    public static boolean isCollectionNullOrEmpty(ImmutableMap collection) {
-        return (collection == null) || collection.isEmpty();
-    }
-
-    public static boolean isCollectionNullOrEmpty(ImmutableCollection collection) {
-        return (collection == null) || collection.isEmpty();
-    }
-
 }
