@@ -64,7 +64,7 @@ public class ModifyUser extends CliCommand<GetUsersResult> {
         try {
             // apply changes from metadata
             final ModifyUserSpectraS3Request modifyRequest = new ModifyUserSpectraS3Request(this.userId);
-            for (final String paramChange : this.modifyParams.keySet() ) {
+            for (final String paramChange : this.modifyParams.keySet()) {
                 final String paramNewValue = this.modifyParams.get(paramChange);
                 if("default_data_policy_id".equalsIgnoreCase(paramChange)) {
                     modifyRequest.withDefaultDataPolicyId(paramNewValue);
