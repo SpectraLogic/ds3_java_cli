@@ -36,7 +36,7 @@ public class GetUsersResult implements Result {
 
         // put it in a List of one to use data users view
         this.SpectraUserListResult = new SpectraUserList();
-        List<SpectraUser> listOfOne = new ArrayList<SpectraUser>();
+        final List<SpectraUser> listOfOne = new ArrayList<SpectraUser>();
         listOfOne.add(user);
         this.SpectraUserListResult.setSpectraUsers(listOfOne);
     }
@@ -46,9 +46,9 @@ public class GetUsersResult implements Result {
     }
 
     public Iterator<SpectraUser> getObjIterator() {
-        SpectraUserList userlist = getuserList();
+        final SpectraUserList userlist = getuserList();
         if (userlist != null) {
-            List<SpectraUser> users = userlist.getSpectraUsers();
+            final List<SpectraUser> users = userlist.getSpectraUsers();
             if (users != null) {
                 return users.iterator();
             }

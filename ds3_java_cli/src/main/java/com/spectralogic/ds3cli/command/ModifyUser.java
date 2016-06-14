@@ -15,6 +15,7 @@
 
 package com.spectralogic.ds3cli.command;
 
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.exceptions.CommandException;
@@ -22,11 +23,13 @@ import com.spectralogic.ds3cli.models.GetDataPoliciesResult;
 import com.spectralogic.ds3cli.models.GetUsersResult;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
+import com.spectralogic.ds3cli.util.Utils;
 import com.spectralogic.ds3client.commands.spectrads3.*;
 import com.spectralogic.ds3client.models.*;
 import com.spectralogic.ds3client.networking.FailedRequestException;
 import com.spectralogic.ds3client.utils.SSLSetupException;
 import org.apache.commons.cli.MissingOptionException;
+import static com.spectralogic.ds3cli.util.Utils.isCollectionNullOrEmpty;
 
 import java.io.IOException;
 import java.security.SignatureException;
@@ -47,10 +50,10 @@ public class ModifyUser extends CliCommand<GetUsersResult> {
     public CliCommand init(final Arguments args) throws Exception {
         this.userId = args.getId();
         if (this.userId == null) {
-            throw new MissingOptionException("The alter policy command requires '-i' to be set with the username or Id");
+            throw new MissingOptionException("The modify_user command requires '-i' to be set with the username or Id");
         }
         this.modifyParams = args.getModifyParams();
-        if ((this.modifyParams == null) || (this.modifyParams.isEmpty())) {
+        if (isCollectionNullOrEmpty(this.modifyParams)) {
             throw new MissingOptionException("The modify_user command requires '--modify-params' to be set with at least one key:value default_data_policy_id:a85aa599-7a58-4141-adbe-79bfd1d42e48,key2:value2");
         }
         return this;
@@ -60,9 +63,9 @@ public class ModifyUser extends CliCommand<GetUsersResult> {
     public GetUsersResult call() throws IOException, SignatureException, SSLSetupException, CommandException {
         try {
             // apply changes from metadata
-            ModifyUserSpectraS3Request modifyRequest = new ModifyUserSpectraS3Request(this.userId);
-            for (String paramChange : this.modifyParams.keySet() ) {
-                String paramNewValue = this.modifyParams.get(paramChange);
+            final ModifyUserSpectraS3Request modifyRequest = new ModifyUserSpectraS3Request(this.userId);
+            for (final String paramChange : this.modifyParams.keySet() ) {
+                final String paramNewValue = this.modifyParams.get(paramChange);
                 if("default_data_policy_id".equalsIgnoreCase(paramChange)) {
                     modifyRequest.withDefaultDataPolicyId(paramNewValue);
                 }

@@ -15,6 +15,7 @@
 
 package com.spectralogic.ds3cli.util;
 
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.spectralogic.ds3cli.command.PutBulk;
@@ -149,11 +150,9 @@ public final class Utils {
         final int colonIndex = objectName.indexOf(':');
         if (colonIndex != -1) {
             path = objectName.substring(colonIndex + 2);
-        }
-        else if (objectName.startsWith("\\")) {
+        } else if (objectName.startsWith("\\")) {
             path = objectName.substring(1);
-        }
-        else if (objectName.startsWith(".\\")) {
+        } else if (objectName.startsWith(".\\")) {
             path = objectName.substring(2);
         } else if (objectName.startsWith("..\\")) {
             path = removePrefixRecursively(objectName, "..\\");
@@ -249,7 +248,16 @@ public final class Utils {
             }
 
         } else {
-            LOG.warn("Object ("+ filename + ") does not contain a last modified field");
+            LOG.warn("Object (" + filename + ") does not contain a last modified field");
         }
     }
+
+    public static boolean isCollectionNullOrEmpty(ImmutableMap collection) {
+        return (collection == null) || collection.isEmpty();
+    }
+
+    public static boolean isCollectionNullOrEmpty(ImmutableCollection collection) {
+        return (collection == null) || collection.isEmpty();
+    }
+
 }
