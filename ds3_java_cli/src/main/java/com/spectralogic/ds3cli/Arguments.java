@@ -69,6 +69,7 @@ public class Arguments {
     private boolean ignoreErrors = false;
     private boolean followSymlinks = false;
     private ImmutableMap<String, String> metadata = null;
+    private ImmutableMap<String, String> modifyParams = null;
 
     public Arguments(final String[] args) throws BadArgumentException, ParseException {
         this.loadProperties();
@@ -146,6 +147,11 @@ public class Arguments {
                 .hasArgs()
                 .withValueSeparator(',')
                 .create();
+        final Option modifyParams = OptionBuilder.withLongOpt("modify-params")
+                .withDescription("Parameters for modifying features using the format key:value,key2:value2. For modify_user: default_data_policy_id")
+                .hasArgs()
+                .withValueSeparator(',')
+                .create();
 
         this.options.addOption(ds3Endpoint);
         this.options.addOption(bucket);
@@ -180,6 +186,7 @@ public class Arguments {
         this.options.addOption(noFollowSymlinks);
         this.options.addOption(followSymLinks);
         this.options.addOption(metadata);
+        this.options.addOption(modifyParams);
 
         this.processCommandLine();
     }
@@ -354,6 +361,9 @@ public class Arguments {
 
         if (cmd.hasOption("metadata")) {
             this.setMetadata(Metadata.parse(cmd.getOptionValues("metadata")));
+        }
+        if (cmd.hasOption("modify-params")) {
+            this.setModifyParams(Metadata.parse(cmd.getOptionValues("modify-params")));
         }
     }
 
@@ -632,7 +642,13 @@ public class Arguments {
         return metadata;
     }
 
+    public ImmutableMap<String, String> getModifyParams() {
+        return modifyParams;
+    }
+
     void setMetadata(final ImmutableMap<String, String> metadata) {
         this.metadata = metadata;
     }
+
+    void setModifyParams(final ImmutableMap<String, String> modifyParams) { this.modifyParams = modifyParams; }
 }
