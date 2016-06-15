@@ -20,6 +20,7 @@ import com.bethecoder.ascii_table.ASCIITableHeader;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.models.GetBlobsOnTapeResult;
 import com.spectralogic.ds3client.models.BulkObject;
+import com.spectralogic.ds3client.utils.Guard;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -32,7 +33,6 @@ public class GetBlobsOnTapeView implements View<GetBlobsOnTapeResult> {
     @Override
     public String render(final GetBlobsOnTapeResult blobsResult) {
         if( (null == blobsResult.getObjIterator()) || !blobsResult.getObjIterator().hasNext()) {
-            // one should be blank
             return "No objects were reported in tape'" + blobsResult.getTapeId() + blobsResult.getBarcode() + "'";
         }
 

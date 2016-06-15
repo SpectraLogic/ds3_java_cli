@@ -29,6 +29,8 @@ import org.apache.commons.cli.MissingOptionException;
 import java.io.IOException;
 import java.security.SignatureException;
 import java.util.UUID;
+import static com.spectralogic.ds3cli.util.Utils.nullGuardToString;
+
 
 public class GetBlobsOnTape extends CliCommand<GetBlobsOnTapeResult> {
 
@@ -70,7 +72,7 @@ public class GetBlobsOnTape extends CliCommand<GetBlobsOnTapeResult> {
                     throw new CommandException("No tapes found for id or barcode: " + this.barcode) ;
                 }
                 // first tape matching barcode (hope there are not two sets Id
-                this.tapeId = tapeResponse.getTapeListResult().getTapes().get(0).getId().toString();
+                this.tapeId = nullGuardToString(tapeResponse.getTapeListResult().getTapes().get(0).getId(), "");
             }
 
             if (Guard.isStringNullOrEmpty(this.tapeId)) {
