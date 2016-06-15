@@ -85,6 +85,7 @@ public class Ds3Cli implements Callable<CommandResponse> {
         cliViews.put(CommandValue.GET_USERS,              new com.spectralogic.ds3cli.views.cli.GetUsersView());
         cliViews.put(CommandValue.MODIFY_USER,            new com.spectralogic.ds3cli.views.cli.GetUsersView());
         cliViews.put(CommandValue.GET_TAPE_FAILURE,       new com.spectralogic.ds3cli.views.cli.GetTapeFailureView());
+        cliViews.put(CommandValue.GET_BLOBS_ON_TAPE,      new com.spectralogic.ds3cli.views.cli.GetBlobsOnTapeView());
         cliViews.put(CommandValue.DELETE_TAPE_FAILURE,    deleteView);
         return cliViews;
     }
@@ -120,6 +121,7 @@ public class Ds3Cli implements Callable<CommandResponse> {
         jsonViews.put(CommandValue.GET_USERS,              new com.spectralogic.ds3cli.views.json.GetUsersView());
         jsonViews.put(CommandValue.MODIFY_USER,            new com.spectralogic.ds3cli.views.json.GetUsersView());
         jsonViews.put(CommandValue.GET_TAPE_FAILURE,       new com.spectralogic.ds3cli.views.json.GetTapeFailureView());
+        jsonViews.put(CommandValue.GET_BLOBS_ON_TAPE,      new com.spectralogic.ds3cli.views.json.GetBlobsOnTapeView());
         jsonViews.put(CommandValue.DELETE_TAPE_FAILURE,    deleteView);
         return jsonViews;
     }
@@ -147,7 +149,7 @@ public class Ds3Cli implements Callable<CommandResponse> {
         }
     }
 
-    private CliCommand getCommandExecutor() {
+    private CliCommand getCommandExecutor() throws CommandException {
         final CommandValue command = this.args.getCommand();
         switch(command) {
             case GET_OBJECT: {
@@ -240,9 +242,12 @@ public class Ds3Cli implements Callable<CommandResponse> {
             case MODIFY_USER: {
                 return new ModifyUser(this.ds3Provider, this.fileUtils);
             }
+            case GET_BLOBS_ON_TAPE: {
+                return new GetBlobsOnTape(this.ds3Provider, this.fileUtils);
+            }
             default: {
                 LOG.error("Unimplemented command: " + command.name());
-                return new GetService(this.ds3Provider, this.fileUtils);
+                throw new CommandException(("Unimplemented command: " + command.name()));
             }
         }
     }
