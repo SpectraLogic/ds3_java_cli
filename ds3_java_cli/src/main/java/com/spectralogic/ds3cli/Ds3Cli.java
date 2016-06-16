@@ -63,6 +63,7 @@ public class Ds3Cli implements Callable<CommandResponse> {
         cliViews.put(CommandValue.DELETE_BUCKET,          deleteView);
         cliViews.put(CommandValue.DELETE_OBJECT,          deleteView);
         cliViews.put(CommandValue.GET_BULK,               new com.spectralogic.ds3cli.views.cli.GetBulkView() );
+        cliViews.put(CommandValue.VERIFY_BULK_JOB,        new com.spectralogic.ds3cli.views.cli.VerifyBulkJobView() );
         cliViews.put(CommandValue.PUT_BUCKET,             new com.spectralogic.ds3cli.views.cli.PutBucketView() );
         cliViews.put(CommandValue.PUT_BULK,               new com.spectralogic.ds3cli.views.cli.PutBulkView() );
         cliViews.put(CommandValue.PUT_OBJECT,             new com.spectralogic.ds3cli.views.cli.PutObjectView() );
@@ -97,6 +98,7 @@ public class Ds3Cli implements Callable<CommandResponse> {
         jsonViews.put(CommandValue.GET_SERVICE,            new com.spectralogic.ds3cli.views.json.GetServiceView() );
         jsonViews.put(CommandValue.GET_BUCKET,             new com.spectralogic.ds3cli.views.json.GetBucketView() );
         jsonViews.put(CommandValue.GET_BULK,               new com.spectralogic.ds3cli.views.json.GetBulkView() );
+        jsonViews.put(CommandValue.VERIFY_BULK_JOB,        new com.spectralogic.ds3cli.views.json.VerifyBulkJobView() );
         jsonViews.put(CommandValue.GET_OBJECT,             new com.spectralogic.ds3cli.views.json.GetObjectView() );
         jsonViews.put(CommandValue.DELETE_BUCKET,          deleteView);
         jsonViews.put(CommandValue.DELETE_OBJECT,          deleteView);
@@ -173,6 +175,9 @@ public class Ds3Cli implements Callable<CommandResponse> {
             }
             case GET_BULK: {
                 return new GetBulk(this.ds3Provider, this.fileUtils);
+            }
+            case VERIFY_BULK_JOB: {
+                return new VerifyBulkJob(this.ds3Provider, this.fileUtils);
             }
             case PUT_BULK: {
                 return new PutBulk(this.ds3Provider, this.fileUtils);
