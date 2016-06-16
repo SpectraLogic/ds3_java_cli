@@ -20,20 +20,18 @@ import java.util.Iterator;
 
 import static com.spectralogic.ds3cli.util.Utils.nullGuard;
 
-public class GetBlobsOnTapeResult implements Result {
+public class GetObjectsOnTapeResult implements Result {
     final private String tapeId;
-    final private String barcode;
     final private Iterator<BulkObject> objIterator;
 
-    public String getTapeId() { return this.tapeId; };
-    public String getBarcode() { return this.barcode; }
-    public Iterator<BulkObject> getObjIterator() {
-        return objIterator;
+    public GetObjectsOnTapeResult(final String id, final Iterator<BulkObject> objIterator) {
+        this.tapeId = id;
+        this.objIterator = objIterator;
     }
 
-    public GetBlobsOnTapeResult(final String id, final String barcode, final Iterator<BulkObject> objIterator) {
-        this.tapeId = id;
-        this.barcode = barcode;
-        this.objIterator = objIterator;
+    public String getTapeId() { return this.tapeId; };
+
+    public Iterator<BulkObject> getObjIterator() {
+        return objIterator;
     }
 }

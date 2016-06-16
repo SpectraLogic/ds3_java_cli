@@ -17,13 +17,12 @@ package com.spectralogic.ds3cli.views.json;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.spectralogic.ds3cli.View;
-import com.spectralogic.ds3cli.models.GetBlobsOnTapeResult;
-import com.spectralogic.ds3cli.models.GetBucketResult;
+import com.spectralogic.ds3cli.models.GetObjectsOnTapeResult;
 import com.spectralogic.ds3cli.util.JsonMapper;
 
-public class GetBlobsOnTapeView implements View<GetBlobsOnTapeResult> {
+public class GetObjectsOnTapeView implements View<GetObjectsOnTapeResult> {
     @Override
-    public String render(final GetBlobsOnTapeResult result) throws JsonProcessingException {
+    public String render(final GetObjectsOnTapeResult result) throws JsonProcessingException {
         final CommonJsonView view = CommonJsonView.newView(CommonJsonView.Status.OK);
         return JsonMapper.toJson(view.data(result));
     }

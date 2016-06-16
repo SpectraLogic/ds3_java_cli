@@ -1923,7 +1923,7 @@ public class Ds3Cli_Test {
                 "| coffeehouse/witchcraft.mp3                      |   6409093 | 92a40cff-63a6-4520-81a9-80afa03a1973 |\n" +
                 "+-------------------------------------------------+-----------+--------------------------------------+\n";
 
-        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_blobs_on_tape", "-i", "7badec16-d6f2-4912-a120-dcfe9a6b4c3c"});
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_objects_on_tape", "-i", "7badec16-d6f2-4912-a120-dcfe9a6b4c3c"});
         final String response = "<Data>" +
                 "<Object Bucket=\"coffeehouse\" Id=\"53452a07-699a-4c27-8de5-95aa0a431df1\" Latest=\"true\" Length=\"9\" Name=\"123456789.txt\" Offset=\"0\" Version=\"1\"/>" +
                 "<Object Bucket=\"coffeehouse\" Id=\"7989ad4a-47a5-41ac-8814-3746e4e20679\" Latest=\"true\" Length=\"9172\" Name=\"Always_295x166.jpg\" Offset=\"0\" Version=\"1\"/>" +
@@ -1970,9 +1970,9 @@ public class Ds3Cli_Test {
     @Test
     public void getBlobsOnTapeEmptyTape() throws Exception {
 
-        final String expected = "No objects were reported in tape'a4d7cef1-80fa-4552-ad3f-4de716f515ea'";
+        final String expected = "No objects were reported in tape 'a4d7cef1-80fa-4552-ad3f-4de716f515ea'";
 
-        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "ccess", "-c", "get_blobs_on_tape", "-i", "a4d7cef1-80fa-4552-ad3f-4de716f515ea"});
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "ccess", "-c", "get_objects_on_tape", "-i", "a4d7cef1-80fa-4552-ad3f-4de716f515ea"});
         final String response = "<Data></Data>";
 
         final Ds3Client client = mock(Ds3Client.class);
@@ -1995,7 +1995,7 @@ public class Ds3Cli_Test {
 
         final String expected = "Unknown tape: b4d7cef1-80fa-4552-ad3f-4de716f515ea";
 
-        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_blobs_on_tape", "-i", "b4d7cef1-80fa-4552-ad3f-4de716f515ea"});
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_objects_on_tape", "-i", "b4d7cef1-80fa-4552-ad3f-4de716f515ea"});
         final String response = "<Error>" +
                 "<Code>NotFound</Code>" +
                 "<HttpErrorCode>404</HttpErrorCode>" +

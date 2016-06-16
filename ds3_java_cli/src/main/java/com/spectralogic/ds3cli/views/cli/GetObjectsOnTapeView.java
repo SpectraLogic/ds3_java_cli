@@ -18,9 +18,8 @@ package com.spectralogic.ds3cli.views.cli;
 import com.bethecoder.ascii_table.ASCIITable;
 import com.bethecoder.ascii_table.ASCIITableHeader;
 import com.spectralogic.ds3cli.View;
-import com.spectralogic.ds3cli.models.GetBlobsOnTapeResult;
+import com.spectralogic.ds3cli.models.GetObjectsOnTapeResult;
 import com.spectralogic.ds3client.models.BulkObject;
-import com.spectralogic.ds3client.utils.Guard;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -28,14 +27,13 @@ import java.util.List;
 
 import static com.spectralogic.ds3cli.util.Utils.nullGuard;
 
-public class GetBlobsOnTapeView implements View<GetBlobsOnTapeResult> {
+public class GetObjectsOnTapeView implements View<GetObjectsOnTapeResult> {
 
     @Override
-    public String render(final GetBlobsOnTapeResult blobsResult) {
-        if( (null == blobsResult.getObjIterator()) || !blobsResult.getObjIterator().hasNext()) {
-            return "No objects were reported in tape'" + blobsResult.getTapeId() + blobsResult.getBarcode() + "'";
+    public String render(final GetObjectsOnTapeResult blobsResult) {
+        if ((null == blobsResult.getObjIterator()) || !blobsResult.getObjIterator().hasNext()) {
+            return "No objects were reported in tape '" + blobsResult.getTapeId() + "'";
         }
-
         return ASCIITable.getInstance().getTable(getHeaders(), formatBucketList(blobsResult.getObjIterator()));
     }
 
