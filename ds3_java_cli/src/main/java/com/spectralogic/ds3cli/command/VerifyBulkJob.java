@@ -60,7 +60,7 @@ public class VerifyBulkJob extends CliCommand<VeirfyBulkJobResult> {
             // Generate the list of Ds3Objects to verify
             final Ds3ClientHelpers helper = getClientHelpers();
             final Iterable<Contents> bulkContents = helper.listObjects(this.bucketName, this.prefix);
-            if(bulkContents == null || !bulkContents.iterator().hasNext()) {
+            if (bulkContents == null || !bulkContents.iterator().hasNext()) {
                 throw new CommandException("No objects in bucket '" + this.bucketName + "' with prefix '" + this.prefix + "'");
             }
 
@@ -76,10 +76,10 @@ public class VerifyBulkJob extends CliCommand<VeirfyBulkJobResult> {
 
             return new VeirfyBulkJobResult(this.bucketName, verifyResponse.getMasterObjectListResult().getObjects().iterator());
         } catch (final FailedRequestException e) {
-            if(e.getStatusCode() == 500) {
+            if (e.getStatusCode() == 500) {
                 throw new CommandException("Error: Cannot communicate with the remote DS3 appliance.", e);
             }
-            else if(e.getStatusCode() == 404) {
+            else if (e.getStatusCode() == 404) {
                 throw new CommandException("Cannot locate bucket: " + this.bucketName, e);
             }
             else {
