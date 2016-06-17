@@ -17,12 +17,12 @@ package com.spectralogic.ds3cli.views.json;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.spectralogic.ds3cli.View;
-import com.spectralogic.ds3cli.models.VeirfyBulkJobResult;
+import com.spectralogic.ds3cli.models.VerifyBulkJobResult;
 import com.spectralogic.ds3cli.util.JsonMapper;
 
-public class VerifyBulkJobView implements View<VeirfyBulkJobResult> {
+public class VerifyBulkJobView implements View<VerifyBulkJobResult> {
     @Override
-    public String render(final VeirfyBulkJobResult result) throws JsonProcessingException {
+    public String render(final VerifyBulkJobResult result) throws JsonProcessingException {
         final CommonJsonView view = CommonJsonView.newView(CommonJsonView.Status.OK);
         return JsonMapper.toJson(view.data(result));
     }

@@ -19,11 +19,11 @@ import com.spectralogic.ds3client.models.Objects;
 
 import java.util.Iterator;
 
-public class VeirfyBulkJobResult implements Result {
+public class VerifyBulkJobResult implements Result {
     final private String bucketId;
     final private Iterator<Objects> objIterator;
 
-    public VeirfyBulkJobResult(final String id, final Iterator<Objects> objIterator) {
+    public VerifyBulkJobResult(final String id, final Iterator<Objects> objIterator) {
         this.bucketId = id;
         this.objIterator = objIterator;
     }

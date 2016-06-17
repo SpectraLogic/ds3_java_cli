@@ -18,7 +18,7 @@ package com.spectralogic.ds3cli.views.cli;
 import com.bethecoder.ascii_table.ASCIITable;
 import com.bethecoder.ascii_table.ASCIITableHeader;
 import com.spectralogic.ds3cli.View;
-import com.spectralogic.ds3cli.models.VeirfyBulkJobResult;
+import com.spectralogic.ds3cli.models.VerifyBulkJobResult;
 import com.spectralogic.ds3client.models.BulkObject;
 import com.spectralogic.ds3client.models.Objects;
 
@@ -29,10 +29,10 @@ import java.util.List;
 import static com.spectralogic.ds3cli.util.Utils.nullGuard;
 import static com.spectralogic.ds3cli.util.Utils.nullGuardToString;
 
-public class VerifyBulkJobView implements View<VeirfyBulkJobResult> {
+public class VerifyBulkJobView implements View<VerifyBulkJobResult> {
 
     @Override
-    public String render(final VeirfyBulkJobResult verifyResult) {
+    public String render(final VerifyBulkJobResult verifyResult) {
         if ((null == verifyResult.getObjIterator()) || !verifyResult.getObjIterator().hasNext()) {
             return "No objects were reported in tape '" + verifyResult.getBucketId() + "'";
         }

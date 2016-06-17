@@ -17,7 +17,7 @@ package com.spectralogic.ds3cli.command;
 
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.exceptions.CommandException;
-import com.spectralogic.ds3cli.models.VeirfyBulkJobResult;
+import com.spectralogic.ds3cli.models.VerifyBulkJobResult;
 import com.spectralogic.ds3cli.util.*;
 import com.spectralogic.ds3client.commands.spectrads3.VerifyBulkJobSpectraS3Request;
 import com.spectralogic.ds3client.commands.spectrads3.VerifyBulkJobSpectraS3Response;
@@ -31,7 +31,7 @@ import org.apache.commons.cli.MissingOptionException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class VerifyBulkJob extends CliCommand<VeirfyBulkJobResult> {
+public class VerifyBulkJob extends CliCommand<VerifyBulkJobResult> {
 
     private String bucketName;
     private String prefix;
@@ -50,12 +50,16 @@ public class VerifyBulkJob extends CliCommand<VeirfyBulkJobResult> {
             System.out.println("Warning: '-o' is not used with verify and is ignored.");
         }
         this.prefix = args.getPrefix();
+        // for java SDK7 unit tests
+        if (this.prefix == null) {
+            this.prefix = "";
+        }
 
         return this;
     }
 
     @Override
-    public VeirfyBulkJobResult call() throws Exception {
+    public VerifyBulkJobResult call() throws Exception {
         try{
             // Generate the list of Ds3Objects to verify
             final Ds3ClientHelpers helper = getClientHelpers();
@@ -74,7 +78,7 @@ public class VerifyBulkJob extends CliCommand<VeirfyBulkJobResult> {
             final VerifyBulkJobSpectraS3Response verifyResponse
                     = getClient().verifyBulkJobSpectraS3(new VerifyBulkJobSpectraS3Request(this.bucketName, objectList ));
 
-            return new VeirfyBulkJobResult(this.bucketName, verifyResponse.getMasterObjectListResult().getObjects().iterator());
+            return new VerifyBulkJobResult(this.bucketName, verifyResponse.getMasterObjectListResult().getObjects().iterator());
         } catch (final FailedRequestException e) {
             if (e.getStatusCode() == 500) {
                 throw new CommandException("Error: Cannot communicate with the remote DS3 appliance.", e);

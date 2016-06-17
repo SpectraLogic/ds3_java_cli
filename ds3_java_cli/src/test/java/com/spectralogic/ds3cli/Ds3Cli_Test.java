@@ -2095,7 +2095,7 @@ public class Ds3Cli_Test {
         cont1.setKey("1234");
         cont1.setSize(1234L);
         final Iterable<Contents> retObj = Lists.newArrayList(cont1);
-        when(helpers.listObjects(eq("coffeehouse"), eq(null))).thenReturn(retObj);
+        when(helpers.listObjects(eq("coffeehouse"), eq(""))).thenReturn(retObj);
         PowerMockito.mockStatic(BlackPearlUtils.class);
 
         final Ds3Client client = mock(Ds3Client.class);
