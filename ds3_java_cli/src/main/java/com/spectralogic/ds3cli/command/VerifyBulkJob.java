@@ -25,6 +25,7 @@ import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.models.Contents;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.networking.FailedRequestException;
+import com.spectralogic.ds3client.utils.Guard;
 import org.apache.commons.cli.MissingOptionException;
 
 import java.util.ArrayList;
@@ -42,10 +43,10 @@ public class VerifyBulkJob extends CliCommand<VeirfyBulkJobResult> {
     @Override
     public CliCommand init(final Arguments args) throws Exception {
         this.bucketName = args.getBucket();
-        if (this.bucketName == null) {
+        if (Guard.isStringNullOrEmpty(this.bucketName)) {
             throw new MissingOptionException("The verify get command requires '-b' to be set.");
         }
-        if (args.getObjectName() != null) {
+        if (!Guard.isStringNullOrEmpty(args.getObjectName())) {
             System.out.println("Warning: '-o' is not used with verify and is ignored.");
         }
         this.prefix = args.getPrefix();
