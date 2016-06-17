@@ -49,6 +49,7 @@ import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.SignatureException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -2012,6 +2013,130 @@ public class Ds3Cli_Test {
         when(webResponse.getResponseStream()).thenReturn(IOUtils.toInputStream(response));
         final GetBlobsOnTapeSpectraS3Response blobsResponse = new GetBlobsOnTapeSpectraS3Response(webResponse);
         when(client.getBlobsOnTapeSpectraS3(any(GetBlobsOnTapeSpectraS3Request.class))).thenReturn(blobsResponse);
+
+        final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
+        final CommandResponse result = cli.call();
+        assertThat(result.getMessage(), is(expected));
+        assertThat(result.getReturnCode(), is(0));
+    }
+
+   @Test
+    public void verifyBulkJob() throws Exception {
+
+       final String expected =
+                        "+-------+-------------------------------------------------+-----------+---------+\n" +
+                        "| Chunk |                       Name                      |    Size   | Version |\n" +
+                        "+-------+-------------------------------------------------+-----------+---------+\n" +
+                        "| 0     | 123456789.txt                                   |         9 |       1 |\n" +
+                        "| 0     | Always_295x166.jpg                              |      9172 |       1 |\n" +
+                        "| 0     | Chapter 9.docx                                  |     29895 |       1 |\n" +
+                        "| 0     | RedRiverValley_295x166.jpg                      |      9114 |       1 |\n" +
+                        "| 0     | Softphone Install.docx                          |    774741 |       1 |\n" +
+                        "| 0     | ThinkingOutLoud_295x166.jpg                     |     11059 |       1 |\n" +
+                        "| 0     | UnforgetWonderful_295x166.jpg                   |     10724 |       1 |\n" +
+                        "| 0     | YouDontKnowMe_295x166.jpg                       |     10634 |       1 |\n" +
+                        "| 0     | beowulf.txt                                     |    294056 |       1 |\n" +
+                        "| 0     | coffeehouse/im_in_the_mood.mp3                  |   3309717 |       1 |\n" +
+                        "| 0     | coffeehouse/jk/ColumbinesGrow.m4a               |  45872985 |       1 |\n" +
+                        "| 0     | coffeehouse/jk/ColumbinesGrow.mp3               |   5050747 |       1 |\n" +
+                        "| 0     | coffeehouse/jk/Columbines_295x166.jpg           |     10528 |       1 |\n" +
+                        "| 0     | coffeehouse/jk/Misty_2015.m4a                   |  10396369 |       1 |\n" +
+                        "| 0     | coffeehouse/jk/RedRiverValley.m4a               |  77080710 |       1 |\n" +
+                        "| 0     | coffeehouse/jk/RedRiverValley.mp3               |   6363965 |       1 |\n" +
+                        "| 0     | coffeehouse/jk/UnforgetWonderful_295x166.jpg    |     10724 |       1 |\n" +
+                        "| 0     | coffeehouse/jk/Unforgettable-WonderfulWorld.m4a | 110054089 |       1 |\n" +
+                        "| 0     | coffeehouse/jk/Unforgettable-WonderfulWorld.mp3 |   7520930 |       1 |\n" +
+                        "| 0     | coffeehouse/jk/WhereOrWhen.m4a                  |  51272203 |       1 |\n" +
+                        "| 0     | coffeehouse/jk/WhereOrWhen.mp3                  |   5647581 |       1 |\n" +
+                        "| 0     | coffeehouse/jk/WhereOrWhen_295x166.jpg          |     11263 |       1 |\n" +
+                        "| 0     | coffeehouse/jk/im_in_the_mood.m4a               |  11207247 |       1 |\n" +
+                        "| 0     | coffeehouse/jk/im_in_the_mood_200.jpg           |      8621 |       1 |\n" +
+                        "| 0     | coffeehouse/witchcraft.mp3                      |   6409093 |       1 |\n" +
+                        "+-------+-------------------------------------------------+-----------+---------+\n";
+
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "verify_bulk_job", "-b", "coffeehouse" });
+
+        final String response = "<MasterObjectList Aggregating=\"false\" BucketName=\"coffeehouse\" CachedSizeInBytes=\"0\" ChunkClientProcessingOrderGuarantee=\"NONE\" CompletedSizeInBytes=\"0\" EntirelyInCache=\"false\" JobId=\"e0db4a7e-9957-4cf6-81c5-d3c320f8d56d\" Naked=\"false\" Name=\"VERIFY by 192.168.20.19\" OriginalSizeInBytes=\"341376176\" Priority=\"LOW\" RequestType=\"VERIFY\" StartDate=\"2016-06-16T18:13:34.000Z\" Status=\"IN_PROGRESS\" UserId=\"67235923-f684-4621-a958-1815e0bbf895\" UserName=\"spectra\">" +
+                "<Nodes><Node EndPoint=\"10.1.20.88\" HttpPort=\"80\" HttpsPort=\"443\" Id=\"b272e757-31b0-11e6-948b-0007432b8090\"/></Nodes>" +
+                "<Objects ChunkId=\"db94b108-6d0e-4f46-993c-b2f459e4b88f\" ChunkNumber=\"0\" NodeId=\"b272e757-31b0-11e6-948b-0007432b8090\">" +
+                    "<Object Id=\"53452a07-699a-4c27-8de5-95aa0a431df1\" InCache=\"true\" Latest=\"true\" Length=\"9\" Name=\"123456789.txt\" Offset=\"0\" Version=\"1\"/>" +
+                    "<Object Id=\"7989ad4a-47a5-41ac-8814-3746e4e20679\" InCache=\"true\" Latest=\"true\" Length=\"9172\" Name=\"Always_295x166.jpg\" Offset=\"0\" Version=\"1\"/>" +
+                    "<Object Id=\"6649c2cb-6e83-4c58-9fb8-9b4aec8b014b\" InCache=\"true\" Latest=\"true\" Length=\"29895\" Name=\"Chapter 9.docx\" Offset=\"0\" Version=\"1\"/>" +
+                    "<Object Id=\"f725ef08-7e6f-4fe0-a256-798e561d878f\" InCache=\"true\" Latest=\"true\" Length=\"9114\" Name=\"RedRiverValley_295x166.jpg\" Offset=\"0\" Version=\"1\"/>" +
+                    "<Object Id=\"dff0cbed-5b7f-480f-aa94-8adea7c59a3e\" InCache=\"true\" Latest=\"true\" Length=\"774741\" Name=\"Softphone Install.docx\" Offset=\"0\" Version=\"1\"/>" +
+                    "<Object Id=\"ffd8266d-cdc5-4e49-81d4-d08314fcee5a\" InCache=\"true\" Latest=\"true\" Length=\"11059\" Name=\"ThinkingOutLoud_295x166.jpg\" Offset=\"0\" Version=\"1\"/>" +
+                    "<Object Id=\"897b7e5b-59d8-4645-bc7a-f5c4b8154a0f\" InCache=\"true\" Latest=\"true\" Length=\"10724\" Name=\"UnforgetWonderful_295x166.jpg\" Offset=\"0\" Version=\"1\"/>" +
+                    "<Object Id=\"7bb970d3-113f-413b-87d5-00b072059451\" InCache=\"true\" Latest=\"true\" Length=\"10634\" Name=\"YouDontKnowMe_295x166.jpg\" Offset=\"0\" Version=\"1\"/>" +
+                    "<Object Id=\"1e293dc9-3257-4277-9c40-b50a6e63b71e\" InCache=\"true\" Latest=\"true\" Length=\"294056\" Name=\"beowulf.txt\" Offset=\"0\" Version=\"1\"/>" +
+                    "<Object Id=\"d759f10d-05c6-498c-b4ce-2475027fbeae\" InCache=\"true\" Latest=\"true\" Length=\"3309717\" Name=\"coffeehouse/im_in_the_mood.mp3\" Offset=\"0\" Version=\"1\"/>" +
+                    "<Object Id=\"d9b342ae-311c-4cbc-a000-75686c174471\" InCache=\"true\" Latest=\"true\" Length=\"45872985\" Name=\"coffeehouse/jk/ColumbinesGrow.m4a\" Offset=\"0\" Version=\"1\"/>" +
+                    "<Object Id=\"c85fc175-116a-4bcf-a77a-5ea240a5de3a\" InCache=\"true\" Latest=\"true\" Length=\"5050747\" Name=\"coffeehouse/jk/ColumbinesGrow.mp3\" Offset=\"0\" Version=\"1\"/>" +
+                    "<Object Id=\"b70bd4ab-90d2-41fd-83d2-572fb3d1c8ca\" InCache=\"true\" Latest=\"true\" Length=\"10528\" Name=\"coffeehouse/jk/Columbines_295x166.jpg\" Offset=\"0\" Version=\"1\"/>" +
+                    "<Object Id=\"e4769cd2-3aa6-4628-887c-ad51768656c5\" InCache=\"true\" Latest=\"true\" Length=\"10396369\" Name=\"coffeehouse/jk/Misty_2015.m4a\" Offset=\"0\" Version=\"1\"/>" +
+                    "<Object Id=\"9ffa7e9c-6939-4808-996e-e42fcf8bacb5\" InCache=\"true\" Latest=\"true\" Length=\"77080710\" Name=\"coffeehouse/jk/RedRiverValley.m4a\" Offset=\"0\" Version=\"1\"/>" +
+                    "<Object Id=\"564a1bc1-33a0-41f3-af28-fbf79f331d0e\" InCache=\"true\" Latest=\"true\" Length=\"6363965\" Name=\"coffeehouse/jk/RedRiverValley.mp3\" Offset=\"0\" Version=\"1\"/>" +
+                    "<Object Id=\"b2671db7-1a4a-4577-8419-f17ead63d321\" InCache=\"true\" Latest=\"true\" Length=\"10724\" Name=\"coffeehouse/jk/UnforgetWonderful_295x166.jpg\" Offset=\"0\" Version=\"1\"/>" +
+                    "<Object Id=\"71807ee9-2db9-4145-b01d-3d2aaae37061\" InCache=\"true\" Latest=\"true\" Length=\"110054089\" Name=\"coffeehouse/jk/Unforgettable-WonderfulWorld.m4a\" Offset=\"0\" Version=\"1\"/>" +
+                    "<Object Id=\"e50d5fc8-8fbf-4206-b495-05bb8be539ec\" InCache=\"true\" Latest=\"true\" Length=\"7520930\" Name=\"coffeehouse/jk/Unforgettable-WonderfulWorld.mp3\" Offset=\"0\" Version=\"1\"/>" +
+                    "<Object Id=\"9156aab6-88fa-49b0-a0e1-c230d247957e\" InCache=\"true\" Latest=\"true\" Length=\"51272203\" Name=\"coffeehouse/jk/WhereOrWhen.m4a\" Offset=\"0\" Version=\"1\"/>" +
+                    "<Object Id=\"0f5541b9-8c4d-4ed8-bd1d-9e62173bdf4a\" InCache=\"true\" Latest=\"true\" Length=\"5647581\" Name=\"coffeehouse/jk/WhereOrWhen.mp3\" Offset=\"0\" Version=\"1\"/>" +
+                    "<Object Id=\"03b2e1c7-f80c-437a-912d-b09015dba484\" InCache=\"true\" Latest=\"true\" Length=\"11263\" Name=\"coffeehouse/jk/WhereOrWhen_295x166.jpg\" Offset=\"0\" Version=\"1\"/>" +
+                    "<Object Id=\"667d94f6-b341-45f7-bd91-706af52d8e77\" InCache=\"true\" Latest=\"true\" Length=\"11207247\" Name=\"coffeehouse/jk/im_in_the_mood.m4a\" Offset=\"0\" Version=\"1\"/>" +
+                    "<Object Id=\"f7f65e20-4ea2-4629-9c22-ddf9cbc76b99\" InCache=\"true\" Latest=\"true\" Length=\"8621\" Name=\"coffeehouse/jk/im_in_the_mood_200.jpg\" Offset=\"0\" Version=\"1\"/>" +
+                    "<Object Id=\"92a40cff-63a6-4520-81a9-80afa03a1973\" InCache=\"true\" Latest=\"true\" Length=\"6409093\" Name=\"coffeehouse/witchcraft.mp3\" Offset=\"0\" Version=\"1\"/>" +
+                "</Objects>" +
+            "</MasterObjectList>";
+
+        final Ds3ClientHelpers helpers = mock(Ds3ClientHelpers.class);
+        final FileUtils mockedFileUtils = mock(FileUtils.class);
+
+        // just have helpers return something
+        final Contents cont1 = new Contents();
+        cont1.setKey("1234");
+        cont1.setSize(1234L);
+        final Iterable<Contents> retObj = Lists.newArrayList(cont1);
+        when(helpers.listObjects(eq("coffeehouse"), eq(""))).thenReturn(retObj);
+        PowerMockito.mockStatic(BlackPearlUtils.class);
+
+        final Ds3Client client = mock(Ds3Client.class);
+        final WebResponse webResponse = mock(WebResponse.class);
+        final Headers headers = mock(Headers.class);
+        when(webResponse.getStatusCode()).thenReturn(200);
+        when(webResponse.getHeaders()).thenReturn(headers);
+        when(webResponse.getResponseStream()).thenReturn(IOUtils.toInputStream(response));
+        final VerifyBulkJobSpectraS3Response verifyResponse = new VerifyBulkJobSpectraS3Response(webResponse);
+        when(client.verifyBulkJobSpectraS3(any(VerifyBulkJobSpectraS3Request.class))).thenReturn(verifyResponse);
+
+        final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, helpers), args, null);
+
+        final CommandResponse result = cli.call();
+        assertThat(result.getMessage(), is(expected));
+        assertThat(result.getReturnCode(), is(0));
+    }
+
+    @Test(expected = FailedRequestException.class)
+    public void verifyBulkJobMissingBucket() throws Exception {
+
+        final String expected = "Cannot locate bucket: fredcoffeehouse";
+
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_objects_on_tape", "-i", "b4d7cef1-80fa-4552-ad3f-4de716f515ea"});
+        final String response = "<Error>" +
+                "<Code>NoSuchBucket</Code>" +
+                "<HttpErrorCode>404</HttpErrorCode>" +
+                "<Message>NoSuchBucket[404]: Bucket does not exist where SQL: name = &apos;fredcoffeehouse&apos;</Message>" +
+                "<Resource>/fredcoffeehouse</Resource>" +
+                "<ResourceId>2097</ResourceId>" +
+                "</Error>";
+
+        final Ds3Client client = mock(Ds3Client.class);
+        final WebResponse webResponse = mock(WebResponse.class);
+        final Headers headers = mock(Headers.class);
+        when(webResponse.getStatusCode()).thenReturn(404);
+        when(webResponse.getHeaders()).thenReturn(headers);
+        when(webResponse.getResponseStream()).thenReturn(IOUtils.toInputStream(response));
+        final VerifyBulkJobSpectraS3Response verifyResponse
+                = new VerifyBulkJobSpectraS3Response(webResponse);
+        when(client.verifyBulkJobSpectraS3(any(VerifyBulkJobSpectraS3Request.class))).thenReturn(verifyResponse);
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
         final CommandResponse result = cli.call();
