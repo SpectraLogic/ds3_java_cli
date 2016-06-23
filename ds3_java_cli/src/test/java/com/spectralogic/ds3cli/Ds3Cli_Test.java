@@ -839,6 +839,26 @@ public class Ds3Cli_Test {
     }
 
     @Test
+    public void getBulkWithBadArgs() throws Exception {
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_bulk", "-b", "bucketName", "-d", "targetdir", "--discard"});
+        final String expected = "Cannot set both directoy and --discard";
+
+        final Ds3ClientHelpers helpers = mock(Ds3ClientHelpers.class);
+        final Ds3ClientHelpers.Job mockedGetJob = mock(Ds3ClientHelpers.Job.class);
+        final FileUtils mockedFileUtils = mock(FileUtils.class);
+
+        when(helpers.startReadAllJob(eq("bucketName"), any(ReadJobOptions.class))).thenReturn(mockedGetJob);
+
+        PowerMockito.mockStatic(BlackPearlUtils.class);
+
+        final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(null, helpers), args, mockedFileUtils);
+        final CommandResponse result = cli.call();
+        assertThat(result.getMessage(), is(expected));
+        assertThat(result.getReturnCode(), is(1));
+    }
+
+
+    @Test
     public void getBulkWithSync() throws Exception {
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_bulk", "-b", "bucketName", "--sync"});
         final Ds3ClientHelpers helpers = mock(Ds3ClientHelpers.class);
