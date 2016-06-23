@@ -153,7 +153,7 @@ public class Arguments {
                 .hasArgs()
                 .withValueSeparator(',')
                 .create();
-        final Option discard = new Option(null, false, "Discard restoration data (/dev/null)");
+        final Option discard = new Option(null, false, "Discard restoration data (/dev/null) in get_bulk");
         discard.setLongOpt("discard");
 
         this.options.addOption(ds3Endpoint);

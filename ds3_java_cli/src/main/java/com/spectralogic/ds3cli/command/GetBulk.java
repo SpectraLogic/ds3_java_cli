@@ -51,6 +51,9 @@ public class GetBulk extends CliCommand<GetBulkResult> {
 
     private final static Logger LOG = LoggerFactory.getLogger(GetBulk.class);
 
+    private final static int DEFAULT_BUFFER_SIZE = 1024 * 1024;
+    private final static long DEFAULT_FILE_SIZE = 1024L;
+
     private String bucketName;
     private Path outputPath;
     private String prefix;
@@ -59,7 +62,6 @@ public class GetBulk extends CliCommand<GetBulkResult> {
     private boolean sync;
     private boolean force;
     private boolean discard;
-    private int bufferSize;
     private int numberOfThreads;
 
     public GetBulk(final Ds3Provider provider, final FileUtils fileUtils) {
@@ -90,7 +92,6 @@ public class GetBulk extends CliCommand<GetBulkResult> {
             if (directory != null) {
                 throw new CommandException("Cannot set both directoy and --discard");
             }
-            bufferSize = Integer.valueOf(args.getBufferSize());
         }
 
         this.priority = args.getPriority();
@@ -118,7 +119,7 @@ public class GetBulk extends CliCommand<GetBulkResult> {
 //            getter = new VerifyingFileObjectGetter(this.outputPath);
         } else if (this.discard) {
             LOG.warn("Using /dev/null getter -- all incoming data will be discarded");
-            getter = new MemoryObjectChannelBuilder(this.bufferSize, 1024L);
+            getter = new MemoryObjectChannelBuilder(DEFAULT_BUFFER_SIZE, DEFAULT_FILE_SIZE);
         } else {
             getter = new FileObjectGetter(this.outputPath);
         }
