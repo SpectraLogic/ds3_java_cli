@@ -18,6 +18,7 @@ package com.spectralogic.ds3cli.command;
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import com.spectralogic.ds3cli.Arguments;
+import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.GetBulkResult;
 import com.spectralogic.ds3cli.util.*;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
@@ -31,6 +32,7 @@ import com.spectralogic.ds3client.networking.Metadata;
 import com.spectralogic.ds3client.serializer.XmlProcessingException;
 import com.spectralogic.ds3client.utils.Guard;
 import com.spectralogic.ds3client.utils.SSLSetupException;
+import org.apache.commons.cli.MissingArgumentException;
 import org.apache.commons.cli.MissingOptionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,6 +51,9 @@ public class GetBulk extends CliCommand<GetBulkResult> {
 
     private final static Logger LOG = LoggerFactory.getLogger(GetBulk.class);
 
+    private final static int DEFAULT_BUFFER_SIZE = 1024 * 1024;
+    private final static long DEFAULT_FILE_SIZE = 1024L;
+
     private String bucketName;
     private Path outputPath;
     private String prefix;
@@ -56,6 +61,7 @@ public class GetBulk extends CliCommand<GetBulkResult> {
     private Priority priority;
     private boolean sync;
     private boolean force;
+    private boolean discard;
     private int numberOfThreads;
 
     public GetBulk(final Ds3Provider provider, final FileUtils fileUtils) {
@@ -81,6 +87,13 @@ public class GetBulk extends CliCommand<GetBulkResult> {
             this.outputPath = FileSystems.getDefault().getPath(".").resolve(dirPath);
         }
 
+        this.discard = args.isDiscard();
+        if (this.discard) {
+            if (directory != null) {
+                throw new CommandException("Cannot set both directoy and --discard");
+            }
+        }
+
         this.priority = args.getPriority();
         this.checksum = args.isChecksum();
         this.prefix = args.getPrefix();
@@ -104,6 +117,9 @@ public class GetBulk extends CliCommand<GetBulkResult> {
             throw new RuntimeException("Checksumming is currently not implemented.");//TODO
 //            Logging.log("Performing get_bulk with checksum verification");
 //            getter = new VerifyingFileObjectGetter(this.outputPath);
+        } else if (this.discard) {
+            LOG.warn("Using /dev/null getter -- all incoming data will be discarded");
+            getter = new MemoryObjectChannelBuilder(DEFAULT_BUFFER_SIZE, DEFAULT_FILE_SIZE);
         } else {
             getter = new FileObjectGetter(this.outputPath);
         }

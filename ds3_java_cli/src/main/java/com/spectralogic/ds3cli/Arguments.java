@@ -60,6 +60,7 @@ public class Arguments {
     private boolean sync = false;
     private String numberOfFiles;
     private String sizeOfFiles;
+    private boolean discard = false;
     private ViewType outputFormat = ViewType.CLI;
 
     private String version = "N/a";
@@ -152,6 +153,8 @@ public class Arguments {
                 .hasArgs()
                 .withValueSeparator(',')
                 .create();
+        final Option discard = new Option(null, false, "Discard restoration data (/dev/null) in get_bulk");
+        discard.setLongOpt("discard");
 
         this.options.addOption(ds3Endpoint);
         this.options.addOption(bucket);
@@ -187,7 +190,7 @@ public class Arguments {
         this.options.addOption(followSymLinks);
         this.options.addOption(metadata);
         this.options.addOption(modifyParams);
-
+        this.options.addOption(discard);
         this.processCommandLine();
     }
 
@@ -364,6 +367,10 @@ public class Arguments {
         }
         if (cmd.hasOption("modify-params")) {
             this.setModifyParams(Metadata.parse(cmd.getOptionValues("modify-params")));
+        }
+
+        if (cmd.hasOption("discard")) {
+            this.setDiscard(true);
         }
     }
 
@@ -651,4 +658,13 @@ public class Arguments {
     }
 
     void setModifyParams(final ImmutableMap<String, String> modifyParams) { this.modifyParams = modifyParams; }
+
+    public boolean isDiscard() {
+        return discard;
+    }
+
+    void setDiscard(final boolean discard) {
+        this.discard = discard;
+    }
+
 }
