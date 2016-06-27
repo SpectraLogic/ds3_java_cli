@@ -33,6 +33,18 @@ public class HeadObject extends CliCommand<HeadObjectResult> {
     }
 
     @Override
+    public String getLongHelp() {
+        final StringBuffer helpStringBuffer = new StringBuffer();
+        helpStringBuffer.append("Returns metadata but does not retrieves an object from a bucket.\n");
+        helpStringBuffer.append("Requires the '-b' parameter to specify bucket (name or UUID).\n");
+        helpStringBuffer.append("Requires the '-o' parameter to specify object (name or UUID).\n");
+        helpStringBuffer.append("Useful to determine if an object exists and you have permission to access it.");
+
+        return helpStringBuffer.toString();
+    }
+
+
+    @Override
     public HeadObjectResult call() throws Exception {
         final HeadObjectResponse result = getClient().headObject(new HeadObjectRequest(bucketName, objectName));
         return new HeadObjectResult(result);

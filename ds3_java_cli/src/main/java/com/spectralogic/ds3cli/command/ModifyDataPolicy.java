@@ -27,6 +27,7 @@ import com.spectralogic.ds3client.models.DataPolicy;
 import com.spectralogic.ds3client.models.Priority;
 import com.spectralogic.ds3client.models.VersioningLevel;
 import com.spectralogic.ds3client.networking.FailedRequestException;
+import com.spectralogic.ds3client.utils.Guard;
 import com.spectralogic.ds3client.utils.SSLSetupException;
 import org.apache.commons.cli.MissingOptionException;
 
@@ -68,13 +69,29 @@ public class ModifyDataPolicy extends CliCommand<GetDataPoliciesResult> {
     public CliCommand init(final Arguments args) throws Exception {
         this.policyId = args.getId();
         if (this.policyId == null) {
-            throw new MissingOptionException("The alter policy command requires '-i' to be set with the policy name or Id");
+            throw new MissingOptionException("The modify policy command requires '-i' to be set with the policy name or Id");
         }
-        this.metadata = args.getMetadata();
-        if ((this.metadata == null) || (this.metadata.isEmpty())) {
-            throw new MissingOptionException("The alter policy command requires '--metatdata' to be set with at least one key:value pair key:value,key2:value2");
+        this.metadata = args.getModifyParams();
+        if (Guard.isMapNullOrEmpty(this.metadata)) {
+            throw new MissingOptionException("The modify_policy command requires '--modify-params' to be set with at least one key:value default_data_policy_id:a85aa599-7a58-4141-adbe-79bfd1d42e48,key2:value2");
         }
         return this;
+    }
+
+    @Override
+    public String getLongHelp() {
+        final StringBuffer helpStringBuffer = new StringBuffer();
+        helpStringBuffer.append("Alter parameters for the specified data policy..\n");
+        helpStringBuffer.append("Requires the '-i' parameter to specify data policy (UUID or name).\n");
+        helpStringBuffer.append("Requires the '--modify-params' parameter to be set.\n");
+        helpStringBuffer.append("Use key:value pair key:value,key2:value2:... Legal values:\n");
+        helpStringBuffer.append("    name, checksum_type, default_blob_size, default_get_job_priority, \n");
+        helpStringBuffer.append("    default_put_job_priority, default_verify_job_priority, rebuild_priority, \n");
+        helpStringBuffer.append("    end_to_end_crc_required, versioning.\n");
+        helpStringBuffer.append("See API documentation for possible values).\n");
+        helpStringBuffer.append("\nUse the get_data_policies command to retreive a list of policies and current values.");
+
+        return helpStringBuffer.toString();
     }
 
     @Override

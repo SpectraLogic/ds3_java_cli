@@ -43,6 +43,14 @@ public class GetUsers extends CliCommand<GetUsersResult> {
     }
 
     @Override
+    public String getLongHelp() {
+        final StringBuffer helpStringBuffer = new StringBuffer();
+        helpStringBuffer.append("Returns a list of all users.\n");
+
+        return helpStringBuffer.toString();
+    }
+
+    @Override
     public GetUsersResult call() throws IOException, SignatureException, SSLSetupException, CommandException {
         try {
             final GetUsersSpectraS3Response response = getClient().getUsersSpectraS3(new GetUsersSpectraS3Request());

@@ -45,6 +45,15 @@ public class PutBucket extends CliCommand<PutBucketResult> {
     }
 
     @Override
+    public String getLongHelp() {
+        final StringBuffer helpStringBuffer = new StringBuffer();
+        helpStringBuffer.append("Create a new empty bucket.\n");
+        helpStringBuffer.append("Requires the '-b' parameter to specify bucket name.\n");
+
+        return helpStringBuffer.toString();
+    }
+
+    @Override
     public PutBucketResult call() throws Exception {
         try {
             final PutBucketRequest request = new PutBucketRequest(bucketName);

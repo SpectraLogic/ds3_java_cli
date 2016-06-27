@@ -46,6 +46,16 @@ public class DeleteFolder extends CliCommand<DeleteResult> {
     }
 
     @Override
+    public String getLongHelp() {
+        final StringBuffer helpStringBuffer = new StringBuffer();
+        helpStringBuffer.append("Deletes a folder and all its contents.\n");
+        helpStringBuffer.append("Requires the '-b' parameter to specify bucketname");
+        helpStringBuffer.append("Requires the '-d' parameter to specify folder name");
+
+        return helpStringBuffer.toString();
+    }
+
+    @Override
     public DeleteResult call() throws Exception {
         try {
             getClient().deleteFolderRecursivelySpectraS3(new DeleteFolderRecursivelySpectraS3Request(bucketName, folderName));

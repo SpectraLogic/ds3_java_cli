@@ -43,6 +43,20 @@ public class DeleteTapePartition extends CliCommand<DeleteResult> {
     }
 
     @Override
+    public String getLongHelp() {
+        final StringBuffer helpStringBuffer = new StringBuffer();
+        helpStringBuffer.append("Deletes the specified offline tape partition from the BlackPearl gateway configuration.\n");
+        helpStringBuffer.append("Any tapes in the partition that have data on them are disassociated from the partition.\n");
+        helpStringBuffer.append("Any tapes without data on them and all tape drives associated with the partition are deleted \n");
+        helpStringBuffer.append("from the BlackPearl gateway configuration. This request is useful if the partition should never \n");
+        helpStringBuffer.append("have been associated with the BlackPearl gateway or if the partition was deleted from the library.\n");
+        helpStringBuffer.append("Requires the '-i' parameter to specify tape partition.\n");
+
+        return helpStringBuffer.toString();
+    }
+
+
+    @Override
     public DeleteResult call() throws Exception {
         try {
             getClient().deleteTapePartitionSpectraS3(new DeleteTapePartitionSpectraS3Request(this.id));

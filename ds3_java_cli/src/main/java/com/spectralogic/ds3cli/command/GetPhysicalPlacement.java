@@ -60,6 +60,18 @@ public class GetPhysicalPlacement extends CliCommand<GetPhysicalPlacementWithFul
     }
 
     @Override
+    public String getLongHelp() {
+        final StringBuffer helpStringBuffer = new StringBuffer();
+        helpStringBuffer.append("Returns the location of a single object on tape.\n");
+        helpStringBuffer.append("Requires the '-b' parameter to specify bucket (name or UUID).\n");
+        helpStringBuffer.append("Requires the '-o' parameter to specify object (name or UUID).\n");
+        helpStringBuffer.append("\nUse the get_service command to retrieve a list of buckets.");
+        helpStringBuffer.append("\nUse the get_bucket command to retrieve a list of objects.");
+
+        return helpStringBuffer.toString();
+    }
+
+    @Override
     public GetPhysicalPlacementWithFullDetailsResult call() throws Exception {
         try {
             final List<Ds3Object> objectsList = Arrays.asList(new Ds3Object(objectName));

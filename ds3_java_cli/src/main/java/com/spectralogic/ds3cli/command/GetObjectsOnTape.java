@@ -45,9 +45,19 @@ public class GetObjectsOnTape extends CliCommand<GetObjectsOnTapeResult> {
     public CliCommand init(final Arguments args) throws Exception {
         this.tapeId = args.getId();
         if (Guard.isStringNullOrEmpty(this.tapeId)) {
-            throw new MissingOptionException("The get_blobs_on_tape command requires '-i' to be set with the tape Id or barcode");
+            throw new MissingOptionException("The get_objects_on_tape command requires '-i' to be set with the tape Id or barcode");
         }
         return this;
+    }
+
+    @Override
+    public String getLongHelp() {
+        final StringBuffer helpStringBuffer = new StringBuffer();
+        helpStringBuffer.append("Returns a list of the contents of a single tape.\n");
+        helpStringBuffer.append("Requires the '-i' parameter to specify tape (barcode or UUID).\n");
+        helpStringBuffer.append("\nUse the get_tapes command to retreive a list of tapes");
+
+        return helpStringBuffer.toString();
     }
 
     @Override

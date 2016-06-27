@@ -36,6 +36,14 @@ public class GetJobs extends CliCommand<GetJobsResult> {
     }
 
     @Override
+    public String getLongHelp() {
+        final StringBuffer helpStringBuffer = new StringBuffer();
+        helpStringBuffer.append("Retrieves a list of all current jobs.\n");
+
+        return helpStringBuffer.toString();
+    }
+
+    @Override
     public GetJobsResult call() throws Exception {
         final GetJobsSpectraS3Request request = new GetJobsSpectraS3Request();
         if(completed) {

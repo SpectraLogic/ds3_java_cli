@@ -34,6 +34,14 @@ public class Main {
         try {
             final Arguments arguments = new Arguments(args);
 
+            if (arguments.isHelp()) {
+                // no need to connect to vend help
+                final Ds3Cli runner = new Ds3Cli(null, arguments, null);
+                final CommandResponse response = runner.getCommandHelp();
+                System.out.println(response.getMessage());
+                System.exit(response.getReturnCode());
+            }
+
             final Ds3Client client = createClient(arguments);
             if (!Utils.isCliSupported(client)) {
                 System.out.println(String.format("ERROR: Minimum Black Pearl supported is %s", Utils.MINIMUM_VERSION_SUPPORTED));

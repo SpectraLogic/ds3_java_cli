@@ -59,6 +59,19 @@ public class VerifyBulkJob extends CliCommand<VerifyBulkJobResult> {
     }
 
     @Override
+    public String getLongHelp() {
+        final StringBuffer helpStringBuffer = new StringBuffer();
+        helpStringBuffer.append("A verify job reads data from the permanent data store and verifies that the CRC of the data \n");
+        helpStringBuffer.append("read matches the expected CRC. Verify jobs ALWAYS read from the data store - even if the data \n");
+        helpStringBuffer.append("currently resides in cache.\n");
+        helpStringBuffer.append("Requires the '-b' parameter to specify bucket (name or UUID).\n");
+        helpStringBuffer.append("Requires the '-o' parameter to specify object (name or UUID).\n");
+        helpStringBuffer.append("Optional '-p' parameter to specify prefix or directory name.\n");
+
+        return helpStringBuffer.toString();
+    }
+
+    @Override
     public VerifyBulkJobResult call() throws Exception {
         try{
             // Generate the list of Ds3Objects to verify

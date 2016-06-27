@@ -37,6 +37,14 @@ public class GetTapeFailure extends CliCommand<GetTapeFailureResult> {
     }
 
     @Override
+    public String getLongHelp() {
+        final StringBuffer helpStringBuffer = new StringBuffer();
+        helpStringBuffer.append("Returns a list of tape failures.\n");
+
+        return helpStringBuffer.toString();
+    }
+
+    @Override
     public GetTapeFailureResult call() throws Exception {
 
         try {

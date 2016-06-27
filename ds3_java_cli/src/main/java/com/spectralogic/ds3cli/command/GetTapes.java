@@ -35,6 +35,14 @@ public class GetTapes extends CliCommand<GetTapesWithFullDetailsResult> {
     }
 
     @Override
+    public String getLongHelp() {
+        final StringBuffer helpStringBuffer = new StringBuffer();
+        helpStringBuffer.append("Returns a list of all tapes.\n");
+
+        return helpStringBuffer.toString();
+    }
+
+    @Override
     public GetTapesWithFullDetailsResult call() throws Exception {try {
             final GetTapesWithFullDetailsSpectraS3Response response = getClient().getTapesWithFullDetailsSpectraS3(new GetTapesWithFullDetailsSpectraS3Request());
 

@@ -48,6 +48,16 @@ public class GetDataPolicy extends CliCommand<GetDataPoliciesResult> {
     }
 
     @Override
+    public String getLongHelp() {
+        final StringBuffer helpStringBuffer = new StringBuffer();
+        helpStringBuffer.append("Returns information about the specified data policy..\n");
+        helpStringBuffer.append("Requires the '-i' parameter to specify data policy (UUID or name).");
+        helpStringBuffer.append("\nUse the get_data_policies command to retrieve a list of policies");
+
+        return helpStringBuffer.toString();
+    }
+
+    @Override
     public GetDataPoliciesResult call() throws IOException, SignatureException, SSLSetupException, CommandException {
         try {
             final GetDataPolicySpectraS3Response response = getClient().getDataPolicySpectraS3(new GetDataPolicySpectraS3Request(this.policyId));

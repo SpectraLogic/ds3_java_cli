@@ -45,6 +45,20 @@ public class PutJob extends CliCommand<PutJobResult> {
     }
 
     @Override
+    public String getLongHelp() {
+        final StringBuffer helpStringBuffer = new StringBuffer();
+        helpStringBuffer.append("Modify the priority or the start date of a job that is in process.\n");
+        helpStringBuffer.append("This also resets the heartbeat for the job, so that it does not timeout.\n");
+        helpStringBuffer.append("Requires the '-i' parameter with the UUID of the job\n");
+        helpStringBuffer.append("Optional '--priority' parameter:\n");
+        helpStringBuffer.append("    CRITICAL | URGENT | HIGH | NORMAL | LOW | BACKGROUND\n");
+
+        helpStringBuffer.append("\nUse the get_jobs command to retrieve a list of jobs.");
+
+        return helpStringBuffer.toString();
+    }
+
+    @Override
     public PutJobResult call() throws Exception {
         try {
             final ModifyJobSpectraS3Request request = new ModifyJobSpectraS3Request(jobId);

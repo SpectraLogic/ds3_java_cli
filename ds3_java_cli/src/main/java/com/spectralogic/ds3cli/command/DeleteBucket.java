@@ -56,6 +56,17 @@ public class DeleteBucket extends CliCommand<DeleteResult> {
     }
 
     @Override
+    public String getLongHelp() {
+        final StringBuffer helpStringBuffer = new StringBuffer();
+        helpStringBuffer.append("Deletes an empty bucket.\n");
+        helpStringBuffer.append("Requires the '-b' parameter to specify bucket (by name or UUID).\n");
+        helpStringBuffer.append("Use the '--force' flag to delete a bucket and all its contents.\n");
+        helpStringBuffer.append("Use the get_service command to retrieve a list of buckets.\n");
+
+        return helpStringBuffer.toString();
+    }
+
+    @Override
     public DeleteResult call() throws Exception {
 
         if (force) {

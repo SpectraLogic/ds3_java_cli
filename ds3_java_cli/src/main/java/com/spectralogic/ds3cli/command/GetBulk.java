@@ -90,7 +90,7 @@ public class GetBulk extends CliCommand<GetBulkResult> {
         this.discard = args.isDiscard();
         if (this.discard) {
             if (directory != null) {
-                throw new CommandException("Cannot set both directoy and --discard");
+                throw new CommandException("Cannot set both directory and --discard");
             }
         }
 
@@ -107,6 +107,19 @@ public class GetBulk extends CliCommand<GetBulkResult> {
         this.numberOfThreads = Integer.valueOf(args.getNumberOfThreads());
 
         return this;
+    }
+
+    @Override
+    public String getLongHelp() {
+        final StringBuffer helpStringBuffer = new StringBuffer();
+        helpStringBuffer.append("Retrieve multiple objects from a bucket.\n");
+        helpStringBuffer.append("Requires the '-b' parameter to specify bucket (name or UUID).\n");
+        helpStringBuffer.append("Optional '-d' parameter to specify restore directory (default '.').\n");
+        helpStringBuffer.append("Optional '-p' parameter to specify prefix or directory name.\n");
+        helpStringBuffer.append("Optional '--sync' flag to retrieve only newer or non-extant files.\n");
+        helpStringBuffer.append("Optional '-nt' parameter to specify number of threads.\n");
+
+        return helpStringBuffer.toString();
     }
 
     @Override

@@ -47,4 +47,9 @@ public abstract class CliCommand<T extends Result> implements Callable<T> {
     }
 
     public abstract CliCommand init(final Arguments args) throws Exception;
+
+    // default help for '--help' command
+    public String getLongHelp() {
+        return "No arguments required.";
+    }
 }
