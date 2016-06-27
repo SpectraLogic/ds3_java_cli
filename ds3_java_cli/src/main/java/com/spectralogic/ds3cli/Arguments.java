@@ -222,7 +222,7 @@ public class Arguments {
         rootLogger.info("Version: " + this.version);
 
         if (cmd.hasOption('h')) {
-            this.printHelp();;
+            this.printHelp();
             System.exit(0);
         }
 
