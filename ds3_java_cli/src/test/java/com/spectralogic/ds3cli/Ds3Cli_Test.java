@@ -2164,4 +2164,21 @@ public class Ds3Cli_Test {
         assertThat(result.getReturnCode(), is(0));
     }
 
+    @Test
+    public void reclaimCache() throws Exception {
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "reclaim_cache"});
+        final Ds3Client client = mock(Ds3Client.class);
+        final WebResponse webResponse = mock(WebResponse.class);
+        final Headers headers = mock(Headers.class);
+        when(webResponse.getStatusCode()).thenReturn(204);
+        when(webResponse.getHeaders()).thenReturn(headers);
+
+        final ForceFullCacheReclaimSpectraS3Response cacheResponse = new ForceFullCacheReclaimSpectraS3Response(webResponse);
+        when(client.forceFullCacheReclaimSpectraS3(any(ForceFullCacheReclaimSpectraS3Request.class))).thenReturn(cacheResponse);
+
+        final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
+        final CommandResponse result = cli.call();
+        assertThat(result.getMessage(), is("Success: Forced Reclaim of Cache"));
+        assertThat(result.getReturnCode(), is(0));
+    }
 }
