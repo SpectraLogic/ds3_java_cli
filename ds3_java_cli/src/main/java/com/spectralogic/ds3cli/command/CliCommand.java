@@ -16,6 +16,7 @@
 package com.spectralogic.ds3cli.command;
 
 import com.spectralogic.ds3cli.Arguments;
+import com.spectralogic.ds3cli.CommandValue;
 import com.spectralogic.ds3cli.models.Result;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
@@ -23,6 +24,8 @@ import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 
 import java.util.concurrent.Callable;
+
+import com.spectralogic.ds3cli.util.CommandHelpText;
 
 public abstract class CliCommand<T extends Result> implements Callable<T> {
 
@@ -48,8 +51,8 @@ public abstract class CliCommand<T extends Result> implements Callable<T> {
 
     public abstract CliCommand init(final Arguments args) throws Exception;
 
-    // default help for '--help' command
-    public String getLongHelp() {
-        return "No arguments required.";
+    // help for '--help' command
+    public String getLongHelp(CommandValue command) {
+        return CommandHelpText.getCommandText(command) ;
     }
 }

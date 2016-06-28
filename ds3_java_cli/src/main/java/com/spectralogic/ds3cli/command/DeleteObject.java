@@ -48,18 +48,6 @@ public class DeleteObject extends CliCommand<DeleteResult> {
     }
 
     @Override
-    public String getLongHelp() {
-        final StringBuffer helpStringBuffer = new StringBuffer();
-        helpStringBuffer.append("Permanently deletes an object.\n");
-        helpStringBuffer.append("Requires the '-b' parameter to specify bucketname.\n");
-        helpStringBuffer.append("Requires the '-i' parameter to specify object name (UUID or name).\n");
-        helpStringBuffer.append("\nUse the get_service command to retrieve a list of buckets.");
-        helpStringBuffer.append("\nUse the get_bucket command to retrieve a list of objects.");
-
-        return helpStringBuffer.toString();
-    }
-
-    @Override
     public DeleteResult call() throws Exception {
         try {
             getClient().deleteObject(new DeleteObjectRequest(bucketName, objectName));

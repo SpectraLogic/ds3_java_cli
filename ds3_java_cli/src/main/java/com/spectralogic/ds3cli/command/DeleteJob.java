@@ -50,19 +50,6 @@ public class DeleteJob extends CliCommand<DeleteResult> {
     }
 
     @Override
-    public String getLongHelp() {
-        final StringBuffer helpStringBuffer = new StringBuffer();
-        helpStringBuffer.append("Terminates and removes a current job.\n");
-        helpStringBuffer.append("Requires the '-i' parameter with the UUID of the job\n");
-        helpStringBuffer.append("Use the '--force' flag to remove objects already loaded into cache.\n");
-
-        helpStringBuffer.append("\nUse the get_jobs command to retrieve a list of jobs.");
-
-        return helpStringBuffer.toString();
-    }
-
-
-    @Override
     public DeleteResult call() throws Exception {
         final CancelJobSpectraS3Request request = new CancelJobSpectraS3Request(id).withForce(this.force);
         getClient().cancelJobSpectraS3(request);

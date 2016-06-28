@@ -52,17 +52,6 @@ public class GetUser extends CliCommand<GetUsersResult> {
     }
 
     @Override
-    public String getLongHelp() {
-        final StringBuffer helpStringBuffer = new StringBuffer();
-        helpStringBuffer.append("Returns information about an individeual user.\n");
-        helpStringBuffer.append("Requires the '-i' parameter to specify user (name or UUID).\n");
-        helpStringBuffer.append("\nUse the get_users command to retreive a list of users");
-
-        return helpStringBuffer.toString();
-    }
-
-
-    @Override
     public GetUsersResult call() throws IOException, SignatureException, SSLSetupException, CommandException {
         try {
             final GetUserSpectraS3Response response = getClient().getUserSpectraS3(new GetUserSpectraS3Request(this.userId));

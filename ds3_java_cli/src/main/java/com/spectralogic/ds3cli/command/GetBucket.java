@@ -46,16 +46,6 @@ public class GetBucket extends CliCommand<GetBucketResult> {
     }
 
     @Override
-    public String getLongHelp() {
-        final StringBuffer helpStringBuffer = new StringBuffer();
-        helpStringBuffer.append("Returns a list of objects contained in a bucket.\n");
-        helpStringBuffer.append("Requires the '-b' parameter to specify bucket (name or UUID).\n");
-        helpStringBuffer.append("\nUse the get_service command to retrieve a list of buckets");
-
-        return helpStringBuffer.toString();
-    }
-
-    @Override
     public GetBucketResult call() throws Exception {
 
         try {

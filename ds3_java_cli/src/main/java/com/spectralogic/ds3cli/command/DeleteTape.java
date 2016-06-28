@@ -47,17 +47,6 @@ public class DeleteTape extends CliCommand<DeleteResult> {
     }
 
     @Override
-    public String getLongHelp() {
-        final StringBuffer helpStringBuffer = new StringBuffer();
-        helpStringBuffer.append("Deletes the specified tape which has been permanently lost from the BlackPearl database.\n");
-        helpStringBuffer.append("Any data lost as a result is marked degraded to trigger a rebuild.\n");
-        helpStringBuffer.append("Requires the '-i' parameter to specify tape ID (UUID or barcode).\n");
-        helpStringBuffer.append("\nUse the get_tapes command to retrieve a list of tapes.");
-
-        return helpStringBuffer.toString();
-    }
-
-    @Override
     public DeleteResult call() throws Exception {
 
         try {

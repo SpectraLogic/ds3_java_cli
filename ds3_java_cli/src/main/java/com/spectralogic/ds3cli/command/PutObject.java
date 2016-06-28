@@ -99,23 +99,6 @@ public class PutObject extends CliCommand<PutObjectResult> {
     }
 
     @Override
-    public String getLongHelp() {
-        final StringBuffer helpStringBuffer = new StringBuffer();
-        helpStringBuffer.append("This is provided for Amazon S3 compatibility.\n");
-        helpStringBuffer.append("Spectra Logic recommends using Spectra S3 requests to create a PUT job.\n");
-        helpStringBuffer.append("Requires the '-b' parameter to specify bucket (name or UUID).\n");
-        helpStringBuffer.append("Requires the '-o' parameter to specify local object name.\n");
-        helpStringBuffer.append("Optional '-p' parameter (unless | ) to specify prefix or directory name.\n");
-        helpStringBuffer.append("Optional '--sync' flag to put only newer or non-extant files.\n");
-        helpStringBuffer.append("Optional '-nt' parameter to specify number of threads.\n");
-        helpStringBuffer.append("Optional '--ignore-errors' flag to continue on errors.\n");
-        helpStringBuffer.append("Optional '--follow-symlinks' flag to follow symlink (default is disregard).\n");
-        helpStringBuffer.append("Optional '--metadata' parameter to add metadata (key:value,key2:value2).\n");
-
-        return helpStringBuffer.toString();
-    }
-
-    @Override
     public PutObjectResult call() throws Exception {
         final Ds3ClientHelpers helpers = getClientHelpers();
         final Ds3Object ds3Obj = new Ds3Object(Utils.normalizeObjectName(this.objectName), getFileUtils().size(this.objectPath));

@@ -40,14 +40,6 @@ public class GetService extends CliCommand<GetServiceResult> {
     }
 
     @Override
-    public String getLongHelp() {
-        final StringBuffer helpStringBuffer = new StringBuffer();
-        helpStringBuffer.append("Returns a list of buckets on the device.\n");
-
-        return helpStringBuffer.toString();
-    }
-
-    @Override
     public GetServiceResult call() throws IOException, SignatureException, SSLSetupException, CommandException {
         try {
             final GetServiceResponse response = getClient().getService(new GetServiceRequest());

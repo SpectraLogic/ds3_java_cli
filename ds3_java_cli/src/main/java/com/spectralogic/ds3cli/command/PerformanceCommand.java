@@ -69,23 +69,6 @@ public class PerformanceCommand extends CliCommand<PerformanceResult> {
     }
 
     @Override
-    public String getLongHelp() {
-        final StringBuffer helpStringBuffer = new StringBuffer();
-        helpStringBuffer.append("For internal testing.\n");
-        helpStringBuffer.append("Generates mock file streams for put, and a discard (/dev/null)\n");
-        helpStringBuffer.append("stream for get. Useful for testing network and system performance.\n");
-        helpStringBuffer.append("Requires the '-b' parameter with a unique bucketname to be used for the test.\n");
-        helpStringBuffer.append("Requires the '-n' parameter with the number of files to be used for the test.\n");
-        helpStringBuffer.append("Requires the '-s' parameter with the size of each file in MB for the test.\n");
-        helpStringBuffer.append("Optional '-bs' parameter with the buffer size in bytes (default 1MB).\n");
-        helpStringBuffer.append("Optional '-nt' parameter with the number of threads.\n");
-
-        return helpStringBuffer.toString();
-    }
-
-
-
-    @Override
     public PerformanceResult call() throws Exception {
         final Ds3ClientHelpers helpers = Ds3ClientHelpers.wrap(getClient());
         final int numberOfFiles = Integer.valueOf(this.numberOfFiles);

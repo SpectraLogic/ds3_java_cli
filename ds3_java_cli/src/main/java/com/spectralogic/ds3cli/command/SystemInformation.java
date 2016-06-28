@@ -18,15 +18,6 @@ public class SystemInformation extends CliCommand<SystemInformationResult> {
     }
 
     @Override
-    public String getLongHelp() {
-        final StringBuffer helpStringBuffer = new StringBuffer();
-        helpStringBuffer.append("Retrieves basic system information: software version, build, and system serial number.\n");
-        helpStringBuffer.append("Useful to test communication\n");
-
-        return helpStringBuffer.toString();
-    }
-
-    @Override
     public SystemInformationResult call() throws Exception {
         final GetSystemInformationSpectraS3Response response = getClient().getSystemInformationSpectraS3(new GetSystemInformationSpectraS3Request());
 

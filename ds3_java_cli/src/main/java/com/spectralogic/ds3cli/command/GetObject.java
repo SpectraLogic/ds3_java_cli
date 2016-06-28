@@ -81,21 +81,6 @@ public class GetObject extends CliCommand<GetObjectResult> {
     }
 
     @Override
-    public String getLongHelp() {
-        final StringBuffer helpStringBuffer = new StringBuffer();
-        helpStringBuffer.append("Retrieves a single object from a bucket.\n");
-        helpStringBuffer.append("Requires the '-b' parameter to specify bucket (name or UUID).\n");
-        helpStringBuffer.append("Requires the '-o' parameter to specify object (name or UUID).\n");
-        helpStringBuffer.append("Optional '-d' parameter to specify restore directory (default '.').\n");
-        helpStringBuffer.append("Optional '--sync' flag to retrieve onnly newer or non-extant files.\n");
-        helpStringBuffer.append("Optional '-nt' parameter to specify number of threads.\n");
-        helpStringBuffer.append("\nUse the get_service command to retrieve a list of buckets.");
-        helpStringBuffer.append("\nUse the get_bucket command to retrieve a list of objects.");
-
-        return helpStringBuffer.toString();
-    }
-
-    @Override
     public GetObjectResult call() throws Exception {
         try {
             final Ds3ClientHelpers helpers = getClientHelpers();

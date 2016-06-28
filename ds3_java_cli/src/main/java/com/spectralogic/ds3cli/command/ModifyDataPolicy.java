@@ -79,22 +79,6 @@ public class ModifyDataPolicy extends CliCommand<GetDataPoliciesResult> {
     }
 
     @Override
-    public String getLongHelp() {
-        final StringBuffer helpStringBuffer = new StringBuffer();
-        helpStringBuffer.append("Alter parameters for the specified data policy..\n");
-        helpStringBuffer.append("Requires the '-i' parameter to specify data policy (UUID or name).\n");
-        helpStringBuffer.append("Requires the '--modify-params' parameter to be set.\n");
-        helpStringBuffer.append("Use key:value pair key:value,key2:value2:... Legal values:\n");
-        helpStringBuffer.append("    name, checksum_type, default_blob_size, default_get_job_priority, \n");
-        helpStringBuffer.append("    default_put_job_priority, default_verify_job_priority, rebuild_priority, \n");
-        helpStringBuffer.append("    end_to_end_crc_required, versioning.\n");
-        helpStringBuffer.append("See API documentation for possible values).\n");
-        helpStringBuffer.append("\nUse the get_data_policies command to retreive a list of policies and current values.");
-
-        return helpStringBuffer.toString();
-    }
-
-    @Override
     public GetDataPoliciesResult call() throws IOException, SignatureException, SSLSetupException, CommandException {
         try {
             // get the target policy

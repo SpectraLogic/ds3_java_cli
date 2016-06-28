@@ -32,16 +32,6 @@ public class GetJob extends CliCommand<GetJobResult> {
     }
 
     @Override
-    public String getLongHelp() {
-        final StringBuffer helpStringBuffer = new StringBuffer();
-        helpStringBuffer.append("Retrieves information about a current job.\n");
-        helpStringBuffer.append("Requires the '-i' parameter with the UUID of the job\n");
-        helpStringBuffer.append("\nUse the get_jobs command to retrieve a list of jobs.");
-
-        return helpStringBuffer.toString();
-    }
-
-    @Override
     public GetJobResult call() throws Exception {
         final GetJobSpectraS3Response response = getClient().getJobSpectraS3(new GetJobSpectraS3Request(this.jobId));
 

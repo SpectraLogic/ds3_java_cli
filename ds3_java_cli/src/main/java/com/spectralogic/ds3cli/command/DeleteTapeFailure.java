@@ -47,17 +47,6 @@ public class DeleteTapeFailure extends CliCommand<DeleteResult> {
     }
 
     @Override
-    public String getLongHelp() {
-        final StringBuffer helpStringBuffer = new StringBuffer();
-        helpStringBuffer.append("Deletes a tape failure from the failure list.\n");
-        helpStringBuffer.append("Requires the '-i' parameter to specify tape failure ID (UUID).\n");
-        helpStringBuffer.append("\nUse the get_tape_failure command to retreive a list of IDs");
-
-        return helpStringBuffer.toString();
-    }
-
-
-    @Override
     public DeleteResult call() throws Exception {
 
         try {

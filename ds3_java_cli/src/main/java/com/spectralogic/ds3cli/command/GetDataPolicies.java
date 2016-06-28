@@ -38,14 +38,6 @@ public class GetDataPolicies extends CliCommand<GetDataPoliciesResult> {
     public CliCommand init(final Arguments args) throws Exception {
         return this;
     }
-    @Override
-    public String getLongHelp() {
-        final StringBuffer helpStringBuffer = new StringBuffer();
-        helpStringBuffer.append("Returns information about all data policies.\n");
-
-        return helpStringBuffer.toString();
-    }
-
 
     @Override
     public GetDataPoliciesResult call() throws IOException, SignatureException, SSLSetupException, CommandException {

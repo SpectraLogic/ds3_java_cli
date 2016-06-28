@@ -44,17 +44,6 @@ public class DeleteTapeDrive extends CliCommand<DeleteResult> {
     }
 
     @Override
-    public String getLongHelp() {
-        final StringBuffer helpStringBuffer = new StringBuffer();
-        helpStringBuffer.append("Deletes the specified offline tape drive.\n");
-        helpStringBuffer.append("This request is useful when a tape drive is permanently removed from a partition.\n");
-        helpStringBuffer.append("Requires the '-i' parameter to specify tape drive ID.\n");
-        helpStringBuffer.append("\nUse the get_tape_drives command to retrieve a list of tapes.");
-
-        return helpStringBuffer.toString();
-    }
-
-    @Override
     public DeleteResult call() throws Exception {
         try {
             getClient().deleteTapeDriveSpectraS3(new DeleteTapeDriveSpectraS3Request(UUID.fromString(this.id)));

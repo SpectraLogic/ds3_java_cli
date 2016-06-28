@@ -128,21 +128,6 @@ public class PutBulk extends CliCommand<PutBulkResult> {
     }
 
     @Override
-    public String getLongHelp() {
-        final StringBuffer helpStringBuffer = new StringBuffer();
-        helpStringBuffer.append("Put multiple objects from a directory or pipe into a bucket.\n");
-        helpStringBuffer.append("Requires the '-b' parameter to specify bucket (name or UUID).\n");
-        helpStringBuffer.append("Requires the '-d' parameter (unless | ) to specify source directory .\n");
-        helpStringBuffer.append("Optional '-p' parameter (unless | ) to specify prefix or directory name.\n");
-        helpStringBuffer.append("Optional '--sync' flag to put only newer or non-extant files.\n");
-        helpStringBuffer.append("Optional '-nt' parameter to specify number of threads.\n");
-        helpStringBuffer.append("Optional '--ignore-errors' flag to continue on errors.\n");
-        helpStringBuffer.append("Optional '--follow-symlinks' flag to follow symlink (default is disregard).\n");
-
-        return helpStringBuffer.toString();
-    }
-
-    @Override
     public PutBulkResult call() throws Exception {
         /* Ensure the bucket exists and if not create it */
         final Ds3ClientHelpers helpers = getClientHelpers();

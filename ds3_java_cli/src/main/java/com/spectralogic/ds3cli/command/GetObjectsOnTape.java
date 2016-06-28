@@ -51,16 +51,6 @@ public class GetObjectsOnTape extends CliCommand<GetObjectsOnTapeResult> {
     }
 
     @Override
-    public String getLongHelp() {
-        final StringBuffer helpStringBuffer = new StringBuffer();
-        helpStringBuffer.append("Returns a list of the contents of a single tape.\n");
-        helpStringBuffer.append("Requires the '-i' parameter to specify tape (barcode or UUID).\n");
-        helpStringBuffer.append("\nUse the get_tapes command to retreive a list of tapes");
-
-        return helpStringBuffer.toString();
-    }
-
-    @Override
     public GetObjectsOnTapeResult call() throws IOException, SignatureException, SSLSetupException, CommandException {
         try {
 
