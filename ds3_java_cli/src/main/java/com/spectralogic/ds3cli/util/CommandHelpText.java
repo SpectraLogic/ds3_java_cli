@@ -19,7 +19,7 @@ import com.spectralogic.ds3cli.CommandValue;
 
 import java.util.*;
 
-public class CommandHelpText {
+public final class CommandHelpText {
 
     private static final ResourceBundle bundle = ResourceBundle.getBundle("com.spectralogic.dscli.help");
 
