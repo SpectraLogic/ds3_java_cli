@@ -53,6 +53,6 @@ public abstract class CliCommand<T extends Result> implements Callable<T> {
 
     // help for '--help' command
     public String getLongHelp(CommandValue command) {
-        return CommandHelpText.getCommandText(command) ;
+        return CommandHelpText.getHelpText(command) ;
     }
 }
