@@ -152,6 +152,19 @@ public class Ds3Cli implements Callable<CommandResponse> {
         }
     }
 
+    public CommandResponse getCommandHelp() throws Exception {
+        final CliCommand command = getCommandExecutor();
+
+        try {
+            final String message = command.getLongHelp(this.args.getCommand());
+            return new CommandResponse(message, 0);
+        }
+        catch(final Exception e) {
+            final String message = "getCommandHelp failed";
+            return new CommandResponse(message, 1);
+        }
+    }
+
     private CliCommand getCommandExecutor() throws CommandException {
         final CommandValue command = this.args.getCommand();
         switch(command) {

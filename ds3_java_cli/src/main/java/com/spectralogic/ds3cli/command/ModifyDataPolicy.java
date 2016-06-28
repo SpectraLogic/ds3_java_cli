@@ -27,6 +27,7 @@ import com.spectralogic.ds3client.models.DataPolicy;
 import com.spectralogic.ds3client.models.Priority;
 import com.spectralogic.ds3client.models.VersioningLevel;
 import com.spectralogic.ds3client.networking.FailedRequestException;
+import com.spectralogic.ds3client.utils.Guard;
 import com.spectralogic.ds3client.utils.SSLSetupException;
 import org.apache.commons.cli.MissingOptionException;
 
@@ -68,11 +69,11 @@ public class ModifyDataPolicy extends CliCommand<GetDataPoliciesResult> {
     public CliCommand init(final Arguments args) throws Exception {
         this.policyId = args.getId();
         if (this.policyId == null) {
-            throw new MissingOptionException("The alter policy command requires '-i' to be set with the policy name or Id");
+            throw new MissingOptionException("The modify policy command requires '-i' to be set with the policy name or Id");
         }
-        this.metadata = args.getMetadata();
-        if ((this.metadata == null) || (this.metadata.isEmpty())) {
-            throw new MissingOptionException("The alter policy command requires '--metatdata' to be set with at least one key:value pair key:value,key2:value2");
+        this.metadata = args.getModifyParams();
+        if (Guard.isMapNullOrEmpty(this.metadata)) {
+            throw new MissingOptionException("The modify_policy command requires '--modify-params' to be set with at least one key:value default_data_policy_id:a85aa599-7a58-4141-adbe-79bfd1d42e48,key2:value2");
         }
         return this;
     }

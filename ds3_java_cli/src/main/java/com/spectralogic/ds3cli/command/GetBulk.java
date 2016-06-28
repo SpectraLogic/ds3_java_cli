@@ -90,7 +90,7 @@ public class GetBulk extends CliCommand<GetBulkResult> {
         this.discard = args.isDiscard();
         if (this.discard) {
             if (directory != null) {
-                throw new CommandException("Cannot set both directoy and --discard");
+                throw new CommandException("Cannot set both directory and --discard");
             }
         }
 

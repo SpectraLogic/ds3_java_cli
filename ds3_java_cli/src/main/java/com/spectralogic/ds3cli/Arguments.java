@@ -21,6 +21,7 @@ import com.spectralogic.ds3cli.exceptions.BadArgumentException;
 import com.spectralogic.ds3cli.util.Metadata;
 import com.spectralogic.ds3client.models.Priority;
 import com.spectralogic.ds3client.models.WriteOptimization;
+import com.spectralogic.ds3client.utils.Guard;
 import org.apache.commons.cli.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,6 +47,7 @@ public class Arguments {
     private String prefix;
     private String id = null;
     private CommandValue command;
+    private boolean help;
     private final String[] args;
     private String objectName;
     private String proxy;
@@ -85,7 +87,7 @@ public class Arguments {
         accessKey.setArgName("accessKeyId");
         final Option secretKey = new Option("k", true, "Secret access key or have \"DS3_SECRET_KEY\" set as an environment variable");
         secretKey.setArgName("secretKey");
-        final Option command = new Option("c", true, "The Command to execute.  Possible values: [" + CommandValue.valuesString() + "]");
+        final Option command = new Option("c", true, "The Command to execute.  Possible values: [" + CommandValue.valuesString() + "] Use '--help <command>' for more information " );
         command.setArgName("command");
         final Option directory = new Option("d", true, "Specify a directory to interact with if required");
         directory.setArgName("directory");
@@ -109,8 +111,9 @@ public class Arguments {
         final Option writeOptimization = new Option(null, true, "Set the job write optimization.  Possible values: [" + WriteOptimization.values() + "]");
         writeOptimization.setLongOpt("writeOptimization");
         writeOptimization.setArgName("writeOptimization");
-        final Option help = new Option("h", "Print Help Menu");
-        help.setLongOpt("help");
+        final Option help = new Option("h", "Help Menu");
+        final Option commandHelp = new Option(null, true, "Command Help (provide command name from -c)");
+        commandHelp.setLongOpt("help");
         final Option http = new Option(null, "Send all requests over standard http");
         http.setLongOpt("http");
         final Option insecure = new Option(null, "Ignore ssl certificate verification");
@@ -172,6 +175,7 @@ public class Arguments {
         this.options.addOption(priority);
         this.options.addOption(writeOptimization);
         this.options.addOption(help);
+        this.options.addOption(commandHelp);
         this.options.addOption(insecure);
         this.options.addOption(http);
         this.options.addOption(version);
@@ -195,7 +199,7 @@ public class Arguments {
     }
 
     private void processCommandLine() throws ParseException, BadArgumentException {
-        final CommandLineParser parser = new BasicParser();
+        final CommandLineParser parser = new DefaultParser();
         final CommandLine cmd = parser.parse(this.options, this.args);
 
         final List<String> missingArgs = new ArrayList<>();
@@ -220,6 +224,22 @@ public class Arguments {
         if (cmd.hasOption('h')) {
             this.printHelp();
             System.exit(0);
+        }
+
+        if (cmd.hasOption("help")) {
+            setHelp(true);
+            final String commandString = cmd.getOptionValue("help");
+            try {
+                if (commandString == null) {
+                    this.setCommand(null);
+                } else {
+                    this.setCommand(CommandValue.valueOf(commandString.toUpperCase()));
+                }
+                // no other options count
+                return;
+            } catch (final IllegalArgumentException e) {
+                throw new BadArgumentException("Unknown command: " + commandString + "; use -h to get available commands.", e);
+            }
         }
 
         if (cmd.hasOption("version")) {
@@ -260,7 +280,10 @@ public class Arguments {
             final String commandString = cmd.getOptionValue("c");
             if (commandString == null) {
                 this.setCommand(null);
-                missingArgs.add("c");
+                // must have -c or --help
+                if (!isHelp()) {
+                    missingArgs.add("c");
+                }
             } else {
                 this.setCommand(CommandValue.valueOf(commandString.toUpperCase()));
             }
@@ -433,6 +456,7 @@ public class Arguments {
     }
 
     public void printHelp() {
+        // default help menu
         final HelpFormatter helpFormatter = new HelpFormatter();
         helpFormatter.printHelp("ds3", this.options);
     }
@@ -666,5 +690,9 @@ public class Arguments {
     void setDiscard(final boolean discard) {
         this.discard = discard;
     }
+
+    public boolean isHelp() { return this.help; }
+
+    void setHelp(final boolean help) { this.help = help; }
 
 }
