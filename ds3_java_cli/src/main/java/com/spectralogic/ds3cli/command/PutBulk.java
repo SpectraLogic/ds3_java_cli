@@ -65,8 +65,8 @@ public class PutBulk extends CliCommand<PutBulkResult> {
     private ImmutableMap<String, String> mapNormalizedObjectNameToObjectName = null;
     private boolean followSymlinks;
 
-    protected com.spectralogic.ds3cli.View<PutBulkResult> cliView = new com.spectralogic.ds3cli.views.cli.PutBulkView();
-    protected com.spectralogic.ds3cli.View<PutBulkResult> jsonView = new com.spectralogic.ds3cli.views.json.PutBulkView();
+    protected final View<PutBulkResult> cliView = new com.spectralogic.ds3cli.views.cli.PutBulkView();
+    protected final View<PutBulkResult> jsonView = new com.spectralogic.ds3cli.views.json.PutBulkView();
 
     public PutBulk(final Ds3Provider provider, final FileUtils fileUtils) {
         super(provider, fileUtils);
@@ -222,7 +222,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
 
         private final String prefix;
         private final Path inputDirectory;
-        private ImmutableMap<String, Contents> mapBucketFiles;
+        private final ImmutableMap<String, Contents> mapBucketFiles;
 
         public SyncFilter(final String prefix, final Path inputDirectory, final Ds3ClientHelpers helpers, final String bucketName) throws IOException, SignatureException {
             this.prefix = prefix;

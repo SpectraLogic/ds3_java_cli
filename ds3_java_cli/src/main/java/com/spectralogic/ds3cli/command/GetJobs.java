@@ -18,7 +18,6 @@ package com.spectralogic.ds3cli.command;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
-import com.spectralogic.ds3cli.models.GetJobResult;
 import com.spectralogic.ds3cli.models.GetJobsResult;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
@@ -28,8 +27,8 @@ public class GetJobs extends CliCommand<GetJobsResult> {
 
     private boolean completed;
 
-    protected com.spectralogic.ds3cli.View<GetJobsResult> cliView = new com.spectralogic.ds3cli.views.cli.GetJobsView();
-    protected com.spectralogic.ds3cli.View<GetJobsResult> jsonView = new com.spectralogic.ds3cli.views.json.GetJobsView();
+    protected final View<GetJobsResult> cliView = new com.spectralogic.ds3cli.views.cli.GetJobsView();
+    protected final View<GetJobsResult> jsonView = new com.spectralogic.ds3cli.views.json.GetJobsView();
 
     public GetJobs(final Ds3Provider ds3Provider, final FileUtils fileUtils) {
         super(ds3Provider, fileUtils);

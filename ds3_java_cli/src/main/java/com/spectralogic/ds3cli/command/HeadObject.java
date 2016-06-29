@@ -15,8 +15,8 @@ public class HeadObject extends CliCommand<HeadObjectResult> {
     private String objectName;
     private String bucketName;
 
-    protected com.spectralogic.ds3cli.View<HeadObjectResult> cliView = new com.spectralogic.ds3cli.views.cli.HeadObjectView();
-    protected com.spectralogic.ds3cli.View<HeadObjectResult> jsonView = new com.spectralogic.ds3cli.views.json.HeadObjectView();
+    protected final View<HeadObjectResult> cliView = new com.spectralogic.ds3cli.views.cli.HeadObjectView();
+    protected final View<HeadObjectResult> jsonView = new com.spectralogic.ds3cli.views.json.HeadObjectView();
 
     public HeadObject(final Ds3Provider ds3Provider, final FileUtils fileUtils) {
         super(ds3Provider, fileUtils);

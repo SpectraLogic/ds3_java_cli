@@ -30,8 +30,6 @@ import org.apache.commons.cli.MissingOptionException;
 
 import java.io.IOException;
 import java.security.SignatureException;
-import java.util.UUID;
-import static com.spectralogic.ds3cli.util.Utils.nullGuardToString;
 
 
 public class GetObjectsOnTape extends CliCommand<GetObjectsOnTapeResult> {
@@ -43,8 +41,8 @@ public class GetObjectsOnTape extends CliCommand<GetObjectsOnTapeResult> {
         super(provider, fileUtils);
     }
 
-    protected com.spectralogic.ds3cli.View<GetObjectsOnTapeResult> cliView = new com.spectralogic.ds3cli.views.cli.GetObjectsOnTapeView();
-    protected com.spectralogic.ds3cli.View<GetObjectsOnTapeResult> jsonView = new com.spectralogic.ds3cli.views.json.GetObjectsOnTapeView();
+    protected final View<GetObjectsOnTapeResult> cliView = new com.spectralogic.ds3cli.views.cli.GetObjectsOnTapeView();
+    protected final View<GetObjectsOnTapeResult> jsonView = new com.spectralogic.ds3cli.views.json.GetObjectsOnTapeView();
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {

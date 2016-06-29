@@ -38,8 +38,8 @@ public class VerifyBulkJob extends CliCommand<VerifyBulkJobResult> {
     private String bucketName;
     private String prefix;
 
-    protected com.spectralogic.ds3cli.View<VerifyBulkJobResult> cliView = new com.spectralogic.ds3cli.views.cli.VerifyBulkJobView();
-    protected com.spectralogic.ds3cli.View<VerifyBulkJobResult> jsonView = new com.spectralogic.ds3cli.views.json.VerifyBulkJobView();
+    protected final View<VerifyBulkJobResult> cliView = new com.spectralogic.ds3cli.views.cli.VerifyBulkJobView();
+    protected final View<VerifyBulkJobResult> jsonView = new com.spectralogic.ds3cli.views.json.VerifyBulkJobView();
 
     public VerifyBulkJob(final Ds3Provider provider, final FileUtils fileUtils) {
         super(provider, fileUtils);

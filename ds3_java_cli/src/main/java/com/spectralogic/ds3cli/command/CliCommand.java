@@ -35,8 +35,8 @@ public abstract class CliCommand<T extends Result> implements Callable<T> {
     private final Ds3Provider ds3Provider;
     private final FileUtils fileUtils;
 
-    protected View<T> cliView = (View<T>) new DefaultView();
-    protected View<T> jsonView = (View<T>) new com.spectralogic.ds3cli.views.json.DeleteView();
+    protected final View<T> cliView = (View<T>) new DefaultView();
+    protected final View<T> jsonView = (View<T>) new com.spectralogic.ds3cli.views.json.DeleteView();
 
     public CliCommand(final Ds3Provider ds3Provider, final FileUtils fileUtils) {
         this.ds3Provider = ds3Provider;

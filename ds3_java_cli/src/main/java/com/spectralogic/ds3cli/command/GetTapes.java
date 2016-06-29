@@ -31,8 +31,8 @@ public class GetTapes extends CliCommand<GetTapesWithFullDetailsResult> {
         super(ds3Provider, fileUtils);
     }
 
-    protected com.spectralogic.ds3cli.View<GetTapesWithFullDetailsResult> cliView = new com.spectralogic.ds3cli.views.cli.GetTapesWithFullDetailsView();
-    protected com.spectralogic.ds3cli.View<GetTapesWithFullDetailsResult> jsonView = new com.spectralogic.ds3cli.views.json.GetTapesWithFullDetailsView();
+    protected final View<GetTapesWithFullDetailsResult> cliView = new com.spectralogic.ds3cli.views.cli.GetTapesWithFullDetailsView();
+    protected final View<GetTapesWithFullDetailsResult> jsonView = new com.spectralogic.ds3cli.views.json.GetTapesWithFullDetailsView();
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {

@@ -34,7 +34,6 @@ import com.spectralogic.ds3client.networking.Metadata;
 import com.spectralogic.ds3client.serializer.XmlProcessingException;
 import com.spectralogic.ds3client.utils.Guard;
 import com.spectralogic.ds3client.utils.SSLSetupException;
-import org.apache.commons.cli.MissingArgumentException;
 import org.apache.commons.cli.MissingOptionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,8 +55,8 @@ public class GetBulk extends CliCommand<GetBulkResult> {
     private final static int DEFAULT_BUFFER_SIZE = 1024 * 1024;
     private final static long DEFAULT_FILE_SIZE = 1024L;
 
-    protected com.spectralogic.ds3cli.View<GetBulkResult> cliView = (View<GetBulkResult>) new com.spectralogic.ds3cli.views.cli.GetBulkView();
-    protected com.spectralogic.ds3cli.View<GetBulkResult> jsonView = (View<GetBulkResult>) new com.spectralogic.ds3cli.views.json.GetBulkView();
+    protected final View<GetBulkResult> cliView = new com.spectralogic.ds3cli.views.cli.GetBulkView();
+    protected final View<GetBulkResult> jsonView = new com.spectralogic.ds3cli.views.json.GetBulkView();
 
     private String bucketName;
     private Path outputPath;

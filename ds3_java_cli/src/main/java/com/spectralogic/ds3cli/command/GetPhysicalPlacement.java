@@ -38,8 +38,8 @@ public class GetPhysicalPlacement extends CliCommand<GetPhysicalPlacementWithFul
     private String bucketName;
     private String objectName;
 
-    protected com.spectralogic.ds3cli.View<GetPhysicalPlacementWithFullDetailsResult> cliView = new com.spectralogic.ds3cli.views.cli.GetPhysicalPlacementWithFullDetailsView();
-    protected com.spectralogic.ds3cli.View<GetPhysicalPlacementWithFullDetailsResult> jsonView = new com.spectralogic.ds3cli.views.json.GetPhysicalPlacementWithFullDetailsView();
+    protected final View<GetPhysicalPlacementWithFullDetailsResult> cliView = new com.spectralogic.ds3cli.views.cli.GetPhysicalPlacementWithFullDetailsView();
+    protected final View<GetPhysicalPlacementWithFullDetailsResult> jsonView = new com.spectralogic.ds3cli.views.json.GetPhysicalPlacementWithFullDetailsView();
 
     public GetPhysicalPlacement(final Ds3Provider ds3Provider, final FileUtils fileUtils) {
         super(ds3Provider, fileUtils);

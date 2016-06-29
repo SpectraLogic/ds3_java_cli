@@ -28,7 +28,7 @@ public class VerifyBulkJobResult implements Result {
         this.objIterator = objIterator;
     }
 
-    public String getBucketId() { return this.bucketId; };
+    public String getBucketId() { return this.bucketId; }
 
     public Iterator<Objects> getObjIterator() {
         return objIterator;

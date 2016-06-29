@@ -35,12 +35,11 @@ import org.apache.commons.cli.MissingOptionException;
 
 import java.io.IOException;
 import java.security.SignatureException;
-import java.util.Map;
 
 public class ModifyDataPolicy extends CliCommand<GetDataPoliciesResult> {
 
-    protected com.spectralogic.ds3cli.View<GetDataPoliciesResult> cliView = new com.spectralogic.ds3cli.views.cli.GetDataPoliciesView();
-    protected com.spectralogic.ds3cli.View<GetDataPoliciesResult> jsonView = new com.spectralogic.ds3cli.views.json.GetDataPoliciesView();
+    protected final View<GetDataPoliciesResult> cliView = new com.spectralogic.ds3cli.views.cli.GetDataPoliciesView();
+    protected final View<GetDataPoliciesResult> jsonView = new com.spectralogic.ds3cli.views.json.GetDataPoliciesView();
 
     // name or guid
     private String policyId;

@@ -36,8 +36,8 @@ public class GetDataPolicies extends CliCommand<GetDataPoliciesResult> {
         super(provider, fileUtils);
     }
 
-    protected com.spectralogic.ds3cli.View<GetDataPoliciesResult> cliView = new com.spectralogic.ds3cli.views.cli.GetDataPoliciesView();
-    protected com.spectralogic.ds3cli.View<GetDataPoliciesResult> jsonView = new com.spectralogic.ds3cli.views.json.GetDataPoliciesView();
+    protected final View<GetDataPoliciesResult> cliView = new com.spectralogic.ds3cli.views.cli.GetDataPoliciesView();
+    protected final View<GetDataPoliciesResult> jsonView = new com.spectralogic.ds3cli.views.json.GetDataPoliciesView();
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {

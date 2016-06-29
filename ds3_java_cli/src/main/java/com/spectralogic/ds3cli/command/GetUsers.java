@@ -19,12 +19,9 @@ import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.exceptions.CommandException;
-import com.spectralogic.ds3cli.models.GetDataPoliciesResult;
 import com.spectralogic.ds3cli.models.GetUsersResult;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
-import com.spectralogic.ds3client.commands.spectrads3.GetDataPoliciesSpectraS3Request;
-import com.spectralogic.ds3client.commands.spectrads3.GetDataPoliciesSpectraS3Response;
 import com.spectralogic.ds3client.commands.spectrads3.GetUsersSpectraS3Request;
 import com.spectralogic.ds3client.commands.spectrads3.GetUsersSpectraS3Response;
 import com.spectralogic.ds3client.networking.FailedRequestException;
@@ -39,8 +36,8 @@ public class GetUsers extends CliCommand<GetUsersResult> {
         super(provider, fileUtils);
     }
 
-    protected com.spectralogic.ds3cli.View<GetUsersResult> cliView = new com.spectralogic.ds3cli.views.cli.GetUsersView();
-    protected com.spectralogic.ds3cli.View<GetUsersResult> jsonView = new com.spectralogic.ds3cli.views.json.GetUsersView();
+    protected final View<GetUsersResult> cliView = new com.spectralogic.ds3cli.views.cli.GetUsersView();
+    protected final View<GetUsersResult> jsonView = new com.spectralogic.ds3cli.views.json.GetUsersView();
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {

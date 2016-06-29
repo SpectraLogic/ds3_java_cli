@@ -17,7 +17,6 @@ package com.spectralogic.ds3cli.command;
 
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.View;
-import java.util.concurrent.Callable;
 
 import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.exceptions.CommandException;
@@ -34,8 +33,8 @@ import java.security.SignatureException;
 
 public class GetService extends CliCommand<GetServiceResult> {
 
-    protected com.spectralogic.ds3cli.View<GetServiceResult> cliView = (View<GetServiceResult>) new com.spectralogic.ds3cli.views.cli.GetServiceView();
-    protected com.spectralogic.ds3cli.View<GetServiceResult> jsonView = (View<GetServiceResult>) new com.spectralogic.ds3cli.views.json.GetServiceView();
+    protected final View<GetServiceResult> cliView = new com.spectralogic.ds3cli.views.cli.GetServiceView();
+    protected final View<GetServiceResult> jsonView = new com.spectralogic.ds3cli.views.json.GetServiceView();
 
     public GetService(final Ds3Provider provider, final FileUtils fileUtils) {
         super(provider, fileUtils);

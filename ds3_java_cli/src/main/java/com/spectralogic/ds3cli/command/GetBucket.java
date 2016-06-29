@@ -37,8 +37,8 @@ public class GetBucket extends CliCommand<GetBucketResult> {
         super(provider, fileUtils);
     }
 
-    protected com.spectralogic.ds3cli.View<GetBucketResult> cliView = (View<GetBucketResult>) new com.spectralogic.ds3cli.views.cli.GetBucketView();
-    protected com.spectralogic.ds3cli.View<GetBucketResult> jsonView = (View<GetBucketResult>) new com.spectralogic.ds3cli.views.json.GetBucketView();
+    protected final com.spectralogic.ds3cli.View<GetBucketResult> cliView = (View<GetBucketResult>) new com.spectralogic.ds3cli.views.cli.GetBucketView();
+    protected final com.spectralogic.ds3cli.View<GetBucketResult> jsonView = (View<GetBucketResult>) new com.spectralogic.ds3cli.views.json.GetBucketView();
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {

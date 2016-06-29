@@ -17,7 +17,6 @@ package com.spectralogic.ds3cli.views.json;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.spectralogic.ds3cli.View;
-import com.spectralogic.ds3cli.models.GetDataPoliciesResult;
 import com.spectralogic.ds3cli.models.GetUsersResult;
 import com.spectralogic.ds3cli.util.JsonMapper;
 

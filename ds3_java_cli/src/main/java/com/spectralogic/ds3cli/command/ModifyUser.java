@@ -15,19 +15,15 @@
 
 package com.spectralogic.ds3cli.command;
 
-import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.exceptions.CommandException;
-import com.spectralogic.ds3cli.models.GetDataPoliciesResult;
 import com.spectralogic.ds3cli.models.GetUsersResult;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
-import com.spectralogic.ds3cli.util.Utils;
 import com.spectralogic.ds3client.commands.spectrads3.*;
-import com.spectralogic.ds3client.models.*;
 import com.spectralogic.ds3client.networking.FailedRequestException;
 import com.spectralogic.ds3client.utils.Guard;
 import com.spectralogic.ds3client.utils.SSLSetupException;
@@ -43,8 +39,8 @@ public class ModifyUser extends CliCommand<GetUsersResult> {
     private String defaultPolicyId;
     private ImmutableMap<String, String> modifyParams;
 
-    protected com.spectralogic.ds3cli.View<GetUsersResult> cliView = new com.spectralogic.ds3cli.views.cli.GetUsersView();
-    protected com.spectralogic.ds3cli.View<GetUsersResult> jsonView = new com.spectralogic.ds3cli.views.json.GetUsersView();
+    protected final View<GetUsersResult> cliView = new com.spectralogic.ds3cli.views.cli.GetUsersView();
+    protected final View<GetUsersResult> jsonView = new com.spectralogic.ds3cli.views.json.GetUsersView();
 
     public ModifyUser(final Ds3Provider provider, final FileUtils fileUtils) {
         super(provider, fileUtils);

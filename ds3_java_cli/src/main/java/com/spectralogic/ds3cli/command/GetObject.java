@@ -50,8 +50,8 @@ public class GetObject extends CliCommand<GetObjectResult> {
     private boolean force;
     private int numberOfThreads;
 
-    protected com.spectralogic.ds3cli.View<GetObjectResult> cliView = (View<GetObjectResult>) new com.spectralogic.ds3cli.views.cli.GetObjectView();
-    protected com.spectralogic.ds3cli.View<GetObjectResult> jsonView = (View<GetObjectResult>) new com.spectralogic.ds3cli.views.json.GetObjectView();
+    protected final View<GetObjectResult> cliView = new com.spectralogic.ds3cli.views.cli.GetObjectView();
+    protected final View<GetObjectResult> jsonView = new com.spectralogic.ds3cli.views.json.GetObjectView();
 
     public GetObject(final Ds3Provider provider, final FileUtils fileUtils) {
         super(provider, fileUtils);

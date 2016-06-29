@@ -19,7 +19,7 @@ import com.spectralogic.ds3client.models.NamedDetailedTapeList;
 
 public class GetTapesWithFullDetailsResult implements Result {
 
-    private NamedDetailedTapeList namedDetailedTapeListResult;
+    private final NamedDetailedTapeList namedDetailedTapeListResult;
 
     public GetTapesWithFullDetailsResult(final NamedDetailedTapeList tapes) {
         this.namedDetailedTapeListResult = tapes;

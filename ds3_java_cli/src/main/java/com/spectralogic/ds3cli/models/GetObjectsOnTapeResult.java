@@ -18,8 +18,6 @@ package com.spectralogic.ds3cli.models;
 import com.spectralogic.ds3client.models.BulkObject;
 import java.util.Iterator;
 
-import static com.spectralogic.ds3cli.util.Utils.nullGuard;
-
 public class GetObjectsOnTapeResult implements Result {
     final private String tapeId;
     final private Iterator<BulkObject> objIterator;
@@ -29,7 +27,7 @@ public class GetObjectsOnTapeResult implements Result {
         this.objIterator = objIterator;
     }
 
-    public String getTapeId() { return this.tapeId; };
+    public String getTapeId() { return this.tapeId; }
 
     public Iterator<BulkObject> getObjIterator() {
         return objIterator;
