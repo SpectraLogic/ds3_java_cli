@@ -3,7 +3,6 @@ package com.spectralogic.ds3cli.command;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.models.DefaultResult;
-import com.spectralogic.ds3cli.models.SystemInformationResult;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3client.commands.spectrads3.GetSystemInformationSpectraS3Request;
