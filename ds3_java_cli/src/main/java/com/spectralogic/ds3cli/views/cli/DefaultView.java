@@ -12,15 +12,16 @@
  *   specific language governing permissions and limitations under the License.
  * ****************************************************************************
  */
-
 package com.spectralogic.ds3cli.views.cli;
 
-import com.spectralogic.ds3cli.View;
-import com.spectralogic.ds3cli.models.PutObjectResult;
 
-public class PutObjectView implements View<PutObjectResult> {
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.spectralogic.ds3cli.View;
+import com.spectralogic.ds3cli.models.DefaultResult;
+
+public class DefaultView implements View<DefaultResult> {
     @Override
-    public String render(final PutObjectResult result) {
+    public String render(final DefaultResult result) throws JsonProcessingException {
         return result.getResult();
     }
 }

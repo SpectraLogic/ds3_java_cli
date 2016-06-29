@@ -16,6 +16,8 @@
 package com.spectralogic.ds3cli.command;
 
 import com.spectralogic.ds3cli.Arguments;
+import com.spectralogic.ds3cli.View;
+import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.GetObjectsOnTapeResult;
 import com.spectralogic.ds3cli.util.Ds3Provider;
@@ -40,6 +42,9 @@ public class GetObjectsOnTape extends CliCommand<GetObjectsOnTapeResult> {
     public GetObjectsOnTape(final Ds3Provider provider, final FileUtils fileUtils) {
         super(provider, fileUtils);
     }
+
+    protected com.spectralogic.ds3cli.View<GetObjectsOnTapeResult> cliView = new com.spectralogic.ds3cli.views.cli.GetObjectsOnTapeView();
+    protected com.spectralogic.ds3cli.View<GetObjectsOnTapeResult> jsonView = new com.spectralogic.ds3cli.views.json.GetObjectsOnTapeView();
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
@@ -69,5 +74,12 @@ public class GetObjectsOnTape extends CliCommand<GetObjectsOnTapeResult> {
                 throw new CommandException("Encountered an unknown error of ("+ e.getStatusCode() +") while accessing the remote DS3 appliance.", e);
             }
         }
+    }
+    @Override
+    public View getView(final ViewType viewType) {
+        if (viewType == ViewType.JSON) {
+            return this.jsonView;
+        }
+        return this.cliView;
     }
 }

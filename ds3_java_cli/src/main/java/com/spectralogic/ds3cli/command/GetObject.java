@@ -17,6 +17,8 @@ package com.spectralogic.ds3cli.command;
 
 import com.google.common.collect.Lists;
 import com.spectralogic.ds3cli.Arguments;
+import com.spectralogic.ds3cli.View;
+import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.GetObjectResult;
 import com.spectralogic.ds3cli.util.*;
@@ -47,6 +49,9 @@ public class GetObject extends CliCommand<GetObjectResult> {
     private boolean sync;
     private boolean force;
     private int numberOfThreads;
+
+    protected com.spectralogic.ds3cli.View<GetObjectResult> cliView = (View<GetObjectResult>) new com.spectralogic.ds3cli.views.cli.GetObjectView();
+    protected com.spectralogic.ds3cli.View<GetObjectResult> jsonView = (View<GetObjectResult>) new com.spectralogic.ds3cli.views.json.GetObjectView();
 
     public GetObject(final Ds3Provider provider, final FileUtils fileUtils) {
         super(provider, fileUtils);
@@ -122,5 +127,13 @@ public class GetObject extends CliCommand<GetObjectResult> {
             }
         });
         job.transfer(new FileObjectGetter(Paths.get(this.prefix)));
+    }
+
+    @Override
+    public View getView(final ViewType viewType) {
+        if (viewType == ViewType.JSON) {
+            return this.jsonView;
+        }
+        return this.cliView;
     }
 }

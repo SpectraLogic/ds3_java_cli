@@ -16,6 +16,8 @@
 package com.spectralogic.ds3cli.command;
 
 import com.spectralogic.ds3cli.Arguments;
+import com.spectralogic.ds3cli.View;
+import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.GetPhysicalPlacementWithFullDetailsResult;
 import com.spectralogic.ds3cli.util.Ds3Provider;
@@ -35,6 +37,9 @@ public class GetPhysicalPlacement extends CliCommand<GetPhysicalPlacementWithFul
 
     private String bucketName;
     private String objectName;
+
+    protected com.spectralogic.ds3cli.View<GetPhysicalPlacementWithFullDetailsResult> cliView = new com.spectralogic.ds3cli.views.cli.GetPhysicalPlacementWithFullDetailsView();
+    protected com.spectralogic.ds3cli.View<GetPhysicalPlacementWithFullDetailsResult> jsonView = new com.spectralogic.ds3cli.views.json.GetPhysicalPlacementWithFullDetailsView();
 
     public GetPhysicalPlacement(final Ds3Provider ds3Provider, final FileUtils fileUtils) {
         super(ds3Provider, fileUtils);
@@ -72,5 +77,13 @@ public class GetPhysicalPlacement extends CliCommand<GetPhysicalPlacementWithFul
         } catch (final FailedRequestException e) {
             throw new CommandException("Failed Get Physical Placement", e);
         }
+    }
+
+    @Override
+    public View getView(final ViewType viewType) {
+        if (viewType == ViewType.JSON) {
+            return this.jsonView;
+        }
+        return this.cliView;
     }
 }

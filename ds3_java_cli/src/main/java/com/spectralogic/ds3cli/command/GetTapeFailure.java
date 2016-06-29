@@ -17,6 +17,8 @@ package com.spectralogic.ds3cli.command;
 
 
 import com.spectralogic.ds3cli.Arguments;
+import com.spectralogic.ds3cli.View;
+import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
@@ -26,6 +28,9 @@ import com.spectralogic.ds3client.networking.FailedRequestException;
 import com.spectralogic.ds3cli.models.GetTapeFailureResult;
 
 public class GetTapeFailure extends CliCommand<GetTapeFailureResult> {
+
+    protected com.spectralogic.ds3cli.View<GetTapeFailureResult> cliView = new com.spectralogic.ds3cli.views.cli.GetTapeFailureView();
+    protected com.spectralogic.ds3cli.View<GetTapeFailureResult> jsonView = new com.spectralogic.ds3cli.views.json.GetTapeFailureView();
 
     public GetTapeFailure(final Ds3Provider provider, final FileUtils fileUtils) {
         super(provider, fileUtils);
@@ -52,5 +57,13 @@ public class GetTapeFailure extends CliCommand<GetTapeFailureResult> {
                 throw new CommandException("Error: Encountered an unknown error of ("+ e.getStatusCode() +") while accessing the remote DS3 appliance.", e);
             }
         }
+    }
+
+    @Override
+    public View getView(final ViewType viewType) {
+        if (viewType == ViewType.JSON) {
+            return this.jsonView;
+        }
+        return this.cliView;
     }
 }

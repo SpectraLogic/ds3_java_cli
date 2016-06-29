@@ -1,6 +1,6 @@
 /*
  * ******************************************************************************
- *   Copyright 2014-2015 Spectra Logic Corporation. All Rights Reserved.
+ *   Copyright 2014 Spectra Logic Corporation. All Rights Reserved.
  *   Licensed under the Apache License, Version 2.0 (the "License"). You may not use
  *   this file except in compliance with the License. A copy of the License is located at
  *
@@ -12,13 +12,16 @@
  *   specific language governing permissions and limitations under the License.
  * ****************************************************************************
  */
-
 package com.spectralogic.ds3cli.models;
 
-public class PutJobResult implements Result {
-    final private String result;
+public class DefaultResult implements Result {
+    private final String result;
 
-    public PutJobResult(final String result) { this.result = result; }
+    public DefaultResult(final String result) {
+        this.result = result;
+    }
 
-    final public String getResult() { return this.result; }
+    public String getResult() {
+        return result;
+    }
 }

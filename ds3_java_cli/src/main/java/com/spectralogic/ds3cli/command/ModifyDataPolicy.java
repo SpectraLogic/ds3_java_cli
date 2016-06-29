@@ -17,6 +17,8 @@ package com.spectralogic.ds3cli.command;
 
 import com.google.common.collect.ImmutableMap;
 import com.spectralogic.ds3cli.Arguments;
+import com.spectralogic.ds3cli.View;
+import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.GetDataPoliciesResult;
 import com.spectralogic.ds3cli.util.Ds3Provider;
@@ -36,6 +38,9 @@ import java.security.SignatureException;
 import java.util.Map;
 
 public class ModifyDataPolicy extends CliCommand<GetDataPoliciesResult> {
+
+    protected com.spectralogic.ds3cli.View<GetDataPoliciesResult> cliView = new com.spectralogic.ds3cli.views.cli.GetDataPoliciesView();
+    protected com.spectralogic.ds3cli.View<GetDataPoliciesResult> jsonView = new com.spectralogic.ds3cli.views.json.GetDataPoliciesView();
 
     // name or guid
     private String policyId;
@@ -137,4 +142,11 @@ public class ModifyDataPolicy extends CliCommand<GetDataPoliciesResult> {
             throw new CommandException("Failed Modify Data Policies: " + e.getMessage(), e);
         }
     }
-}
+
+    @Override
+    public View getView(final ViewType viewType) {
+        if (viewType == ViewType.JSON) {
+            return this.jsonView;
+        }
+        return this.cliView;
+    }}

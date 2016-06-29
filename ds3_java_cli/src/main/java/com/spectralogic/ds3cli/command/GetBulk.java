@@ -18,6 +18,8 @@ package com.spectralogic.ds3cli.command;
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import com.spectralogic.ds3cli.Arguments;
+import com.spectralogic.ds3cli.View;
+import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.GetBulkResult;
 import com.spectralogic.ds3cli.util.*;
@@ -53,6 +55,9 @@ public class GetBulk extends CliCommand<GetBulkResult> {
 
     private final static int DEFAULT_BUFFER_SIZE = 1024 * 1024;
     private final static long DEFAULT_FILE_SIZE = 1024L;
+
+    protected com.spectralogic.ds3cli.View<GetBulkResult> cliView = (View<GetBulkResult>) new com.spectralogic.ds3cli.views.cli.GetBulkView();
+    protected com.spectralogic.ds3cli.View<GetBulkResult> jsonView = (View<GetBulkResult>) new com.spectralogic.ds3cli.views.json.GetBulkView();
 
     private String bucketName;
     private Path outputPath;
@@ -241,5 +246,14 @@ public class GetBulk extends CliCommand<GetBulkResult> {
             Utils.restoreLastModified(filename, metadata, path);
         }
     }
+
+    @Override
+    public View getView(final ViewType viewType) {
+        if (viewType == ViewType.JSON) {
+            return this.jsonView;
+        }
+        return this.cliView;
+    }
+
 
 }

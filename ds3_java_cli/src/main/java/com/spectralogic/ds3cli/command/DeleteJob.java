@@ -15,7 +15,7 @@
 package com.spectralogic.ds3cli.command;
 
 import com.spectralogic.ds3cli.Arguments;
-import com.spectralogic.ds3cli.models.DeleteResult;
+import com.spectralogic.ds3cli.models.DefaultResult;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3client.commands.spectrads3.CancelJobSpectraS3Request;
@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.UUID;
 
-public class DeleteJob extends CliCommand<DeleteResult> {
+public class DeleteJob extends CliCommand<DefaultResult> {
 
     private final static Logger LOG = LoggerFactory.getLogger(DeleteJob.class);
 
@@ -50,9 +50,9 @@ public class DeleteJob extends CliCommand<DeleteResult> {
     }
 
     @Override
-    public DeleteResult call() throws Exception {
+    public DefaultResult call() throws Exception {
         final CancelJobSpectraS3Request request = new CancelJobSpectraS3Request(id).withForce(this.force);
         getClient().cancelJobSpectraS3(request);
-        return new DeleteResult("SUCCESS: Deleted job '"+ this.id.toString() +"'");
+        return new DefaultResult("SUCCESS: Deleted job '"+ this.id.toString() +"'");
     }
 }

@@ -18,6 +18,8 @@ package com.spectralogic.ds3cli.command;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
 import com.spectralogic.ds3cli.Arguments;
+import com.spectralogic.ds3cli.View;
+import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.GetDataPoliciesResult;
 import com.spectralogic.ds3cli.models.GetUsersResult;
@@ -41,6 +43,8 @@ public class ModifyUser extends CliCommand<GetUsersResult> {
     private String defaultPolicyId;
     private ImmutableMap<String, String> modifyParams;
 
+    protected com.spectralogic.ds3cli.View<GetUsersResult> cliView = new com.spectralogic.ds3cli.views.cli.GetUsersView();
+    protected com.spectralogic.ds3cli.View<GetUsersResult> jsonView = new com.spectralogic.ds3cli.views.json.GetUsersView();
 
     public ModifyUser(final Ds3Provider provider, final FileUtils fileUtils) {
         super(provider, fileUtils);
@@ -87,5 +91,13 @@ public class ModifyUser extends CliCommand<GetUsersResult> {
         } catch (final FailedRequestException e) {
             throw new CommandException("Failed Modify User: " + e.getMessage(), e);
         }
+    }
+
+    @Override
+    public View getView(final ViewType viewType) {
+        if (viewType == ViewType.JSON) {
+            return this.jsonView;
+        }
+        return this.cliView;
     }
 }

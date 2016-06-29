@@ -17,6 +17,8 @@ package com.spectralogic.ds3cli.command;
 
 
 import com.spectralogic.ds3cli.Arguments;
+import com.spectralogic.ds3cli.View;
+import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.GetBucketResult;
 import com.spectralogic.ds3cli.util.Ds3Provider;
@@ -34,6 +36,9 @@ public class GetBucket extends CliCommand<GetBucketResult> {
     public GetBucket(final Ds3Provider provider, final FileUtils fileUtils) {
         super(provider, fileUtils);
     }
+
+    protected com.spectralogic.ds3cli.View<GetBucketResult> cliView = (View<GetBucketResult>) new com.spectralogic.ds3cli.views.cli.GetBucketView();
+    protected com.spectralogic.ds3cli.View<GetBucketResult> jsonView = (View<GetBucketResult>) new com.spectralogic.ds3cli.views.json.GetBucketView();
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
@@ -75,5 +80,13 @@ public class GetBucket extends CliCommand<GetBucketResult> {
                 throw new CommandException("Error: Encountered an unknown error of ("+ e.getStatusCode() +") while accessing the remote DS3 appliance.", e);
             }
         }
+    }
+
+    @Override
+    public View getView(final ViewType viewType) {
+        if (viewType == ViewType.JSON) {
+            return this.jsonView;
+        }
+        return this.cliView;
     }
 }

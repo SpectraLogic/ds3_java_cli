@@ -17,7 +17,7 @@ package com.spectralogic.ds3cli.command;
 
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.exceptions.CommandException;
-import com.spectralogic.ds3cli.models.DeleteResult;
+import com.spectralogic.ds3cli.models.DefaultResult;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3client.commands.spectrads3.DeleteTapePartitionSpectraS3Request;
@@ -25,7 +25,7 @@ import org.apache.commons.cli.MissingOptionException;
 
 import java.io.IOException;
 
-public class DeleteTapePartition extends CliCommand<DeleteResult> {
+public class DeleteTapePartition extends CliCommand<DefaultResult> {
 
     private String id;
 
@@ -43,7 +43,7 @@ public class DeleteTapePartition extends CliCommand<DeleteResult> {
     }
 
     @Override
-    public DeleteResult call() throws Exception {
+    public DefaultResult call() throws Exception {
         try {
             getClient().deleteTapePartitionSpectraS3(new DeleteTapePartitionSpectraS3Request(this.id));
         }
@@ -51,6 +51,6 @@ public class DeleteTapePartition extends CliCommand<DeleteResult> {
             throw new CommandException("Error: Request failed with the following error: " + e.getMessage(), e);
         }
 
-        return new DeleteResult("Success: Deleted tape partition '" + this.id+ "'.");
+        return new DefaultResult("Success: Deleted tape partition '" + this.id+ "'.");
     }
 }

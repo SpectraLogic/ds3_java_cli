@@ -20,6 +20,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.spectralogic.ds3cli.Arguments;
+import com.spectralogic.ds3cli.View;
+import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.exceptions.BadArgumentException;
 import com.spectralogic.ds3cli.exceptions.SyncNotSupportedException;
 import com.spectralogic.ds3cli.models.PutBulkResult;
@@ -62,6 +64,9 @@ public class PutBulk extends CliCommand<PutBulkResult> {
     private ImmutableList<Path> pipedFiles;
     private ImmutableMap<String, String> mapNormalizedObjectNameToObjectName = null;
     private boolean followSymlinks;
+
+    protected com.spectralogic.ds3cli.View<PutBulkResult> cliView = new com.spectralogic.ds3cli.views.cli.PutBulkView();
+    protected com.spectralogic.ds3cli.View<PutBulkResult> jsonView = new com.spectralogic.ds3cli.views.json.PutBulkView();
 
     public PutBulk(final Ds3Provider provider, final FileUtils fileUtils) {
         super(provider, fileUtils);
@@ -203,6 +208,14 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         }
 
         return map.build();
+    }
+
+    @Override
+    public View getView(final ViewType viewType) {
+        if (viewType == ViewType.JSON) {
+            return this.jsonView;
+        }
+        return this.cliView;
     }
 
     private static class SyncFilter implements FilteringIterable.FilterFunction<Path> {
