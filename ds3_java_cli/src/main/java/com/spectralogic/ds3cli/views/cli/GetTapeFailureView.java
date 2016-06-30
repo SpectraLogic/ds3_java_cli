@@ -16,8 +16,7 @@
 package com.spectralogic.ds3cli.views.cli;
 
 import com.bethecoder.ascii_table.ASCIITable;
-import com.bethecoder.ascii_table.ASCIITableHeader;
-import com.spectralogic.ds3cli.View;
+import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3cli.models.GetTapeFailureResult;
 import com.spectralogic.ds3client.models.DetailedTapeFailure;
 import com.spectralogic.ds3client.models.DetailedTapeFailureList;
@@ -28,7 +27,10 @@ import java.util.TimeZone;
 
 import static com.spectralogic.ds3cli.util.Utils.nullGuard;
 
-public class GetTapeFailureView implements View<GetTapeFailureResult> {
+public class GetTapeFailureView extends TableView<GetTapeFailureResult> {
+
+    protected List<DetailedTapeFailure> failures;
+
     @Override
     public String render(final GetTapeFailureResult obj) {
         final DetailedTapeFailureList result = obj.getResult();
@@ -37,17 +39,19 @@ public class GetTapeFailureView implements View<GetTapeFailureResult> {
                 || (result.getDetailedTapeFailures().size() == 0) ) {
             return "No tape failures on remote appliance";
         }
+        this.failures = result.getDetailedTapeFailures();
+
+        initTable(ImmutableList.of("Failure Message", "Id", "Failure Date"));
 
         return "" + result.getDetailedTapeFailures().size() + " Tape Failures:\n" +
-                ASCIITable.getInstance().getTable(getHeaders(), formatBucketList(result));
+                ASCIITable.getInstance().getTable(getHeaders(), formatTableContents());
     }
 
-    private String[][] formatBucketList(final DetailedTapeFailureList result) {
-        final List<DetailedTapeFailure> failures = result.getDetailedTapeFailures();
-        final String [][] formatArray = new String[failures.size()][];
+    protected String[][] formatTableContents() {
+        final String [][] formatArray = new String[this.failures.size()][];
         int i = 0;
-        for(final DetailedTapeFailure failure : failures) {
-            final String [] bucketArray = new String[4];
+        for(final DetailedTapeFailure failure : this.failures) {
+            final String [] bucketArray = new String[this.columnCount];
             bucketArray[0] = nullGuard(failure.getType().toString());
             bucketArray[1] = nullGuard(failure.getErrorMessage());
             bucketArray[2] = nullGuard(failure.getId().toString());
@@ -57,14 +61,5 @@ public class GetTapeFailureView implements View<GetTapeFailureResult> {
             formatArray[i++] = bucketArray;
         }
         return formatArray;
-    }
-
-    private ASCIITableHeader[] getHeaders() {
-        return new ASCIITableHeader[]{
-                new ASCIITableHeader("Failure Type", ASCIITable.ALIGN_LEFT),
-                new ASCIITableHeader("Failure Message", ASCIITable.ALIGN_CENTER),
-                new ASCIITableHeader("Id", ASCIITable.ALIGN_CENTER),
-                new ASCIITableHeader("Failure Date", ASCIITable.ALIGN_RIGHT)
-        };
     }
 }

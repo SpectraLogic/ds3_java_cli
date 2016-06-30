@@ -16,8 +16,7 @@
 package com.spectralogic.ds3cli.views.cli;
 
 import com.bethecoder.ascii_table.ASCIITable;
-import com.bethecoder.ascii_table.ASCIITableHeader;
-import com.spectralogic.ds3cli.View;
+import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3cli.models.GetBucketResult;
 import com.spectralogic.ds3client.models.Contents;
 
@@ -28,31 +27,36 @@ import java.util.List;
 import java.util.TimeZone;
 
 import static com.spectralogic.ds3cli.util.Utils.nullGuard;
+import static com.spectralogic.ds3cli.util.Utils.nullGuardToDate;
 
-public class GetBucketView implements View<GetBucketResult> {
+public class GetBucketView extends TableView<GetBucketResult> {
+
+    private Iterator<Contents> objectIterator;
 
     @Override
     public String render(final GetBucketResult br) {
         if( (null == br.getObjIterator()) || !br.getObjIterator().hasNext()) {
             return "No objects were reported in bucket '" + br.getBucketName() + "'";
         }
+        this.objectIterator = br.getObjIterator();
+        initTable(ImmutableList.of("File Name", "Size", "Owner", "Last Modified", "ETag"));
+        setTableDataAlignment(ImmutableList.of(ASCIITable.ALIGN_LEFT, ASCIITable.ALIGN_RIGHT, ASCIITable.ALIGN_RIGHT ,ASCIITable.ALIGN_LEFT, ASCIITable.ALIGN_RIGHT ));
 
-        return ASCIITable.getInstance().getTable(getHeaders(), formatBucketList(br.getObjIterator()));
+        return ASCIITable.getInstance().getTable(getHeaders(), formatTableContents());
     }
 
-    private String[][] formatBucketList(final Iterator<Contents> iterator) {
+    protected String[][] formatTableContents() {
         final List<String[]> contents = new ArrayList<>();
 
-        while(iterator.hasNext()) {
-
-            final Contents content = iterator.next();
+        while(this.objectIterator.hasNext()) {
+            final Contents content = this.objectIterator.next();
             final String[] arrayEntry = new String[5];
             arrayEntry[0] = nullGuard(content.getKey());
             arrayEntry[1] = nullGuard(Long.toString(content.getSize()));
             arrayEntry[2] = nullGuard(content.getOwner().getDisplayName());
             final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
             DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
-            arrayEntry[3] = nullGuard(DATE_FORMAT.format(content.getLastModified()));
+            arrayEntry[3] = nullGuardToDate(content.getLastModified(), DATE_FORMAT);
             arrayEntry[4] = nullGuard(content.getETag());
             contents.add(arrayEntry);
         }
@@ -60,12 +64,4 @@ public class GetBucketView implements View<GetBucketResult> {
         return contents.toArray(new String[contents.size()][]);
     }
 
-    private ASCIITableHeader[] getHeaders() {
-        return new ASCIITableHeader[]{
-                new ASCIITableHeader("File Name", ASCIITable.ALIGN_LEFT),
-                new ASCIITableHeader("Size", ASCIITable.ALIGN_RIGHT),
-                new ASCIITableHeader("Owner", ASCIITable.ALIGN_RIGHT),
-                new ASCIITableHeader("Last Modified", ASCIITable.ALIGN_LEFT),
-                new ASCIITableHeader("ETag", ASCIITable.ALIGN_RIGHT)};
-    }
 }

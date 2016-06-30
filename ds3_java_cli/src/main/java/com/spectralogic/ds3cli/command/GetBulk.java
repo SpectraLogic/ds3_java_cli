@@ -18,10 +18,8 @@ package com.spectralogic.ds3cli.command;
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import com.spectralogic.ds3cli.Arguments;
-import com.spectralogic.ds3cli.View;
-import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.exceptions.CommandException;
-import com.spectralogic.ds3cli.models.GetBulkResult;
+import com.spectralogic.ds3cli.models.DefaultResult;
 import com.spectralogic.ds3cli.util.*;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.helpers.FileObjectGetter;
@@ -48,15 +46,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class GetBulk extends CliCommand<GetBulkResult> {
+public class GetBulk extends CliCommand<DefaultResult> {
 
     private final static Logger LOG = LoggerFactory.getLogger(GetBulk.class);
 
     private final static int DEFAULT_BUFFER_SIZE = 1024 * 1024;
     private final static long DEFAULT_FILE_SIZE = 1024L;
-
-    protected final View<GetBulkResult> cliView = new com.spectralogic.ds3cli.views.cli.GetBulkView();
-    protected final View<GetBulkResult> jsonView = new com.spectralogic.ds3cli.views.json.GetBulkView();
 
     private String bucketName;
     private Path outputPath;
@@ -114,7 +109,7 @@ public class GetBulk extends CliCommand<GetBulkResult> {
     }
 
     @Override
-    public GetBulkResult call() throws Exception {
+    public DefaultResult call() throws Exception {
 
         final Ds3ClientHelpers.ObjectChannelBuilder getter;
         if (this.checksum) {
@@ -134,16 +129,16 @@ public class GetBulk extends CliCommand<GetBulkResult> {
             } else {
                 LOG.info("Syncing only those objects that start with " + this.prefix);
             }
-            return new GetBulkResult(this.restoreSome(getter));
+            return new DefaultResult(this.restoreSome(getter));
         }
 
         if (this.prefix == null) {
             LOG.info("Getting all objects from " + this.bucketName);
-            return new GetBulkResult(this.restoreAll(getter));
+            return new DefaultResult(this.restoreAll(getter));
         }
 
         LOG.info("Getting only those objects that start with " + this.prefix);
-        return new GetBulkResult(this.restoreSome(getter));
+        return new DefaultResult(this.restoreSome(getter));
     }
 
     private String restoreSome(final Ds3ClientHelpers.ObjectChannelBuilder getter) throws IOException, SignatureException, XmlProcessingException, SSLSetupException {
@@ -245,14 +240,4 @@ public class GetBulk extends CliCommand<GetBulkResult> {
             Utils.restoreLastModified(filename, metadata, path);
         }
     }
-
-    @Override
-    public View getView(final ViewType viewType) {
-        if (viewType == ViewType.JSON) {
-            return this.jsonView;
-        }
-        return this.cliView;
-    }
-
-
 }

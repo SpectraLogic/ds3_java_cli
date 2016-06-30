@@ -16,8 +16,7 @@
 package com.spectralogic.ds3cli.views.cli;
 
 import com.bethecoder.ascii_table.ASCIITable;
-import com.bethecoder.ascii_table.ASCIITableHeader;
-import com.spectralogic.ds3cli.View;
+import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3cli.models.GetDataPoliciesResult;
 import com.spectralogic.ds3client.models.DataPolicy;
 
@@ -30,22 +29,31 @@ import java.util.TimeZone;
 import static com.spectralogic.ds3cli.util.Utils.nullGuardToString;
 import static com.spectralogic.ds3cli.util.Utils.nullGuardToDate;
 
-public class GetDataPoliciesView implements View<GetDataPoliciesResult> {
+public class GetDataPoliciesView extends TableView<GetDataPoliciesResult> {
+
+    protected Iterator<DataPolicy> objectIterator;
 
     @Override
     public String render(final GetDataPoliciesResult br) {
         if( (null == br.getObjIterator()) || !br.getObjIterator().hasNext()) {
             return "No Data Policies returned." ;
         }
-        return ASCIITable.getInstance().getTable(getHeaders(), formatDataPoliciesList(br.getObjIterator()));
+        this.objectIterator = br.getObjIterator();
+
+        initTable(ImmutableList.of("Name", "Created", "Versioning", "Checksum Type", "End-to-End CRC Required",
+                "Blobbing Enabled", "Default Blob Size", "Default Get Job Priority","Default Put Job Priority",
+                "Default Verify Job Priority", "Id", "LTFS Object Naming"));
+        setTableDataAlignment(ImmutableList.of(ASCIITable.ALIGN_LEFT, ASCIITable.ALIGN_LEFT, ASCIITable.ALIGN_RIGHT , ASCIITable.ALIGN_RIGHT, ASCIITable.ALIGN_RIGHT,
+                ASCIITable.ALIGN_RIGHT, ASCIITable.ALIGN_RIGHT, ASCIITable.ALIGN_RIGHT, ASCIITable.ALIGN_RIGHT, ASCIITable.ALIGN_RIGHT, ASCIITable.ALIGN_RIGHT, ASCIITable.ALIGN_RIGHT, ASCIITable.ALIGN_RIGHT));
+        return ASCIITable.getInstance().getTable(getHeaders(), formatTableContents());
     }
 
-    private String[][] formatDataPoliciesList(final Iterator<DataPolicy> iterator) {
+    protected String[][] formatTableContents() {
         final List<String[]> contents = new ArrayList<>();
 
-        while(iterator.hasNext()) {
-            final DataPolicy content = iterator.next();
-            final String[] arrayEntry = new String[12];
+        while(this.objectIterator.hasNext()) {
+            final DataPolicy content = this.objectIterator.next();
+            final String[] arrayEntry = new String[this.columnCount];
             arrayEntry[0] = nullGuardToString(content.getName());
             final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
             DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
@@ -63,22 +71,5 @@ public class GetDataPoliciesView implements View<GetDataPoliciesResult> {
             contents.add(arrayEntry);
         }
         return contents.toArray(new String[contents.size()][]);
-    }
-
-    private ASCIITableHeader[] getHeaders() {
-        return new ASCIITableHeader[]{
-                new ASCIITableHeader("Name", ASCIITable.ALIGN_LEFT),
-                new ASCIITableHeader("Created", ASCIITable.ALIGN_LEFT),
-                new ASCIITableHeader("Versioning", ASCIITable.ALIGN_RIGHT),
-                new ASCIITableHeader("Checksum Type", ASCIITable.ALIGN_RIGHT),
-                new ASCIITableHeader("End-to-End CRC Required", ASCIITable.ALIGN_RIGHT),
-                new ASCIITableHeader("Blobbing Enabled", ASCIITable.ALIGN_RIGHT),
-                new ASCIITableHeader("Default Blob Size", ASCIITable.ALIGN_RIGHT),
-                new ASCIITableHeader("Default Get Job Priority", ASCIITable.ALIGN_RIGHT),
-                new ASCIITableHeader("Default Put Job Priority", ASCIITable.ALIGN_RIGHT),
-                new ASCIITableHeader("Default Verify Job Priority", ASCIITable.ALIGN_RIGHT),
-                new ASCIITableHeader("Id", ASCIITable.ALIGN_RIGHT),
-                new ASCIITableHeader("LTFS Object Naming", ASCIITable.ALIGN_RIGHT)
-        };
     }
 }

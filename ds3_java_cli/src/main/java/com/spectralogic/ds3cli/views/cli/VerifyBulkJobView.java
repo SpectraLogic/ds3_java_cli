@@ -16,8 +16,7 @@
 package com.spectralogic.ds3cli.views.cli;
 
 import com.bethecoder.ascii_table.ASCIITable;
-import com.bethecoder.ascii_table.ASCIITableHeader;
-import com.spectralogic.ds3cli.View;
+import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3cli.models.VerifyBulkJobResult;
 import com.spectralogic.ds3client.models.BulkObject;
 import com.spectralogic.ds3client.models.Objects;
@@ -29,25 +28,32 @@ import java.util.List;
 import static com.spectralogic.ds3cli.util.Utils.nullGuard;
 import static com.spectralogic.ds3cli.util.Utils.nullGuardToString;
 
-public class VerifyBulkJobView implements View<VerifyBulkJobResult> {
+public class VerifyBulkJobView extends TableView<VerifyBulkJobResult> {
+
+    protected Iterator<Objects> objectsIterator;
 
     @Override
     public String render(final VerifyBulkJobResult verifyResult) {
         if ((null == verifyResult.getObjIterator()) || !verifyResult.getObjIterator().hasNext()) {
             return "No objects were reported in tape '" + verifyResult.getBucketId() + "'";
         }
-        return ASCIITable.getInstance().getTable(getHeaders(), formatBucketList(verifyResult.getObjIterator()));
+
+        this.objectsIterator = verifyResult.getObjIterator();
+
+        initTable(ImmutableList.of("Chunk", "Name", "Size", "Version"));
+        setTableDataAlignment(ImmutableList.of(ASCIITable.ALIGN_LEFT, ASCIITable.ALIGN_LEFT, ASCIITable.ALIGN_RIGHT, ASCIITable.ALIGN_RIGHT));
+        return ASCIITable.getInstance().getTable(getHeaders(), formatTableContents());
     }
 
-    private String[][] formatBucketList(final Iterator<Objects> iterator) {
+    protected String[][] formatTableContents() {
         final List<String[]> contents = new ArrayList<>();
 
-        while(iterator.hasNext()) {
-            final Objects content = iterator.next();
+        while(this.objectsIterator.hasNext()) {
+            final Objects content = this.objectsIterator.next();
             final int chunk = content.getChunkNumber();
             final List<BulkObject> bulkObjectList = content.getObjects();
             for (final BulkObject bulkObject : bulkObjectList) {
-                final String[] arrayEntry = new String[4];
+                final String[] arrayEntry = new String[this.columnCount];
                 arrayEntry[0] = nullGuardToString(chunk);
                 arrayEntry[1] = nullGuard(bulkObject.getName());
                 arrayEntry[2] = nullGuardToString(bulkObject.getLength());
@@ -57,13 +63,4 @@ public class VerifyBulkJobView implements View<VerifyBulkJobResult> {
         }
         return contents.toArray(new String[contents.size()][]);
     }
-
-    private ASCIITableHeader[] getHeaders() {
-        return new ASCIITableHeader[]{
-                new ASCIITableHeader("Chunk", ASCIITable.ALIGN_LEFT),
-                new ASCIITableHeader("Name", ASCIITable.ALIGN_LEFT),
-                new ASCIITableHeader("Size", ASCIITable.ALIGN_RIGHT),
-                new ASCIITableHeader("Version", ASCIITable.ALIGN_RIGHT)};
-    }
-
 }

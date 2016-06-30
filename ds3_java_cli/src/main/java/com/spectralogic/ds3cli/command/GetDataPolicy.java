@@ -69,4 +69,5 @@ public class GetDataPolicy extends CliCommand<GetDataPoliciesResult> {
             return this.jsonView;
         }
         return this.cliView;
-    }}
+    }
+}
