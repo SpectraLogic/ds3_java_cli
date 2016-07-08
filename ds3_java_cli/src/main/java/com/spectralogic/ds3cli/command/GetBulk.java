@@ -180,7 +180,11 @@ public class GetBulk extends CliCommand<DefaultResult> {
             }
         }
 
-        return "SUCCESS: Wrote all the objects that start with '" + this.prefix + "' from " + this.bucketName + " to " + this.outputPath.toString();
+        if (this.discard) {
+            return "SUCCESS: retrieved and discarded all the objects that start with '" + this.prefix + "' from " + this.bucketName;
+        } else {
+            return "SUCCESS: Wrote all the objects that start with '" + this.prefix + "' from " + this.bucketName + " to " + this.outputPath.toString();
+        }
     }
 
     private String restoreAll(final Ds3ClientHelpers.ObjectChannelBuilder getter) throws XmlProcessingException, SignatureException, IOException, SSLSetupException {
