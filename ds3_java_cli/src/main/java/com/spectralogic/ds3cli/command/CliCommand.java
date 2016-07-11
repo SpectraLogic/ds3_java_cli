@@ -16,7 +16,6 @@
 package com.spectralogic.ds3cli.command;
 
 import com.spectralogic.ds3cli.Arguments;
-import com.spectralogic.ds3cli.CommandValue;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.models.Result;
@@ -32,11 +31,23 @@ import com.spectralogic.ds3cli.util.CommandHelpText;
 
 public abstract class CliCommand<T extends Result> implements Callable<T> {
 
-    private final Ds3Provider ds3Provider;
-    private final FileUtils fileUtils;
+    private Ds3Provider ds3Provider;
+    private FileUtils fileUtils;
 
     protected final View<T> cliView = (View<T>) new DefaultView();
     protected final View<T> jsonView = (View<T>) new com.spectralogic.ds3cli.views.json.DeleteView();
+
+    // or service provider instantiation
+    public CliCommand() {
+        this.ds3Provider = null;
+        this.fileUtils = null;
+    }
+
+    public CliCommand withProvider(final Ds3Provider ds3Provider, final FileUtils fileUtils) {
+        this.ds3Provider = ds3Provider;
+        this.fileUtils = fileUtils;
+        return this;
+    }
 
     public CliCommand(final Ds3Provider ds3Provider, final FileUtils fileUtils) {
         this.ds3Provider = ds3Provider;
@@ -57,8 +68,9 @@ public abstract class CliCommand<T extends Result> implements Callable<T> {
 
     public abstract CliCommand init(final Arguments args) throws Exception;
 
+
     // help for '--help' command
-    public String getLongHelp(final CommandValue command) {
+    public String getLongHelp(final String command) {
         return CommandHelpText.getHelpText(command) ;
     }
 

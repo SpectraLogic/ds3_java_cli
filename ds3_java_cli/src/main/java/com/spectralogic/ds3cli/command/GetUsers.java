@@ -32,8 +32,7 @@ import java.security.SignatureException;
 
 public class GetUsers extends CliCommand<GetUsersResult> {
 
-    public GetUsers(final Ds3Provider provider, final FileUtils fileUtils) {
-        super(provider, fileUtils);
+    public GetUsers() {
     }
 
     protected final View<GetUsersResult> cliView = new com.spectralogic.ds3cli.views.cli.GetUsersView();

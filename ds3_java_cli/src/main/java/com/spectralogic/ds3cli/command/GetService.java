@@ -36,8 +36,7 @@ public class GetService extends CliCommand<GetServiceResult> {
     protected final View<GetServiceResult> cliView = new com.spectralogic.ds3cli.views.cli.GetServiceView();
     protected final View<GetServiceResult> jsonView = new com.spectralogic.ds3cli.views.json.GetServiceView();
 
-    public GetService(final Ds3Provider provider, final FileUtils fileUtils) {
-        super(provider, fileUtils);
+    public GetService() {
     }
 
     @Override

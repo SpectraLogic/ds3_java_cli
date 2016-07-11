@@ -35,8 +35,7 @@ public class Performance extends CliCommand<DefaultResult> {
     private int numberOfThreads;
     private boolean doNotDelete;
 
-    public Performance(final Ds3Provider provider, final FileUtils fileUtils) {
-        super(provider, fileUtils);
+    public Performance() {
     }
 
     @Override

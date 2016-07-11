@@ -30,8 +30,7 @@ public class DeleteTapeFailure extends CliCommand<DefaultResult> {
 
     private UUID id;
 
-    public DeleteTapeFailure(final Ds3Provider ds3Provider, final FileUtils fileUtils) {
-        super(ds3Provider, fileUtils);
+    public DeleteTapeFailure() {
     }
 
     @Override

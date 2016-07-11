@@ -37,8 +37,7 @@ public class GetObjectsOnTape extends CliCommand<GetObjectsOnTapeResult> {
     // Barcode or tape ID
     private String tapeId;
 
-    public GetObjectsOnTape(final Ds3Provider provider, final FileUtils fileUtils) {
-        super(provider, fileUtils);
+    public GetObjectsOnTape() {
     }
 
     protected final View<GetObjectsOnTapeResult> cliView = new com.spectralogic.ds3cli.views.cli.GetObjectsOnTapeView();

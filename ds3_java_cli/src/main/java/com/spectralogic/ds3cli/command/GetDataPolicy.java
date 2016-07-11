@@ -39,8 +39,7 @@ public class GetDataPolicy extends CliCommand<GetDataPoliciesResult> {
     protected final View<GetDataPoliciesResult> cliView = new com.spectralogic.ds3cli.views.cli.GetDataPoliciesView();
     protected final View<GetDataPoliciesResult> jsonView = new com.spectralogic.ds3cli.views.json.GetDataPoliciesView();
 
-    public GetDataPolicy(final Ds3Provider provider, final FileUtils fileUtils) {
-        super(provider, fileUtils);
+    public GetDataPolicy() {
     }
 
     @Override

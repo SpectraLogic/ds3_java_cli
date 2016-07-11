@@ -30,8 +30,7 @@ public class GetJobs extends CliCommand<GetJobsResult> {
     protected final View<GetJobsResult> cliView = new com.spectralogic.ds3cli.views.cli.GetJobsView();
     protected final View<GetJobsResult> jsonView = new com.spectralogic.ds3cli.views.json.GetJobsView();
 
-    public GetJobs(final Ds3Provider ds3Provider, final FileUtils fileUtils) {
-        super(ds3Provider, fileUtils);
+    public GetJobs() {
     }
 
     @Override

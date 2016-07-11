@@ -30,8 +30,7 @@ public class DeleteTapeDrive extends CliCommand<DefaultResult> {
 
     private String id;
 
-    public DeleteTapeDrive(final Ds3Provider ds3Provider, final FileUtils fileUtils) {
-        super(ds3Provider, fileUtils);
+    public DeleteTapeDrive() {
     }
 
     @Override

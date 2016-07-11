@@ -27,8 +27,8 @@ import com.spectralogic.ds3client.commands.spectrads3.GetTapesWithFullDetailsSpe
 import com.spectralogic.ds3client.networking.FailedRequestException;
 
 public class GetTapes extends CliCommand<GetTapesWithFullDetailsResult> {
-    public GetTapes(final Ds3Provider ds3Provider, final FileUtils fileUtils) {
-        super(ds3Provider, fileUtils);
+
+    public GetTapes() {
     }
 
     protected final View<GetTapesWithFullDetailsResult> cliView = new com.spectralogic.ds3cli.views.cli.GetTapesWithFullDetailsView();

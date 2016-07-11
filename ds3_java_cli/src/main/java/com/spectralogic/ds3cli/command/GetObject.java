@@ -48,8 +48,7 @@ public class GetObject extends CliCommand<DefaultResult> {
     private boolean force;
     private int numberOfThreads;
 
-    public GetObject(final Ds3Provider provider, final FileUtils fileUtils) {
-        super(provider, fileUtils);
+    public GetObject() {
     }
 
     @Override

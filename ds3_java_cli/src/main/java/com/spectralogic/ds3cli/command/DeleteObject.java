@@ -30,8 +30,7 @@ public class DeleteObject extends CliCommand<DefaultResult> {
     private String bucketName;
     private String objectName;
 
-    public DeleteObject(final Ds3Provider provider, final FileUtils fileUtils) {
-        super(provider, fileUtils);
+    public DeleteObject() {
     }
 
     @Override

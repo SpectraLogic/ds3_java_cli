@@ -30,8 +30,7 @@ public class PutBucket extends CliCommand<DefaultResult> {
 
     private String bucketName;
 
-    public PutBucket(final Ds3Provider provider, final FileUtils fileUtils) {
-        super(provider, fileUtils);
+    public PutBucket() {
     }
 
     @Override

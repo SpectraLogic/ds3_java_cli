@@ -9,8 +9,7 @@ import com.spectralogic.ds3client.commands.spectrads3.GetSystemInformationSpectr
 import com.spectralogic.ds3client.models.BuildInformation;
 
 public class SystemInformation extends CliCommand<DefaultResult> {
-    public SystemInformation(final Ds3Provider ds3Provider, final FileUtils fileUtils) {
-        super(ds3Provider, fileUtils);
+    public SystemInformation() {
     }
 
     @Override

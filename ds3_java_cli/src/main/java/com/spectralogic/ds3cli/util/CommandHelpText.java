@@ -15,8 +15,6 @@
 
 package com.spectralogic.ds3cli.util;
 
-import com.spectralogic.ds3cli.CommandValue;
-
 import java.util.*;
 
 public final class CommandHelpText {
@@ -27,7 +25,7 @@ public final class CommandHelpText {
         return bundle.getString(key);
     }
 
-    public static String getHelpText(final CommandValue commandValue) {
-        return get(commandValue.toString());
+    public static String getHelpText(final String commandValue) {
+        return get(commandValue);
     }
 }

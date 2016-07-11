@@ -18,8 +18,7 @@ public class HeadObject extends CliCommand<HeadObjectResult> {
     protected final View<HeadObjectResult> cliView = new com.spectralogic.ds3cli.views.cli.HeadObjectView();
     protected final View<HeadObjectResult> jsonView = new com.spectralogic.ds3cli.views.json.HeadObjectView();
 
-    public HeadObject(final Ds3Provider ds3Provider, final FileUtils fileUtils) {
-        super(ds3Provider, fileUtils);
+    public HeadObject() {
     }
 
     @Override

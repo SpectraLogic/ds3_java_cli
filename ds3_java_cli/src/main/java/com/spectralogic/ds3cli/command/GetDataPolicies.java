@@ -32,8 +32,7 @@ import java.security.SignatureException;
 
 public class GetDataPolicies extends CliCommand<GetDataPoliciesResult> {
 
-    public GetDataPolicies(final Ds3Provider provider, final FileUtils fileUtils) {
-        super(provider, fileUtils);
+    public GetDataPolicies() {
     }
 
     protected final View<GetDataPoliciesResult> cliView = new com.spectralogic.ds3cli.views.cli.GetDataPoliciesView();

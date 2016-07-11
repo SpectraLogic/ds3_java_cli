@@ -29,8 +29,7 @@ public class DeleteTapePartition extends CliCommand<DefaultResult> {
 
     private String id;
 
-    public DeleteTapePartition(final Ds3Provider ds3Provider, final FileUtils fileUtils) {
-        super(ds3Provider, fileUtils);
+    public DeleteTapePartition() {
     }
 
     @Override

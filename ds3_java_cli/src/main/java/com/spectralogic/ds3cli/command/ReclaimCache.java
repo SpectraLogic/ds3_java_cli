@@ -25,10 +25,7 @@ import com.spectralogic.ds3client.commands.spectrads3.ForceFullCacheReclaimSpect
 import java.io.IOException;
 
 public class ReclaimCache extends CliCommand<DefaultResult> {
-
-
-    public ReclaimCache(final Ds3Provider ds3Provider, final FileUtils fileUtils) {
-        super(ds3Provider, fileUtils);
+    public ReclaimCache() {
     }
 
     @Override

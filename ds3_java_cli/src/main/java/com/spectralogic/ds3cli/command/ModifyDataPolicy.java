@@ -65,8 +65,7 @@ public class ModifyDataPolicy extends CliCommand<GetDataPoliciesResult> {
 
     private VersioningLevel versioning;
 
-    public ModifyDataPolicy(final Ds3Provider provider, final FileUtils fileUtils) {
-        super(provider, fileUtils);
+    public ModifyDataPolicy() {
     }
 
     @Override

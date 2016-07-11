@@ -41,9 +41,9 @@ public class GetPhysicalPlacement extends CliCommand<GetPhysicalPlacementWithFul
     protected final View<GetPhysicalPlacementWithFullDetailsResult> cliView = new com.spectralogic.ds3cli.views.cli.GetPhysicalPlacementWithFullDetailsView();
     protected final View<GetPhysicalPlacementWithFullDetailsResult> jsonView = new com.spectralogic.ds3cli.views.json.GetPhysicalPlacementWithFullDetailsView();
 
-    public GetPhysicalPlacement(final Ds3Provider ds3Provider, final FileUtils fileUtils) {
-        super(ds3Provider, fileUtils);
+    public GetPhysicalPlacement() {
     }
+
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {

@@ -32,8 +32,7 @@ public class GetTapeFailure extends CliCommand<GetTapeFailureResult> {
     protected final View<GetTapeFailureResult> cliView = new com.spectralogic.ds3cli.views.cli.GetTapeFailureView();
     protected final View<GetTapeFailureResult> jsonView = new com.spectralogic.ds3cli.views.json.GetTapeFailureView();
 
-    public GetTapeFailure(final Ds3Provider provider, final FileUtils fileUtils) {
-        super(provider, fileUtils);
+    public GetTapeFailure() {
     }
 
     @Override

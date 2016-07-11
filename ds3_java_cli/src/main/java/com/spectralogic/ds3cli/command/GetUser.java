@@ -37,8 +37,7 @@ public class GetUser extends CliCommand<GetUsersResult> {
     // name or guid
     private String userId;
 
-    public GetUser(final Ds3Provider provider, final FileUtils fileUtils) {
-        super(provider, fileUtils);
+    public GetUser() {
     }
 
     protected final View<GetUsersResult> cliView = new com.spectralogic.ds3cli.views.cli.GetUsersView();

@@ -32,7 +32,8 @@ public class PutJob extends CliCommand<DefaultResult> {
     private UUID jobId;
     private Priority priority;
 
-    public PutJob(final Ds3Provider provider, final FileUtils fileUtils) { super(provider, fileUtils); }
+    public PutJob() {
+    }
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {

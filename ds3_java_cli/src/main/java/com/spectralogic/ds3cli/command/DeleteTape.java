@@ -30,8 +30,7 @@ public class DeleteTape extends CliCommand<DefaultResult> {
 
     private UUID id;
 
-    public DeleteTape(final Ds3Provider ds3Provider, final FileUtils fileUtils) {
-        super(ds3Provider, fileUtils);
+    public DeleteTape() {
     }
 
     @Override

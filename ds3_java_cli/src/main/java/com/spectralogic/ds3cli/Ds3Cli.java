@@ -27,6 +27,8 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.CaseFormat;
 
 import java.lang.reflect.Constructor;
+import java.util.Iterator;
+import java.util.ServiceLoader;
 import java.util.concurrent.Callable;
 
 public class Ds3Cli implements Callable<CommandResponse> {
@@ -36,11 +38,16 @@ public class Ds3Cli implements Callable<CommandResponse> {
     private final Arguments args;
     private final Ds3Provider ds3Provider;
     private final FileUtils fileUtils;
+    private final Iterator<CliCommand> implementations;
+
 
     public Ds3Cli(final Ds3Provider provider, final Arguments args, final FileUtils fileUtils) {
         this.args = args;
         this.ds3Provider = provider;
         this.fileUtils = fileUtils;
+        ServiceLoader<CliCommand> loader =
+                ServiceLoader.load(CliCommand.class);
+        this.implementations = loader.iterator();
     }
 
     @Override
@@ -66,6 +73,12 @@ public class Ds3Cli implements Callable<CommandResponse> {
     }
 
     public CommandResponse getCommandHelp() throws Exception {
+        if (this.args.getCommand().equalsIgnoreCase("LIST_COMMANDS"))
+        {
+            final String message = listAllCommands();
+            return new CommandResponse(message, 0);
+        }
+
         final CliCommand command = getCommandExecutor();
 
         try {
@@ -79,18 +92,27 @@ public class Ds3Cli implements Callable<CommandResponse> {
     }
 
     private CliCommand getCommandExecutor() throws CommandException {
-        final CommandValue commandName = this.args.getCommand();
+        final String commandName = this.args.getCommand();
 
         String commandCamel = CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, commandName.toString());
 
-        try {
-            final Class<?> commandClass = Class.forName("com.spectralogic.ds3cli.command." + commandCamel);
-            final Constructor<?> commandConstructor = commandClass.getConstructor(Ds3Provider.class, FileUtils.class);
-            return (CliCommand) commandConstructor.newInstance(this.ds3Provider, this.fileUtils);
-        } catch (ClassNotFoundException noClass) {
-            throw new CommandException("No command class: " + commandName, noClass);
-        } catch (Exception noConstruct) {
-            throw new CommandException("Cannot create command: " + commandName, noConstruct);
+        while (implementations.hasNext()) {
+            CliCommand implementation = implementations.next();
+            String className = implementation.getClass().getSimpleName();
+            if (className.equalsIgnoreCase(commandCamel)) {
+                return implementation.withProvider(this.ds3Provider, this.fileUtils);
+            }
         }
+         throw new CommandException("No command class: " + commandName);
+    }
+
+    private String listAllCommands() {
+        String commands = "Installed Commands: ";
+        while (implementations.hasNext()) {
+            CliCommand implementation = implementations.next();
+            String unCamel = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, implementation.getClass().getSimpleName());
+            commands += unCamel  + ", ";
+        }
+        return commands;
     }
 }

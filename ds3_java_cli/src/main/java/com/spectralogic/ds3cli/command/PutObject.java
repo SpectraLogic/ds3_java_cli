@@ -52,8 +52,7 @@ public class PutObject extends CliCommand<DefaultResult> {
     private int numberOfThreads;
     private ImmutableMap<String, String> metadata;
 
-    public PutObject(final Ds3Provider provider, final FileUtils fileUtils) {
-        super(provider, fileUtils);
+    public PutObject() {
     }
 
     @Override

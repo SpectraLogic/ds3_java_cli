@@ -30,7 +30,10 @@ public class DeleteFolder extends CliCommand<DefaultResult> {
     private String bucketName;
     private String folderName;
 
-    public DeleteFolder(final Ds3Provider provider, final FileUtils fileUtils) { super(provider, fileUtils); }
+    public DeleteFolder()
+    {
+
+    }
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {

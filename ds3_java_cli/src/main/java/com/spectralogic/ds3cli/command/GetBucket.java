@@ -33,8 +33,8 @@ import java.util.Iterator;
 public class GetBucket extends CliCommand<GetBucketResult> {
     private String bucketName;
     private String prefix;
-    public GetBucket(final Ds3Provider provider, final FileUtils fileUtils) {
-        super(provider, fileUtils);
+
+    public GetBucket() {
     }
 
     protected final com.spectralogic.ds3cli.View<GetBucketResult> cliView = (View<GetBucketResult>) new com.spectralogic.ds3cli.views.cli.GetBucketView();

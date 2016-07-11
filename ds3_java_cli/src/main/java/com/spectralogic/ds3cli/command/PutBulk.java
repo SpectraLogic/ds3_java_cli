@@ -68,8 +68,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
     protected final View<PutBulkResult> cliView = new com.spectralogic.ds3cli.views.cli.PutBulkView();
     protected final View<PutBulkResult> jsonView = new com.spectralogic.ds3cli.views.json.PutBulkView();
 
-    public PutBulk(final Ds3Provider provider, final FileUtils fileUtils) {
-        super(provider, fileUtils);
+    public PutBulk() {
     }
 
     @Override

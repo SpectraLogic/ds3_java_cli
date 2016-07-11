@@ -45,7 +45,7 @@ public class Arguments {
     private String secretKey;
     private String prefix;
     private String id = null;
-    private CommandValue command;
+    private String command;
     private boolean help;
     private final String[] args;
     private String objectName;
@@ -86,7 +86,7 @@ public class Arguments {
         accessKey.setArgName("accessKeyId");
         final Option secretKey = new Option("k", true, "Secret access key or have \"DS3_SECRET_KEY\" set as an environment variable");
         secretKey.setArgName("secretKey");
-        final Option command = new Option("c", true, "The Command to execute.  Possible values: [" + CommandValue.valuesString() + "] Use '--help <command>' for more information " );
+        final Option command = new Option("c", true, "The Command to execute.  For Possible values, use '--help list_commands.'" );
         command.setArgName("command");
         final Option directory = new Option("d", true, "Specify a directory to interact with if required");
         directory.setArgName("directory");
@@ -232,7 +232,7 @@ public class Arguments {
                 if (commandString == null) {
                     this.setCommand(null);
                 } else {
-                    this.setCommand(CommandValue.valueOf(commandString.toUpperCase()));
+                    this.setCommand(commandString.toUpperCase());
                 }
                 // no other options count
                 return;
@@ -284,7 +284,7 @@ public class Arguments {
                     missingArgs.add("c");
                 }
             } else {
-                this.setCommand(CommandValue.valueOf(commandString.toUpperCase()));
+                this.setCommand(commandString.toUpperCase());
             }
         } catch (final IllegalArgumentException e) {
             throw new BadArgumentException("Unknown command", e);
@@ -500,11 +500,11 @@ public class Arguments {
         this.secretKey = secretKey;
     }
 
-    public CommandValue getCommand() {
+    public String getCommand() {
         return this.command;
     }
 
-    void setCommand(final CommandValue command) {
+    void setCommand(final String command) {
         this.command = command;
     }
 

@@ -32,8 +32,7 @@ public class DeleteJob extends CliCommand<DefaultResult> {
     private UUID id;
     private boolean force;
 
-    public DeleteJob(final Ds3Provider ds3Provider, final FileUtils fileUtils) {
-        super(ds3Provider, fileUtils);
+    public DeleteJob() {
     }
 
     @Override

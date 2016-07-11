@@ -42,8 +42,7 @@ public class ModifyUser extends CliCommand<GetUsersResult> {
     protected final View<GetUsersResult> cliView = new com.spectralogic.ds3cli.views.cli.GetUsersView();
     protected final View<GetUsersResult> jsonView = new com.spectralogic.ds3cli.views.json.GetUsersView();
 
-    public ModifyUser(final Ds3Provider provider, final FileUtils fileUtils) {
-        super(provider, fileUtils);
+    public ModifyUser() {
     }
 
     @Override

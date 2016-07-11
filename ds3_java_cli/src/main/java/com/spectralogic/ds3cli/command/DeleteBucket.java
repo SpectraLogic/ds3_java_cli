@@ -41,8 +41,8 @@ public class DeleteBucket extends CliCommand<DefaultResult> {
     private String bucketName;
     private boolean force;
 
-    public DeleteBucket(final Ds3Provider provider, final FileUtils fileUtils) {
-        super(provider, fileUtils);
+    public DeleteBucket()
+    {
     }
 
     @Override
@@ -54,6 +54,8 @@ public class DeleteBucket extends CliCommand<DefaultResult> {
         force = args.isForce();
         return this;
     }
+
+
 
     @Override
     public DefaultResult call() throws Exception {
