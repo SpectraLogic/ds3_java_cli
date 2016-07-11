@@ -25,6 +25,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import static com.spectralogic.ds3cli.util.Utils.nullGuard;
+import static com.spectralogic.ds3cli.util.Utils.nullGuardToString;
 
 public class GetObjectsOnTapeView extends TableView<GetObjectsOnTapeResult> {
 
@@ -50,8 +51,8 @@ public class GetObjectsOnTapeView extends TableView<GetObjectsOnTapeResult> {
             final BulkObject content = objectIterator.next();
             final String[] arrayEntry = new String[this.columnCount];
             arrayEntry[0] = nullGuard(content.getName());
-            arrayEntry[1] = nullGuard(Long.toString(content.getLength()));
-            arrayEntry[2] = nullGuard(content.getId().toString());
+            arrayEntry[1] = nullGuardToString(content.getLength());
+            arrayEntry[2] = nullGuardToString(content.getId());
             contents.add(arrayEntry);
         }
 

@@ -195,7 +195,11 @@ public class GetBulk extends CliCommand<DefaultResult> {
         job.attachMetadataReceivedListener(loggingFileObjectGetter);
         job.transfer(loggingFileObjectGetter);
 
-        return "SUCCESS: Wrote all the objects from " + this.bucketName + " to directory " + this.outputPath.toString();
+        if (this.discard) {
+            return "SUCCESS: retrieved and discarded all objects from " + this.bucketName;
+        } else {
+            return "SUCCESS: Wrote all the objects from " + this.bucketName + " to directory " + this.outputPath.toString();
+        }
     }
 
     private Iterable<Contents> filterContents(final Iterable<Contents> contents, final Path outputPath) throws IOException {
