@@ -38,16 +38,12 @@ public class Ds3Cli implements Callable<CommandResponse> {
     private final Arguments args;
     private final Ds3Provider ds3Provider;
     private final FileUtils fileUtils;
-    private final Iterator<CliCommand> implementations;
 
 
     public Ds3Cli(final Ds3Provider provider, final Arguments args, final FileUtils fileUtils) {
         this.args = args;
         this.ds3Provider = provider;
         this.fileUtils = fileUtils;
-        ServiceLoader<CliCommand> loader =
-                ServiceLoader.load(CliCommand.class);
-        this.implementations = loader.iterator();
     }
 
     @Override
@@ -96,6 +92,7 @@ public class Ds3Cli implements Callable<CommandResponse> {
 
         String commandCamel = CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, commandName.toString());
 
+        Iterator<CliCommand> implementations = getAllCommands();
         while (implementations.hasNext()) {
             CliCommand implementation = implementations.next();
             String className = implementation.getClass().getSimpleName();
@@ -108,11 +105,19 @@ public class Ds3Cli implements Callable<CommandResponse> {
 
     private String listAllCommands() {
         String commands = "Installed Commands: ";
+        Iterator<CliCommand> implementations = getAllCommands();
         while (implementations.hasNext()) {
             CliCommand implementation = implementations.next();
             String unCamel = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, implementation.getClass().getSimpleName());
             commands += unCamel  + ", ";
         }
         return commands;
+    }
+
+    private Iterator<CliCommand> getAllCommands()
+    {
+        ServiceLoader<CliCommand> loader =
+                ServiceLoader.load(CliCommand.class);
+        return loader.iterator();
     }
 }
