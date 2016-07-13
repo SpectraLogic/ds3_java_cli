@@ -90,12 +90,12 @@ public class Ds3Cli implements Callable<CommandResponse> {
     private CliCommand getCommandExecutor() throws CommandException {
         final String commandName = this.args.getCommand();
 
-        final String commandCamel = CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, commandName.toString());
+        String commandCamel = CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, commandName.toString());
 
-        final Iterator<CliCommand> implementations = getAllCommands();
+        Iterator<CliCommand> implementations = getAllCommands();
         while (implementations.hasNext()) {
-            final CliCommand implementation = implementations.next();
-            final String className = implementation.getClass().getSimpleName();
+            CliCommand implementation = implementations.next();
+            String className = implementation.getClass().getSimpleName();
             if (className.equalsIgnoreCase(commandCamel)) {
                 return implementation.withProvider(this.ds3Provider, this.fileUtils);
             }
@@ -104,16 +104,14 @@ public class Ds3Cli implements Callable<CommandResponse> {
     }
 
     private String listAllCommands() {
-        final StringBuilder commands = new StringBuilder("Installed Commands: ");
-        final Iterator<CliCommand> implementations = getAllCommands();
+        String commands = "Installed Commands: ";
+        Iterator<CliCommand> implementations = getAllCommands();
         while (implementations.hasNext()) {
-            final CliCommand implementation = implementations.next();
-            commands.append(CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, implementation.getClass().getSimpleName()));
-            if (implementations.hasNext()) {
-                commands.append(", ");
-            }
+            CliCommand implementation = implementations.next();
+            String unCamel = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, implementation.getClass().getSimpleName());
+            commands += unCamel  + ", ";
         }
-        return commands.toString();
+        return commands;
     }
 
     private Iterator<CliCommand> getAllCommands()

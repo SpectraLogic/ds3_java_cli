@@ -41,7 +41,8 @@ public class DeleteBucket extends CliCommand<DefaultResult> {
     private String bucketName;
     private boolean force;
 
-    public DeleteBucket() {
+    public DeleteBucket()
+    {
     }
 
     @Override

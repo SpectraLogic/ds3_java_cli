@@ -30,7 +30,9 @@ public class DeleteFolder extends CliCommand<DefaultResult> {
     private String bucketName;
     private String folderName;
 
-    public DeleteFolder() {
+    public DeleteFolder()
+    {
+
     }
 
     @Override
