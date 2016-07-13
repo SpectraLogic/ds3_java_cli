@@ -39,9 +39,6 @@ public class ModifyUser extends CliCommand<GetUsersResult> {
     private String defaultPolicyId;
     private ImmutableMap<String, String> modifyParams;
 
-    protected final View<GetUsersResult> cliView = new com.spectralogic.ds3cli.views.cli.GetUsersView();
-    protected final View<GetUsersResult> jsonView = new com.spectralogic.ds3cli.views.json.GetUsersView();
-
     public ModifyUser() {
     }
 
@@ -89,10 +86,10 @@ public class ModifyUser extends CliCommand<GetUsersResult> {
     }
 
     @Override
-    public View getView(final ViewType viewType) {
+    public View<GetUsersResult> getView(final ViewType viewType) {
         if (viewType == ViewType.JSON) {
-            return this.jsonView;
+            return new com.spectralogic.ds3cli.views.json.GetUsersView();
         }
-        return this.cliView;
+        return new com.spectralogic.ds3cli.views.cli.GetUsersView();
     }
 }

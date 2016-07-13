@@ -38,9 +38,6 @@ public class VerifyBulkJob extends CliCommand<VerifyBulkJobResult> {
     private String bucketName;
     private String prefix;
 
-    protected final View<VerifyBulkJobResult> cliView = new com.spectralogic.ds3cli.views.cli.VerifyBulkJobView();
-    protected final View<VerifyBulkJobResult> jsonView = new com.spectralogic.ds3cli.views.json.VerifyBulkJobView();
-
     public VerifyBulkJob() {
     }
 
@@ -97,10 +94,11 @@ public class VerifyBulkJob extends CliCommand<VerifyBulkJobResult> {
     }
 
     @Override
-    public View getView(final ViewType viewType) {
+    public View<VerifyBulkJobResult> getView(final ViewType viewType) {
         if (viewType == ViewType.JSON) {
-            return this.jsonView;
+            return new com.spectralogic.ds3cli.views.json.VerifyBulkJobView();
         }
-        return this.cliView;
+        return new com.spectralogic.ds3cli.views.cli.VerifyBulkJobView();
     }
 }
+    

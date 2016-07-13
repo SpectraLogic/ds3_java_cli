@@ -29,9 +29,6 @@ import com.spectralogic.ds3cli.models.GetTapeFailureResult;
 
 public class GetTapeFailure extends CliCommand<GetTapeFailureResult> {
 
-    protected final View<GetTapeFailureResult> cliView = new com.spectralogic.ds3cli.views.cli.GetTapeFailureView();
-    protected final View<GetTapeFailureResult> jsonView = new com.spectralogic.ds3cli.views.json.GetTapeFailureView();
-
     public GetTapeFailure() {
     }
 
@@ -59,10 +56,10 @@ public class GetTapeFailure extends CliCommand<GetTapeFailureResult> {
     }
 
     @Override
-    public View getView(final ViewType viewType) {
+    public View<GetTapeFailureResult> getView(final ViewType viewType) {
         if (viewType == ViewType.JSON) {
-            return this.jsonView;
+            return new com.spectralogic.ds3cli.views.json.GetTapeFailureView();
         }
-        return this.cliView;
+        return new com.spectralogic.ds3cli.views.cli.GetTapeFailureView();
     }
 }

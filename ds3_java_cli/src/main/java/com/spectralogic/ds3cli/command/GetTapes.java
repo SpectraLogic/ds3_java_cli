@@ -31,9 +31,6 @@ public class GetTapes extends CliCommand<GetTapesWithFullDetailsResult> {
     public GetTapes() {
     }
 
-    protected final View<GetTapesWithFullDetailsResult> cliView = new com.spectralogic.ds3cli.views.cli.GetTapesWithFullDetailsView();
-    protected final View<GetTapesWithFullDetailsResult> jsonView = new com.spectralogic.ds3cli.views.json.GetTapesWithFullDetailsView();
-
     @Override
     public CliCommand init(final Arguments args) throws Exception {
         return this;
@@ -50,10 +47,10 @@ public class GetTapes extends CliCommand<GetTapesWithFullDetailsResult> {
     }
 
     @Override
-    public View getView(final ViewType viewType) {
+    public View<GetTapesWithFullDetailsResult> getView(final ViewType viewType) {
         if (viewType == ViewType.JSON) {
-            return this.jsonView;
+            return new com.spectralogic.ds3cli.views.json.GetTapesWithFullDetailsView();
         }
-        return this.cliView;
+        return new com.spectralogic.ds3cli.views.cli.GetTapesWithFullDetailsView();
     }
 }

@@ -15,9 +15,6 @@ public class HeadObject extends CliCommand<HeadObjectResult> {
     private String objectName;
     private String bucketName;
 
-    protected final View<HeadObjectResult> cliView = new com.spectralogic.ds3cli.views.cli.HeadObjectView();
-    protected final View<HeadObjectResult> jsonView = new com.spectralogic.ds3cli.views.json.HeadObjectView();
-
     public HeadObject() {
     }
 
@@ -43,10 +40,10 @@ public class HeadObject extends CliCommand<HeadObjectResult> {
     }
 
     @Override
-    public View getView(final ViewType viewType) {
+    public View<HeadObjectResult> getView(final ViewType viewType) {
         if (viewType == ViewType.JSON) {
-            return this.jsonView;
+            return new com.spectralogic.ds3cli.views.json.HeadObjectView();
         }
-        return this.cliView;
+        return new com.spectralogic.ds3cli.views.cli.HeadObjectView();
     }
 }

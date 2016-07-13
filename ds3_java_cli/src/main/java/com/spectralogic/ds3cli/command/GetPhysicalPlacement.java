@@ -38,12 +38,8 @@ public class GetPhysicalPlacement extends CliCommand<GetPhysicalPlacementWithFul
     private String bucketName;
     private String objectName;
 
-    protected final View<GetPhysicalPlacementWithFullDetailsResult> cliView = new com.spectralogic.ds3cli.views.cli.GetPhysicalPlacementWithFullDetailsView();
-    protected final View<GetPhysicalPlacementWithFullDetailsResult> jsonView = new com.spectralogic.ds3cli.views.json.GetPhysicalPlacementWithFullDetailsView();
-
     public GetPhysicalPlacement() {
     }
-
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
@@ -80,10 +76,10 @@ public class GetPhysicalPlacement extends CliCommand<GetPhysicalPlacementWithFul
     }
 
     @Override
-    public View getView(final ViewType viewType) {
+    public View<GetPhysicalPlacementWithFullDetailsResult> getView(final ViewType viewType) {
         if (viewType == ViewType.JSON) {
-            return this.jsonView;
+            return new com.spectralogic.ds3cli.views.json.GetPhysicalPlacementWithFullDetailsView();
         }
-        return this.cliView;
+        return new com.spectralogic.ds3cli.views.cli.GetPhysicalPlacementWithFullDetailsView();
     }
 }

@@ -38,9 +38,6 @@ import java.security.SignatureException;
 
 public class ModifyDataPolicy extends CliCommand<GetDataPoliciesResult> {
 
-    protected final View<GetDataPoliciesResult> cliView = new com.spectralogic.ds3cli.views.cli.GetDataPoliciesView();
-    protected final View<GetDataPoliciesResult> jsonView = new com.spectralogic.ds3cli.views.json.GetDataPoliciesView();
-
     // name or guid
     private String policyId;
     private ImmutableMap<String, String> metadata;
@@ -142,9 +139,10 @@ public class ModifyDataPolicy extends CliCommand<GetDataPoliciesResult> {
     }
 
     @Override
-    public View getView(final ViewType viewType) {
+    public View<GetDataPoliciesResult> getView(final ViewType viewType) {
         if (viewType == ViewType.JSON) {
-            return this.jsonView;
+            return new com.spectralogic.ds3cli.views.json.GetDataPoliciesView();
         }
-        return this.cliView;
-    }}
+        return new com.spectralogic.ds3cli.views.cli.GetDataPoliciesView();
+    }
+}

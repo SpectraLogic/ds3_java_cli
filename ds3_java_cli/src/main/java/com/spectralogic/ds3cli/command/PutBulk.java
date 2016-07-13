@@ -65,9 +65,6 @@ public class PutBulk extends CliCommand<PutBulkResult> {
     private ImmutableMap<String, String> mapNormalizedObjectNameToObjectName = null;
     private boolean followSymlinks;
 
-    protected final View<PutBulkResult> cliView = new com.spectralogic.ds3cli.views.cli.PutBulkView();
-    protected final View<PutBulkResult> jsonView = new com.spectralogic.ds3cli.views.json.PutBulkView();
-
     public PutBulk() {
     }
 
@@ -210,13 +207,13 @@ public class PutBulk extends CliCommand<PutBulkResult> {
     }
 
     @Override
-    public View getView(final ViewType viewType) {
+    public View<PutBulkResult> getView(final ViewType viewType) {
         if (viewType == ViewType.JSON) {
-            return this.jsonView;
+            return new com.spectralogic.ds3cli.views.json.PutBulkView();
         }
-        return this.cliView;
+        return new com.spectralogic.ds3cli.views.cli.PutBulkView();
     }
-
+    
     private static class SyncFilter implements FilteringIterable.FilterFunction<Path> {
 
         private final String prefix;

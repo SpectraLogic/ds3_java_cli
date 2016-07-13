@@ -27,9 +27,6 @@ public class GetJobs extends CliCommand<GetJobsResult> {
 
     private boolean completed;
 
-    protected final View<GetJobsResult> cliView = new com.spectralogic.ds3cli.views.cli.GetJobsView();
-    protected final View<GetJobsResult> jsonView = new com.spectralogic.ds3cli.views.json.GetJobsView();
-
     public GetJobs() {
     }
 
@@ -49,11 +46,10 @@ public class GetJobs extends CliCommand<GetJobsResult> {
         return new GetJobsResult(getClient().getJobsSpectraS3(request).getJobListResult());
     }
 
-    @Override
-    public View getView(final ViewType viewType) {
+     @Override
+    public View<GetJobsResult> getView(final ViewType viewType) {
         if (viewType == ViewType.JSON) {
-            return this.jsonView;
+            return new com.spectralogic.ds3cli.views.json.GetJobsView();
         }
-        return this.cliView;
-    }
-}
+        return new com.spectralogic.ds3cli.views.cli.GetJobsView();
+    }}

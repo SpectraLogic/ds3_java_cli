@@ -33,9 +33,6 @@ import java.security.SignatureException;
 
 public class GetService extends CliCommand<GetServiceResult> {
 
-    protected final View<GetServiceResult> cliView = new com.spectralogic.ds3cli.views.cli.GetServiceView();
-    protected final View<GetServiceResult> jsonView = new com.spectralogic.ds3cli.views.json.GetServiceView();
-
     public GetService() {
     }
 
@@ -56,11 +53,10 @@ public class GetService extends CliCommand<GetServiceResult> {
     }
 
     @Override
-    public View getView(final ViewType viewType) {
+    public View<GetServiceResult> getView(final ViewType viewType) {
         if (viewType == ViewType.JSON) {
-            return this.jsonView;
+            return new com.spectralogic.ds3cli.views.json.GetServiceView();
         }
-        return this.cliView;
+        return new com.spectralogic.ds3cli.views.cli.GetServiceView();
     }
-
 }

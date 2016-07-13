@@ -40,9 +40,6 @@ public class GetObjectsOnTape extends CliCommand<GetObjectsOnTapeResult> {
     public GetObjectsOnTape() {
     }
 
-    protected final View<GetObjectsOnTapeResult> cliView = new com.spectralogic.ds3cli.views.cli.GetObjectsOnTapeView();
-    protected final View<GetObjectsOnTapeResult> jsonView = new com.spectralogic.ds3cli.views.json.GetObjectsOnTapeView();
-
     @Override
     public CliCommand init(final Arguments args) throws Exception {
         this.tapeId = args.getId();
@@ -72,11 +69,13 @@ public class GetObjectsOnTape extends CliCommand<GetObjectsOnTapeResult> {
             }
         }
     }
+
     @Override
-    public View getView(final ViewType viewType) {
+    public View<GetObjectsOnTapeResult> getView(final ViewType viewType) {
         if (viewType == ViewType.JSON) {
-            return this.jsonView;
+            return new com.spectralogic.ds3cli.views.json.GetObjectsOnTapeView();
         }
-        return this.cliView;
+        return new com.spectralogic.ds3cli.views.cli.GetObjectsOnTapeView();
     }
 }
+    

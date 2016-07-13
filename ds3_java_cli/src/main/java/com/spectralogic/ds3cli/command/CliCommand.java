@@ -19,6 +19,7 @@ import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.models.Result;
+import com.spectralogic.ds3cli.models.DefaultResult;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3cli.views.cli.DefaultView;
@@ -34,10 +35,7 @@ public abstract class CliCommand<T extends Result> implements Callable<T> {
     private Ds3Provider ds3Provider;
     private FileUtils fileUtils;
 
-    protected final View<T> cliView = new com.spectralogic.ds3cli.views.cli.DefaultView();
-    protected final View<T> jsonView = new com.spectralogic.ds3cli.views.json.DefaultView();
-
-    // or service provider instantiation
+    // for service provider instantiation
     public CliCommand() {
         this.ds3Provider = null;
         this.fileUtils = null;
@@ -76,9 +74,9 @@ public abstract class CliCommand<T extends Result> implements Callable<T> {
 
     public View<T> getView(final ViewType viewType) {
         if (viewType == ViewType.JSON) {
-            return this.jsonView;
+            return (View<T>) new com.spectralogic.ds3cli.views.json.DefaultView();
         }
-        return this.cliView;
+        return (View<T>) new DefaultView();
     }
 
 }

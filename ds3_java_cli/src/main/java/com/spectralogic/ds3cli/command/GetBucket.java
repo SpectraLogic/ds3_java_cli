@@ -37,9 +37,6 @@ public class GetBucket extends CliCommand<GetBucketResult> {
     public GetBucket() {
     }
 
-    protected final com.spectralogic.ds3cli.View<GetBucketResult> cliView = (View<GetBucketResult>) new com.spectralogic.ds3cli.views.cli.GetBucketView();
-    protected final com.spectralogic.ds3cli.View<GetBucketResult> jsonView = (View<GetBucketResult>) new com.spectralogic.ds3cli.views.json.GetBucketView();
-
     @Override
     public CliCommand init(final Arguments args) throws Exception {
         this.bucketName = args.getBucket();
@@ -83,10 +80,10 @@ public class GetBucket extends CliCommand<GetBucketResult> {
     }
 
     @Override
-    public View getView(final ViewType viewType) {
+    public View<GetBucketResult> getView(final ViewType viewType) {
         if (viewType == ViewType.JSON) {
-            return this.jsonView;
+            return new com.spectralogic.ds3cli.views.json.GetBucketView();
         }
-        return this.cliView;
+        return new com.spectralogic.ds3cli.views.cli.GetBucketView();
     }
 }

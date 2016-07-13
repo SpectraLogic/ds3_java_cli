@@ -35,9 +35,6 @@ public class GetDataPolicies extends CliCommand<GetDataPoliciesResult> {
     public GetDataPolicies() {
     }
 
-    protected final View<GetDataPoliciesResult> cliView = new com.spectralogic.ds3cli.views.cli.GetDataPoliciesView();
-    protected final View<GetDataPoliciesResult> jsonView = new com.spectralogic.ds3cli.views.json.GetDataPoliciesView();
-
     @Override
     public CliCommand init(final Arguments args) throws Exception {
         return this;
@@ -55,10 +52,11 @@ public class GetDataPolicies extends CliCommand<GetDataPoliciesResult> {
     }
 
     @Override
-    public View getView(final ViewType viewType) {
+    public View<GetDataPoliciesResult> getView(final ViewType viewType) {
         if (viewType == ViewType.JSON) {
-            return this.jsonView;
+            return new com.spectralogic.ds3cli.views.json.GetDataPoliciesView();
         }
-        return this.cliView;
+        return new com.spectralogic.ds3cli.views.cli.GetDataPoliciesView();
     }
 }
+
