@@ -34,8 +34,8 @@ public abstract class CliCommand<T extends Result> implements Callable<T> {
     private Ds3Provider ds3Provider;
     private FileUtils fileUtils;
 
-    protected final View<T> cliView = (View<T>) new com.spectralogic.ds3cli.views.cli.DefaultView();
-    protected final View<T> jsonView = (View<T>) new com.spectralogic.ds3cli.views.json.DefaultView();
+    protected final View<T> cliView = new com.spectralogic.ds3cli.views.cli.DefaultView();
+    protected final View<T> jsonView = new com.spectralogic.ds3cli.views.json.DefaultView();
 
     // or service provider instantiation
     public CliCommand() {
@@ -74,7 +74,7 @@ public abstract class CliCommand<T extends Result> implements Callable<T> {
         return CommandHelpText.getHelpText(command) ;
     }
 
-    public View getView(final ViewType viewType) {
+    public View<T> getView(final ViewType viewType) {
         if (viewType == ViewType.JSON) {
             return this.jsonView;
         }
