@@ -69,8 +69,7 @@ public class Ds3Cli implements Callable<CommandResponse> {
     }
 
     public CommandResponse getCommandHelp() throws Exception {
-        if (this.args.getCommand().equalsIgnoreCase("LIST_COMMANDS"))
-        {
+        if (this.args.getCommand().equalsIgnoreCase("LIST_COMMANDS")) {
             final String message = listAllCommands();
             return new CommandResponse(message, 0);
         }
@@ -118,7 +117,7 @@ public class Ds3Cli implements Callable<CommandResponse> {
 
     private Iterator<CliCommand> getAllCommands()
     {
-        ServiceLoader<CliCommand> loader =
+        final ServiceLoader<CliCommand> loader =
                 ServiceLoader.load(CliCommand.class);
         return loader.iterator();
     }

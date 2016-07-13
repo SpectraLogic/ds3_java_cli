@@ -28,7 +28,7 @@ public abstract class TableView<T extends Result> implements View<T> {
 
     public abstract String render(final T result);
 
-    public void initTable(ImmutableList<String> columnHeads) {
+    public void initTable(final ImmutableList<String> columnHeads) {
         this.columnCount = columnHeads.size();
 
         // create the header
@@ -38,7 +38,7 @@ public abstract class TableView<T extends Result> implements View<T> {
         }
     }
 
-    public void setTableDataAlignment(ImmutableList<Integer> columnAlign) {
+    public void setTableDataAlignment(final ImmutableList<Integer> columnAlign) {
         // set alignment
         if ((this.header != null) && (this.columnCount > 0)) {
             for (int i = 0; i < this.columnCount; i++) {
