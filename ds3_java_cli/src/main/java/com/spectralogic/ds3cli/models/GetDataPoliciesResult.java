@@ -25,7 +25,7 @@ import java.util.List;
 
 public class GetDataPoliciesResult implements Result {
 
-    private DataPolicyList dataPolicyListResult;
+    private final DataPolicyList dataPolicyListResult;
 
     public GetDataPoliciesResult(final DataPolicyList policies) {
         this.dataPolicyListResult = policies;

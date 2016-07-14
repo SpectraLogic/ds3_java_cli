@@ -17,7 +17,7 @@ package com.spectralogic.ds3cli.command;
 
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.exceptions.CommandException;
-import com.spectralogic.ds3cli.models.DeleteResult;
+import com.spectralogic.ds3cli.models.DefaultResult;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3client.Ds3Client;
@@ -34,15 +34,14 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.security.SignatureException;
 
-public class DeleteBucket extends CliCommand<DeleteResult> {
+public class DeleteBucket extends CliCommand<DefaultResult> {
 
     private static final Logger LOG = LoggerFactory.getLogger(DeleteBucket.class);
 
     private String bucketName;
     private boolean force;
 
-    public DeleteBucket(final Ds3Provider provider, final FileUtils fileUtils) {
-        super(provider, fileUtils);
+    public DeleteBucket() {
     }
 
     @Override
@@ -55,13 +54,15 @@ public class DeleteBucket extends CliCommand<DeleteResult> {
         return this;
     }
 
+
+
     @Override
-    public DeleteResult call() throws Exception {
+    public DefaultResult call() throws Exception {
 
         if (force) {
-            return new DeleteResult(clearObjects());
+            return new DefaultResult(clearObjects());
         } else {
-            return new DeleteResult(deleteBucket());
+            return new DefaultResult(deleteBucket());
         }
     }
 

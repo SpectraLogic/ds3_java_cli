@@ -20,123 +20,37 @@ import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3cli.views.cli.CommandExceptionCliView;
-import com.spectralogic.ds3cli.views.cli.GetObjectsOnTapeView;
 import com.spectralogic.ds3cli.views.json.CommandExceptionJsonView;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.Map;
+import com.google.common.base.CaseFormat;
+
+import java.lang.reflect.Constructor;
+import java.util.Iterator;
+import java.util.ServiceLoader;
 import java.util.concurrent.Callable;
 
 public class Ds3Cli implements Callable<CommandResponse> {
 
     private final static Logger LOG = LoggerFactory.getLogger(Ds3Cli.class);
 
-    private final Map<ViewType, Map<CommandValue, View>> views;
     private final Arguments args;
     private final Ds3Provider ds3Provider;
     private final FileUtils fileUtils;
+
 
     public Ds3Cli(final Ds3Provider provider, final Arguments args, final FileUtils fileUtils) {
         this.args = args;
         this.ds3Provider = provider;
         this.fileUtils = fileUtils;
-        this.views = getViews();
     }
-
-    private Map<ViewType, Map<CommandValue, View>>  getViews() {
-        final Map<ViewType, Map<CommandValue, View>>  allViews = new HashMap<>();
-        allViews.put( ViewType.CLI, getCliViews() );
-        allViews.put( ViewType.JSON, getJsonViews() );
-        //TODO XML
-        return allViews;
-    }
-
-    private Map<CommandValue, View> getCliViews() {
-        final com.spectralogic.ds3cli.views.cli.DeleteView deleteView = new com.spectralogic.ds3cli.views.cli.DeleteView();
-
-        final Map<CommandValue, View> cliViews = new HashMap<>();
-        cliViews.put(CommandValue.GET_SERVICE,            new com.spectralogic.ds3cli.views.cli.GetServiceView() );
-        cliViews.put(CommandValue.GET_BUCKET,             new com.spectralogic.ds3cli.views.cli.GetBucketView() );
-        cliViews.put(CommandValue.GET_OBJECT,             new com.spectralogic.ds3cli.views.cli.GetObjectView() );
-        cliViews.put(CommandValue.DELETE_BUCKET,          deleteView);
-        cliViews.put(CommandValue.DELETE_OBJECT,          deleteView);
-        cliViews.put(CommandValue.GET_BULK,               new com.spectralogic.ds3cli.views.cli.GetBulkView() );
-        cliViews.put(CommandValue.VERIFY_BULK_JOB,        new com.spectralogic.ds3cli.views.cli.VerifyBulkJobView() );
-        cliViews.put(CommandValue.PUT_BUCKET,             new com.spectralogic.ds3cli.views.cli.PutBucketView() );
-        cliViews.put(CommandValue.PUT_BULK,               new com.spectralogic.ds3cli.views.cli.PutBulkView() );
-        cliViews.put(CommandValue.PUT_OBJECT,             new com.spectralogic.ds3cli.views.cli.PutObjectView() );
-        cliViews.put(CommandValue.DELETE_TAPE_PARTITION,  deleteView);
-        cliViews.put(CommandValue.DELETE_TAPE_DRIVE,      deleteView);
-        cliViews.put(CommandValue.GET_JOBS,               new com.spectralogic.ds3cli.views.cli.GetJobsView());
-        cliViews.put(CommandValue.DELETE_JOB,             deleteView);
-        cliViews.put(CommandValue.SYSTEM_INFORMATION,     new com.spectralogic.ds3cli.views.cli.SystemInformationView());
-        cliViews.put(CommandValue.HEAD_OBJECT,            new com.spectralogic.ds3cli.views.cli.HeadObjectView());
-        cliViews.put(CommandValue.GET_JOB,                new com.spectralogic.ds3cli.views.cli.GetJobView());
-        cliViews.put(CommandValue.DELETE_FOLDER,          deleteView);
-        cliViews.put(CommandValue.PUT_JOB,                new com.spectralogic.ds3cli.views.cli.PutJobView());
-        cliViews.put(CommandValue.GET_TAPES,              new com.spectralogic.ds3cli.views.cli.GetTapesWithFullDetailsView());
-        cliViews.put(CommandValue.DELETE_TAPE,            deleteView);
-        cliViews.put(CommandValue.PERFORMANCE,            new com.spectralogic.ds3cli.views.cli.PerformanceView());
-        cliViews.put(CommandValue.GET_PHYSICAL_PLACEMENT, new com.spectralogic.ds3cli.views.cli.GetPhysicalPlacementWithFullDetailsView());
-        cliViews.put(CommandValue.GET_DATA_POLICIES,      new com.spectralogic.ds3cli.views.cli.GetDataPoliciesView());
-        cliViews.put(CommandValue.GET_DATA_POLICY,        new com.spectralogic.ds3cli.views.cli.GetDataPoliciesView());
-        cliViews.put(CommandValue.MODIFY_DATA_POLICY,     new com.spectralogic.ds3cli.views.cli.GetDataPoliciesView());
-        cliViews.put(CommandValue.GET_USER,               new com.spectralogic.ds3cli.views.cli.GetUsersView());
-        cliViews.put(CommandValue.GET_USERS,              new com.spectralogic.ds3cli.views.cli.GetUsersView());
-        cliViews.put(CommandValue.MODIFY_USER,            new com.spectralogic.ds3cli.views.cli.GetUsersView());
-        cliViews.put(CommandValue.GET_TAPE_FAILURE,       new com.spectralogic.ds3cli.views.cli.GetTapeFailureView());
-        cliViews.put(CommandValue.GET_OBJECTS_ON_TAPE,    new com.spectralogic.ds3cli.views.cli.GetObjectsOnTapeView());
-        cliViews.put(CommandValue.DELETE_TAPE_FAILURE,    deleteView);
-        cliViews.put(CommandValue.RECLAIM_CACHE,          deleteView);
-        return cliViews;
-    }
-
-    private Map<CommandValue, View> getJsonViews() {
-        final com.spectralogic.ds3cli.views.json.DeleteView deleteView = new com.spectralogic.ds3cli.views.json.DeleteView();
-        final Map<CommandValue, View> jsonViews = new HashMap<>();
-        jsonViews.put(CommandValue.GET_SERVICE,            new com.spectralogic.ds3cli.views.json.GetServiceView() );
-        jsonViews.put(CommandValue.GET_BUCKET,             new com.spectralogic.ds3cli.views.json.GetBucketView() );
-        jsonViews.put(CommandValue.GET_BULK,               new com.spectralogic.ds3cli.views.json.GetBulkView() );
-        jsonViews.put(CommandValue.VERIFY_BULK_JOB,        new com.spectralogic.ds3cli.views.json.VerifyBulkJobView() );
-        jsonViews.put(CommandValue.GET_OBJECT,             new com.spectralogic.ds3cli.views.json.GetObjectView() );
-        jsonViews.put(CommandValue.DELETE_BUCKET,          deleteView);
-        jsonViews.put(CommandValue.DELETE_OBJECT,          deleteView);
-        jsonViews.put(CommandValue.PUT_BUCKET,             new com.spectralogic.ds3cli.views.json.PutBucketView() );
-        jsonViews.put(CommandValue.PUT_BULK,               new com.spectralogic.ds3cli.views.json.PutBulkView() );
-        jsonViews.put(CommandValue.PUT_OBJECT,             new com.spectralogic.ds3cli.views.json.PutObjectView() );
-        jsonViews.put(CommandValue.DELETE_TAPE_PARTITION,  deleteView);
-        jsonViews.put(CommandValue.DELETE_TAPE_DRIVE,      deleteView);
-        jsonViews.put(CommandValue.GET_JOBS,               new com.spectralogic.ds3cli.views.json.GetJobsView());
-        jsonViews.put(CommandValue.DELETE_JOB,             deleteView);
-        jsonViews.put(CommandValue.SYSTEM_INFORMATION,     new com.spectralogic.ds3cli.views.json.SystemInformationView());
-        jsonViews.put(CommandValue.HEAD_OBJECT,            new com.spectralogic.ds3cli.views.json.HeadObjectView());
-        jsonViews.put(CommandValue.GET_JOB,                new com.spectralogic.ds3cli.views.json.GetJobView());
-        jsonViews.put(CommandValue.DELETE_FOLDER,          deleteView);
-        jsonViews.put(CommandValue.PUT_JOB,                new com.spectralogic.ds3cli.views.json.PutJobView());
-        jsonViews.put(CommandValue.GET_TAPES,              new com.spectralogic.ds3cli.views.json.GetTapesWithFullDetailsView());
-        jsonViews.put(CommandValue.DELETE_TAPE,            deleteView);
-        jsonViews.put(CommandValue.GET_PHYSICAL_PLACEMENT, new com.spectralogic.ds3cli.views.json.GetPhysicalPlacementWithFullDetailsView());
-        jsonViews.put(CommandValue.GET_DATA_POLICIES,      new com.spectralogic.ds3cli.views.json.GetDataPoliciesView());
-        jsonViews.put(CommandValue.GET_DATA_POLICY,        new com.spectralogic.ds3cli.views.json.GetDataPoliciesView());
-        jsonViews.put(CommandValue.MODIFY_DATA_POLICY,     new com.spectralogic.ds3cli.views.json.GetDataPoliciesView());
-        jsonViews.put(CommandValue.GET_USER,               new com.spectralogic.ds3cli.views.json.GetUsersView());
-        jsonViews.put(CommandValue.GET_USERS,              new com.spectralogic.ds3cli.views.json.GetUsersView());
-        jsonViews.put(CommandValue.MODIFY_USER,            new com.spectralogic.ds3cli.views.json.GetUsersView());
-        jsonViews.put(CommandValue.GET_TAPE_FAILURE,       new com.spectralogic.ds3cli.views.json.GetTapeFailureView());
-        jsonViews.put(CommandValue.GET_OBJECTS_ON_TAPE,    new com.spectralogic.ds3cli.views.json.GetObjectsOnTapeView());
-        jsonViews.put(CommandValue.DELETE_TAPE_FAILURE,    deleteView);
-        jsonViews.put(CommandValue.RECLAIM_CACHE,          deleteView);
-        return jsonViews;
-    }
-
 
     @Override
     public CommandResponse call() throws Exception {
         final CliCommand command = getCommandExecutor();
 
-        final View view = views.get(this.args.getOutputFormat()).get(this.args.getCommand());
+        final View view = command.getView(this.args.getOutputFormat());
 
         try {
             final String message = view.render(command.init(this.args).call());
@@ -155,6 +69,11 @@ public class Ds3Cli implements Callable<CommandResponse> {
     }
 
     public CommandResponse getCommandHelp() throws Exception {
+        if (this.args.getCommand().equalsIgnoreCase("LIST_COMMANDS")) {
+            final String message = listAllCommands();
+            return new CommandResponse(message, 0);
+        }
+
         final CliCommand command = getCommandExecutor();
 
         try {
@@ -168,111 +87,37 @@ public class Ds3Cli implements Callable<CommandResponse> {
     }
 
     private CliCommand getCommandExecutor() throws CommandException {
-        final CommandValue command = this.args.getCommand();
-        switch(command) {
-            case GET_OBJECT: {
-                return new GetObject(this.ds3Provider, this.fileUtils);
-            }
-            case GET_BUCKET: {
-                return new GetBucket(this.ds3Provider, this.fileUtils);
-            }
-            case PUT_BUCKET: {
-                return new PutBucket(this.ds3Provider, this.fileUtils);
-            }
-            case PUT_OBJECT: {
-                return new PutObject(this.ds3Provider, this.fileUtils);
-            }
-            case DELETE_BUCKET: {
-                return new DeleteBucket(this.ds3Provider, this.fileUtils);
-            }
-            case DELETE_OBJECT: {
-                return new DeleteObject(this.ds3Provider, this.fileUtils);
-            }
-            case GET_BULK: {
-                return new GetBulk(this.ds3Provider, this.fileUtils);
-            }
-            case VERIFY_BULK_JOB: {
-                return new VerifyBulkJob(this.ds3Provider, this.fileUtils);
-            }
-            case PUT_BULK: {
-                return new PutBulk(this.ds3Provider, this.fileUtils);
-            }
-            case DELETE_TAPE_DRIVE: {
-                return new DeleteTapeDrive(this.ds3Provider, this.fileUtils);
-            }
-            case DELETE_TAPE_PARTITION: {
-                return new DeleteTapePartition(this.ds3Provider, this.fileUtils);
-            }
-            case GET_JOBS: {
-                return new GetJobs(this.ds3Provider, this.fileUtils);
-            }
-            case GET_JOB: {
-                return new GetJob(this.ds3Provider, this.fileUtils);
-            }
-            case DELETE_JOB: {
-                return new DeleteJob(this.ds3Provider, this.fileUtils);
-            }
-            case SYSTEM_INFORMATION: {
-                return new SystemInformation(this.ds3Provider, this.fileUtils);
-            }
-            case HEAD_OBJECT: {
-                return new HeadObject(this.ds3Provider, this.fileUtils);
-            }
-            case DELETE_FOLDER: {
-                return new DeleteFolder(this.ds3Provider, this.fileUtils);
-            }
-            case PUT_JOB: {
-                return new PutJob(this.ds3Provider, this.fileUtils);
-            }
-            case GET_TAPES: {
-                return new GetTapes(this.ds3Provider, this.fileUtils);
-            }
-            case DELETE_TAPE: {
-                return new DeleteJob(this.ds3Provider, this.fileUtils);
-            }
-            case PERFORMANCE: {
-                return new PerformanceCommand(this.ds3Provider, this.fileUtils);
-            }
-            case GET_PHYSICAL_PLACEMENT: {
-                return new GetPhysicalPlacement(this.ds3Provider, this.fileUtils);
-            }
-            case GET_TAPE_FAILURE: {
-                return new GetTapeFailure(this.ds3Provider, this.fileUtils);
-            }
-            case DELETE_TAPE_FAILURE: {
-                return new DeleteTapeFailure(this.ds3Provider, this.fileUtils);
-            }
-            case GET_SERVICE: {
-                return new GetService(this.ds3Provider, this.fileUtils);
-            }
-            case GET_DATA_POLICY: {
-                return new GetDataPolicy(this.ds3Provider, this.fileUtils);
-            }
-            case GET_DATA_POLICIES: {
-                return new GetDataPolicies(this.ds3Provider, this.fileUtils);
-            }
-            case MODIFY_DATA_POLICY: {
-                return new ModifyDataPolicy(this.ds3Provider, this.fileUtils);
-            }
-            case GET_USER: {
-                return new GetUser(this.ds3Provider, this.fileUtils);
-            }
-            case GET_USERS: {
-                return new GetUsers(this.ds3Provider, this.fileUtils);
-            }
-            case MODIFY_USER: {
-                return new ModifyUser(this.ds3Provider, this.fileUtils);
-            }
-            case GET_OBJECTS_ON_TAPE: {
-                return new GetObjectsOnTape(this.ds3Provider, this.fileUtils);
-            }
-            case RECLAIM_CACHE: {
-                return new ReclaimCache(this.ds3Provider,  this.fileUtils);
-            }
-            default: {
-                LOG.error("Unimplemented command: " + command.name());
-                throw new CommandException(("Unimplemented command: " + command.name()));
+        final String commandName = this.args.getCommand();
+
+        final String commandCamel = CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, commandName.toString());
+
+        final Iterator<CliCommand> implementations = getAllCommands();
+        while (implementations.hasNext()) {
+            final CliCommand implementation = implementations.next();
+            final String className = implementation.getClass().getSimpleName();
+            if (className.equalsIgnoreCase(commandCamel)) {
+                return implementation.withProvider(this.ds3Provider, this.fileUtils);
             }
         }
+         throw new CommandException("No command class: " + commandName);
+    }
+
+    private String listAllCommands() {
+        final StringBuilder commands = new StringBuilder("Installed Commands: ");
+        final Iterator<CliCommand> implementations = getAllCommands();
+        while (implementations.hasNext()) {
+            final CliCommand implementation = implementations.next();
+            commands.append(CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, implementation.getClass().getSimpleName()));
+            if (implementations.hasNext()) {
+                commands.append(", ");
+            }
+        }
+        return commands.toString();
+    }
+
+    private Iterator<CliCommand> getAllCommands() {
+        final ServiceLoader<CliCommand> loader =
+                ServiceLoader.load(CliCommand.class);
+        return loader.iterator();
     }
 }

@@ -18,7 +18,7 @@ package com.spectralogic.ds3cli.command;
 import com.google.common.collect.Lists;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.exceptions.CommandException;
-import com.spectralogic.ds3cli.models.GetObjectResult;
+import com.spectralogic.ds3cli.models.DefaultResult;
 import com.spectralogic.ds3cli.util.*;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.helpers.FileObjectGetter;
@@ -37,7 +37,7 @@ import java.nio.file.Paths;
 import java.security.SignatureException;
 import java.util.List;
 
-public class GetObject extends CliCommand<GetObjectResult> {
+public class GetObject extends CliCommand<DefaultResult> {
 
     private final static Logger LOG = LoggerFactory.getLogger(GetObject.class);
 
@@ -48,8 +48,7 @@ public class GetObject extends CliCommand<GetObjectResult> {
     private boolean force;
     private int numberOfThreads;
 
-    public GetObject(final Ds3Provider provider, final FileUtils fileUtils) {
-        super(provider, fileUtils);
+    public GetObject() {
     }
 
     @Override
@@ -81,7 +80,7 @@ public class GetObject extends CliCommand<GetObjectResult> {
     }
 
     @Override
-    public GetObjectResult call() throws Exception {
+    public DefaultResult call() throws Exception {
         try {
             final Ds3ClientHelpers helpers = getClientHelpers();
             final Path filePath = Paths.get(this.prefix, this.objectName);
@@ -91,14 +90,14 @@ public class GetObject extends CliCommand<GetObjectResult> {
             if (this.sync && Utils.fileExists(filePath)) {
                 if (SyncUtils.needToSync(helpers, this.bucketName, filePath, ds3Obj.getName(), false)) {
                     this.Transfer(helpers, ds3Obj);
-                    return new GetObjectResult("SUCCESS: Finished syncing object.");
+                    return new DefaultResult("SUCCESS: Finished syncing object.");
                 } else {
-                    return new GetObjectResult("SUCCESS: No need to sync " + this.objectName);
+                    return new DefaultResult("SUCCESS: No need to sync " + this.objectName);
                 }
             }
 
             this.Transfer(helpers, ds3Obj);
-            return new GetObjectResult("SUCCESS: Finished downloading object.  The object was written to: " + filePath);
+            return new DefaultResult("SUCCESS: Finished downloading object.  The object was written to: " + filePath);
         } catch (final FailedRequestException e) {
             switch (e.getStatusCode()) {
                 case 500:

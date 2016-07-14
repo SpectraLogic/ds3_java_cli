@@ -16,46 +16,44 @@
 package com.spectralogic.ds3cli.views.cli;
 
 import com.bethecoder.ascii_table.ASCIITable;
-import com.bethecoder.ascii_table.ASCIITableHeader;
 import com.google.common.collect.ImmutableList;
-import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.command.PutBulk;
 import com.spectralogic.ds3cli.models.PutBulkResult;
 import com.spectralogic.ds3client.utils.Guard;
 
 import static com.spectralogic.ds3cli.util.Utils.nullGuard;
 
-public class PutBulkView implements View<PutBulkResult> {
+public class PutBulkView extends TableView<PutBulkResult> {
+
+    protected ImmutableList<PutBulk.IgnoreFile> ignoreFileList;
+
     @Override
     public String render(final PutBulkResult result) {
         if (Guard.isNullOrEmpty(result.getIgnoredFiles())) {
             return result.getResult();
         }
 
+        this.ignoreFileList = result.getIgnoredFiles();
+
+        initTable(ImmutableList.of("Ignored File", "Reason"));
+
         return String.format("%s\n%s",
                 result.getResult(),
-                ASCIITable.getInstance().getTable(getHeaders(), formatIgnoreFileList(result.getIgnoredFiles())));
+                ASCIITable.getInstance().getTable(getHeaders(), formatTableContents()));
     }
 
-    private String[][] formatIgnoreFileList(final ImmutableList<PutBulk.IgnoreFile> immutableList) {
-        final String[][] ignoreFileList = new String[immutableList.size()][];
+    protected String[][] formatTableContents() {
+        final String[][] ignoreFileList = new String[this.ignoreFileList.size()][];
 
         int index = 0;
 
-        for (final PutBulk.IgnoreFile ignoreFile : immutableList) {
-            final String[] arrayEntry = new String[2];
+        for (final PutBulk.IgnoreFile ignoreFile : this.ignoreFileList) {
+            final String[] arrayEntry = new String[this.columnCount];
             arrayEntry[0] = nullGuard(ignoreFile.getPath());
             arrayEntry[1] = nullGuard(ignoreFile.getErrorMessage());
-            ignoreFileList[index] = arrayEntry;
-            index++;
+            ignoreFileList[index++] = arrayEntry;
         }
 
         return ignoreFileList;
-    }
-
-    private ASCIITableHeader[] getHeaders() {
-        return new ASCIITableHeader[]{
-                new ASCIITableHeader("Ignored File", ASCIITable.ALIGN_LEFT),
-                new ASCIITableHeader("Reason", ASCIITable.ALIGN_LEFT)};
     }
 }

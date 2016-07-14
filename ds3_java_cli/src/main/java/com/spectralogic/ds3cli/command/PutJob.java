@@ -17,7 +17,7 @@ package com.spectralogic.ds3cli.command;
 
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.exceptions.CommandException;
-import com.spectralogic.ds3cli.models.PutJobResult;
+import com.spectralogic.ds3cli.models.DefaultResult;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3client.commands.spectrads3.ModifyJobSpectraS3Request;
@@ -27,12 +27,13 @@ import org.apache.commons.cli.MissingOptionException;
 import java.io.IOException;
 import java.util.UUID;
 
-public class PutJob extends CliCommand<PutJobResult> {
+public class PutJob extends CliCommand<DefaultResult> {
 
     private UUID jobId;
     private Priority priority;
 
-    public PutJob(final Ds3Provider provider, final FileUtils fileUtils) { super(provider, fileUtils); }
+    public PutJob() {
+    }
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
@@ -45,7 +46,7 @@ public class PutJob extends CliCommand<PutJobResult> {
     }
 
     @Override
-    public PutJobResult call() throws Exception {
+    public DefaultResult call() throws Exception {
         try {
             final ModifyJobSpectraS3Request request = new ModifyJobSpectraS3Request(jobId);
             if (priority != null) {
@@ -60,6 +61,6 @@ public class PutJob extends CliCommand<PutJobResult> {
         if (priority != null) {
             result = result.concat(" with priority " + priority.toString());
         }
-        return new PutJobResult(result + ".");
+        return new DefaultResult(result + ".");
     }
 }

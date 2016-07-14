@@ -20,6 +20,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.spectralogic.ds3cli.Arguments;
+import com.spectralogic.ds3cli.View;
+import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.exceptions.BadArgumentException;
 import com.spectralogic.ds3cli.exceptions.SyncNotSupportedException;
 import com.spectralogic.ds3cli.models.PutBulkResult;
@@ -63,8 +65,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
     private ImmutableMap<String, String> mapNormalizedObjectNameToObjectName = null;
     private boolean followSymlinks;
 
-    public PutBulk(final Ds3Provider provider, final FileUtils fileUtils) {
-        super(provider, fileUtils);
+    public PutBulk() {
     }
 
     @Override
@@ -205,11 +206,19 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         return map.build();
     }
 
+    @Override
+    public View<PutBulkResult> getView(final ViewType viewType) {
+        if (viewType == ViewType.JSON) {
+            return new com.spectralogic.ds3cli.views.json.PutBulkView();
+        }
+        return new com.spectralogic.ds3cli.views.cli.PutBulkView();
+    }
+    
     private static class SyncFilter implements FilteringIterable.FilterFunction<Path> {
 
         private final String prefix;
         private final Path inputDirectory;
-        private ImmutableMap<String, Contents> mapBucketFiles;
+        private final ImmutableMap<String, Contents> mapBucketFiles;
 
         public SyncFilter(final String prefix, final Path inputDirectory, final Ds3ClientHelpers helpers, final String bucketName) throws IOException, SignatureException {
             this.prefix = prefix;

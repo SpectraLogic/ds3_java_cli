@@ -16,6 +16,8 @@
 package com.spectralogic.ds3cli.command;
 
 import com.spectralogic.ds3cli.Arguments;
+import com.spectralogic.ds3cli.View;
+import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.GetDataPoliciesResult;
 import com.spectralogic.ds3cli.util.Ds3Provider;
@@ -34,8 +36,7 @@ public class GetDataPolicy extends CliCommand<GetDataPoliciesResult> {
     // name or guid
     private String policyId;
 
-    public GetDataPolicy(final Ds3Provider provider, final FileUtils fileUtils) {
-        super(provider, fileUtils);
+    public GetDataPolicy() {
     }
 
     @Override
@@ -56,5 +57,13 @@ public class GetDataPolicy extends CliCommand<GetDataPoliciesResult> {
         } catch (final FailedRequestException e) {
             throw new CommandException("Failed Get Data Policies", e);
         }
+    }
+
+    @Override
+    public View<GetDataPoliciesResult> getView(final ViewType viewType) {
+        if (viewType == ViewType.JSON) {
+            return new com.spectralogic.ds3cli.views.json.GetDataPoliciesView();
+        }
+        return new com.spectralogic.ds3cli.views.cli.GetDataPoliciesView();
     }
 }

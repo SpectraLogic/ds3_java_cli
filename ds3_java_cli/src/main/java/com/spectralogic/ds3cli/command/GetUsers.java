@@ -16,13 +16,12 @@
 package com.spectralogic.ds3cli.command;
 
 import com.spectralogic.ds3cli.Arguments;
+import com.spectralogic.ds3cli.View;
+import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.exceptions.CommandException;
-import com.spectralogic.ds3cli.models.GetDataPoliciesResult;
 import com.spectralogic.ds3cli.models.GetUsersResult;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
-import com.spectralogic.ds3client.commands.spectrads3.GetDataPoliciesSpectraS3Request;
-import com.spectralogic.ds3client.commands.spectrads3.GetDataPoliciesSpectraS3Response;
 import com.spectralogic.ds3client.commands.spectrads3.GetUsersSpectraS3Request;
 import com.spectralogic.ds3client.commands.spectrads3.GetUsersSpectraS3Response;
 import com.spectralogic.ds3client.networking.FailedRequestException;
@@ -33,8 +32,7 @@ import java.security.SignatureException;
 
 public class GetUsers extends CliCommand<GetUsersResult> {
 
-    public GetUsers(final Ds3Provider provider, final FileUtils fileUtils) {
-        super(provider, fileUtils);
+    public GetUsers() {
     }
 
     @Override
@@ -51,5 +49,13 @@ public class GetUsers extends CliCommand<GetUsersResult> {
         } catch (final FailedRequestException e) {
             throw new CommandException("Failed to Get Users", e);
         }
+    }
+
+    @Override
+    public View<GetUsersResult> getView(final ViewType viewType) {
+        if (viewType == ViewType.JSON) {
+            return new com.spectralogic.ds3cli.views.json.GetUsersView();
+        }
+        return new com.spectralogic.ds3cli.views.cli.GetUsersView();
     }
 }

@@ -16,8 +16,7 @@
 package com.spectralogic.ds3cli.views.cli;
 
 import com.bethecoder.ascii_table.ASCIITable;
-import com.bethecoder.ascii_table.ASCIITableHeader;
-import com.spectralogic.ds3cli.View;
+import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3cli.models.GetObjectsOnTapeResult;
 import com.spectralogic.ds3client.models.BulkObject;
 
@@ -28,23 +27,29 @@ import java.util.List;
 import static com.spectralogic.ds3cli.util.Utils.nullGuard;
 import static com.spectralogic.ds3cli.util.Utils.nullGuardToString;
 
-public class GetObjectsOnTapeView implements View<GetObjectsOnTapeResult> {
+public class GetObjectsOnTapeView extends TableView<GetObjectsOnTapeResult> {
+
+    protected Iterator<BulkObject> objectIterator;
 
     @Override
     public String render(final GetObjectsOnTapeResult blobsResult) {
         if ((null == blobsResult.getObjIterator()) || !blobsResult.getObjIterator().hasNext()) {
             return "No objects were reported in tape '" + blobsResult.getTapeId() + "'";
         }
-        return ASCIITable.getInstance().getTable(getHeaders(), formatBucketList(blobsResult.getObjIterator()));
+        this.objectIterator = blobsResult.getObjIterator();
+
+        initTable(ImmutableList.of("Name","Size", "Id"));
+        setTableDataAlignment(ImmutableList.of(ASCIITable.ALIGN_LEFT, ASCIITable.ALIGN_RIGHT, ASCIITable.ALIGN_RIGHT));
+        return ASCIITable.getInstance().getTable(getHeaders(), formatTableContents());
     }
 
-    private String[][] formatBucketList(final Iterator<BulkObject> iterator) {
+    protected String[][] formatTableContents() {
         final List<String[]> contents = new ArrayList<>();
 
-        while(iterator.hasNext()) {
+        while(objectIterator.hasNext()) {
 
-            final BulkObject content = iterator.next();
-            final String[] arrayEntry = new String[3];
+            final BulkObject content = objectIterator.next();
+            final String[] arrayEntry = new String[this.columnCount];
             arrayEntry[0] = nullGuard(content.getName());
             arrayEntry[1] = nullGuardToString(content.getLength());
             arrayEntry[2] = nullGuardToString(content.getId());
@@ -52,13 +57,6 @@ public class GetObjectsOnTapeView implements View<GetObjectsOnTapeResult> {
         }
 
         return contents.toArray(new String[contents.size()][]);
-    }
-
-    private ASCIITableHeader[] getHeaders() {
-        return new ASCIITableHeader[]{
-                new ASCIITableHeader("Name", ASCIITable.ALIGN_LEFT),
-                new ASCIITableHeader("Size", ASCIITable.ALIGN_RIGHT),
-                new ASCIITableHeader("Id", ASCIITable.ALIGN_RIGHT)};
     }
 
 }

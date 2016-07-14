@@ -1,9 +1,7 @@
 package com.spectralogic.ds3cli.views.cli;
 
 import com.bethecoder.ascii_table.ASCIITable;
-import com.bethecoder.ascii_table.ASCIITableHeader;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.spectralogic.ds3cli.View;
+import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3cli.models.GetJobResult;
 import com.spectralogic.ds3client.models.BulkObject;
 import com.spectralogic.ds3client.models.MasterObjectList;
@@ -15,54 +13,53 @@ import java.util.Iterator;
 import java.util.TimeZone;
 
 import static com.spectralogic.ds3cli.util.Utils.nullGuard;
+import static com.spectralogic.ds3cli.util.Utils.nullGuardToDate;
+import static com.spectralogic.ds3cli.util.Utils.nullGuardToString;
 
-public class GetJobView implements View<GetJobResult> {
+public class GetJobView extends TableView<GetJobResult> {
+
+    protected Iterator<Objects> objectsIterator;
+
     @Override
-    public String render(final GetJobResult obj) throws JsonProcessingException {
+    public String render(final GetJobResult obj) {
 
         final MasterObjectList mol = obj.getJobDetails();
 
         final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
         DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
-        final String returnString = String.format("JobId: %s | Status: %s | Bucket: %s | Type: %s | Priority: %s | User Name: %s | Creation Date: %s | Total Size: %d | Total Transferred: %d",
-                mol.getJobId().toString(), mol.getStatus().toString(), mol.getBucketName(), mol.getRequestType().toString(), mol.getPriority().toString(), mol.getUserName().toString(),
-                DATE_FORMAT.format(mol.getStartDate()), mol.getOriginalSizeInBytes(), mol.getCompletedSizeInBytes());
+        final String returnString = String.format(
+                "JobId: %s | Status: %s | Bucket: %s | Type: %s | Priority: %s | User Name: %s | Creation Date: %s | Total Size: %s | Total Transferred: %s",
+                nullGuardToString(mol.getJobId()), nullGuardToString(mol.getStatus()), nullGuard(mol.getBucketName()),
+                nullGuardToString(mol.getRequestType()), nullGuardToString(mol.getPriority()), nullGuardToString(mol.getUserName()),
+                nullGuardToDate(mol.getStartDate(), DATE_FORMAT), nullGuardToString(mol.getOriginalSizeInBytes()),
+                nullGuardToString(mol.getCompletedSizeInBytes()));
 
         if (mol.getObjects() == null || mol.getObjects().isEmpty()) {
             return returnString;
         }
+        this.objectsIterator = mol.getObjects().iterator();
 
-        return returnString + "\n" + ASCIITable.getInstance().getTable(getHeaders(), formatJobDetails(obj.getJobDetails().getObjects().iterator()));
+        initTable(ImmutableList.of("File Name", "Size", "In Cache", "Chunk Number", "Chunk ID"));
+
+        return returnString + "\n" + ASCIITable.getInstance().getTable(getHeaders(), formatTableContents());
     }
 
-    private String[][] formatJobDetails(final Iterator<Objects> iterator) {
+    protected String[][] formatTableContents() {
         final ArrayList<String[]> contents = new ArrayList<>();
 
-        while (iterator.hasNext()) {
-            final Objects chunk = iterator.next();
+        while (this.objectsIterator.hasNext()) {
+            final Objects chunk = this.objectsIterator.next();
 
             for (final BulkObject obj : chunk.getObjects()) {
-                final String[] arrayEntry = new String[5];
-
+                final String[] arrayEntry = new String[this.columnCount];
                 arrayEntry[0] = nullGuard(obj.getName());
-                arrayEntry[1] = nullGuard(Long.toString(obj.getLength()));
-                arrayEntry[2] = nullGuard(Boolean.toString(obj.getInCache()));
-                arrayEntry[3] = nullGuard(Long.toString(chunk.getChunkNumber()));
-                arrayEntry[4] = nullGuard(chunk.getChunkId().toString());
-
+                arrayEntry[1] = nullGuardToString(obj.getLength());
+                arrayEntry[2] = nullGuardToString(obj.getInCache());
+                arrayEntry[3] = nullGuardToString(chunk.getChunkNumber());
+                arrayEntry[4] = nullGuardToString(chunk.getChunkId());
                 contents.add(arrayEntry);
             }
         }
-
         return contents.toArray(new String[contents.size()][]);
-    }
-
-    private ASCIITableHeader[] getHeaders() {
-        return new ASCIITableHeader[]{
-                new ASCIITableHeader("File Name", ASCIITable.ALIGN_LEFT),
-                new ASCIITableHeader("Size", ASCIITable.ALIGN_RIGHT),
-                new ASCIITableHeader("In Cache", ASCIITable.ALIGN_RIGHT),
-                new ASCIITableHeader("Chunk Number", ASCIITable.ALIGN_LEFT),
-                new ASCIITableHeader("Chunk ID", ASCIITable.ALIGN_RIGHT)};
     }
 }

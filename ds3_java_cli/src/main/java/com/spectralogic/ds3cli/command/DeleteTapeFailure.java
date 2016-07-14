@@ -17,7 +17,7 @@ package com.spectralogic.ds3cli.command;
 
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.exceptions.CommandException;
-import com.spectralogic.ds3cli.models.DeleteResult;
+import com.spectralogic.ds3cli.models.DefaultResult;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3client.commands.spectrads3.DeleteTapeFailureSpectraS3Request;
@@ -26,12 +26,11 @@ import org.apache.commons.cli.MissingArgumentException;
 import java.io.IOException;
 import java.util.UUID;
 
-public class DeleteTapeFailure extends CliCommand<DeleteResult> {
+public class DeleteTapeFailure extends CliCommand<DefaultResult> {
 
     private UUID id;
 
-    public DeleteTapeFailure(final Ds3Provider ds3Provider, final FileUtils fileUtils) {
-        super(ds3Provider, fileUtils);
+    public DeleteTapeFailure() {
     }
 
     @Override
@@ -47,7 +46,7 @@ public class DeleteTapeFailure extends CliCommand<DeleteResult> {
     }
 
     @Override
-    public DeleteResult call() throws Exception {
+    public DefaultResult call() throws Exception {
 
         try {
             this.getClient().deleteTapeFailureSpectraS3(new DeleteTapeFailureSpectraS3Request(id.toString()));
@@ -56,6 +55,6 @@ public class DeleteTapeFailure extends CliCommand<DeleteResult> {
             throw new CommandException("Error: Request failed with the following error: " + e.getMessage(), e);
         }
 
-        return new DeleteResult("Success: Deleted tape failure Id: " + id.toString());
+        return new DefaultResult("Success: Deleted tape failure Id: " + id.toString());
     }
 }

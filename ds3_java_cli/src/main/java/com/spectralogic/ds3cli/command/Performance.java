@@ -4,7 +4,7 @@ import com.google.common.collect.Lists;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.exceptions.CommandException;
-import com.spectralogic.ds3cli.models.PerformanceResult;
+import com.spectralogic.ds3cli.models.DefaultResult;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3cli.util.MemoryObjectChannelBuilder;
@@ -22,13 +22,11 @@ import com.spectralogic.ds3client.serializer.XmlProcessingException;
 import org.apache.commons.cli.MissingOptionException;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.channels.SeekableByteChannel;
 import java.security.SignatureException;
 import java.util.List;
 
 
-public class PerformanceCommand extends CliCommand<PerformanceResult> {
+public class Performance extends CliCommand<DefaultResult> {
 
     private String bucketName;
     private String numberOfFiles;
@@ -37,8 +35,7 @@ public class PerformanceCommand extends CliCommand<PerformanceResult> {
     private int numberOfThreads;
     private boolean doNotDelete;
 
-    public PerformanceCommand(final Ds3Provider provider, final FileUtils fileUtils) {
-        super(provider, fileUtils);
+    public Performance() {
     }
 
     @Override
@@ -69,7 +66,7 @@ public class PerformanceCommand extends CliCommand<PerformanceResult> {
     }
 
     @Override
-    public PerformanceResult call() throws Exception {
+    public DefaultResult call() throws Exception {
         final Ds3ClientHelpers helpers = Ds3ClientHelpers.wrap(getClient());
         final int numberOfFiles = Integer.valueOf(this.numberOfFiles);
         final long sizeOfFiles = Integer.valueOf(this.sizeOfFiles);
@@ -97,7 +94,7 @@ public class PerformanceCommand extends CliCommand<PerformanceResult> {
         } finally {
             if (!doNotDelete) deleteAllContents(getClient(), this.bucketName);
         }
-        return new PerformanceResult("Done!");
+        return new DefaultResult("Done!");
     }
 
     private List<Ds3Object> getDs3Objects(final int numberOfFiles, final long sizeOfFiles) {

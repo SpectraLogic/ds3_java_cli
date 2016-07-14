@@ -12,20 +12,16 @@
  *   specific language governing permissions and limitations under the License.
  * ****************************************************************************
  */
-
 package com.spectralogic.ds3cli.models;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+public class DefaultResult implements Result {
+    private final String result;
 
-public class GetBulkResult implements Result {
-    @JsonProperty("status_message")
-    final private String result;
-
-    final public String getResult(){
-        return this.result;
+    public DefaultResult(final String result) {
+        this.result = result;
     }
 
-    public GetBulkResult(final String result){
-        this.result = result;
+    public String getResult() {
+        return result;
     }
 }

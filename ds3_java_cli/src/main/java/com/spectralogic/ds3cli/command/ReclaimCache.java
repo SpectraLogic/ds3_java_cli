@@ -17,20 +17,15 @@ package com.spectralogic.ds3cli.command;
 
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.exceptions.CommandException;
-import com.spectralogic.ds3cli.models.DeleteResult;
+import com.spectralogic.ds3cli.models.DefaultResult;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
-import com.spectralogic.ds3client.commands.spectrads3.DeletePermanentlyLostTapeSpectraS3Request;
 import com.spectralogic.ds3client.commands.spectrads3.ForceFullCacheReclaimSpectraS3Request;
-import org.apache.commons.cli.MissingArgumentException;
 
 import java.io.IOException;
 
-public class ReclaimCache extends CliCommand<DeleteResult> {
-
-
-    public ReclaimCache(final Ds3Provider ds3Provider, final FileUtils fileUtils) {
-        super(ds3Provider, fileUtils);
+public class ReclaimCache extends CliCommand<DefaultResult> {
+    public ReclaimCache() {
     }
 
     @Override
@@ -39,7 +34,7 @@ public class ReclaimCache extends CliCommand<DeleteResult> {
     }
 
     @Override
-    public DeleteResult call() throws Exception {
+    public DefaultResult call() throws Exception {
 
         try {
             this.getClient().forceFullCacheReclaimSpectraS3(new ForceFullCacheReclaimSpectraS3Request());
@@ -48,6 +43,6 @@ public class ReclaimCache extends CliCommand<DeleteResult> {
             throw new CommandException("Error: Request failed with the following error: " + e.getMessage(), e);
         }
 
-        return new DeleteResult("Success: Forced Reclaim of Cache");
+        return new DefaultResult("Success: Forced Reclaim of Cache");
     }
 }

@@ -16,6 +16,9 @@
 package com.spectralogic.ds3cli.command;
 
 import com.spectralogic.ds3cli.Arguments;
+import com.spectralogic.ds3cli.View;
+
+import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.GetServiceResult;
 import com.spectralogic.ds3cli.util.Ds3Provider;
@@ -30,8 +33,7 @@ import java.security.SignatureException;
 
 public class GetService extends CliCommand<GetServiceResult> {
 
-    public GetService(final Ds3Provider provider, final FileUtils fileUtils) {
-        super(provider, fileUtils);
+    public GetService() {
     }
 
     @Override
@@ -48,5 +50,13 @@ public class GetService extends CliCommand<GetServiceResult> {
         } catch (final FailedRequestException e) {
             throw new CommandException("Failed Get Service", e);
         }
+    }
+
+    @Override
+    public View<GetServiceResult> getView(final ViewType viewType) {
+        if (viewType == ViewType.JSON) {
+            return new com.spectralogic.ds3cli.views.json.GetServiceView();
+        }
+        return new com.spectralogic.ds3cli.views.cli.GetServiceView();
     }
 }

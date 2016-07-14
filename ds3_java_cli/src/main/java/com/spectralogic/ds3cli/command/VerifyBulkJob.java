@@ -16,6 +16,8 @@
 package com.spectralogic.ds3cli.command;
 
 import com.spectralogic.ds3cli.Arguments;
+import com.spectralogic.ds3cli.View;
+import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.VerifyBulkJobResult;
 import com.spectralogic.ds3cli.util.*;
@@ -36,8 +38,7 @@ public class VerifyBulkJob extends CliCommand<VerifyBulkJobResult> {
     private String bucketName;
     private String prefix;
 
-    public VerifyBulkJob(final Ds3Provider provider, final FileUtils fileUtils) {
-        super(provider, fileUtils);
+    public VerifyBulkJob() {
     }
 
     @Override
@@ -92,4 +93,12 @@ public class VerifyBulkJob extends CliCommand<VerifyBulkJobResult> {
         }
     }
 
+    @Override
+    public View<VerifyBulkJobResult> getView(final ViewType viewType) {
+        if (viewType == ViewType.JSON) {
+            return new com.spectralogic.ds3cli.views.json.VerifyBulkJobView();
+        }
+        return new com.spectralogic.ds3cli.views.cli.VerifyBulkJobView();
+    }
 }
+    

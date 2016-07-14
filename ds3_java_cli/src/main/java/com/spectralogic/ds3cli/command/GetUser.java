@@ -16,13 +16,12 @@
 package com.spectralogic.ds3cli.command;
 
 import com.spectralogic.ds3cli.Arguments;
+import com.spectralogic.ds3cli.View;
+import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.exceptions.CommandException;
-import com.spectralogic.ds3cli.models.GetDataPoliciesResult;
 import com.spectralogic.ds3cli.models.GetUsersResult;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
-import com.spectralogic.ds3client.commands.spectrads3.GetDataPolicySpectraS3Request;
-import com.spectralogic.ds3client.commands.spectrads3.GetDataPolicySpectraS3Response;
 import com.spectralogic.ds3client.commands.spectrads3.GetUserSpectraS3Request;
 import com.spectralogic.ds3client.commands.spectrads3.GetUserSpectraS3Response;
 import com.spectralogic.ds3client.networking.FailedRequestException;
@@ -38,8 +37,7 @@ public class GetUser extends CliCommand<GetUsersResult> {
     // name or guid
     private String userId;
 
-    public GetUser(final Ds3Provider provider, final FileUtils fileUtils) {
-        super(provider, fileUtils);
+    public GetUser() {
     }
 
     @Override
@@ -58,15 +56,21 @@ public class GetUser extends CliCommand<GetUsersResult> {
 
             return new GetUsersResult(response.getSpectraUserResult());
         } catch (final FailedRequestException e) {
-            if(e.getStatusCode() == 500) {
+            if (e.getStatusCode() == 500) {
                 throw new CommandException("Error: Cannot communicate with the remote DS3 appliance.", e);
-            }
-            else if(e.getStatusCode() == 404) {
+            } else if (e.getStatusCode() == 404) {
                 throw new CommandException("Unknown user: " + this.userId, e);
-            }
-            else {
-                throw new CommandException("Encountered an unknown error of ("+ e.getStatusCode() +") while accessing the remote DS3 appliance.", e);
+            } else {
+                throw new CommandException("Encountered an unknown error of (" + e.getStatusCode() + ") while accessing the remote DS3 appliance.", e);
             }
         }
+    }
+
+    @Override
+    public View<GetUsersResult> getView(final ViewType viewType) {
+        if (viewType == ViewType.JSON) {
+            return new com.spectralogic.ds3cli.views.json.GetUsersView();
+        }
+        return new com.spectralogic.ds3cli.views.cli.GetUsersView();
     }
 }

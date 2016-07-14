@@ -16,50 +16,51 @@
 package com.spectralogic.ds3cli.views.cli;
 
 import com.bethecoder.ascii_table.ASCIITable;
-import com.bethecoder.ascii_table.ASCIITableHeader;
-import com.spectralogic.ds3cli.View;
+import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3cli.models.GetServiceResult;
 import com.spectralogic.ds3client.models.BucketDetails;
 import com.spectralogic.ds3client.models.ListAllMyBucketsResult;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.TimeZone;
 
 import static com.spectralogic.ds3cli.util.Utils.nullGuard;
+import static com.spectralogic.ds3cli.util.Utils.nullGuardToDate;
 
-public class GetServiceView implements View<GetServiceResult> {
+public class GetServiceView extends TableView<GetServiceResult> {
+    protected Iterator<BucketDetails> objectIterator;
+
     @Override
     public String render(final GetServiceResult obj) {
         final ListAllMyBucketsResult result = obj.getResult();
         if( (result == null) || (null == result.getBuckets()) ){
             return "You do not have any buckets";
         }
+        this.objectIterator = result.getBuckets().iterator();
+
+        initTable(ImmutableList.of("Bucket Name", "Creation Date"));
 
         return "Owner: " + result.getOwner().getDisplayName() + "\n" +
-            ASCIITable.getInstance().getTable(getHeaders(), formatBucketList(result));
+            ASCIITable.getInstance().getTable(getHeaders(), formatTableContents());
     }
 
-    private String[][] formatBucketList(final ListAllMyBucketsResult result) {
-        final List<BucketDetails> buckets = result.getBuckets();
-        final String [][] formatArray = new String[buckets.size()][];
-        for(int i = 0; i < buckets.size(); i ++) {
-            final BucketDetails bucket = buckets.get(i);
-            final String [] bucketArray = new String[2];
-            bucketArray[0] = nullGuard(bucket.getName());
+    protected String[][] formatTableContents() {
+        final List<String[]> contents = new ArrayList<>();
 
+        while(objectIterator.hasNext()) {
+
+            final BucketDetails bucket = objectIterator.next();
+            final String[] bucketArray = new String[this.columnCount];
+            bucketArray[0] = nullGuard(bucket.getName());
             final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
             DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
-            bucketArray[1] = DATE_FORMAT.format(bucket.getCreationDate());
-            formatArray[i] = bucketArray;
+            bucketArray[1] = nullGuardToDate(bucket.getCreationDate(),DATE_FORMAT);
+            contents.add(bucketArray);
         }
-        return formatArray;
+        return contents.toArray(new String[contents.size()][]);
     }
 
-    private ASCIITableHeader[] getHeaders() {
-        return new ASCIITableHeader[]{
-                new ASCIITableHeader("Bucket Name", ASCIITable.ALIGN_LEFT),
-                new ASCIITableHeader("Creation Date", ASCIITable.ALIGN_RIGHT)
-        };
-    }
 }

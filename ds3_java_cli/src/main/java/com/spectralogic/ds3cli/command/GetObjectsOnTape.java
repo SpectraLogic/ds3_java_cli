@@ -16,6 +16,8 @@
 package com.spectralogic.ds3cli.command;
 
 import com.spectralogic.ds3cli.Arguments;
+import com.spectralogic.ds3cli.View;
+import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.GetObjectsOnTapeResult;
 import com.spectralogic.ds3cli.util.Ds3Provider;
@@ -28,8 +30,6 @@ import org.apache.commons.cli.MissingOptionException;
 
 import java.io.IOException;
 import java.security.SignatureException;
-import java.util.UUID;
-import static com.spectralogic.ds3cli.util.Utils.nullGuardToString;
 
 
 public class GetObjectsOnTape extends CliCommand<GetObjectsOnTapeResult> {
@@ -37,8 +37,7 @@ public class GetObjectsOnTape extends CliCommand<GetObjectsOnTapeResult> {
     // Barcode or tape ID
     private String tapeId;
 
-    public GetObjectsOnTape(final Ds3Provider provider, final FileUtils fileUtils) {
-        super(provider, fileUtils);
+    public GetObjectsOnTape() {
     }
 
     @Override
@@ -70,4 +69,13 @@ public class GetObjectsOnTape extends CliCommand<GetObjectsOnTapeResult> {
             }
         }
     }
+
+    @Override
+    public View<GetObjectsOnTapeResult> getView(final ViewType viewType) {
+        if (viewType == ViewType.JSON) {
+            return new com.spectralogic.ds3cli.views.json.GetObjectsOnTapeView();
+        }
+        return new com.spectralogic.ds3cli.views.cli.GetObjectsOnTapeView();
+    }
 }
+    

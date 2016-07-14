@@ -20,14 +20,13 @@ import com.spectralogic.ds3client.models.SpectraUser;
 import com.spectralogic.ds3client.models.SpectraUserList;
 import com.spectralogic.ds3client.utils.Guard;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
 public class GetUsersResult implements Result {
 
-    private SpectraUserList spectraUserListResult;
+    private final SpectraUserList spectraUserListResult;
 
     public GetUsersResult(final SpectraUserList users) {
         this.spectraUserListResult = users;

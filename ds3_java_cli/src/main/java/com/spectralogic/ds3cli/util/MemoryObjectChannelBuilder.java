@@ -21,7 +21,7 @@ import java.nio.channels.SeekableByteChannel;
 
 /**
  * THIS CLASS DISCARDS ALL INCOMING RESTORE DATA!
- * Good for testing, bad for general customer applciations.
+ * Good for testing, bad for general customer applications.
  *
  * Reading from this provides all 1's
  */

@@ -20,7 +20,7 @@ import com.google.common.collect.Lists;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.exceptions.BadArgumentException;
 import com.spectralogic.ds3cli.exceptions.SyncNotSupportedException;
-import com.spectralogic.ds3cli.models.PutObjectResult;
+import com.spectralogic.ds3cli.models.DefaultResult;
 import com.spectralogic.ds3cli.util.*;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
@@ -39,7 +39,7 @@ import java.nio.file.StandardOpenOption;
 import java.security.SignatureException;
 import java.util.Map;
 
-public class PutObject extends CliCommand<PutObjectResult> {
+public class PutObject extends CliCommand<DefaultResult> {
 
     private final static Logger LOG = LoggerFactory.getLogger(PutObject.class);
 
@@ -52,8 +52,7 @@ public class PutObject extends CliCommand<PutObjectResult> {
     private int numberOfThreads;
     private ImmutableMap<String, String> metadata;
 
-    public PutObject(final Ds3Provider provider, final FileUtils fileUtils) {
-        super(provider, fileUtils);
+    public PutObject() {
     }
 
     @Override
@@ -99,7 +98,7 @@ public class PutObject extends CliCommand<PutObjectResult> {
     }
 
     @Override
-    public PutObjectResult call() throws Exception {
+    public DefaultResult call() throws Exception {
         final Ds3ClientHelpers helpers = getClientHelpers();
         final Ds3Object ds3Obj = new Ds3Object(Utils.normalizeObjectName(this.objectName), getFileUtils().size(this.objectPath));
 
@@ -113,19 +112,19 @@ public class PutObject extends CliCommand<PutObjectResult> {
 
         if (this.sync) {
             if (!SyncUtils.isSyncSupported(getClient())) {
-                return new PutObjectResult("Failed: The sync command is not supported with your version of BlackPearl.");
+                return new DefaultResult("Failed: The sync command is not supported with your version of BlackPearl.");
             }
 
             if (SyncUtils.needToSync(helpers, this.bucketName, this.objectPath, ds3Obj.getName(), true)) {
                 this.transfer(helpers, ds3Obj);
-                return new PutObjectResult("Success: Finished syncing file to ds3 appliance.");
+                return new DefaultResult("Success: Finished syncing file to ds3 appliance.");
             } else {
-                return new PutObjectResult("Success: No need to sync " + this.objectName);
+                return new DefaultResult("Success: No need to sync " + this.objectName);
             }
         }
 
         this.transfer(helpers, ds3Obj);
-        return new PutObjectResult("Success: Finished writing file to ds3 appliance.");
+        return new DefaultResult("Success: Finished writing file to ds3 appliance.");
     }
 
     private void transfer(final Ds3ClientHelpers helpers, final Ds3Object ds3Obj) throws SignatureException, IOException, XmlProcessingException {

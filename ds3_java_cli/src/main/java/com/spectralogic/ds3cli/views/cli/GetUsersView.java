@@ -16,38 +16,39 @@
 package com.spectralogic.ds3cli.views.cli;
 
 import com.bethecoder.ascii_table.ASCIITable;
-import com.bethecoder.ascii_table.ASCIITableHeader;
-import com.spectralogic.ds3cli.View;
+import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3cli.models.GetUsersResult;
-import com.spectralogic.ds3client.commands.spectrads3.GetUsersSpectraS3Response;
-import com.spectralogic.ds3client.models.DataPolicy;
 import com.spectralogic.ds3client.models.SpectraUser;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.TimeZone;
 
-import static com.spectralogic.ds3cli.util.Utils.nullGuardToDate;
 import static com.spectralogic.ds3cli.util.Utils.nullGuardToString;
 
-public class GetUsersView implements View<GetUsersResult> {
+public class GetUsersView extends TableView<GetUsersResult> {
+
+    protected Iterator<SpectraUser> objectIterator;
 
     @Override
     public String render(final GetUsersResult usersResult) {
         if ((null == usersResult.getObjIterator()) || !usersResult.getObjIterator().hasNext()) {
             return "No Users returned." ;
         }
-        return ASCIITable.getInstance().getTable(getHeaders(), formatUsersList(usersResult.getObjIterator()));
+
+        this.objectIterator = usersResult.getObjIterator();
+
+        initTable(ImmutableList.of("Name", "Secret Key", "Id", "Default Data Policy Id", "Authorization Id"));
+        setTableDataAlignment(ImmutableList.of(ASCIITable.ALIGN_LEFT, ASCIITable.ALIGN_LEFT, ASCIITable.ALIGN_RIGHT, ASCIITable.ALIGN_RIGHT, ASCIITable.ALIGN_RIGHT));
+        return ASCIITable.getInstance().getTable(getHeaders(), formatTableContents());
     }
 
-    private String[][] formatUsersList(final Iterator<SpectraUser> iterator) {
+    protected String[][] formatTableContents() {
         final List<String[]> contents = new ArrayList<>();
 
-        while(iterator.hasNext()) {
-            final SpectraUser content = iterator.next();
-            final String[] arrayEntry = new String[5];
+        while(this.objectIterator.hasNext()) {
+            final SpectraUser content = this.objectIterator.next();
+            final String[] arrayEntry = new String[this.columnCount];
             arrayEntry[0] = nullGuardToString(content.getName());
             arrayEntry[1] = nullGuardToString(content.getSecretKey());
             arrayEntry[2] = nullGuardToString(content.getId());
@@ -57,15 +58,5 @@ public class GetUsersView implements View<GetUsersResult> {
             contents.add(arrayEntry);
         }
         return contents.toArray(new String[contents.size()][]);
-    }
-
-    private ASCIITableHeader[] getHeaders() {
-        return new ASCIITableHeader[]{
-                new ASCIITableHeader("Name", ASCIITable.ALIGN_LEFT),
-                new ASCIITableHeader("Secret Key", ASCIITable.ALIGN_LEFT),
-                new ASCIITableHeader("Id", ASCIITable.ALIGN_RIGHT),
-                new ASCIITableHeader("Default Data Policy Id", ASCIITable.ALIGN_RIGHT),
-                new ASCIITableHeader("Authorization Id", ASCIITable.ALIGN_RIGHT),
-        };
     }
 }

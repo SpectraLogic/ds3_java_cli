@@ -1,6 +1,8 @@
 package com.spectralogic.ds3cli.command;
 
 import com.spectralogic.ds3cli.Arguments;
+import com.spectralogic.ds3cli.View;
+import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.models.HeadObjectResult;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
@@ -13,8 +15,7 @@ public class HeadObject extends CliCommand<HeadObjectResult> {
     private String objectName;
     private String bucketName;
 
-    public HeadObject(final Ds3Provider ds3Provider, final FileUtils fileUtils) {
-        super(ds3Provider, fileUtils);
+    public HeadObject() {
     }
 
     @Override
@@ -36,5 +37,13 @@ public class HeadObject extends CliCommand<HeadObjectResult> {
     public HeadObjectResult call() throws Exception {
         final HeadObjectResponse result = getClient().headObject(new HeadObjectRequest(bucketName, objectName));
         return new HeadObjectResult(result);
+    }
+
+    @Override
+    public View<HeadObjectResult> getView(final ViewType viewType) {
+        if (viewType == ViewType.JSON) {
+            return new com.spectralogic.ds3cli.views.json.HeadObjectView();
+        }
+        return new com.spectralogic.ds3cli.views.cli.HeadObjectView();
     }
 }

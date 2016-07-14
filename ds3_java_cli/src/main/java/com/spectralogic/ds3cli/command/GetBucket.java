@@ -17,6 +17,8 @@ package com.spectralogic.ds3cli.command;
 
 
 import com.spectralogic.ds3cli.Arguments;
+import com.spectralogic.ds3cli.View;
+import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.GetBucketResult;
 import com.spectralogic.ds3cli.util.Ds3Provider;
@@ -31,8 +33,8 @@ import java.util.Iterator;
 public class GetBucket extends CliCommand<GetBucketResult> {
     private String bucketName;
     private String prefix;
-    public GetBucket(final Ds3Provider provider, final FileUtils fileUtils) {
-        super(provider, fileUtils);
+
+    public GetBucket() {
     }
 
     @Override
@@ -75,5 +77,13 @@ public class GetBucket extends CliCommand<GetBucketResult> {
                 throw new CommandException("Error: Encountered an unknown error of ("+ e.getStatusCode() +") while accessing the remote DS3 appliance.", e);
             }
         }
+    }
+
+    @Override
+    public View<GetBucketResult> getView(final ViewType viewType) {
+        if (viewType == ViewType.JSON) {
+            return new com.spectralogic.ds3cli.views.json.GetBucketView();
+        }
+        return new com.spectralogic.ds3cli.views.cli.GetBucketView();
     }
 }

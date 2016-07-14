@@ -16,6 +16,8 @@
 package com.spectralogic.ds3cli.command;
 
 import com.spectralogic.ds3cli.Arguments;
+import com.spectralogic.ds3cli.View;
+import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.GetTapesWithFullDetailsResult;
 import com.spectralogic.ds3cli.util.Ds3Provider;
@@ -25,8 +27,8 @@ import com.spectralogic.ds3client.commands.spectrads3.GetTapesWithFullDetailsSpe
 import com.spectralogic.ds3client.networking.FailedRequestException;
 
 public class GetTapes extends CliCommand<GetTapesWithFullDetailsResult> {
-    public GetTapes(final Ds3Provider ds3Provider, final FileUtils fileUtils) {
-        super(ds3Provider, fileUtils);
+
+    public GetTapes() {
     }
 
     @Override
@@ -42,5 +44,13 @@ public class GetTapes extends CliCommand<GetTapesWithFullDetailsResult> {
         } catch (final FailedRequestException e) {
             throw new CommandException("Failed Get Tapes", e);
         }
+    }
+
+    @Override
+    public View<GetTapesWithFullDetailsResult> getView(final ViewType viewType) {
+        if (viewType == ViewType.JSON) {
+            return new com.spectralogic.ds3cli.views.json.GetTapesWithFullDetailsView();
+        }
+        return new com.spectralogic.ds3cli.views.cli.GetTapesWithFullDetailsView();
     }
 }

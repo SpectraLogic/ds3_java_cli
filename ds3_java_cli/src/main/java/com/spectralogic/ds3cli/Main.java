@@ -50,6 +50,9 @@ public class Main {
 
             final Ds3Provider provider = new Ds3ProviderImpl(client, Ds3ClientHelpers.wrap(client));
             final FileUtils fileUtils = new FileUtilsImpl();
+
+
+
             final Ds3Cli runner = new Ds3Cli(provider, arguments, fileUtils);
             final CommandResponse response = runner.call();
             System.out.println(response.getMessage());

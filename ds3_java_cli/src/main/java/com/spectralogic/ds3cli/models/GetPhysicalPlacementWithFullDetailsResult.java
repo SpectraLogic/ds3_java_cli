@@ -19,7 +19,7 @@ import com.spectralogic.ds3client.models.BulkObjectList;
 
 public class GetPhysicalPlacementWithFullDetailsResult implements Result {
 
-    private BulkObjectList bulkObjectListResult;
+    private final BulkObjectList bulkObjectListResult;
 
     public GetPhysicalPlacementWithFullDetailsResult(final BulkObjectList bulkObjectList) {
         this.bulkObjectListResult = bulkObjectList;
