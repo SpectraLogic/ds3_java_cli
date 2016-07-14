@@ -115,8 +115,7 @@ public class Ds3Cli implements Callable<CommandResponse> {
         return commands.toString();
     }
 
-    private Iterator<CliCommand> getAllCommands()
-    {
+    private Iterator<CliCommand> getAllCommands() {
         final ServiceLoader<CliCommand> loader =
                 ServiceLoader.load(CliCommand.class);
         return loader.iterator();

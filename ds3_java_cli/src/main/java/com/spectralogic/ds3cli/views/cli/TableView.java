@@ -34,7 +34,7 @@ public abstract class TableView<T extends Result> implements View<T> {
         // create the header
         this.header = new ASCIITableHeader[this.columnCount];
         for (int i = 0; i < this.columnCount; i++) {
-            header[i] = (new ASCIITableHeader(columnHeads.get(i), ASCIITable.ALIGN_LEFT));
+            header[i] = new ASCIITableHeader(columnHeads.get(i), ASCIITable.ALIGN_LEFT);
         }
     }
 
