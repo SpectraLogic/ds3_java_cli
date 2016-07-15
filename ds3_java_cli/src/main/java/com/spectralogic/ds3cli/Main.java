@@ -31,27 +31,32 @@ import org.slf4j.LoggerFactory;
 public class Main {
     private final static ch.qos.logback.classic.Logger LOG = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Main.class);
 
+    private static void configureLogging(final String consoleLevel, final String fileLevel) {
+        // turn root log wide open, filters will be set to argument levels
+        LOG.setLevel(Level.ALL);
+
+        final Appender fileAppender =  LOG.getAppender("LOGFILE");
+        final ch.qos.logback.classic.filter.ThresholdFilter fileFilter = new ThresholdFilter();
+        fileFilter.setLevel(consoleLevel);
+        fileFilter.setName(consoleLevel);
+        fileAppender.addFilter(fileFilter);
+        fileFilter.start();
+
+        final Appender consoleAppender =  LOG.getAppender("STDOUT");
+        final ch.qos.logback.classic.filter.ThresholdFilter consoleFilter = new ThresholdFilter();
+        consoleFilter.setLevel(fileLevel);
+        consoleFilter.setName(fileLevel);
+        consoleAppender.addFilter(consoleFilter);
+        consoleFilter.start();
+    }
+
     public static void main(final String[] args) {
 
         try {
             final Arguments arguments = new Arguments(args);
 
             // turn root log wide open, filters will be set to argument levels
-            LOG.setLevel(Level.ALL);
-
-            final Appender fileAppender =  LOG.getAppender("LOGFILE");
-            final ch.qos.logback.classic.filter.ThresholdFilter fileFilter = new ThresholdFilter();
-            fileFilter.setLevel(arguments.getFileLogLevel().toString());
-            fileFilter.setName(arguments.getFileLogLevel().toString());
-            fileAppender.addFilter(fileFilter);
-            fileFilter.start();
-
-            final Appender consoleAppender =  LOG.getAppender("STDOUT");
-            final ch.qos.logback.classic.filter.ThresholdFilter consoleFilter = new ThresholdFilter();
-            consoleFilter.setLevel(arguments.getConsoleLogLevel().toString());
-            consoleFilter.setName(arguments.getConsoleLogLevel().toString());
-            consoleAppender.addFilter(consoleFilter);
-            consoleFilter.start();
+            configureLogging(arguments.getFileLogLevel().toString(), arguments.getConsoleLogLevel().toString());
 
             LOG.info("Version: " + arguments.getVersion());
             LOG.info("Console log level: " + arguments.getConsoleLogLevel().toString());
