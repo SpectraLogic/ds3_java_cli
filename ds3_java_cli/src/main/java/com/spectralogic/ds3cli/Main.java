@@ -15,6 +15,9 @@
 
 package com.spectralogic.ds3cli;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.filter.ThresholdFilter;
+import ch.qos.logback.core.Appender;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3cli.util.Utils;
@@ -23,16 +26,42 @@ import com.spectralogic.ds3client.Ds3ClientBuilder;
 import com.spectralogic.ds3client.models.common.Credentials;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.networking.FailedRequestException;
-import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class Main {
+    private final static ch.qos.logback.classic.Logger LOG = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Main.class);
 
-    private final static Logger LOG = LoggerFactory.getLogger(Main.class);
+    private static void configureLogging(final String consoleLevel, final String fileLevel) {
+        // turn root log wide open, filters will be set to argument levels
+        LOG.setLevel(Level.ALL);
+
+        final Appender fileAppender =  LOG.getAppender("LOGFILE");
+        final ch.qos.logback.classic.filter.ThresholdFilter fileFilter = new ThresholdFilter();
+        fileFilter.setLevel(consoleLevel);
+        fileFilter.setName(consoleLevel);
+        fileAppender.addFilter(fileFilter);
+        fileFilter.start();
+
+        final Appender consoleAppender =  LOG.getAppender("STDOUT");
+        final ch.qos.logback.classic.filter.ThresholdFilter consoleFilter = new ThresholdFilter();
+        consoleFilter.setLevel(fileLevel);
+        consoleFilter.setName(fileLevel);
+        consoleAppender.addFilter(consoleFilter);
+        consoleFilter.start();
+    }
 
     public static void main(final String[] args) {
+
         try {
             final Arguments arguments = new Arguments(args);
+
+            // turn root log wide open, filters will be set to argument levels
+            configureLogging(arguments.getFileLogLevel().toString(), arguments.getConsoleLogLevel().toString());
+
+            LOG.info("Version: " + arguments.getVersion());
+            LOG.info("Console log level: " + arguments.getConsoleLogLevel().toString());
+            LOG.info("Log file log level: " + arguments.getFileLogLevel().toString());
+            LOG.info(arguments.getArgumentLog());
 
             if (arguments.isHelp()) {
                 // no need to connect to vend help
@@ -50,8 +79,6 @@ public class Main {
 
             final Ds3Provider provider = new Ds3ProviderImpl(client, Ds3ClientHelpers.wrap(client));
             final FileUtils fileUtils = new FileUtilsImpl();
-
-
 
             final Ds3Cli runner = new Ds3Cli(provider, arguments, fileUtils);
             final CommandResponse response = runner.call();
