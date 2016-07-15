@@ -22,8 +22,6 @@ import com.spectralogic.ds3cli.util.Metadata;
 import com.spectralogic.ds3client.models.Priority;
 import com.spectralogic.ds3client.models.WriteOptimization;
 import org.apache.commons.cli.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -33,7 +31,6 @@ import java.util.Properties;
 
 public class Arguments {
 
-    private final static Logger LOG = LoggerFactory.getLogger(Arguments.class);
     private final static String PROPERTY_FILE = "ds3_cli.properties";
 
     private final Options options;
@@ -72,8 +69,17 @@ public class Arguments {
     private boolean followSymlinks = false;
     private ImmutableMap<String, String> metadata = null;
     private ImmutableMap<String, String> modifyParams = null;
+    private Level consoleLogLevel;
+    private Level fileLogLevel;
+
+    // don't use Logger because teh user's [refebrnces are not yet set
+    // collect log info that will be logged by Main
+    private static StringBuilder argumentLog = new StringBuilder("Argument processing");
+    private void addToLog(String logItem) { argumentLog.append(" | " + logItem) ; }
+    public String getArgumentLog() { return argumentLog.toString(); }
 
     public Arguments(final String[] args) throws BadArgumentException, ParseException {
+
         this.loadProperties();
         this.args = args;
         this.options = new Options();
@@ -119,14 +125,23 @@ public class Arguments {
         insecure.setLongOpt("insecure");
         final Option version = new Option(null, "Print version information");
         version.setLongOpt("version");
-        final Option verbose = new Option(null, "Verbose output");
-        verbose.setLongOpt("verbose");
-        final Option debug = new Option(null, "Debug output.  If set takes precedence over the 'verbose' option");
-        debug.setLongOpt("debug");
-        final Option trace = new Option(null, "Trace output");
-        trace.setLongOpt("trace");
         final Option viewType = new Option(null, true, "Configure how the output should be displayed.  Possible values: [" + ViewType.valuesString() + "]");
         viewType.setLongOpt("output-format");
+        // console log level
+        final Option verbose = new Option(null, "Log output to console.");
+        verbose.setLongOpt("verbose");
+        final Option debug = new Option(null, "Debug (more verbose) output to console.");
+        debug.setLongOpt("debug");
+        final Option trace = new Option(null, "Trace (most verbose) output to console.");
+        trace.setLongOpt("trace");
+        // log file log level
+        final Option logVerbose = new Option(null, "Log output to log file.");
+        logVerbose.setLongOpt("log-verbose");
+        final Option logDebug = new Option(null, "Debug (more verbose) output to log file.");
+        logDebug.setLongOpt("log-debug");
+        final Option logTrace = new Option(null, "Trace (moset verbose) output to log file.");
+        logTrace.setLongOpt("log-trace");
+
         final Option completed = new Option(null, false, "Used with the command get_jobs to include the display of completed jobs");
         completed.setLongOpt("completed");
         final Option sync = new Option(null, false, "Copy only the newest files");
@@ -181,6 +196,9 @@ public class Arguments {
         this.options.addOption(verbose);
         this.options.addOption(debug);
         this.options.addOption(trace);
+        this.options.addOption(logVerbose);
+        this.options.addOption(logDebug);
+        this.options.addOption(logTrace);
         this.options.addOption(viewType);
         this.options.addOption(completed);
         this.options.addOption(sync);
@@ -203,22 +221,25 @@ public class Arguments {
 
         final List<String> missingArgs = new ArrayList<>();
 
-        final ch.qos.logback.classic.Logger rootLogger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
-
         if (cmd.hasOption("trace")) {
-            rootLogger.setLevel(Level.TRACE);
-            rootLogger.trace("Trace output enabled");
+            setConsoleLogLevel(Level.TRACE);
         } else if (cmd.hasOption("debug")) {
-            rootLogger.setLevel(Level.DEBUG);
-            rootLogger.debug("Debug output enabled");
+            setConsoleLogLevel(Level.DEBUG);
         } else if (cmd.hasOption("verbose")) {
-            rootLogger.setLevel(Level.INFO);
-            rootLogger.info("Verbose output enabled");
+            setConsoleLogLevel(Level.INFO);
         } else {
-            rootLogger.setLevel(Level.OFF);
+            setConsoleLogLevel(Level.OFF);
         }
 
-        rootLogger.info("Version: " + this.version);
+        if (cmd.hasOption("log-trace")) {
+            setFileLogLevel(Level.TRACE);
+        } else if (cmd.hasOption("log-debug")) {
+            setFileLogLevel(Level.DEBUG);
+        } else if (cmd.hasOption("log-verbose")) {
+            setFileLogLevel(Level.INFO);
+        } else {
+            setFileLogLevel(Level.OFF);
+        }
 
         if (cmd.hasOption('h')) {
             this.printHelp();
@@ -347,13 +368,13 @@ public class Arguments {
         final String proxy = System.getenv("http_proxy");
         if (proxy != null) {
             this.setProxy(proxy);
-            LOG.info("Proxy: %s", this.getProxy());
+            addToLog("Proxy: " + this.getProxy());
         }
 
         if (!missingArgs.isEmpty()) {
             throw new MissingOptionException(missingArgs);
         }
-        LOG.info("Access Key: " + this.getAccessKey() + " | Endpoint: " + this.getEndpoint());
+        addToLog("Access Key: " + this.getAccessKey() + " | Endpoint: " + this.getEndpoint());
 
         if (cmd.hasOption("sync")) {
             this.setSync(true);
@@ -442,7 +463,7 @@ public class Arguments {
                 this.buildDate = (String) props.get("build.date");
             } catch (final IOException e) {
                 System.err.println("Failed to load version property file.");
-                if (LOG.isInfoEnabled()) {
+                if (this.getConsoleLogLevel() != Level.OFF) {
                     e.printStackTrace();
                 }
             }
@@ -694,4 +715,12 @@ public class Arguments {
 
     void setHelp(final boolean help) { this.help = help; }
 
+    public Level getConsoleLogLevel() { return this.consoleLogLevel; }
+
+    void setConsoleLogLevel(Level console) {this.consoleLogLevel = console; }
+
+    public Level getFileLogLevel() { return this.fileLogLevel; }
+
+    void setFileLogLevel(Level file) {this.fileLogLevel = file; }
 }
+
