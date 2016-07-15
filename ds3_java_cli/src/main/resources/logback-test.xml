@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration debug="false">
 
-    <property name="CLI_HOME" value="./ds3logs" />
+    <!--<property name="CLI_HOME" value="./ds3logs" /> -->
 
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
@@ -12,7 +12,7 @@
             <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} +++ %msg%n</pattern>
         </encoder>
     </appender>
-
+    <!--
     <appender name="LOGFILE"
               class="ch.qos.logback.core.rolling.RollingFileAppender">
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
@@ -22,9 +22,7 @@
         <file>${CLI_HOME}/spectra.log</file>
 
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <!-- daily rollover -->
             <fileNamePattern>${CLI_HOME}/spectra.%d{yyyy-MM-dd}.log</fileNamePattern>
-            <!-- keep 30 days' worth of history capped at 3GB total size -->
             <maxHistory>30</maxHistory>
         </rollingPolicy>
 
@@ -35,15 +33,16 @@
         </encoder>
     </appender>
 
+    -->
     <logger name="com.spectralogic.ds3cli.Main" level="off"
             additivity="false">
         <level value="ALL" />
         <appender-ref ref="STDOUT" />
-        <appender-ref ref="LOGFILE" />
+        <!--<appender-ref ref="LOGFILE" />-->
     </logger>
 
     <root level="ALL">
         <appender-ref ref="STDOUT" />
-        <appender-ref ref="LOGFILE" />
+        <!--<appender-ref ref="LOGFILE" />-->
     </root>
 </configuration>

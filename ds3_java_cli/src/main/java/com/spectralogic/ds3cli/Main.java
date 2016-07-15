@@ -35,12 +35,14 @@ public class Main {
         // turn root log wide open, filters will be set to argument levels
         LOG.setLevel(Level.ALL);
 
+        /*
         final Appender fileAppender =  LOG.getAppender("LOGFILE");
         final ch.qos.logback.classic.filter.ThresholdFilter fileFilter = new ThresholdFilter();
         fileFilter.setLevel(consoleLevel);
         fileFilter.setName(consoleLevel);
         fileAppender.addFilter(fileFilter);
         fileFilter.start();
+        */
 
         final Appender consoleAppender =  LOG.getAppender("STDOUT");
         final ch.qos.logback.classic.filter.ThresholdFilter consoleFilter = new ThresholdFilter();
