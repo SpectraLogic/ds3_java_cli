@@ -187,7 +187,7 @@ public class Ds3Cli_Test {
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
         final CommandResponse result = cli.call();
-        assertThat(result.getMessage(), is("Failed Get Service"));
+        assertThat(result.getMessage(), is("Failed Get Service\n"));
         assertThat(result.getReturnCode(), is(1));
     }
 
@@ -839,7 +839,7 @@ public class Ds3Cli_Test {
     @Test
     public void getBulkWithBadArgs() throws Exception {
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_bulk", "-b", "bucketName", "-d", "targetdir", "--discard"});
-        final String expected = "Cannot set both directory and --discard";
+        final String expected = "Cannot set both directory and --discard\n";
 
         final Ds3ClientHelpers helpers = mock(Ds3ClientHelpers.class);
         final Ds3ClientHelpers.Job mockedGetJob = mock(Ds3ClientHelpers.Job.class);
@@ -1715,7 +1715,7 @@ public class Ds3Cli_Test {
     @Test
     public void modifyDataPolicyWithBadParam() throws Exception {
 
-        final String expected = "Unrecognized Data Policy parameter: cat";
+        final String expected = "Unrecognized Data Policy parameter: cat\n";
 
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "modify_data_policy", "-i", "fake",
                 "--modify-params",  "name:fred,blobbing_enabled:false,default_blob_size:1073741824,default_get_job_priority:HIGH,end_to_end_crc_required:false,rebuild_priority:LOW,versioning:NONE,cat:dog"});
