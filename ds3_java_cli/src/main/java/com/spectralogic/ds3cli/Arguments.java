@@ -72,10 +72,10 @@ public class Arguments {
     private Level consoleLogLevel;
     private Level fileLogLevel;
 
-    // don't use Logger because teh user's [refebrnces are not yet set
+    // don't use Logger because the user's preferences are not yet set
     // collect log info that will be logged by Main
     private static StringBuilder argumentLog = new StringBuilder("Argument processing");
-    private void addToLog(String logItem) { argumentLog.append(" | " + logItem) ; }
+    private void addToLog(final String logItem) { argumentLog.append(" | " + logItem) ; }
     public String getArgumentLog() { return argumentLog.toString(); }
 
     public Arguments(final String[] args) throws BadArgumentException, ParseException {
