@@ -2179,4 +2179,102 @@ public class Ds3Cli_Test {
         assertThat(result.getMessage(), is("Success: Forced Reclaim of Cache"));
         assertThat(result.getReturnCode(), is(0));
     }
+
+    @Test
+    public void getTapes() throws Exception {
+        final String expectedString =
+        "+----------+--------------------------------------+--------+------------------------------+------------------------+--------------------------------------+----------------------------+\n" +
+        "| Bar Code |                  ID                  |  State |         Last Modified        | Available Raw Capacity |               BucketID               | Assigned to Storage Domain |\n" +
+        "+----------+--------------------------------------+--------+------------------------------+------------------------+--------------------------------------+----------------------------+\n" +
+        "| 121552L6 | 52741a53-24d5-4391-87a9-9cce703d7ed7 | NORMAL | Wed Jun 29 14:24:35 MDT 2016 | 2408082046976          | N/A                                  | false                      |\n" +
+        "| 121553L6 | e9e2e2c8-813b-4adf-9ed9-c6f788084656 | NORMAL | Sun Jul 17 21:04:30 MDT 2016 | 2407684636672          | 5f02264b-b344-4bdd-88bd-7e87133bb0c9 | true                       |\n" +
+        "| 121555L6 | 8cb037d1-39aa-4f42-b27c-acbdf8b4c3c7 | NORMAL | Wed Jun 29 14:18:44 MDT 2016 | 2408082046976          | N/A                                  | false                      |\n" +
+        "| 122104L6 | b16a8737-8801-4658-971c-c67d6ae44773 | NORMAL | Sun Jul 17 21:07:26 MDT 2016 | 2407688830976          | 5f02264b-b344-4bdd-88bd-7e87133bb0c9 | true                       |\n" +
+        "+----------+--------------------------------------+--------+------------------------------+------------------------+--------------------------------------+----------------------------+\n";
+
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_tapes"});
+        final Ds3Client client = mock(Ds3Client.class);
+        final WebResponse webResponse = mock(WebResponse.class);
+        final InputStream stream = IOUtils.toInputStream("<Data><Tape>" +
+                "<AssignedToStorageDomain>false</AssignedToStorageDomain>" +
+                "<AvailableRawCapacity>2408082046976</AvailableRawCapacity>" +
+                "<BarCode>121552L6</BarCode><BucketId/><DescriptionForIdentification/>" +
+                "<EjectDate/><EjectLabel/><EjectLocation/><EjectPending/><FullOfData>false</FullOfData>" +
+                "<Id>52741a53-24d5-4391-87a9-9cce703d7ed7</Id><LastAccessed>2016-06-29T20:28:45.000Z</LastAccessed>" +
+                "<LastCheckpoint>6fc8a8c6-0b14-4ef6-a4ec-b7246028fa8e:2</LastCheckpoint><LastModified>2016-06-29T20:24:35.000Z</LastModified><LastVerified/>" +
+                "<PartitionId>f3a7b5dd-af2d-4dc3-84d9-6ac69fab135c</PartitionId><PreviousState/>" +
+                "<SerialNumber>HP-Y140125415</SerialNumber><State>NORMAL</State><StorageDomainId/>" +
+                "<TakeOwnershipPending>false</TakeOwnershipPending><TotalRawCapacity>2408088338432</TotalRawCapacity>" +
+                "<Type>LTO6</Type><VerifyPending/><WriteProtected>false</WriteProtected></Tape>" +
+                "<Tape>" +
+                "<AssignedToStorageDomain>true</AssignedToStorageDomain>" +
+                "<AvailableRawCapacity>2407684636672</AvailableRawCapacity>" +
+                "<BarCode>121553L6</BarCode><BucketId>5f02264b-b344-4bdd-88bd-7e87133bb0c9</BucketId>" +
+                "<DescriptionForIdentification/><EjectDate/><EjectLabel/><EjectLocation/><EjectPending/>" +
+                "<FullOfData>false</FullOfData><Id>e9e2e2c8-813b-4adf-9ed9-c6f788084656</Id>" +
+                "<LastAccessed>2016-07-18T03:04:30.000Z</LastAccessed><LastCheckpoint>d6942856-5f43-4ccd-9508-06e6d9e32acd:16</LastCheckpoint>" +
+                "<LastModified>2016-07-18T03:04:30.000Z</LastModified><LastVerified/>" +
+                "<PartitionId>f3a7b5dd-af2d-4dc3-84d9-6ac69fab135c</PartitionId><PreviousState/>" +
+                "<SerialNumber>HP-Y140125438</SerialNumber><State>NORMAL</State>" +
+                "<StorageDomainId>93032a20-0751-4bb9-8b00-585aed548f55</StorageDomainId>" +
+                "<TakeOwnershipPending>false</TakeOwnershipPending><TotalRawCapacity>2408088338432</TotalRawCapacity>" +
+                "<Type>LTO6</Type><VerifyPending/><WriteProtected>false</WriteProtected></Tape>" +
+                "<Tape>" +
+                "<AssignedToStorageDomain>false</AssignedToStorageDomain>" +
+                "<AvailableRawCapacity>2408082046976</AvailableRawCapacity>" +
+                "<BarCode>121555L6</BarCode><BucketId/><DescriptionForIdentification/><EjectDate/><EjectLabel/><EjectLocation/><EjectPending/>" +
+                "<FullOfData>false</FullOfData><Id>8cb037d1-39aa-4f42-b27c-acbdf8b4c3c7</Id>" +
+                "<LastAccessed>2016-06-29T20:22:54.000Z</LastAccessed>" +
+                "<LastCheckpoint>723aeba4-2fbe-43e2-a14c-cd8975d56c0c:2</LastCheckpoint>" +
+                "<LastModified>2016-06-29T20:18:44.000Z</LastModified><LastVerified/>" +
+                "<PartitionId>f3a7b5dd-af2d-4dc3-84d9-6ac69fab135c</PartitionId><PreviousState/>" +
+                "<SerialNumber>HP-S140125234</SerialNumber><State>NORMAL</State><StorageDomainId/>" +
+                "<TakeOwnershipPending>false</TakeOwnershipPending><TotalRawCapacity>2408088338432</TotalRawCapacity>" +
+                "<Type>LTO6</Type><VerifyPending/><WriteProtected>false</WriteProtected></Tape>" +
+                "<Tape>" +
+                "<AssignedToStorageDomain>true</AssignedToStorageDomain>" +
+                "<AvailableRawCapacity>2407688830976</AvailableRawCapacity>" +
+                "<BarCode>122104L6</BarCode>" +
+                "<BucketId>5f02264b-b344-4bdd-88bd-7e87133bb0c9</BucketId>" +
+                "<DescriptionForIdentification/><EjectDate/><EjectLabel/><EjectLocation/>" +
+                "<EjectPending/><FullOfData>false</FullOfData>" +
+                "<Id>b16a8737-8801-4658-971c-c67d6ae44773</Id>" +
+                "<LastAccessed>2016-07-18T03:07:26.000Z</LastAccessed>" +
+                "<LastCheckpoint>3e88b82e-d8f4-4229-8159-bbdd175d3f0b:16</LastCheckpoint>" +
+                "<LastModified>2016-07-18T03:07:26.000Z</LastModified><LastVerified/>" +
+                "<PartitionId>f3a7b5dd-af2d-4dc3-84d9-6ac69fab135c</PartitionId><PreviousState/>" +
+                "<SerialNumber>HP-X131014007</SerialNumber>" +
+                "<State>NORMAL</State>" +
+                "<StorageDomainId>cf08b1e3-12d7-407a-acfe-83afc7b835f4</StorageDomainId>" +
+                "<TakeOwnershipPending>false</TakeOwnershipPending>" +
+                "<TotalRawCapacity>2408088338432</TotalRawCapacity>" +
+                "<Type>LTO6</Type><VerifyPending/>" +
+                "<WriteProtected>false</WriteProtected>" +
+                "</Tape></Data>", "utf-8");
+
+        when(webResponse.getStatusCode()).thenReturn(200);
+        when(webResponse.getHeaders()).thenReturn(new Headers() {
+            @Override
+            public List<String> get(final String key) {
+                return null;
+            }
+
+            @Override
+            public Set<String> keys() {
+                return null;
+            }
+        });
+        when(webResponse.getResponseStream()).thenReturn(stream);
+
+        final GetTapesSpectraS3Response tapesResponse = new GetTapesSpectraS3Response(webResponse);
+        final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
+        when(client.getTapesSpectraS3(any(GetTapesSpectraS3Request.class))).thenReturn(tapesResponse);
+
+        final CommandResponse result = cli.call();
+        assertThat(result.getMessage(), is(expectedString));
+        assertThat(result.getReturnCode(), is(0));
+    }
+
+
+
 }
