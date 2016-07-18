@@ -22,9 +22,12 @@ import com.spectralogic.ds3client.models.Tape;
 import com.spectralogic.ds3client.models.TapeList;
 import com.spectralogic.ds3client.utils.Guard;
 
+import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.TimeZone;
 
 import static com.spectralogic.ds3cli.util.Utils.nullGuard;
+import static com.spectralogic.ds3cli.util.Utils.nullGuardToDate;
 import static com.spectralogic.ds3cli.util.Utils.nullGuardToString;
 
 public class GetTapesView extends TableView<GetTapesResult> {
@@ -52,7 +55,9 @@ public class GetTapesView extends TableView<GetTapesResult> {
             bucketArray[0] = nullGuard(tape.getBarCode());
             bucketArray[1] = nullGuardToString(tape.getId());
             bucketArray[2] = nullGuardToString(tape.getState());
-            bucketArray[3] = nullGuardToString(tape.getLastModified(), "---");
+            final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+            DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
+            bucketArray[3] = nullGuardToDate(tape.getLastModified(),DATE_FORMAT);
             bucketArray[4] = nullGuardToString(tape.getAvailableRawCapacity());
             bucketArray[5] = nullGuardToString(tape.getBucketId());
             bucketArray[6] = nullGuardToString(tape.getAssignedToStorageDomain());
