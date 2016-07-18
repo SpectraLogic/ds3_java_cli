@@ -55,8 +55,6 @@ public class GetServiceView extends TableView<GetServiceResult> {
             final BucketDetails bucket = objectIterator.next();
             final String[] bucketArray = new String[this.columnCount];
             bucketArray[0] = nullGuard(bucket.getName());
-            final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-            DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
             bucketArray[1] = nullGuardToDate(bucket.getCreationDate(),DATE_FORMAT);
             contents.add(bucketArray);
         }

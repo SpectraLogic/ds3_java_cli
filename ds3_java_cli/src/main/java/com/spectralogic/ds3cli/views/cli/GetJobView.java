@@ -25,8 +25,6 @@ public class GetJobView extends TableView<GetJobResult> {
 
         final MasterObjectList mol = obj.getJobDetails();
 
-        final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-        DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
         final String returnString = String.format(
                 "JobId: %s | Status: %s | Bucket: %s | Type: %s | Priority: %s | User Name: %s | Creation Date: %s | Total Size: %s | Total Transferred: %s",
                 nullGuardToString(mol.getJobId()), nullGuardToString(mol.getStatus()), nullGuard(mol.getBucketName()),

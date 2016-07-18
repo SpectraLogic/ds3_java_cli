@@ -54,8 +54,6 @@ public class GetBucketView extends TableView<GetBucketResult> {
             arrayEntry[0] = nullGuard(content.getKey());
             arrayEntry[1] = nullGuard(Long.toString(content.getSize()));
             arrayEntry[2] = nullGuard(content.getOwner().getDisplayName());
-            final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-            DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
             arrayEntry[3] = nullGuardToDate(content.getLastModified(), DATE_FORMAT);
             arrayEntry[4] = nullGuard(content.getETag());
             contents.add(arrayEntry);
