@@ -29,13 +29,15 @@ public abstract class TableView<T extends Result> implements View<T> {
     protected ASCIITableHeader[] header;
     protected int columnCount;
 
-    public final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+    public static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 
+    static {
+        DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
+    }
     public abstract String render(final T result);
 
     public void initTable(final ImmutableList<String> columnHeads) {
         this.columnCount = columnHeads.size();
-        DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
 
         // create the header
         this.header = new ASCIITableHeader[this.columnCount];

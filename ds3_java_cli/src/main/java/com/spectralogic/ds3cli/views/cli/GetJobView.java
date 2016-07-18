@@ -26,7 +26,6 @@ public class GetJobView extends TableView<GetJobResult> {
         final MasterObjectList mol = obj.getJobDetails();
 
         /// DATE_FORMAT is used before initTable() -- Set UTC
-        DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
         final String returnString = String.format(
                 "JobId: %s | Status: %s | Bucket: %s | Type: %s | Priority: %s | User Name: %s | Creation Date: %s | Total Size: %s | Total Transferred: %s",
                 nullGuardToString(mol.getJobId()), nullGuardToString(mol.getStatus()), nullGuard(mol.getBucketName()),
