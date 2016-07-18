@@ -17,29 +17,32 @@ package com.spectralogic.ds3cli.views.cli;
 
 import com.bethecoder.ascii_table.ASCIITable;
 import com.google.common.collect.ImmutableList;
-import com.spectralogic.ds3cli.models.GetTapesWithFullDetailsResult;
-import com.spectralogic.ds3client.models.NamedDetailedTape;
-import com.spectralogic.ds3client.models.NamedDetailedTapeList;
+import com.spectralogic.ds3cli.models.GetTapesResult;
+import com.spectralogic.ds3client.models.Tape;
+import com.spectralogic.ds3client.models.TapeList;
 import com.spectralogic.ds3client.utils.Guard;
 
+import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.TimeZone;
 
 import static com.spectralogic.ds3cli.util.Utils.nullGuard;
+import static com.spectralogic.ds3cli.util.Utils.nullGuardToDate;
 import static com.spectralogic.ds3cli.util.Utils.nullGuardToString;
 
-public class GetTapesWithFullDetailsView extends TableView<GetTapesWithFullDetailsResult> {
+public class GetTapesView extends TableView<GetTapesResult> {
 
-    protected List<NamedDetailedTape> tapeList;
+    protected List<Tape> tapeList;
 
     @Override
-    public String render(final GetTapesWithFullDetailsResult obj) {
-        final NamedDetailedTapeList result = obj.getTapesWithDetails();
-        if ((result == null) || (Guard.isNullOrEmpty(result.getNamedDetailedTapes())) ){
+    public String render(final GetTapesResult obj) {
+        final TapeList result = obj.getTapes();
+        if ((result == null) || (Guard.isNullOrEmpty(result.getTapes())) ){
             return "You do not have any tapes";
         }
-        this.tapeList = result.getNamedDetailedTapes();
+        this.tapeList = result.getTapes();
 
-        initTable(ImmutableList.of("Bar Code", "ID", "State", "Last Modified", "Available Raw Capacity", "Most Recent Failure" ));
+        initTable(ImmutableList.of("Bar Code", "ID", "State", "Last Modified", "Available Raw Capacity", "BucketID", "Assigned to Storage Domain" ));
 
         return ASCIITable.getInstance().getTable(getHeaders(), formatTableContents());
     }
@@ -47,14 +50,15 @@ public class GetTapesWithFullDetailsView extends TableView<GetTapesWithFullDetai
     protected String[][] formatTableContents() {
         final String [][] formatArray = new String[this.tapeList.size()][];
         int i = 0;
-        for (final NamedDetailedTape tape : this.tapeList) {
+        for (final Tape tape : this.tapeList) {
             final String [] bucketArray = new String[this.columnCount];
             bucketArray[0] = nullGuard(tape.getBarCode());
             bucketArray[1] = nullGuardToString(tape.getId());
             bucketArray[2] = nullGuardToString(tape.getState());
-            bucketArray[3] = nullGuardToString(tape.getLastModified(), "---");
+            bucketArray[3] = nullGuardToDate(tape.getLastModified(),DATE_FORMAT);
             bucketArray[4] = nullGuardToString(tape.getAvailableRawCapacity());
-            bucketArray[5] = nullGuardToString(tape.getMostRecentFailure());
+            bucketArray[5] = nullGuardToString(tape.getBucketId());
+            bucketArray[6] = nullGuardToString(tape.getAssignedToStorageDomain());
             formatArray[i++] = (bucketArray);
         }
         return formatArray;
