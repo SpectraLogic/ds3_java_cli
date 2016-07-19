@@ -19,14 +19,13 @@ import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.exceptions.CommandException;
-import com.spectralogic.ds3cli.models.GetTapesWithFullDetailsResult;
-import com.spectralogic.ds3cli.util.Ds3Provider;
-import com.spectralogic.ds3cli.util.FileUtils;
-import com.spectralogic.ds3client.commands.spectrads3.GetTapesWithFullDetailsSpectraS3Request;
-import com.spectralogic.ds3client.commands.spectrads3.GetTapesWithFullDetailsSpectraS3Response;
+import com.spectralogic.ds3cli.models.GetTapesResult;
+import com.spectralogic.ds3cli.views.cli.GetTapesView;
+import com.spectralogic.ds3client.commands.spectrads3.GetTapesSpectraS3Request;
+import com.spectralogic.ds3client.commands.spectrads3.GetTapesSpectraS3Response;
 import com.spectralogic.ds3client.networking.FailedRequestException;
 
-public class GetTapes extends CliCommand<GetTapesWithFullDetailsResult> {
+public class GetTapes extends CliCommand<GetTapesResult> {
 
     public GetTapes() {
     }
@@ -37,20 +36,20 @@ public class GetTapes extends CliCommand<GetTapesWithFullDetailsResult> {
     }
 
     @Override
-    public GetTapesWithFullDetailsResult call() throws Exception {try {
-            final GetTapesWithFullDetailsSpectraS3Response response = getClient().getTapesWithFullDetailsSpectraS3(new GetTapesWithFullDetailsSpectraS3Request());
+    public GetTapesResult call() throws Exception {try {
+            final GetTapesSpectraS3Response response = getClient().getTapesSpectraS3(new GetTapesSpectraS3Request());
 
-            return new GetTapesWithFullDetailsResult(response.getNamedDetailedTapeListResult());
+            return new GetTapesResult(response.getTapeListResult());
         } catch (final FailedRequestException e) {
             throw new CommandException("Failed Get Tapes", e);
         }
     }
 
     @Override
-    public View<GetTapesWithFullDetailsResult> getView(final ViewType viewType) {
+    public View<GetTapesResult> getView(final ViewType viewType) {
         if (viewType == ViewType.JSON) {
-            return new com.spectralogic.ds3cli.views.json.GetTapesWithFullDetailsView();
+            return new com.spectralogic.ds3cli.views.json.GetTapesView();
         }
-        return new com.spectralogic.ds3cli.views.cli.GetTapesWithFullDetailsView();
+        return new GetTapesView();
     }
 }

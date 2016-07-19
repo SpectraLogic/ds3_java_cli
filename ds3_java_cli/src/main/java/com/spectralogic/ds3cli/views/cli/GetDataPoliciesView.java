@@ -55,8 +55,6 @@ public class GetDataPoliciesView extends TableView<GetDataPoliciesResult> {
             final DataPolicy content = this.objectIterator.next();
             final String[] arrayEntry = new String[this.columnCount];
             arrayEntry[0] = nullGuardToString(content.getName());
-            final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-            DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
             arrayEntry[1] = nullGuardToDate(content.getCreationDate(), DATE_FORMAT);
             arrayEntry[2] = nullGuardToString(content.getVersioning());
             arrayEntry[3] = nullGuardToString(content.getChecksumType());

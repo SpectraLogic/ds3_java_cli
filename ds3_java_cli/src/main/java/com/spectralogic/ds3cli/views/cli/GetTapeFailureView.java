@@ -55,8 +55,6 @@ public class GetTapeFailureView extends TableView<GetTapeFailureResult> {
             bucketArray[0] = nullGuard(failure.getType().toString());
             bucketArray[1] = nullGuard(failure.getErrorMessage());
             bucketArray[2] = nullGuard(failure.getId().toString());
-            final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-            DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
             bucketArray[3] = DATE_FORMAT.format(failure.getDate());
             formatArray[i++] = bucketArray;
         }

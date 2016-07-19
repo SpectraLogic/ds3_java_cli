@@ -15,18 +15,18 @@
 
 package com.spectralogic.ds3cli.models;
 
-import com.spectralogic.ds3client.models.NamedDetailedTapeList;
+import com.spectralogic.ds3client.models.TapeList;
 
-public class GetTapesWithFullDetailsResult implements Result {
+public class GetTapesResult implements Result {
 
-    private final NamedDetailedTapeList namedDetailedTapeListResult;
+    private final TapeList tapeListResult;
 
-    public GetTapesWithFullDetailsResult(final NamedDetailedTapeList tapes) {
-        this.namedDetailedTapeListResult = tapes;
+    public GetTapesResult(final TapeList tapes) {
+        this.tapeListResult = tapes;
     }
 
-    public NamedDetailedTapeList getTapesWithDetails() {
-        return namedDetailedTapeListResult;
+    public TapeList getTapes() {
+        return tapeListResult;
     }
 }
 
