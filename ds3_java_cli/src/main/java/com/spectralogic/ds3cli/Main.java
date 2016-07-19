@@ -34,6 +34,7 @@ import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.Ds3ClientBuilder;
 import com.spectralogic.ds3client.models.common.Credentials;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
+import com.spectralogic.ds3client.networking.FailedRequestException;
 import org.slf4j.LoggerFactory;
 import java.util.Date;
 
@@ -155,6 +156,12 @@ public class Main {
             final CommandResponse response = runner.call();
             System.out.println(response.getMessage());
             System.exit(response.getReturnCode());
+        } catch (final FailedRequestException e) {
+            System.out.println("ERROR: " + e.getMessage());
+            LOG.info("Stack trace: ", e);
+            LOG.info("Printing out the response from the server:");
+            LOG.info(((FailedRequestException) e).getResponseString());
+            System.exit(2);
         } catch (final Exception e) {
             System.out.println("ERROR: " + e.getMessage());
             LOG.info("Stack trace: ", e);
