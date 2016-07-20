@@ -24,9 +24,7 @@ import ch.qos.logback.classic.filter.ThresholdFilter;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.Appender;
 import ch.qos.logback.core.ConsoleAppender;
-import ch.qos.logback.core.rolling.DefaultTimeBasedFileNamingAndTriggeringPolicy;
-import ch.qos.logback.core.rolling.RollingFileAppender;
-import ch.qos.logback.core.rolling.TimeBasedRollingPolicy;
+import ch.qos.logback.core.rolling.*;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3cli.util.Utils;
@@ -36,18 +34,21 @@ import com.spectralogic.ds3client.models.common.Credentials;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.networking.FailedRequestException;
 import org.slf4j.LoggerFactory;
+
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
 import java.util.Date;
 
 public class Main {
     // initialize and add appenders to root logger
     private final static ch.qos.logback.classic.Logger LOG =  (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
     private final static String LOG_FORMAT_PATTERN = "%d{yyyy-MM-dd HH:mm:ss} +++ %msg%n";
-    private final static String LOG_ARCHIVE_FILE_PATTERN =  "spectra%d{yyyy-MM-dd}.log";
+    private final static String LOG_ARCHIVE_FILE_PATTERN =  "spectra%i.log";
     private final static String LOG_DIR = "./ds3logs/";
     private final static String LOG_FILE_NAME = "spectra.log";
 
 
-    private static void configureLogging(final String consoleLevel, final String fileLevel) {
+    private static void configureLogging(final Level consoleLevel, final Level fileLevel) {
 
         final LoggerContext loggerContext = LOG.getLoggerContext();
         loggerContext.reset();
@@ -55,7 +56,7 @@ public class Main {
         // turn root log wide open, filters will be set to argument levels
         LOG.setLevel(Level.ALL);
 
-        if (!consoleLevel.equalsIgnoreCase(Level.OFF.toString())) {
+        if (!consoleLevel.equals(Level.OFF)) {
             // create and add console appender
             final PatternLayoutEncoder consoleEncoder = new PatternLayoutEncoder();
             consoleEncoder.setContext(loggerContext);
@@ -67,9 +68,9 @@ public class Main {
             consoleAppender.setName("STDOUT");
             consoleAppender.setEncoder(consoleEncoder);
 
-            final ch.qos.logback.classic.filter.ThresholdFilter consoleFilter = new ThresholdFilter();
-            consoleFilter.setLevel(consoleLevel);
-            consoleFilter.setName(consoleLevel);
+            final ThresholdFilter consoleFilter = new ThresholdFilter();
+            consoleFilter.setLevel(consoleLevel.levelStr);
+            consoleFilter.setName(consoleLevel.levelStr);
             consoleFilter.start();
             consoleAppender.addFilter(consoleFilter);
 
@@ -77,43 +78,43 @@ public class Main {
             LOG.addAppender(consoleAppender);
         }
 
-        if (!fileLevel.equalsIgnoreCase(Level.OFF.toString())) {
+        if (!fileLevel.equals(Level.OFF)) {
             // create file appender only if needed.
             // if done in the xml, it will create an empty file
-
             final RollingFileAppender<ILoggingEvent> fileAppender = new RollingFileAppender<ILoggingEvent>();
-            final TimeBasedRollingPolicy<ILoggingEvent> timeBasedRollingPolicy = new TimeBasedRollingPolicy<ILoggingEvent>();
-            final DefaultTimeBasedFileNamingAndTriggeringPolicy<ILoggingEvent> timeBasedTriggeringPolicy = new DefaultTimeBasedFileNamingAndTriggeringPolicy<ILoggingEvent>();
+            final FixedWindowRollingPolicy sizeBasedRollingPolicy = new FixedWindowRollingPolicy();
+            final SizeBasedTriggeringPolicy<Object> sizeBasedTriggeringPolicy = new SizeBasedTriggeringPolicy<Object>();
 
             fileAppender.setContext(loggerContext);
-            timeBasedTriggeringPolicy.setContext(loggerContext);
-            timeBasedRollingPolicy.setContext(loggerContext);
+            sizeBasedTriggeringPolicy.setContext(loggerContext);
+            sizeBasedRollingPolicy.setContext(loggerContext);
+            fileAppender.setRollingPolicy(sizeBasedRollingPolicy);
+            sizeBasedRollingPolicy.setParent(fileAppender);
+            sizeBasedRollingPolicy.setMinIndex(0);
+            sizeBasedRollingPolicy.setMaxIndex(99);
 
-            fileAppender.setRollingPolicy(timeBasedRollingPolicy);
-            timeBasedRollingPolicy.setParent(fileAppender);
-            timeBasedRollingPolicy.setTimeBasedFileNamingAndTriggeringPolicy(timeBasedTriggeringPolicy);
-            timeBasedTriggeringPolicy.setTimeBasedRollingPolicy(timeBasedRollingPolicy);
+            Path logFilePath = FileSystems.getDefault().getPath(LOG_DIR, LOG_FILE_NAME);
+            fileAppender.setFile(logFilePath.toString());
+            sizeBasedRollingPolicy.setFileNamePattern(LOG_DIR + LOG_ARCHIVE_FILE_PATTERN);
+            sizeBasedRollingPolicy.start();
 
-            timeBasedRollingPolicy.setFileNamePattern(LOG_DIR + LOG_ARCHIVE_FILE_PATTERN);
-            timeBasedRollingPolicy.start();
-
-            timeBasedTriggeringPolicy.setCurrentTime(new Date().getTime());
-            timeBasedTriggeringPolicy.start();
+            sizeBasedTriggeringPolicy.setMaxFileSize("10MB");
+            sizeBasedTriggeringPolicy.start();
 
             final PatternLayoutEncoder fileEncoder = new PatternLayoutEncoder();
             fileEncoder.setContext(loggerContext);
             fileEncoder.setPattern(LOG_FORMAT_PATTERN);
             fileEncoder.start();
 
-            fileAppender.setTriggeringPolicy(timeBasedTriggeringPolicy);
+            fileAppender.setTriggeringPolicy((TriggeringPolicy)sizeBasedTriggeringPolicy);
+            fileAppender.setRollingPolicy(sizeBasedRollingPolicy);
             fileAppender.setEncoder((Encoder<ILoggingEvent>)fileEncoder);
-            fileAppender.setFile(LOG_DIR  +  LOG_FILE_NAME);
             fileAppender.setName("LOGFILE");
-            timeBasedRollingPolicy.start();
+            sizeBasedRollingPolicy.start();
 
-            final ch.qos.logback.classic.filter.ThresholdFilter fileFilter = new ThresholdFilter();
-            fileFilter.setLevel(fileLevel);
-            fileFilter.setName(fileLevel);
+            final ThresholdFilter fileFilter = new ThresholdFilter();
+            fileFilter.setLevel(fileLevel.levelStr);
+            fileFilter.setName(fileLevel.levelStr);
             fileFilter.start();
             fileAppender.addFilter(fileFilter);
 
@@ -128,7 +129,7 @@ public class Main {
             final Arguments arguments = new Arguments(args);
 
             // turn root log wide open, filters will be set to argument levels
-            configureLogging(arguments.getConsoleLogLevel().toString(), arguments.getFileLogLevel().toString());
+            configureLogging(arguments.getConsoleLogLevel(), arguments.getFileLogLevel());
 
             LOG.info("Version: " + arguments.getVersion());
             LOG.info("Console log level: " + arguments.getConsoleLogLevel().toString());
