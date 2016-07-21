@@ -93,7 +93,7 @@ public class Main {
             sizeBasedRollingPolicy.setMinIndex(0);
             sizeBasedRollingPolicy.setMaxIndex(99);
 
-            Path logFilePath = FileSystems.getDefault().getPath(LOG_DIR, LOG_FILE_NAME);
+            final Path logFilePath = FileSystems.getDefault().getPath(LOG_DIR, LOG_FILE_NAME);
             fileAppender.setFile(logFilePath.toString());
             sizeBasedRollingPolicy.setFileNamePattern(LOG_DIR + LOG_ARCHIVE_FILE_PATTERN);
             sizeBasedRollingPolicy.start();
