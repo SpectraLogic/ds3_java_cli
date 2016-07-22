@@ -25,6 +25,7 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.Appender;
 import ch.qos.logback.core.ConsoleAppender;
 import ch.qos.logback.core.rolling.*;
+import com.google.common.base.Joiner;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3cli.util.Utils;
@@ -37,7 +38,6 @@ import org.slf4j.LoggerFactory;
 
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
-import java.util.Date;
 
 public class Main {
     // initialize and add appenders to root logger
@@ -132,8 +132,10 @@ public class Main {
             configureLogging(arguments.getConsoleLogLevel(), arguments.getFileLogLevel());
 
             LOG.info("Version: " + arguments.getVersion());
+            LOG.info("Command line args: " + Joiner.on(", ").join(args));
             LOG.info("Console log level: " + arguments.getConsoleLogLevel().toString());
             LOG.info("Log file log level: " + arguments.getFileLogLevel().toString());
+            logPlatformInformation();
             LOG.info(arguments.getArgumentLog());
 
             if (arguments.isHelp()) {
@@ -168,6 +170,16 @@ public class Main {
             LOG.info("Stack trace: ", e);
             System.exit(2);
         }
+    }
+
+    private static void logPlatformInformation() {
+        LOG.info("Java Version: " + System.getProperty("java.version"));
+        LOG.info("Java Vendor: " + System.getProperty("java.vendor"));
+        LOG.info("JVM Version: " + System.getProperty("java.vm.version"));
+        LOG.info("JVM Name: " + System.getProperty("java.vm.name"));
+        LOG.info("OS: " + System.getProperty("os.name"));
+        LOG.info("OS Arch: " + System.getProperty("os.arch"));
+        LOG.info("OS Version: " + System.getProperty("os.version"));
     }
 
     public static Ds3Client createClient(final Arguments arguments) {
