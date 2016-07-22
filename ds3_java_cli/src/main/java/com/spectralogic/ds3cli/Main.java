@@ -29,8 +29,6 @@ import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.networking.FailedRequestException;
 import org.slf4j.LoggerFactory;
 
-import java.util.StringJoiner;
-
 public class Main {
     private final static ch.qos.logback.classic.Logger LOG = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Main.class);
 
