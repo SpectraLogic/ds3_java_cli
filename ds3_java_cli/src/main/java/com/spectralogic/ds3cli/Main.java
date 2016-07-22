@@ -18,6 +18,7 @@ package com.spectralogic.ds3cli;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.filter.ThresholdFilter;
 import ch.qos.logback.core.Appender;
+import com.google.common.base.Joiner;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3cli.util.Utils;
@@ -27,6 +28,8 @@ import com.spectralogic.ds3client.models.common.Credentials;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.networking.FailedRequestException;
 import org.slf4j.LoggerFactory;
+
+import java.util.StringJoiner;
 
 public class Main {
     private final static ch.qos.logback.classic.Logger LOG = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Main.class);
@@ -61,8 +64,10 @@ public class Main {
             configureLogging(arguments.getFileLogLevel().toString(), arguments.getConsoleLogLevel().toString());
 
             LOG.info("Version: " + arguments.getVersion());
+            LOG.info("Command line args: " + Joiner.on(", ").join(args));
             LOG.info("Console log level: " + arguments.getConsoleLogLevel().toString());
             LOG.info("Log file log level: " + arguments.getFileLogLevel().toString());
+            logPlatformInformation();
             LOG.info(arguments.getArgumentLog());
 
             if (arguments.isHelp()) {
@@ -97,6 +102,16 @@ public class Main {
             }
             System.exit(2);
         }
+    }
+
+    private static void logPlatformInformation() {
+        LOG.info("Java Version: " + System.getProperty("java.version"));
+        LOG.info("Java Vendor: " + System.getProperty("java.vendor"));
+        LOG.info("JVM Version: " + System.getProperty("java.vm.version"));
+        LOG.info("JVM Name: " + System.getProperty("java.vm.name"));
+        LOG.info("OS: " + System.getProperty("os.name"));
+        LOG.info("OS Arch: " + System.getProperty("os.arch"));
+        LOG.info("OS Version: " + System.getProperty("os.version"));
     }
 
     public static Ds3Client createClient(final Arguments arguments) {
