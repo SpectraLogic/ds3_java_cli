@@ -54,8 +54,8 @@ public class Main {
         loggerContext.reset();
 
         // set root log to the most permissive filter (affects performance big time (JAVACLI-90))
-        final int worstLogLevel = Math.min(consoleLevel.toInt(), fileLevel.toInt());
-        LOG.setLevel(Level.toLevel(worstLogLevel));
+        final int lowestLogLevel = Math.min(consoleLevel.toInt(), fileLevel.toInt());
+        LOG.setLevel(Level.toLevel(lowestLogLevel));
 
         if (!consoleLevel.equals(Level.OFF)) {
             // create and add console appender
