@@ -117,8 +117,14 @@ public class Arguments {
         writeOptimization.setLongOpt("writeOptimization");
         writeOptimization.setArgName("writeOptimization");
         final Option help = new Option("h", "Help Menu");
-        final Option commandHelp = new Option(null, true, "Command Help (provide command name from -c)");
-        commandHelp.setLongOpt("help");
+
+        final Option commandHelp = Option.builder()
+                .longOpt("help")
+                .desc("Command Help (provide command name from -c)")
+                .optionalArg(true)
+                .numberOfArgs(1)
+                .build();
+
         final Option http = new Option(null, "Send all requests over standard http");
         http.setLongOpt("http");
         final Option insecure = new Option(null, "Ignore ssl certificate verification");
@@ -160,16 +166,21 @@ public class Arguments {
         noFollowSymlinks.setLongOpt("no-follow-symlinks");
         final Option followSymLinks = new Option(null, false, "Set to follow symlinks");
         followSymLinks.setLongOpt("follow-symlinks");
-        final Option metadata = OptionBuilder.withLongOpt("metadata")
-                .withDescription("Metadata for when putting a single object.  Using the format: key:value,key2:value2")
+
+        final Option metadata = Option.builder()
+                .longOpt("metadata")
+                .desc("Metadata for when putting a single object.  Using the format: key:value,key2:value2")
                 .hasArgs()
-                .withValueSeparator(',')
-                .create();
-        final Option modifyParams = OptionBuilder.withLongOpt("modify-params")
-                .withDescription("Parameters for modifying features using the format key:value,key2:value2. For modify_user: default_data_policy_id")
+                .valueSeparator(',')
+                .build();
+
+        final Option modifyParams = Option.builder()
+                .longOpt("modify-params")
+                .desc("Parameters for modifying features using the format key:value,key2:value2. For modify_user: default_data_policy_id")
                 .hasArgs()
-                .withValueSeparator(',')
-                .create();
+                .valueSeparator(',')
+                .build();
+
         final Option discard = new Option(null, false, "Discard restoration data (/dev/null) in get_bulk");
         discard.setLongOpt("discard");
 
@@ -251,14 +262,16 @@ public class Arguments {
             final String commandString = cmd.getOptionValue("help");
             try {
                 if (commandString == null) {
-                    this.setCommand(null);
+                    // if no arg on --help, print -h help
+                    this.printHelp();
+                    System.exit(0);
                 } else {
                     this.setCommand(commandString.toUpperCase());
                 }
                 // no other options count
                 return;
             } catch (final IllegalArgumentException e) {
-                throw new BadArgumentException("Unknown command: " + commandString + "; use -h to get available commands.", e);
+                throw new BadArgumentException("Unknown command: " + commandString + "; use --help list_commands to get available commands.", e);
             }
         }
 
