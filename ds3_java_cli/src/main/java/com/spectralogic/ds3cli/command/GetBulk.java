@@ -15,7 +15,6 @@
 
 package com.spectralogic.ds3cli.command;
 
-import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.exceptions.CommandException;
@@ -23,6 +22,7 @@ import com.spectralogic.ds3cli.models.DefaultResult;
 import com.spectralogic.ds3cli.util.*;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.helpers.FileObjectGetter;
+import com.spectralogic.ds3client.helpers.FolderNameFilter;
 import com.spectralogic.ds3client.helpers.MetadataReceivedListener;
 import com.spectralogic.ds3client.helpers.options.ReadJobOptions;
 import com.spectralogic.ds3client.models.Contents;
@@ -154,14 +154,7 @@ public class GetBulk extends CliCommand<DefaultResult> {
             filteredContents = null;
         }
 
-        final Iterable<Ds3Object> objects = Iterables.transform(
-                filteredContents == null ? contents : filteredContents,
-                new Function<Contents, Ds3Object>() {
-                    @Override
-                    public Ds3Object apply(final Contents input) {
-                        return new Ds3Object(input.getKey(), input.getSize());
-                    }
-                });
+        final Iterable<Ds3Object> objects = helper.toDs3Iterable(filteredContents, FolderNameFilter.filter());
 
         final Ds3ClientHelpers.Job job = helper.startReadJob(this.bucketName, objects,
                 ReadJobOptions.create()
