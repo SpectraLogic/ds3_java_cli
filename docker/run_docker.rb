@@ -45,7 +45,7 @@ ENV["GIT_BRANCH"] = ENV["GIT_BRANCH"] || "master"
 puts "GIT_REPO #{ENV["GIT_REPO"]}"
 puts "GIT_BRANCH #{ENV["GIT_BRANCH"]}"
 
-ENV["DOCKER_REPO"] = ENV["DOCKER_REPO"] || "denverm80/ds3_jsdk_docker_test:latest"
+ENV["DOCKER_REPO"] = ENV["DOCKER_REPO"] || "denverm80/ds3_java_cli_docker_test:latest"
 puts "DOCKER_REPO #{ENV["DOCKER_REPO"]}"
 
 # pull down the git repo
