@@ -19,6 +19,7 @@ import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.spectrads3.*;
 import com.spectralogic.ds3client.models.ChecksumType;
 import com.spectralogic.ds3client.models.PoolType;
+import com.spectralogic.ds3client.models.VersioningLevel;
 
 import java.io.IOException;
 import java.security.SignatureException;
@@ -100,8 +101,9 @@ public class TempStorageUtil {
             final Ds3Client client) throws IOException, SignatureException {
         final PutDataPolicySpectraS3Response dataPolicyResponse = client.putDataPolicySpectraS3(
                 new PutDataPolicySpectraS3Request(testSetName + DATA_POLICY_NAME)
+                        .withVersioning(VersioningLevel.NONE)
                         .withEndToEndCrcRequired(withEndToEndCrcRequired)
-                        .withChecksumType(checksumType)); //.withAlwaysForcePutJobCreation(true));
+                        .withChecksumType(checksumType)); // TODO 3.2: .withAlwaysForcePutJobCreation(true));
         client.modifyUserSpectraS3(new ModifyUserSpectraS3Request("spectra")
                 .withDefaultDataPolicyId(dataPolicyResponse.getDataPolicyResult().getId()));
         return dataPolicyResponse.getDataPolicyResult().getId();

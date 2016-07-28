@@ -194,8 +194,7 @@ public class FeatureIntegration_Test {
                     StandardOpenOption.CREATE,
                     StandardOpenOption.TRUNCATE_EXISTING
             );
-            final Ds3ClientHelpers.Job readJob = Ds3ClientHelpers.wrap(client)
-                    .startReadJob(bucketName, Lists.newArrayList(obj));
+            final Ds3ClientHelpers.Job readJob = HELPERS.startReadJob(bucketName, Lists.newArrayList(obj));
 
             final GetObjectResponse readResponse = client.getObject(new GetObjectRequest(bucketName, book, channel, readJob.getJobId(), 0));
             assertThat(readResponse, is(notNullValue()));
@@ -238,8 +237,7 @@ public class FeatureIntegration_Test {
                     StandardOpenOption.CREATE,
                     StandardOpenOption.TRUNCATE_EXISTING
             );
-            final Ds3ClientHelpers.Job readJob = Ds3ClientHelpers.wrap(client)
-                    .startReadJob(bucketName, Lists.newArrayList(obj));
+            final Ds3ClientHelpers.Job readJob = HELPERS.startReadJob(bucketName, Lists.newArrayList(obj));
 
             final GetObjectResponse readResponse = client.getObject(new GetObjectRequest(bucketName, book, channel, readJob.getJobId(), 0));
             assertThat(readResponse, is(notNullValue()));
