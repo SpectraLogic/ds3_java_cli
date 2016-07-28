@@ -22,6 +22,8 @@ import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.CommandResponse;
 import com.spectralogic.ds3cli.integration.models.HeadObject;
 import com.spectralogic.ds3cli.integration.models.JobResponse;
+import com.spectralogic.ds3cli.integration.test.helpers.TempStorageIds;
+import com.spectralogic.ds3cli.integration.test.helpers.TempStorageUtil;
 import com.spectralogic.ds3cli.util.SterilizeString;
 import com.spectralogic.ds3cli.util.Utils;
 import com.spectralogic.ds3client.Ds3Client;
@@ -29,11 +31,14 @@ import com.spectralogic.ds3client.Ds3ClientBuilder;
 import com.spectralogic.ds3client.commands.GetObjectRequest;
 import com.spectralogic.ds3client.commands.GetObjectResponse;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
+import com.spectralogic.ds3client.models.ChecksumType;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.utils.ResourceUtils;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -41,7 +46,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.channels.FileChannel;
 import java.nio.file.*;
+import java.security.SignatureException;
 import java.util.Collections;
+import java.util.UUID;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.number.OrderingComparison.greaterThan;
@@ -51,17 +58,24 @@ import static org.junit.Assume.assumeThat;
 
 public class FeatureIntegration_Test {
 
-    private static Ds3Client client;
+    private static final Logger LOG = LoggerFactory.getLogger(FeatureIntegration_Test.class);
+
+    private static final Ds3Client client = Ds3ClientBuilder.fromEnv().withHttps(false).build();
+    private static final Ds3ClientHelpers HELPERS = Ds3ClientHelpers.wrap(client);
+    private static final String TEST_ENV_NAME = "FeatureIntegration_Test";
+    private static TempStorageIds envStorageIds;
+    private static UUID envDataPolicyId;
+
 
     @BeforeClass
-    public static void startup() {
-        final Ds3ClientBuilder builder = Ds3ClientBuilder.fromEnv();
-        builder.withHttps(false);
-        client = builder.build();
+    public static void startup() throws IOException, SignatureException {
+        envDataPolicyId = TempStorageUtil.setupDataPolicy(TEST_ENV_NAME, false, ChecksumType.Type.MD5, client);
+        envStorageIds = TempStorageUtil.setup(TEST_ENV_NAME, envDataPolicyId, client);
     }
 
     @AfterClass
-    public static void teardown() throws IOException {
+    public static void teardown() throws IOException, SignatureException {
+        TempStorageUtil.teardown(TEST_ENV_NAME, envStorageIds, client);
         client.close();
     }
 
@@ -160,7 +174,7 @@ public class FeatureIntegration_Test {
 
     @Test
     public void getCompletedJob() throws Exception {
-        final String bucketName = "test_get_job";
+        final String bucketName = "test_get_completed_job";
         final String book = "sherlock_holmes.txt";
         try {
             Util.createBucket(client, bucketName);
@@ -204,7 +218,7 @@ public class FeatureIntegration_Test {
 
     @Test
     public void getCompletedJobJson() throws Exception {
-        final String bucketName = "test_get_job_json";
+        final String bucketName = "test_get_completed_job_json";
         final String book = "tale_of_two_cities.txt";
         try {
             Util.createBucket(client, bucketName);
@@ -263,7 +277,7 @@ public class FeatureIntegration_Test {
 
     @Test
     public void getObjectWithSync() throws Exception {
-        final String bucketName = "test_get_object";
+        final String bucketName = "test_get_object_with_sync";
         try {
             // For a Get with sync, the local file needs to be older than the server copy
             Util.copyFile("beowulf.txt", Util.RESOURCE_BASE_NAME, Util.DOWNLOAD_BASE_NAME);
@@ -287,7 +301,7 @@ public class FeatureIntegration_Test {
 
     @Test
     public void getBulkObjectWithSync() throws Exception {
-        final String bucketName = "test_get_object";
+        final String bucketName = "test_get_bulk_object_with_sync";
         try {
 
             Util.createBucket(client, bucketName);
@@ -311,7 +325,7 @@ public class FeatureIntegration_Test {
     public void putObjectWithSync() throws Exception {
         assumeThat(Util.getBlackPearlVersion(client), greaterThan(1.2));
 
-        final String bucketName = "test_put_object";
+        final String bucketName = "test_put_object_with_sync";
         try {
             Util.createBucket(client, bucketName);
             final Arguments args = new Arguments(new String[]{"--http", "-c", "put_object", "-b", bucketName,
@@ -332,7 +346,7 @@ public class FeatureIntegration_Test {
     public void putBulkObjectWithSync() throws Exception {
         assumeThat(Util.getBlackPearlVersion(client), greaterThan(1.2));
 
-        final String bucketName = "test_put_bulk_object";
+        final String bucketName = "test_put_bulk_object_with_sync";
         try {
 
             Util.createBucket(client, bucketName);
@@ -439,7 +453,7 @@ public class FeatureIntegration_Test {
 
     @Test
     public void multiMetadataPut() throws Exception {
-        final String bucketName = "test_put_with_metadata";
+        final String bucketName = "test_put_with_multi_metadata";
 
         try {
             Util.createBucket(client, bucketName);
