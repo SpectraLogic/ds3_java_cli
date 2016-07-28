@@ -154,7 +154,7 @@ public class GetBulk extends CliCommand<DefaultResult> {
             filteredContents = null;
         }
 
-        final Iterable<Ds3Object> objects = helper.toDs3Iterable(filteredContents, FolderNameFilter.filter());
+        final Iterable<Ds3Object> objects = helper.toDs3Iterable((filteredContents == null) ? contents : filteredContents, FolderNameFilter.filter());
 
         final Ds3ClientHelpers.Job job = helper.startReadJob(this.bucketName, objects,
                 ReadJobOptions.create()
