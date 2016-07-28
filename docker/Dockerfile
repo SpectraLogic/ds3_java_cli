@@ -1,4 +1,4 @@
-FROM greyrocksoftware/javastandalone
+FROM greyrocksoftware/javastandalone7
 
 RUN apt-get update
 
