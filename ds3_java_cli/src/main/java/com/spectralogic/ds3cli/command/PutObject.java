@@ -103,7 +103,7 @@ public class PutObject extends CliCommand<DefaultResult> {
         final Ds3Object ds3Obj = new Ds3Object(Utils.normalizeObjectName(this.objectName), getFileUtils().size(this.objectPath));
 
         if (this.prefix != null) {
-            LOG.info("Pre-appending " + this.prefix + " to object name");
+            LOG.info("Pre-appending {} to object name", this.prefix);
             ds3Obj.setName(this.prefix + ds3Obj.getName());
         }
 

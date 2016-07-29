@@ -123,7 +123,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
 
         this.followSymlinks = args.isFollowSymlinks();
 
-        LOG.info("Follow symlinks has been set to: " + this.followSymlinks);
+        LOG.info("Follow symlinks has been set to: {}", this.followSymlinks);
 
         return this;
     }
@@ -167,7 +167,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
 //            Logging.log("Performing bulk put with checksum computation enabled");
 //            job.withRequestModifier(new ComputedChecksumModifier());
         }
-        LOG.info("Created bulk put job " + job.getJobId().toString() + ", starting transfer");
+        LOG.info("Created bulk put job {}, starting transfer", job.getJobId().toString());
 
         String resultMessage;
         if (this.pipe) {
@@ -191,7 +191,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
     private void appendPrefix(final Iterable<Ds3Object> ds3Objects) {
         if (this.pipe || this.prefix == null) return;
 
-        LOG.info("Pre-appending " + this.prefix + " to all object names");
+        LOG.info("Pre-appending {} to all object names", this.prefix);
         for (final Ds3Object obj : ds3Objects) {
             obj.setName(this.prefix + obj.getName());
         }
@@ -243,10 +243,10 @@ public class PutBulk extends CliCommand<PutBulkResult> {
                 if (content == null) {
                     return false;
                 } else if (SyncUtils.isNewFile(item, content, true)) {
-                    LOG.info("Syncing new version of " + fileName);
+                    LOG.info("Syncing new version of {}", fileName);
                     return false;
                 } else {
-                    LOG.info("No need to sync " + fileName);
+                    LOG.info("No need to sync {}", fileName);
                     return true;
                 }
             } catch (final IOException e) {
@@ -270,7 +270,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
             public boolean filter(final Path item) {
                 final boolean filter = !(followSymlinks || !Files.isSymbolicLink(item));
                 if (filter) {
-                    LOG.info("Skipping: " + item.toString());
+                    LOG.info("Skipping: {}", item.toString());
                 }
                 return filter;
             }
@@ -314,7 +314,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
                 return fileName;
             } else {
                 if (!fileName.startsWith(this.prefix)) {
-                    LOG.info("The object (" + fileName + ") does not begin with prefix " + this.prefix + ".  Ignoring adding the prefix.");
+                    LOG.info("The object ({}) does not begin with prefix {}.  Ignoring adding the prefix.", fileName,  this.prefix);
                     return fileName;
                 } else {
                     return fileName.substring(this.prefix.length());
@@ -332,7 +332,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
 
         @Override
         public SeekableByteChannel buildChannel(final String s) throws IOException {
-            LOG.info("Putting " + s + " to ds3 endpoint");
+            LOG.info("Putting {} to ds3 endpoint", s);
             return this.objectPutter.buildChannel(s);
         }
     }

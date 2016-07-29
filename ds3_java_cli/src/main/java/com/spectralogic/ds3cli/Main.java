@@ -132,10 +132,10 @@ public class Main {
             // turn root log wide open, filters will be set to argument levels
             configureLogging(arguments.getConsoleLogLevel(), arguments.getFileLogLevel());
 
-            LOG.info("Version: " + arguments.getVersion());
-            LOG.info("Command line args: " + Joiner.on(", ").join(args));
-            LOG.info("Console log level: " + arguments.getConsoleLogLevel().toString());
-            LOG.info("Log file log level: " + arguments.getFileLogLevel().toString());
+            LOG.info("Version: {}", arguments.getVersion());
+            LOG.info("Command line args: {}", Joiner.on(", ").join(args));
+            LOG.info("Console log level: {}", arguments.getConsoleLogLevel().toString());
+            LOG.info("Log file log level: {}", arguments.getFileLogLevel().toString());
             logPlatformInformation();
             LOG.info(arguments.getArgumentLog());
 
@@ -174,13 +174,13 @@ public class Main {
     }
 
     private static void logPlatformInformation() {
-        LOG.info("Java Version: " + System.getProperty("java.version"));
-        LOG.info("Java Vendor: " + System.getProperty("java.vendor"));
-        LOG.info("JVM Version: " + System.getProperty("java.vm.version"));
-        LOG.info("JVM Name: " + System.getProperty("java.vm.name"));
-        LOG.info("OS: " + System.getProperty("os.name"));
-        LOG.info("OS Arch: " + System.getProperty("os.arch"));
-        LOG.info("OS Version: " + System.getProperty("os.version"));
+        LOG.info("Java Version: {}", System.getProperty("java.version"));
+        LOG.info("Java Vendor: {}", System.getProperty("java.vendor"));
+        LOG.info("JVM Version: {}", System.getProperty("java.vm.version"));
+        LOG.info("JVM Name: {}", System.getProperty("java.vm.name"));
+        LOG.info("OS: {}", System.getProperty("os.name"));
+        LOG.info("OS Arch: {}", System.getProperty("os.arch"));
+        LOG.info("OS Version: {}", System.getProperty("os.version"));
     }
 
     public static Ds3Client createClient(final Arguments arguments) {

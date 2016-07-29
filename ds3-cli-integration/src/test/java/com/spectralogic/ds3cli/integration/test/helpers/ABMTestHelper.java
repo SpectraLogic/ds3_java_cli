@@ -104,13 +104,13 @@ public final class ABMTestHelper {
                     .deleteDataPolicySpectraS3(new DeleteDataPolicySpectraS3Request(dataPolicyName));
             assertThat(deleteDataPolicy.getStatusCode(), is(204));
         } catch (final IOException|AssertionError e) {
-            LOG.error("Data policy was not deleted as expected: " + dataPolicyName);
+            LOG.error("Data policy was not deleted as expected: {}", dataPolicyName);
         }
 
         //Verify that the data policy was deleted
         try {
             client.getDataPolicySpectraS3(new GetDataPolicySpectraS3Request(dataPolicyName));
-            LOG.error("Data policy still exists despite deletion attempt: " + dataPolicyName);
+            LOG.error("Data policy still exists despite deletion attempt: {}", dataPolicyName);
         } catch (final IOException e) {
             //Pass: expected data policy to not exist
         }
@@ -157,13 +157,13 @@ public final class ABMTestHelper {
                     .deletePoolPartitionSpectraS3(new DeletePoolPartitionSpectraS3Request(poolPartitionName));
             assertThat(deletePoolPartition.getStatusCode(), is(204));
         } catch (final IOException|AssertionError e) {
-            LOG.error("Pool partition was not deleted as expected: " + poolPartitionName);
+            LOG.error("Pool partition was not deleted as expected: {}", poolPartitionName);
         }
 
         //Verify that the pool partition was deleted
         try {
             client.getPoolPartitionSpectraS3(new GetPoolPartitionSpectraS3Request(poolPartitionName));
-            LOG.error("Pool partition still exists despite deletion attempt: " + poolPartitionName);
+            LOG.error("Pool partition still exists despite deletion attempt: {}", poolPartitionName);
         } catch (final IOException e) {
             //Pass: expected pool partition to not exist
         }
@@ -206,13 +206,13 @@ public final class ABMTestHelper {
                     .deleteStorageDomainSpectraS3(new DeleteStorageDomainSpectraS3Request(storageDomainName));
             assertThat(deleteStorageDomain.getStatusCode(), is(204));
         } catch (final IOException|AssertionError e) {
-            LOG.error("Storage domain was not deleted as expected: " + storageDomainName);
+            LOG.error("Storage domain was not deleted as expected: {}", storageDomainName);
         }
 
         //Verify that the storage domain was deleted
         try {
             client.getStorageDomainSpectraS3(new GetStorageDomainSpectraS3Request(storageDomainName));
-            LOG.error("Storage domain still exists despite deletion attempt: " + storageDomainName);
+            LOG.error("Storage domain still exists despite deletion attempt: {}", storageDomainName);
         } catch (final IOException e) {
             //Pass: expected storage domain to not exist
         }
@@ -263,14 +263,14 @@ public final class ABMTestHelper {
                             new DeleteStorageDomainMemberSpectraS3Request(memberId.toString()));
             assertThat(deleteMember.getStatusCode(), is(204));
         } catch (final IOException|AssertionError e) {
-            LOG.error("Storage domain member was not deleted as expected: " + memberId.toString());
+            LOG.error("Storage domain member was not deleted as expected: {}", memberId.toString());
         }
 
         //Verify that the storage domain member was deleted
         try {
             client.getStorageDomainMemberSpectraS3(
                     new GetStorageDomainMemberSpectraS3Request(memberId.toString()));
-            LOG.error("Storage domain member still exists despite deletion attempt: " + memberId.toString());
+            LOG.error("Storage domain member still exists despite deletion attempt: {}", memberId.toString());
         } catch (final IOException e) {
             //Pass: expected storage domain member to not exist
         }
@@ -318,14 +318,14 @@ public final class ABMTestHelper {
                     new DeleteDataPersistenceRuleSpectraS3Request(dataPersistenceRuleId.toString()));
             assertThat(deleteResponse.getStatusCode(), is(204));
         } catch (final IOException|AssertionError e) {
-            LOG.error("Data persistence rule was not deleted as expected: " + dataPersistenceRuleId.toString());
+            LOG.error("Data persistence rule was not deleted as expected: {}", dataPersistenceRuleId.toString());
         }
 
         //Verify that the data persistence rule was deleted
         try {
             client.getDataPersistenceRuleSpectraS3(
                     new GetDataPersistenceRuleSpectraS3Request(dataPersistenceRuleId.toString()));
-            LOG.error("Data persistence rule still exists despite deletion attempt: " + dataPersistenceRuleId.toString());
+            LOG.error("Data persistence rule still exists despite deletion attempt: {}", dataPersistenceRuleId.toString());
         } catch (final IOException e) {
             //Pass: expected data persistence rule to not exist
         }
@@ -371,13 +371,13 @@ public final class ABMTestHelper {
                     new DeleteGroupSpectraS3Request(groupName));
             assertThat(deleteResponse.getStatusCode(), is(204));
         } catch (final IOException|AssertionError e) {
-            LOG.error("Group was not deleted as expected: " + groupName);
+            LOG.error("Group was not deleted as expected: {}", groupName);
         }
 
         //Verify that the group was deleted
         try {
             client.getGroupSpectraS3(new GetGroupSpectraS3Request(groupName));
-            LOG.error("Group still exists despite deletion attempt: " + groupName);
+            LOG.error("Group still exists despite deletion attempt: {}", groupName);
         } catch (final IOException e) {
             //Pass: expected group to not exist
         }
@@ -422,13 +422,13 @@ public final class ABMTestHelper {
                     .deleteDataPolicyAclSpectraS3(new DeleteDataPolicyAclSpectraS3Request(aclId.toString()));
             assertThat(deleteAcl.getStatusCode(), is(204));
         } catch (final IOException|AssertionError e) {
-            LOG.error("Data policy Acl was not deleted as expected: " + aclId.toString());
+            LOG.error("Data policy Acl was not deleted as expected: {}", aclId.toString());
         }
 
         //Verify that the Acl was deleted
         try {
             client.getDataPolicyAclSpectraS3(new GetDataPolicyAclSpectraS3Request(aclId.toString()));
-            LOG.error("Data policy Acl still exists despite deletion attempt: " + aclId.toString());
+            LOG.error("Data policy Acl still exists despite deletion attempt: {}", aclId.toString());
         } catch (final IOException e) {
             //Pass: expected data policy acl to not exist
         }
