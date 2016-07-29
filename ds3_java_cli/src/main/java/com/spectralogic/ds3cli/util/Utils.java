@@ -215,7 +215,7 @@ public final class Utils {
                     LOG.warn(String.format("WARN: piped data must be a regular/symbolic link file and not a directory ==> %s will be skipped", line));
                     continue;
                 }
-                LOG.info("File \"" + file.toString() + "\" from stdin");
+                LOG.info("File \"{}\" from stdin", file.toString());
                 pipedFiles.add(file);
             }
         }
@@ -232,7 +232,7 @@ public final class Utils {
             final FileTime lastModifiedTime = Files.getLastModifiedTime(path);
             return ImmutableMap.of(Constants.DS3_LAST_MODIFIED, Long.toString(lastModifiedTime.toMillis()));
         } catch (final IOException e) {
-            LOG.error("Could not get the last modified time for file: " + path, e);
+            LOG.error("Could not get the last modified time for file: {}", path, e);
             return null;
         }
     }
@@ -244,11 +244,11 @@ public final class Utils {
                 final FileTime lastModified = FileTime.from(lastModifiedMs, TimeUnit.MILLISECONDS);
                 Files.setLastModifiedTime(path, lastModified);
             } catch (final Throwable t) {
-                LOG.error("Failed to restore the last modified date for object: " + filename, t);
+                LOG.error("Failed to restore the last modified date for object: {}", filename, t);
             }
 
         } else {
-            LOG.warn("Object (" + filename + ") does not contain a last modified field");
+            LOG.warn("Object ({}) does not contain a last modified field", filename);
         }
     }
 

@@ -124,19 +124,19 @@ public class GetBulk extends CliCommand<DefaultResult> {
 
         if (this.sync) {
             if (Guard.isStringNullOrEmpty(this.prefix)) {
-                LOG.info("Syncing all objects from " + this.bucketName);
+                LOG.info("Syncing all objects from {}", this.bucketName);
             } else {
-                LOG.info("Syncing only those objects that start with " + this.prefix);
+                LOG.info("Syncing only those objects that start with {}", this.prefix);
             }
             return new DefaultResult(this.restoreSome(getter));
         }
 
         if (this.prefix == null) {
-            LOG.info("Getting all objects from " + this.bucketName);
+            LOG.info("Getting all objects from {}", this.bucketName);
             return new DefaultResult(this.restoreAll(getter));
         }
 
-        LOG.info("Getting only those objects that start with " + this.prefix);
+        LOG.info("Getting only those objects that start with {}", this.prefix);
         return new DefaultResult(this.restoreSome(getter));
     }
 
@@ -208,10 +208,10 @@ public class GetBulk extends CliCommand<DefaultResult> {
             if (filePath == null) {
                 filteredContents.add(content);
             } else if (SyncUtils.isNewFile(filePath, content, false)) {
-                LOG.info("Syncing new version of " + filePath.toString());
+                LOG.info("Syncing new version of {}", filePath.toString());
                 filteredContents.add(content);
             } else {
-                LOG.info("No need to sync " + filePath.toString());
+                LOG.info("No need to sync {}", filePath.toString());
             }
         }
 
@@ -230,7 +230,7 @@ public class GetBulk extends CliCommand<DefaultResult> {
 
         @Override
         public SeekableByteChannel buildChannel(final String s) throws IOException {
-            LOG.info("Getting object " + s);
+            LOG.info("Getting object {}", s);
             return this.objectGetter.buildChannel(s);
         }
 

@@ -84,7 +84,7 @@ public class GetObject extends CliCommand<DefaultResult> {
         try {
             final Ds3ClientHelpers helpers = getClientHelpers();
             final Path filePath = Paths.get(this.prefix, this.objectName);
-            LOG.info("Output path: " + filePath.toString());
+            LOG.info("Output path: {}", filePath.toString());
 
             final Ds3Object ds3Obj = new Ds3Object(this.objectName.replace("\\", "/"));
             if (this.sync && Utils.fileExists(filePath)) {
