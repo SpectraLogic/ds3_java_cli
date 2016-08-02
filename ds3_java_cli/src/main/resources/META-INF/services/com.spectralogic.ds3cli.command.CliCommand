@@ -37,6 +37,7 @@ com.spectralogic.ds3cli.command.PutObject
 com.spectralogic.ds3cli.command.ReclaimCache
 com.spectralogic.ds3cli.command.SystemInformation
 com.spectralogic.ds3cli.command.VerifyBulkJob
-
-
-
+com.spectralogic.ds3cli.command.GetDataPathBackend
+com.spectralogic.ds3cli.command.GetCacheState
+com.spectralogic.ds3cli.command.GetSystemFailure
+com.spectralogic.ds3cli.command.GetCapacitySummary

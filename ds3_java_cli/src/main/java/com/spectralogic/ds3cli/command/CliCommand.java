@@ -60,6 +60,10 @@ public abstract class CliCommand<T extends Result> implements Callable<T> {
         return this.ds3Provider.getClientHelpers();
     }
 
+    protected Ds3Provider getProvider() {
+        return this.ds3Provider;
+    }
+
     protected FileUtils getFileUtils() {
         return this.fileUtils;
     }
