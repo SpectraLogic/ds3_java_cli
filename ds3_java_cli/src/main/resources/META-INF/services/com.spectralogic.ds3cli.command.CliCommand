@@ -16,6 +16,7 @@ com.spectralogic.ds3cli.command.GetBulk
 com.spectralogic.ds3cli.command.SystemInformation
 com.spectralogic.ds3cli.command.GetConfigSummary
 com.spectralogic.ds3cli.command.GetDataPolicy
+com.spectralogic.ds3cli.command.GetDataPolicies
 com.spectralogic.ds3cli.command.GetJob
 com.spectralogic.ds3cli.command.GetJobs
 com.spectralogic.ds3cli.command.GetObject
