@@ -2,18 +2,23 @@ package com.spectralogic.ds3cli.command;
 
 import com.spectralogic.ds3cli.*;
 import com.spectralogic.ds3cli.exceptions.CommandException;
-import com.spectralogic.ds3cli.models.DefaultResult;
+import com.spectralogic.ds3cli.models.GetConfigSummaryResult;
+import com.spectralogic.ds3cli.models.Result;
 
 import java.text.SimpleDateFormat;
-import java.util.Iterator;
-import java.util.ServiceLoader;
+import java.util.*;
 
-public class GetConfigSummary extends CliCommand<DefaultResult> {
+public class GetConfigSummary extends CliCommand<GetConfigSummaryResult> {
 
     protected static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+    private final StringBuilder completeResult = new StringBuilder("CONFIGURATION SUMMARY\n");
+    private final Map<String, Result> resultsMap = new HashMap<String, Result>();
+
+    private ViewType viewType;
     private Arguments mainArgs;
-    // command executed (user real class name, not underscore ormat)
-    private final String[] commandList = {"systemInformation", "getDataPathBackend", "getTapeFailure", "GetSystemFailure", "GetCacheState", "GetCapacitySummary"  };
+    // commands to be executed (use real class name, not underscore format)
+    private final String[] commandList = {"SystemInformation", "VerifySystemHealth", "GetDataPathBackend",
+            "GetTapeFailure", "GetSystemFailure", "GetCacheState", "GetCapacitySummary" };
 
     public GetConfigSummary() {
     }
@@ -22,22 +27,30 @@ public class GetConfigSummary extends CliCommand<DefaultResult> {
     public CliCommand init(final Arguments args) throws Exception {
         // store a local ref for calling commands
         this.mainArgs = args;
+        this.viewType = args.getOutputFormat();
         return this;
     }
 
     @Override
-    public DefaultResult call() throws Exception {
-        final StringBuilder result = new StringBuilder("CONFIGURATION SUMMARY\n");
-
+    public GetConfigSummaryResult call() throws Exception {
+        // run all commands, store results in Map
         for (final String commandName : commandList ) {
-            CliCommand command = getCommandExecutor(commandName);
-            final View view = command.getView(ViewType.CLI);
-            result.append(commandName);
-            result.append("\n");
-            result.append(view.render(command.init(this.mainArgs).call()));
-            result.append("\n\n");
+            final CliCommand command = getCommandExecutor(commandName);
+            final Result result =  (Result)command.init(this.mainArgs).call();
+            resultsMap.put(commandName, result);
+            if (viewType.equals(ViewType.CLI)) {
+                final View view = command.getView(this.viewType);
+                appendResult(commandName, view.render(result));
+            }
         }
-        return new DefaultResult(result.toString());
+        return new GetConfigSummaryResult(resultsMap, completeResult.toString());
+    }
+
+    private void appendResult(final String title, final String result) {
+        completeResult.append(title);
+        completeResult.append("\n");
+        completeResult.append(result);
+        completeResult.append("\n\n");
     }
 
     private CliCommand getCommandExecutor(final String commandName) throws CommandException {
@@ -54,10 +67,15 @@ public class GetConfigSummary extends CliCommand<DefaultResult> {
     }
 
     private Iterator<CliCommand> getAllCommands() {
-        final ServiceLoader<CliCommand> loader =
-                ServiceLoader.load(CliCommand.class);
+        final ServiceLoader<CliCommand> loader = ServiceLoader.load(CliCommand.class);
         return loader.iterator();
     }
 
-
+    @Override
+    public View<GetConfigSummaryResult> getView(final ViewType viewType) {
+        if (viewType == ViewType.JSON) {
+            return new com.spectralogic.ds3cli.views.json.GetConfigSummaryView();
+        }
+        return new com.spectralogic.ds3cli.views.cli.GetConfigSummaryView();
+    }
 }

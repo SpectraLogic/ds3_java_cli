@@ -18,7 +18,6 @@ package com.spectralogic.ds3cli.views.json;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.models.GetSystemFailureResult;
-import com.spectralogic.ds3cli.models.GetTapeFailureResult;
 import com.spectralogic.ds3cli.util.JsonMapper;
 
 public class GetSystemFailureView implements View<GetSystemFailureResult> {

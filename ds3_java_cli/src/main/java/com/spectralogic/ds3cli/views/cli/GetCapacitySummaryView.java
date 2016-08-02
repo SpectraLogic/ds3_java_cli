@@ -1,6 +1,6 @@
 /*
  * ******************************************************************************
- *   Copyright 2014-2015 Spectra Logic Corporation. All Rights Reserved.
+ *   Copyright 2014-2016 Spectra Logic Corporation. All Rights Reserved.
  *   Licensed under the Apache License, Version 2.0 (the "License"). You may not use
  *   this file except in compliance with the License. A copy of the License is located at
  *
@@ -17,17 +17,10 @@ package com.spectralogic.ds3cli.views.cli;
 
 import com.bethecoder.ascii_table.ASCIITable;
 import com.google.common.collect.ImmutableList;
-import com.spectralogic.ds3cli.models.GetCacheStateResult;
 import com.spectralogic.ds3cli.models.GetCapacitySummaryResult;
-import com.spectralogic.ds3client.models.CacheFilesystem;
-import com.spectralogic.ds3client.models.CacheFilesystemInformation;
 import com.spectralogic.ds3client.models.CapacitySummaryContainer;
 import com.spectralogic.ds3client.models.StorageDomainCapacitySummary;
-import com.spectralogic.ds3client.utils.Guard;
 
-import java.util.List;
-
-import static com.spectralogic.ds3cli.util.Utils.nullGuard;
 import static com.spectralogic.ds3cli.util.Utils.nullGuardToString;
 
 public class GetCapacitySummaryView extends TableView<GetCapacitySummaryResult> {

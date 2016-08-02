@@ -17,20 +17,14 @@ package com.spectralogic.ds3cli.views.json;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.spectralogic.ds3cli.View;
-import com.spectralogic.ds3cli.models.GetCapacitySummaryResult;
+import com.spectralogic.ds3cli.models.GetConfigSummaryResult;
 import com.spectralogic.ds3cli.util.JsonMapper;
-import com.spectralogic.ds3client.models.CapacitySummaryContainer;
 
-public class GetCapacitySummaryView implements View<GetCapacitySummaryResult> {
+public class GetConfigSummaryView implements View<GetConfigSummaryResult> {
 
     @Override
-    public String render(final GetCapacitySummaryResult obj) throws JsonProcessingException {
+    public String render(final GetConfigSummaryResult result) throws JsonProcessingException {
         final CommonJsonView view = CommonJsonView.newView(CommonJsonView.Status.OK);
-
-        final CapacitySummaryContainer result = obj.getResult();
-        if (result == null){
-            return "No Capacity Summary result returned.";
-        }
-        return JsonMapper.toJson(view.data(result));
+        return JsonMapper.toJson(view.data(result.getResult()));
     }
 }

@@ -1,6 +1,6 @@
 /*
  * ******************************************************************************
- *   Copyright 2016 Spectra Logic Corporation. All Rights Reserved.
+ *   Copyright 2014 - 2016 Spectra Logic Corporation. All Rights Reserved.
  *   Licensed under the Apache License, Version 2.0 (the "License"). You may not use
  *   this file except in compliance with the License. A copy of the License is located at
  *
@@ -20,11 +20,8 @@ import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.GetDataPathBackendResult;
-import com.spectralogic.ds3cli.models.GetDataPoliciesResult;
 import com.spectralogic.ds3client.commands.spectrads3.GetDataPathBackendSpectraS3Request;
 import com.spectralogic.ds3client.commands.spectrads3.GetDataPathBackendSpectraS3Response;
-import com.spectralogic.ds3client.commands.spectrads3.GetDataPoliciesSpectraS3Request;
-import com.spectralogic.ds3client.commands.spectrads3.GetDataPoliciesSpectraS3Response;
 import com.spectralogic.ds3client.models.DataPathBackend;
 import com.spectralogic.ds3client.networking.FailedRequestException;
 import com.spectralogic.ds3client.utils.SSLSetupException;

@@ -41,3 +41,4 @@ com.spectralogic.ds3cli.command.GetDataPathBackend
 com.spectralogic.ds3cli.command.GetCacheState
 com.spectralogic.ds3cli.command.GetSystemFailure
 com.spectralogic.ds3cli.command.GetCapacitySummary
+com.spectralogic.ds3cli.command.VerifySystemHealth

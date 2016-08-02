@@ -1,6 +1,6 @@
 /*
  * ******************************************************************************
- *   Copyright 2014-2015 Spectra Logic Corporation. All Rights Reserved.
+ *   Copyright 2014-2016 Spectra Logic Corporation. All Rights Reserved.
  *   Licensed under the Apache License, Version 2.0 (the "License"). You may not use
  *   this file except in compliance with the License. A copy of the License is located at
  *
@@ -16,13 +16,6 @@
 package com.spectralogic.ds3cli.models;
 
 import com.spectralogic.ds3client.models.DataPathBackend;
-import com.spectralogic.ds3client.models.DataPolicy;
-import com.spectralogic.ds3client.models.DataPolicyList;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
 
 public class GetDataPathBackendResult implements Result {
 

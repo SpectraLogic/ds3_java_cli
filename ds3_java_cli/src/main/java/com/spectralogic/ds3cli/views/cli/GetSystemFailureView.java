@@ -1,6 +1,6 @@
 /*
  * ******************************************************************************
- *   Copyright 2014 Spectra Logic Corporation. All Rights Reserved.
+ *   Copyright 2014 - 2016 Spectra Logic Corporation. All Rights Reserved.
  *   Licensed under the Apache License, Version 2.0 (the "License"). You may not use
  *   this file except in compliance with the License. A copy of the License is located at
  *
@@ -18,9 +18,6 @@ package com.spectralogic.ds3cli.views.cli;
 import com.bethecoder.ascii_table.ASCIITable;
 import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3cli.models.GetSystemFailureResult;
-import com.spectralogic.ds3cli.models.GetTapeFailureResult;
-import com.spectralogic.ds3client.models.DetailedTapeFailure;
-import com.spectralogic.ds3client.models.DetailedTapeFailureList;
 import com.spectralogic.ds3client.models.SystemFailure;
 import com.spectralogic.ds3client.models.SystemFailureList;
 

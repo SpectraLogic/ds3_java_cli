@@ -1,6 +1,6 @@
 /*
  * ******************************************************************************
- *   Copyright 2014-2015 Spectra Logic Corporation. All Rights Reserved.
+ *   Copyright 2014 Spectra Logic Corporation. All Rights Reserved.
  *   Licensed under the Apache License, Version 2.0 (the "License"). You may not use
  *   this file except in compliance with the License. A copy of the License is located at
  *
@@ -12,25 +12,16 @@
  *   specific language governing permissions and limitations under the License.
  * ****************************************************************************
  */
+package com.spectralogic.ds3cli.views.cli;
 
-package com.spectralogic.ds3cli.views.json;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.spectralogic.ds3cli.View;
-import com.spectralogic.ds3cli.models.GetCapacitySummaryResult;
-import com.spectralogic.ds3cli.util.JsonMapper;
-import com.spectralogic.ds3client.models.CapacitySummaryContainer;
+import com.spectralogic.ds3cli.models.GetConfigSummaryResult;
 
-public class GetCapacitySummaryView implements View<GetCapacitySummaryResult> {
-
+public class GetConfigSummaryView implements View<GetConfigSummaryResult> {
     @Override
-    public String render(final GetCapacitySummaryResult obj) throws JsonProcessingException {
-        final CommonJsonView view = CommonJsonView.newView(CommonJsonView.Status.OK);
-
-        final CapacitySummaryContainer result = obj.getResult();
-        if (result == null){
-            return "No Capacity Summary result returned.";
-        }
-        return JsonMapper.toJson(view.data(result));
+    public String render(final GetConfigSummaryResult result) throws JsonProcessingException {
+        return result.getSummary();
     }
 }

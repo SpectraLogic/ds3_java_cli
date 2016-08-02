@@ -15,24 +15,24 @@
 
 package com.spectralogic.ds3cli.models;
 
-import com.spectralogic.ds3client.models.CacheFilesystemInformation;
+import java.util.Map;
 
-import java.util.Iterator;
-import java.util.List;
+public class GetConfigSummaryResult implements Result {
 
-public class GetCacheStateResult implements Result {
+    // Map for JSON output
+    private final Map<String, Result> result;
 
-    private List<CacheFilesystemInformation> result;
+    // String for CLI output
+    private String summary;
 
-    public GetCacheStateResult(final List<CacheFilesystemInformation> result) {
+    public GetConfigSummaryResult(final Map<String, Result> result, final String summary) {
+        this.summary = summary;
         this.result = result;
     }
 
-    public List<CacheFilesystemInformation> getResult() {
+    public Map<String, Result> getResult() {
         return this.result;
     }
+    public String getSummary() { return this.summary; }
 
-    public Iterator getIterator() {
-        return getResult().iterator();
-    }
 }
