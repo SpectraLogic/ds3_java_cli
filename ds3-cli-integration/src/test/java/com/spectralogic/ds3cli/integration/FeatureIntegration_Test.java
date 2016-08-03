@@ -48,12 +48,9 @@ import java.io.InputStream;
 import java.nio.channels.FileChannel;
 import java.nio.file.*;
 import java.security.SignatureException;
-import java.time.Instant;
 import java.util.Collections;
-import java.util.Date;
 import java.util.UUID;
 
-import static java.lang.Thread.sleep;
 import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.number.OrderingComparison.greaterThan;
 import static org.junit.Assert.assertThat;
