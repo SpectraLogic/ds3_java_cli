@@ -484,7 +484,7 @@ public class FeatureIntegration_Test {
             final ImmutableMultimap<String, String> metadata = headObject.getData().getMetadata();
 
             assertThat(metadata, is(notNullValue()));
-            assertThat(metadata.size(), is(1));
+            assertThat(metadata.size(), is(2)); // x-amz-meta-ds3-last-modified is added automatically
 
             final ImmutableCollection<String> collection = metadata.get("key");
 
@@ -519,7 +519,7 @@ public class FeatureIntegration_Test {
             final ImmutableMultimap<String, String> metadata = headObject.getData().getMetadata();
 
             assertThat(metadata, is(notNullValue()));
-            assertThat(metadata.size(), is(2));
+            assertThat(metadata.size(), is(3)); // x-amz-meta-ds3-last-modified is added automatically
 
             ImmutableCollection<String> collection = metadata.get("key");
             assertThat(collection.size(), is(1));

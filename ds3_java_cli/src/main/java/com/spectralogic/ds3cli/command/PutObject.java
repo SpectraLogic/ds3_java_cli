@@ -135,7 +135,10 @@ public class PutObject extends CliCommand<DefaultResult> {
             putJob.withMetadata(new Ds3ClientHelpers.MetadataAccess() {
                 @Override
                 public Map<String, String> getMetadataValue(final String s) {
-                    return metadata;
+
+                    return new ImmutableMap.Builder<String, String>()
+                            .putAll(Utils.getMetadataValues(objectPath))
+                            .putAll(metadata).build();
                 }
             });
         }

@@ -17,6 +17,7 @@ package com.spectralogic.ds3cli;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.spectralogic.ds3cli.command.PutObject;
 import com.spectralogic.ds3cli.exceptions.BadArgumentException;
 import com.spectralogic.ds3cli.exceptions.SyncNotSupportedException;
 import com.spectralogic.ds3cli.util.*;
@@ -37,6 +38,8 @@ import org.apache.commons.io.IOUtils;
 import org.hamcrest.core.StringEndsWith;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Matchers;
+import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.powermock.api.mockito.PowerMockito;
@@ -576,6 +579,7 @@ public class Ds3Cli_Test {
         when(mockedFileUtils.size(any(Path.class))).thenReturn(100L);
         when(helpers.startWriteJob(eq("bucketName"), (Iterable<Ds3Object>) isNotNull())).thenReturn(mockedPutJob);
         when(mockedPutJob.withMetadata((Ds3ClientHelpers.MetadataAccess) isNotNull())).thenReturn(mockedPutJob);
+        when(mockedPutJob.withMaxParallelRequests(any(int.class))).thenReturn(mockedPutJob);
 
         PowerMockito.mockStatic(BlackPearlUtils.class);
 
@@ -597,6 +601,7 @@ public class Ds3Cli_Test {
         when(helpers.listObjects(eq("bucketName"))).thenReturn(retObj);
         when(helpers.startWriteJob(eq("bucketName"), (Iterable<Ds3Object>) isNotNull())).thenReturn(mockedPutJob);
         when(mockedPutJob.withMetadata((Ds3ClientHelpers.MetadataAccess) isNotNull())).thenReturn(mockedPutJob);
+        when(mockedPutJob.withMaxParallelRequests(any(int.class))).thenReturn(mockedPutJob);
 
         final FileUtils mockedFileUtils = mock(FileUtils.class);
         when(mockedFileUtils.exists(any(Path.class))).thenReturn(true);
@@ -662,6 +667,7 @@ public class Ds3Cli_Test {
         when(mockedFileUtils.size(any(Path.class))).thenReturn(100L);
         when(helpers.startWriteJob(eq("bucketName"), (Iterable<Ds3Object>) isNotNull())).thenReturn(mockedPutJob);
         when(mockedPutJob.withMetadata((Ds3ClientHelpers.MetadataAccess) isNotNull())).thenReturn(mockedPutJob);
+        when(mockedPutJob.withMaxParallelRequests(any(int.class))).thenReturn(mockedPutJob);
 
         PowerMockito.mockStatic(BlackPearlUtils.class);
 
