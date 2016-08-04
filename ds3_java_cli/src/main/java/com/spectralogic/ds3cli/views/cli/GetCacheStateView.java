@@ -36,7 +36,7 @@ public class GetCacheStateView extends TableView<GetCacheStateResult> {
     @Override
     public String render(final GetCacheStateResult obj) {
         this.filesystemList = obj.getResult();
-        if ((this.filesystemList == null) || (Guard.isNullOrEmpty(this.filesystemList)) ){
+        if (Guard.isNullOrEmpty(this.filesystemList)){
             return "No Cache Filesystems reported.";
         }
 

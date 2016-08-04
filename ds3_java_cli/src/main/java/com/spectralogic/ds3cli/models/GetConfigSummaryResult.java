@@ -23,7 +23,7 @@ public class GetConfigSummaryResult implements Result {
     private final Map<String, Result> result;
 
     // String for CLI output
-    private String summary;
+    private final String summary;
 
     public GetConfigSummaryResult(final Map<String, Result> result, final String summary) {
         this.summary = summary;

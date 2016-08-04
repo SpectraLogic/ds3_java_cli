@@ -23,7 +23,7 @@ import java.util.List;
 
 public class GetCapacitySummaryResult implements Result {
 
-    private CapacitySummaryContainer result;
+    private final CapacitySummaryContainer result;
 
     public GetCapacitySummaryResult(final CapacitySummaryContainer result) {
         this.result = result;

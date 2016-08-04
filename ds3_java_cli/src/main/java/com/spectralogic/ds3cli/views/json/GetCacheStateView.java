@@ -23,6 +23,7 @@ import com.spectralogic.ds3cli.util.JsonMapper;
 import com.spectralogic.ds3client.models.CacheFilesystem;
 import com.spectralogic.ds3client.models.CacheFilesystemInformation;
 import com.spectralogic.ds3client.models.DataPathBackend;
+import com.spectralogic.ds3client.utils.Guard;
 
 import java.util.List;
 
@@ -33,7 +34,7 @@ public class GetCacheStateView implements View<GetCacheStateResult> {
         final CommonJsonView view = CommonJsonView.newView(CommonJsonView.Status.OK);
 
         final List<CacheFilesystemInformation> cacheFilesystemInfo = obj.getResult();
-        if( (cacheFilesystemInfo == null) || (cacheFilesystemInfo.size() < 1)){
+        if(Guard.isNullOrEmpty(cacheFilesystemInfo)){
             return "No valid Cache Filesystems on remote appliance";
         }
 

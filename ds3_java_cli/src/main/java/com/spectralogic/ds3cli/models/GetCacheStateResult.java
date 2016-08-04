@@ -22,7 +22,7 @@ import java.util.List;
 
 public class GetCacheStateResult implements Result {
 
-    private List<CacheFilesystemInformation> result;
+    private final List<CacheFilesystemInformation> result;
 
     public GetCacheStateResult(final List<CacheFilesystemInformation> result) {
         this.result = result;

@@ -83,4 +83,16 @@ public abstract class CliCommand<T extends Result> implements Callable<T> {
         return (View<T>) new DefaultView();
     }
 
+    public static String getPlatformInformation() {
+        StringBuilder ret = new StringBuilder();
+        ret.append(String.format("Java Version: {%s}\n", System.getProperty("java.version")));
+        ret.append(String.format("Java Vendor: {%s}\n", System.getProperty("java.vendor")));
+        ret.append(String.format("JVM Version: {%s}\n", System.getProperty("java.vm.version")));
+        ret.append(String.format("JVM Name: {%s}\n", System.getProperty("java.vm.name")));
+        ret.append(String.format("OS: {%s}\n", System.getProperty("os.name")));
+        ret.append(String.format("OS Arch: {%s}\n", System.getProperty("os.arch")));
+        ret.append(String.format("OS Version: {%s}\n", System.getProperty("os.version")));
+        return ret.toString();
+    }
+
 }
