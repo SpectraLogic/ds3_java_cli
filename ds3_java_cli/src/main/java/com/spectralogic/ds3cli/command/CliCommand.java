@@ -60,6 +60,10 @@ public abstract class CliCommand<T extends Result> implements Callable<T> {
         return this.ds3Provider.getClientHelpers();
     }
 
+    protected Ds3Provider getProvider() {
+        return this.ds3Provider;
+    }
+
     protected FileUtils getFileUtils() {
         return this.fileUtils;
     }
@@ -77,6 +81,16 @@ public abstract class CliCommand<T extends Result> implements Callable<T> {
             return (View<T>) new com.spectralogic.ds3cli.views.json.DefaultView();
         }
         return (View<T>) new DefaultView();
+    }
+
+    public static String getPlatformInformation() {
+        return String.format("Java Version: {%s}\n", System.getProperty("java.version"))
+        + String.format("Java Vendor: {%s}\n", System.getProperty("java.vendor"))
+        + String.format("JVM Version: {%s}\n", System.getProperty("java.vm.version"))
+        + String.format("JVM Name: {%s}\n", System.getProperty("java.vm.name"))
+        + String.format("OS: {%s}\n", System.getProperty("os.name"))
+        + String.format("OS Arch: {%s}\n", System.getProperty("os.arch"))
+        + String.format("OS Version: {%s}\n", System.getProperty("os.version"));
     }
 
 }

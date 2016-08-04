@@ -13,8 +13,10 @@ com.spectralogic.ds3cli.command.DeleteTapeFailure
 com.spectralogic.ds3cli.command.DeleteTapePartition
 com.spectralogic.ds3cli.command.GetBucket
 com.spectralogic.ds3cli.command.GetBulk
-com.spectralogic.ds3cli.command.GetDataPolicies
+com.spectralogic.ds3cli.command.SystemInformation
+com.spectralogic.ds3cli.command.GetConfigSummary
 com.spectralogic.ds3cli.command.GetDataPolicy
+com.spectralogic.ds3cli.command.GetDataPolicies
 com.spectralogic.ds3cli.command.GetJob
 com.spectralogic.ds3cli.command.GetJobs
 com.spectralogic.ds3cli.command.GetObject
@@ -36,6 +38,8 @@ com.spectralogic.ds3cli.command.PutObject
 com.spectralogic.ds3cli.command.ReclaimCache
 com.spectralogic.ds3cli.command.SystemInformation
 com.spectralogic.ds3cli.command.VerifyBulkJob
-
-
-
+com.spectralogic.ds3cli.command.GetDataPathBackend
+com.spectralogic.ds3cli.command.GetCacheState
+com.spectralogic.ds3cli.command.GetSystemFailure
+com.spectralogic.ds3cli.command.GetCapacitySummary
+com.spectralogic.ds3cli.command.VerifySystemHealth
