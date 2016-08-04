@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3cli.models.GetSystemFailureResult;
 import com.spectralogic.ds3client.models.SystemFailure;
 import com.spectralogic.ds3client.models.SystemFailureList;
+import com.spectralogic.ds3client.utils.Guard;
 
 import java.util.List;
 
@@ -32,9 +33,7 @@ public class GetSystemFailureView extends TableView<GetSystemFailureResult> {
     @Override
     public String render(final GetSystemFailureResult obj) {
         final SystemFailureList result = obj.getResult();
-        if( (result == null)
-                || (null == result.getSystemFailures())
-                || (result.getSystemFailures().size() == 0) ) {
+        if( (result == null) || (Guard.isNullOrEmpty(result.getSystemFailures())) ) {
             return "No system failures on remote appliance";
         }
         this.failures = result.getSystemFailures();

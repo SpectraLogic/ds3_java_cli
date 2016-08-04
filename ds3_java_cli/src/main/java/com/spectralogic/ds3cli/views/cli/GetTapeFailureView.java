@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3cli.models.GetTapeFailureResult;
 import com.spectralogic.ds3client.models.DetailedTapeFailure;
 import com.spectralogic.ds3client.models.DetailedTapeFailureList;
+import com.spectralogic.ds3client.utils.Guard;
 
 import java.text.SimpleDateFormat;
 import java.util.List;
@@ -36,9 +37,7 @@ public class GetTapeFailureView extends TableView<GetTapeFailureResult> {
     @Override
     public String render(final GetTapeFailureResult obj) {
         final DetailedTapeFailureList result = obj.getResult();
-        if( (result == null)
-                || (null == result.getDetailedTapeFailures())
-                || (result.getDetailedTapeFailures().size() == 0) ) {
+        if( (result == null) || (Guard.isNullOrEmpty(result.getDetailedTapeFailures())) ) {
             return "No tape failures on remote appliance";
         }
         this.failures = result.getDetailedTapeFailures();
