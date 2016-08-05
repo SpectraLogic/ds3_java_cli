@@ -280,8 +280,8 @@ public class FeatureIntegration_Test {
         try {
             // For a Get with sync, the local file needs to be older than the server copy
             Util.copyFile(objectName, Util.RESOURCE_BASE_NAME, Util.DOWNLOAD_BASE_NAME);
-            File file = new File(Util.DOWNLOAD_BASE_NAME + "/" + objectName);
-            DateTime modTime = new DateTime().minusHours(1);
+            final File file = new File(Util.DOWNLOAD_BASE_NAME + File.separator + objectName);
+            final DateTime modTime = new DateTime().minusHours(1);
             file.setLastModified(modTime.getMillis());
 
             Util.createBucket(client, bucketName);
@@ -289,7 +289,7 @@ public class FeatureIntegration_Test {
 
             final Arguments args = new Arguments(new String[]{"--http", "-c", "get_object", "-b", bucketName,
                     "-o", objectName, "-d", Util.DOWNLOAD_BASE_NAME, "--sync"});
-            CommandResponse response = Util.command(client, args);
+            final CommandResponse response = Util.command(client, args);
             assertThat(response.getMessage(), is("SUCCESS: Finished syncing object."));
         } finally {
             Util.deleteBucket(client, bucketName);
@@ -304,8 +304,8 @@ public class FeatureIntegration_Test {
         try {
             // get_object sets the last_modified property to that of the original file, so we need to spoof for comparison
             Util.copyFile(objectName, Util.RESOURCE_BASE_NAME, Util.DOWNLOAD_BASE_NAME);
-            File newFile = new File(Util.DOWNLOAD_BASE_NAME + "/" + objectName);
-            DateTime now = new DateTime();
+            final File newFile = new File(Util.DOWNLOAD_BASE_NAME + File.separator + objectName);
+            final DateTime now = new DateTime();
             newFile.setLastModified(now.getMillis());
 
             Util.createBucket(client, bucketName);
@@ -313,7 +313,7 @@ public class FeatureIntegration_Test {
 
             final Arguments args = new Arguments(new String[]{"--http", "-c", "get_object", "-b", bucketName,
                     "-o", objectName, "-d", Util.DOWNLOAD_BASE_NAME, "--sync"});
-            CommandResponse response = Util.command(client, args);
+            final CommandResponse response = Util.command(client, args);
             assertThat(response.getMessage(), is("SUCCESS: No need to sync " + objectName));
         } finally {
             Util.deleteBucket(client, bucketName);
@@ -330,7 +330,7 @@ public class FeatureIntegration_Test {
 
             final Arguments args = new Arguments(new String[]{"--http", "-c", "get_bulk", "-b", bucketName,
                     "-d", Util.DOWNLOAD_BASE_NAME, "--sync"});
-            CommandResponse response = Util.command(client, args);
+            final CommandResponse response = Util.command(client, args);
             assertThat(response.getMessage(), is("SUCCESS: Synced all the objects from " + bucketName + " to ." + File.separator + "." + File.separator + "output"));
         } finally {
             Util.deleteBucket(client, bucketName);
@@ -352,7 +352,7 @@ public class FeatureIntegration_Test {
 
             // get_bulk sets the last_modified property to that of the original file, so we need to spoof for comparison
             final File destFolder = new File(Util.DOWNLOAD_BASE_NAME);
-            DateTime now = new DateTime();
+            final DateTime now = new DateTime();
             for( final File currentFile : destFolder.listFiles()) {
                 currentFile.setLastModified(now.getMillis());
             }
