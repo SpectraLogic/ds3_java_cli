@@ -304,12 +304,12 @@ public class FeatureIntegration_Test {
         try {
             // get_object sets the last_modified property to that of the original file, so we need to spoof for comparison
             Util.copyFile(objectName, Util.RESOURCE_BASE_NAME, Util.DOWNLOAD_BASE_NAME);
-            final File newFile = new File(Util.DOWNLOAD_BASE_NAME + File.separator + objectName);
-            final DateTime now = new DateTime();
-            newFile.setLastModified(now.getMillis());
 
             Util.createBucket(client, bucketName);
             Util.loadBookTestData(client, bucketName);
+            final File newFile = new File(Util.DOWNLOAD_BASE_NAME + File.separator + objectName);
+            final DateTime now = new DateTime();
+            newFile.setLastModified(now.getMillis());
 
             final Arguments args = new Arguments(new String[]{"--http", "-c", "get_object", "-b", bucketName,
                     "-o", objectName, "-d", Util.DOWNLOAD_BASE_NAME, "--sync"});
