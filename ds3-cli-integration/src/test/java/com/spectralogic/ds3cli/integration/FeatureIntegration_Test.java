@@ -34,6 +34,7 @@ import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.models.ChecksumType;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.utils.ResourceUtils;
+import org.joda.time.DateTime;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -260,9 +261,8 @@ public class FeatureIntegration_Test {
             assertThat(cliJobResponse.getData().getJobDetails().getObjects(), is(Collections.<String>emptyList()));
             assertThat(cliJobResponse.getData().getJobDetails().getPriority(), is("HIGH"));
             assertThat(cliJobResponse.getData().getJobDetails().getRequestType(), is("GET"));
-            //TODO add those tests when testing using BP 1.2 is not relevant anymore
-            //assertThat(cliJobResponse.getData().getJobDetails().getCachedSizeInBytes(), is(objSize));
-            //assertThat(cliJobResponse.getData().getJobDetails().getCompletedSizeInBytes(), is(objSize));
+            assertThat(cliJobResponse.getData().getJobDetails().getCachedSizeInBytes(), is(objSize));
+            assertThat(cliJobResponse.getData().getJobDetails().getCompletedSizeInBytes(), is(objSize));
             assertThat(cliJobResponse.getData().getJobDetails().getAggregating(), is(false));
 
             assertThat(cliJobResponse.getStatus(), is("OK"));
@@ -276,39 +276,86 @@ public class FeatureIntegration_Test {
     @Test
     public void getObjectWithSync() throws Exception {
         final String bucketName = "test_get_object_with_sync";
+        final String objectName = "beowulf.txt";
         try {
             // For a Get with sync, the local file needs to be older than the server copy
-            Util.copyFile("beowulf.txt", Util.RESOURCE_BASE_NAME, Util.DOWNLOAD_BASE_NAME);
+            Util.copyFile(objectName, Util.RESOURCE_BASE_NAME, Util.DOWNLOAD_BASE_NAME);
+            final File file = new File(Util.DOWNLOAD_BASE_NAME + File.separator + objectName);
+            final DateTime modTime = new DateTime().minusHours(1);
+            file.setLastModified(modTime.getMillis());
 
             Util.createBucket(client, bucketName);
             Util.loadBookTestData(client, bucketName);
 
             final Arguments args = new Arguments(new String[]{"--http", "-c", "get_object", "-b", bucketName,
-                    "-o", "beowulf.txt", "-d", Util.DOWNLOAD_BASE_NAME, "--sync"});
-            CommandResponse response = Util.command(client, args);
+                    "-o", objectName, "-d", Util.DOWNLOAD_BASE_NAME, "--sync"});
+            final CommandResponse response = Util.command(client, args);
             assertThat(response.getMessage(), is("SUCCESS: Finished syncing object."));
-
-            response = Util.command(client, args);
-            assertThat(response.getMessage(), is("SUCCESS: No need to sync beowulf.txt"));
-
         } finally {
             Util.deleteBucket(client, bucketName);
-            Util.deleteLocalFile("beowulf.txt");
+            Util.deleteLocalFile(objectName);
+        }
+    }
+
+    @Test
+    public void getObjectWithSyncNoUpdate() throws Exception {
+        final String bucketName = "test_get_object_with_sync_no_update";
+        final String objectName = "beowulf.txt";
+        try {
+            // get_object sets the last_modified property to that of the original file, so we need to spoof for comparison
+            Util.copyFile(objectName, Util.RESOURCE_BASE_NAME, Util.DOWNLOAD_BASE_NAME);
+            final File newFile = new File(Util.DOWNLOAD_BASE_NAME + File.separator + objectName);
+            final DateTime now = new DateTime();
+            newFile.setLastModified(now.getMillis());
+
+            Util.createBucket(client, bucketName);
+            Util.loadBookTestData(client, bucketName);
+
+            final Arguments args = new Arguments(new String[]{"--http", "-c", "get_object", "-b", bucketName,
+                    "-o", objectName, "-d", Util.DOWNLOAD_BASE_NAME, "--sync"});
+            final CommandResponse response = Util.command(client, args);
+            assertThat(response.getMessage(), is("SUCCESS: No need to sync " + objectName));
+        } finally {
+            Util.deleteBucket(client, bucketName);
+            Util.deleteLocalFile(objectName);
         }
     }
 
     @Test
     public void getBulkObjectWithSync() throws Exception {
-        final String bucketName = "test_get_bulk_object_with_sync";
+        final String bucketName = "test_get_bulk_object_with_sync_no_update";
         try {
+            Util.createBucket(client, bucketName);
+            Util.loadBookTestData(client, bucketName);
 
+            final Arguments args = new Arguments(new String[]{"--http", "-c", "get_bulk", "-b", bucketName,
+                    "-d", Util.DOWNLOAD_BASE_NAME, "--sync"});
+            final CommandResponse response = Util.command(client, args);
+            assertThat(response.getMessage(), is("SUCCESS: Synced all the objects from " + bucketName + " to ." + File.separator + "." + File.separator + "output"));
+        } finally {
+            Util.deleteBucket(client, bucketName);
+            Util.deleteLocalFiles();
+        }
+    }
+
+    @Test
+    public void getBulkObjectWithSyncNoUpdate() throws Exception {
+        final String bucketName = "test_get_bulk_object_with_sync_no_update";
+        try {
             Util.createBucket(client, bucketName);
             Util.loadBookTestData(client, bucketName);
 
             final Arguments args = new Arguments(new String[]{"--http", "-c", "get_bulk", "-b", bucketName,
                     "-d", Util.DOWNLOAD_BASE_NAME, "--sync"});
             CommandResponse response = Util.command(client, args);
-            assertThat(response.getMessage(), is("SUCCESS: Synced all the objects from test_get_object to ." + File.separator + "." + File.separator + "output"));
+            assertThat(response.getMessage(), is("SUCCESS: Synced all the objects from " + bucketName + " to ." + File.separator + "." + File.separator + "output"));
+
+            // get_bulk sets the last_modified property to that of the original file, so we need to spoof for comparison
+            final File destFolder = new File(Util.DOWNLOAD_BASE_NAME);
+            final DateTime now = new DateTime();
+            for( final File currentFile : destFolder.listFiles()) {
+                currentFile.setLastModified(now.getMillis());
+            }
 
             response = Util.command(client, args);
             assertThat(response.getMessage(), is("SUCCESS: All files are up to date"));
@@ -437,7 +484,7 @@ public class FeatureIntegration_Test {
             final ImmutableMultimap<String, String> metadata = headObject.getData().getMetadata();
 
             assertThat(metadata, is(notNullValue()));
-            assertThat(metadata.size(), is(1));
+            assertThat(metadata.size(), is(2)); // x-amz-meta-ds3-last-modified is added automatically
 
             final ImmutableCollection<String> collection = metadata.get("key");
 
@@ -472,7 +519,7 @@ public class FeatureIntegration_Test {
             final ImmutableMultimap<String, String> metadata = headObject.getData().getMetadata();
 
             assertThat(metadata, is(notNullValue()));
-            assertThat(metadata.size(), is(2));
+            assertThat(metadata.size(), is(3)); // x-amz-meta-ds3-last-modified is added automatically
 
             ImmutableCollection<String> collection = metadata.get("key");
             assertThat(collection.size(), is(1));
@@ -496,8 +543,9 @@ public class FeatureIntegration_Test {
 
             final Arguments args = new Arguments(new String[]{"--http", "-c", "get_physical_placement", "-b", bucketName, "-o", "beowulf.txt" });
             final CommandResponse response = Util.command(client, args);
-            assertTrue(response.getMessage().contains("| Object Name | ID | In Cache | Length | Offset | Latest | Version |"));
-            assertTrue(response.getMessage().contains("| beowulf.txt |    | Unknown  | 294059 | 0      | true   | 1       |"));
+            assertTrue(response.getMessage().contains("| Object Name |                  ID                  | In Cache | Length | Offset | Latest | Version |"));
+            assertTrue(response.getMessage().contains("| beowulf.txt |"));
+            assertTrue(response.getMessage().contains("| true     | 294059 | 0      | true   | 1       |"));
 
         } finally {
             Util.deleteBucket(client, bucketName);

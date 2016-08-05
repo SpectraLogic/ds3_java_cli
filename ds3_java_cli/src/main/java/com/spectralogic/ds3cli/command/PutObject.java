@@ -128,24 +128,22 @@ public class PutObject extends CliCommand<DefaultResult> {
     }
 
     private void transfer(final Ds3ClientHelpers helpers, final Ds3Object ds3Obj) throws SignatureException, IOException, XmlProcessingException {
-        final Ds3ClientHelpers.Job putJob = helpers.startWriteJob(this.bucketName, Lists.newArrayList(ds3Obj));
+        final Ds3ClientHelpers.Job putJob = helpers.startWriteJob(this.bucketName, Lists.newArrayList(ds3Obj))
+                .withMaxParallelRequests(this.numberOfThreads);
 
         if (!Guard.isMapNullOrEmpty(metadata)) {
             putJob.withMetadata(new Ds3ClientHelpers.MetadataAccess() {
                 @Override
                 public Map<String, String> getMetadataValue(final String s) {
-                    return metadata;
+
+                    return new ImmutableMap.Builder<String, String>()
+                            .putAll(Utils.getMetadataValues(objectPath))
+                            .putAll(metadata).build();
                 }
             });
         }
 
-        putJob.withMaxParallelRequests(this.numberOfThreads);
-        putJob.withMetadata(new Ds3ClientHelpers.MetadataAccess() {
-            @Override
-            public Map<String, String> getMetadataValue(final String filename) {
-                return Utils.getMetadataValues(objectPath);
-            }
-        }).transfer(new Ds3ClientHelpers.ObjectChannelBuilder() {
+        putJob.transfer(new Ds3ClientHelpers.ObjectChannelBuilder() {
             @Override
             public SeekableByteChannel buildChannel(final String s) throws IOException {
                 return FileChannel.open(objectPath, StandardOpenOption.READ);
