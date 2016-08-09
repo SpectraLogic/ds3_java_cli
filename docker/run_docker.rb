@@ -49,15 +49,15 @@ ENV["DOCKER_REPO"] = ENV["DOCKER_REPO"] || "denverm80/ds3_java_cli_docker_test:l
 puts "DOCKER_REPO #{ENV["DOCKER_REPO"]}"
 
 # pull down the git repo
-# puts `git clone #{ENV["GIT_REPO"]} --branch #{ENV["GIT_BRANCH"]} --single-branch`
-#
-# # Build latest docker image
-# puts "docker build -t #{ENV['DOCKER_REPO']} ./ds3_java_cli/docker/"
-# docker_build_output = `docker build -t #{ENV["DOCKER_REPO"]} ./ds3_java_cli/docker/`
-# docker_build_status = $?
-# puts docker_build_output
-# puts "docker build status[#{docker_build_status}][#{docker_build_status.exitstatus}]"
-#
+puts `git clone #{ENV["GIT_REPO"]} --branch #{ENV["GIT_BRANCH"]} --single-branch`
+
+# Build latest docker image
+puts "docker build -t #{ENV['DOCKER_REPO']} ./ds3_java_cli/docker/"
+docker_build_output = `docker build -t #{ENV["DOCKER_REPO"]} ./ds3_java_cli/docker/`
+docker_build_status = $?
+puts docker_build_output
+puts "docker build status[#{docker_build_status}][#{docker_build_status.exitstatus}]"
+
 puts "docker run -e DS3_ENDPOINT -e DS3_SECRET_KEY -e DS3_ACCESS_KEY -e GIT_REPO -e GIT_BRANCH --dns=10.1.0.9 #{ENV["DOCKER_REPO"]}"
 output = `docker run -e DS3_ENDPOINT -e DS3_SECRET_KEY -e DS3_ACCESS_KEY -e GIT_REPO -e GIT_BRANCH --dns=10.1.0.9 #{ENV["DOCKER_REPO"]}`
 docker_status = $?
