@@ -13,24 +13,17 @@
  * ***************************************************************************
  */
 
-package com.spectralogic.ds3cli.models;
+package com.spectralogic.ds3cli.views.json;
 
-import com.spectralogic.ds3client.models.Objects;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.spectralogic.ds3cli.View;
+import com.spectralogic.ds3cli.models.VerifyAllTapesResult;
+import com.spectralogic.ds3cli.util.JsonMapper;
 
-import java.util.Iterator;
-
-public class VerifyBulkJobResult implements Result {
-    final private String bucketId;
-    final private Iterator<Objects> objIterator;
-
-    public VerifyBulkJobResult(final String id, final Iterator<Objects> objIterator) {
-        this.bucketId = id;
-        this.objIterator = objIterator;
-    }
-
-    public String getBucketId() { return this.bucketId; }
-
-    public Iterator<Objects> getObjIterator() {
-        return objIterator;
+public class VerifyAllTapesView implements View<VerifyAllTapesResult> {
+    @Override
+    public String render(final VerifyAllTapesResult result) throws JsonProcessingException {
+        final CommonJsonView view = CommonJsonView.newView(CommonJsonView.Status.OK);
+        return JsonMapper.toJson(view.data(result));
     }
 }

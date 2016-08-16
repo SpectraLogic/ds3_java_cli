@@ -15,22 +15,19 @@
 
 package com.spectralogic.ds3cli.models;
 
-import com.spectralogic.ds3client.models.Objects;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.spectralogic.ds3client.models.TapeFailureList;
 
-import java.util.Iterator;
+public class VerifyAllTapesResult implements Result {
 
-public class VerifyBulkJobResult implements Result {
-    final private String bucketId;
-    final private Iterator<Objects> objIterator;
+    @JsonProperty("tape_failure_list")
+    private final TapeFailureList tapeFailureList;
 
-    public VerifyBulkJobResult(final String id, final Iterator<Objects> objIterator) {
-        this.bucketId = id;
-        this.objIterator = objIterator;
+    public VerifyAllTapesResult(final TapeFailureList tapeFailureListResult) {
+        this.tapeFailureList = tapeFailureListResult;
     }
 
-    public String getBucketId() { return this.bucketId; }
-
-    public Iterator<Objects> getObjIterator() {
-        return objIterator;
+    public TapeFailureList getTapeFailureList() {
+        return tapeFailureList;
     }
 }
