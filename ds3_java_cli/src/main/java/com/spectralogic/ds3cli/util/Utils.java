@@ -256,8 +256,6 @@ public final class Utils {
      *  Takes an enum.values() Object  array  and returns all possible values
      *  in a comma-delimited string
      */
-    //
-
     public static String printEnumOptions(Object[] optionEnum) {
         final StringBuilder ret = new StringBuilder();
         for (final Object o : optionEnum) {
