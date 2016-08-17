@@ -121,6 +121,13 @@ public class Ds3Cli_Test {
     }
 
     @Test
+    public void enumToStrings() throws Exception {
+        final String expected = "CRITICAL, URGENT, HIGH, NORMAL, LOW, BACKGROUND";
+        final String actual = Utils.printEnumOptions(com.spectralogic.ds3client.models.Priority.values());
+        assertEquals(actual, expected);
+    }
+
+    @Test
     public void getServiceJson() throws Exception {
         final String expectedString = "  \"Data\" : {\n" +
                 "    \"Buckets\" : [ {\n" +

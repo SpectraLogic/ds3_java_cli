@@ -15,6 +15,7 @@
 
 package com.spectralogic.ds3cli.util;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -250,6 +251,15 @@ public final class Utils {
         } else {
             LOG.warn("Object ({}) does not contain a last modified field", filename);
         }
+    }
+
+    /**
+     *  Takes an enum.values() Object  array  and returns all possible values
+     *  in a comma-delimited string
+     */
+    public static String printEnumOptions(final Object[] optionEnum) {
+        final Joiner joiner = Joiner.on(", ");
+        return joiner.join(optionEnum);
     }
 
 }

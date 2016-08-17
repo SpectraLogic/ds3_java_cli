@@ -19,6 +19,7 @@ import ch.qos.logback.classic.Level;
 import com.google.common.collect.ImmutableMap;
 import com.spectralogic.ds3cli.exceptions.BadArgumentException;
 import com.spectralogic.ds3cli.util.Metadata;
+import com.spectralogic.ds3cli.util.Utils;
 import com.spectralogic.ds3client.models.Priority;
 import com.spectralogic.ds3client.models.WriteOptimization;
 import org.apache.commons.cli.*;
@@ -110,10 +111,11 @@ public class Arguments {
         retries.setArgName("retries");
         final Option checksum = new Option(null, "Validate checksum values");
         checksum.setLongOpt("checksum");
-        final Option priority = new Option(null, true, "Set the bulk job priority.  Possible values: [" + Priority.values() + "]");
+        final Option priority = new Option(null, true, "Set the bulk job priority.  Possible values: [" + Utils.printEnumOptions(Priority.values()) + "]");
         priority.setLongOpt("priority");
         priority.setArgName("priority");
-        final Option writeOptimization = new Option(null, true, "Set the job write optimization.  Possible values: [" + WriteOptimization.values() + "]");
+
+        final Option writeOptimization = new Option(null, true, "Set the job write optimization.  Possible values: [" + Utils.printEnumOptions(WriteOptimization.values()) + "]");
         writeOptimization.setLongOpt("writeOptimization");
         writeOptimization.setArgName("writeOptimization");
         final Option help = new Option("h", "Help Menu");
