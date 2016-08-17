@@ -252,9 +252,14 @@ public final class Utils {
         }
     }
 
-    // take an enum.values() and print all possible values
+    /**
+     *  Takes an enum.values() Object  array  and returns all possible values
+     *  in a comma-delimited string
+     */
+    //
+
     public static String printEnumOptions(Object[] optionEnum) {
-        StringBuilder ret = new StringBuilder();
+        final StringBuilder ret = new StringBuilder();
         for (final Object o : optionEnum) {
             ret.append(", ");
             ret.append(o.toString());

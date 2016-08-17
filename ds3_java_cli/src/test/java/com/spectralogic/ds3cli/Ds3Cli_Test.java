@@ -48,7 +48,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Method;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.SignatureException;
@@ -124,7 +123,7 @@ public class Ds3Cli_Test {
     @Test
     public void enumToStrings() throws Exception {
         final String expected = "CRITICAL, URGENT, HIGH, NORMAL, LOW, BACKGROUND";
-        String actual = Utils.printEnumOptions(com.spectralogic.ds3client.models.Priority.values());
+        final String actual = Utils.printEnumOptions(com.spectralogic.ds3client.models.Priority.values());
         assertEquals(actual, expected);
     }
 
