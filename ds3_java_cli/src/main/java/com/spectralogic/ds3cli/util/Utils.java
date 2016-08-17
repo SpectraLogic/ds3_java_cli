@@ -252,4 +252,16 @@ public final class Utils {
         }
     }
 
+    // take an enum.values() and print all possible values
+    public static String printEnumOptions(Object[] optionEnum) {
+        StringBuilder ret = new StringBuilder();
+        for (final Object o : optionEnum) {
+            ret.append(", ");
+            ret.append(o.toString());
+        }
+        // trim opening ', '
+        ret.delete(0, 2);
+        return  ret.toString();
+    }
+
 }
