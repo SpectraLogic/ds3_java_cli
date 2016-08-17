@@ -15,6 +15,7 @@
 
 package com.spectralogic.ds3cli.util;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -256,15 +257,9 @@ public final class Utils {
      *  Takes an enum.values() Object  array  and returns all possible values
      *  in a comma-delimited string
      */
-    public static String printEnumOptions(Object[] optionEnum) {
-        final StringBuilder ret = new StringBuilder();
-        for (final Object o : optionEnum) {
-            ret.append(", ");
-            ret.append(o.toString());
-        }
-        // trim opening ', '
-        ret.delete(0, 2);
-        return  ret.toString();
+    public static String printEnumOptions(final Object[] optionEnum) {
+        final Joiner joiner = Joiner.on(", ");
+        return joiner.join(optionEnum);
     }
 
 }
