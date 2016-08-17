@@ -110,10 +110,11 @@ public class Arguments {
         retries.setArgName("retries");
         final Option checksum = new Option(null, "Validate checksum values");
         checksum.setLongOpt("checksum");
-        final Option priority = new Option(null, true, "Set the bulk job priority.  Possible values: [" + Priority.values() + "]");
+        final Option priority = new Option(null, true, "Set the bulk job priority.  Possible values: [" + printEnumOptions(Priority.values()) + "]");
         priority.setLongOpt("priority");
         priority.setArgName("priority");
-        final Option writeOptimization = new Option(null, true, "Set the job write optimization.  Possible values: [" + WriteOptimization.values() + "]");
+
+        final Option writeOptimization = new Option(null, true, "Set the job write optimization.  Possible values: [" + printEnumOptions(WriteOptimization.values()) + "]");
         writeOptimization.setLongOpt("writeOptimization");
         writeOptimization.setArgName("writeOptimization");
         final Option help = new Option("h", "Help Menu");
@@ -492,6 +493,15 @@ public class Arguments {
         // default help menu
         final HelpFormatter helpFormatter = new HelpFormatter();
         helpFormatter.printHelp("ds3", this.options);
+    }
+
+    // take an enum.values() and print all possible values
+    private static String printEnumOptions(Object[] optionEnum) {
+        String ret = "";
+        for (final Object o : optionEnum) {
+            ret += ", " + o.toString();
+        }
+        return  ret.replaceFirst("[,]", "") + " ";
     }
 
     public String getBucket() {
