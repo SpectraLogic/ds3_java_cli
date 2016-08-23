@@ -18,6 +18,7 @@ package com.spectralogic.ds3cli.command;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.models.DefaultResult;
 import com.spectralogic.ds3client.commands.spectrads3.CancelJobSpectraS3Request;
+import com.spectralogic.ds3client.commands.spectrads3.CancelJobSpectraS3Response;
 import org.apache.commons.cli.MissingOptionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,7 +47,7 @@ public class DeleteJob extends CliCommand<DefaultResult> {
     public DefaultResult call() throws Exception {
         // Force is always on in CancelJobSpectraS3Request
         final CancelJobSpectraS3Request request = new CancelJobSpectraS3Request(id);
-        getClient().cancelJobSpectraS3(request);
-        return new DefaultResult("SUCCESS: Deleted job '"+ this.id.toString() +"'");
+        final CancelJobSpectraS3Response response = getClient().cancelJobSpectraS3(request);
+        return new DefaultResult("SUCCESS: Deleted job '" + this.id.toString() + "'");
     }
 }

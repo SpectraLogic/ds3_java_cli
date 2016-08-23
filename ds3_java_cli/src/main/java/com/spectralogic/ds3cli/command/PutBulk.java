@@ -64,7 +64,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
     private ImmutableList<Path> pipedFiles;
     private ImmutableMap<String, String> mapNormalizedObjectNameToObjectName = null;
     private boolean followSymlinks;
-    private boolean ignoreNameConflicts;
+    private boolean ignoreNamingConflicts;
 
     public PutBulk() {
     }
@@ -125,8 +125,8 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         this.followSymlinks = args.isFollowSymlinks();
         LOG.info("Follow symlinks has been set to: {}", this.followSymlinks);
 
-        this.ignoreNameConflicts = args.doIgnoreNamingConflicts();
-        LOG.info("Ignore naming conflicts has been set to: {}", this.ignoreNameConflicts);
+        this.ignoreNamingConflicts = args.doIgnoreNamingConflicts();
+        LOG.info("Ignore naming conflicts has been set to: {}", this.ignoreNamingConflicts);
 
         return this;
     }
@@ -164,7 +164,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
                 WriteJobOptions.create()
                         .withPriority(this.priority)
                         .withWriteOptimization(this.writeOptimization)
-                        .withIgnoreNamingConflicts(this.ignoreNameConflicts));
+                        .withIgnoreNamingConflicts(this.ignoreNamingConflicts));
                 job.withMaxParallelRequests(this.numberOfThreads);
 
         if (this.checksum) {

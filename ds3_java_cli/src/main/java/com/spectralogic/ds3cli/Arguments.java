@@ -73,7 +73,7 @@ public class Arguments {
     private Level consoleLogLevel;
     private Level fileLogLevel;
 
-    private boolean ignoreNamingCponflicts = false;
+    private boolean ignoreNamingConflicts = false;
 
     // don't use Logger because the user's preferences are not yet set
     // collect log info that will be logged by Main
@@ -171,7 +171,7 @@ public class Arguments {
         final Option followSymLinks = new Option(null, false, "Set to follow symlinks");
         followSymLinks.setLongOpt("follow-symlinks");
         final Option ignoreNamingConflicts = new Option(null, false, "Set true to ignore existing files of the same name during a bulk put");
-        followSymLinks.setLongOpt("ignore-naming-conflicts");
+        ignoreNamingConflicts.setLongOpt("ignore-naming-conflicts");
 
         final Option metadata = Option.builder()
                 .longOpt("metadata")
@@ -437,7 +437,7 @@ public class Arguments {
         }
 
         if (cmd.hasOption("ignore-naming-conflicts")) {
-            this.setIgnoreNamingCponflicts(true);
+            this.setIgnoreNamingConflicts(true);
         }
     }
 
@@ -747,9 +747,9 @@ public class Arguments {
 
     void setFileLogLevel(Level file) {this.fileLogLevel = file; }
 
-    public boolean doIgnoreNamingConflicts() { return this.ignoreNamingCponflicts; }
+    public boolean doIgnoreNamingConflicts() { return this.ignoreNamingConflicts; }
 
-    void setIgnoreNamingCponflicts(final boolean ignore) { this.ignoreNamingCponflicts = ignore; }
+    void setIgnoreNamingConflicts(final boolean ignore) { this.ignoreNamingConflicts = ignore; }
 
 }
 
