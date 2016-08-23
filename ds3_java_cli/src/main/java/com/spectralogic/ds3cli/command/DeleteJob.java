@@ -17,8 +17,6 @@ package com.spectralogic.ds3cli.command;
 
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.models.DefaultResult;
-import com.spectralogic.ds3cli.util.Ds3Provider;
-import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3client.commands.spectrads3.CancelJobSpectraS3Request;
 import org.apache.commons.cli.MissingOptionException;
 import org.slf4j.Logger;
@@ -31,7 +29,6 @@ public class DeleteJob extends CliCommand<DefaultResult> {
     private final static Logger LOG = LoggerFactory.getLogger(DeleteJob.class);
 
     private UUID id;
-    private boolean force;
 
     public DeleteJob() {
     }
@@ -42,16 +39,13 @@ public class DeleteJob extends CliCommand<DefaultResult> {
             throw new MissingOptionException("The delete job command requires '-i' to be set.");
         }
         this.id = UUID.fromString(args.getId());
-        this.force = args.isForce();
-        if (this.force) {
-            LOG.info("Force flag is true");
-        }
         return this;
     }
 
     @Override
     public DefaultResult call() throws Exception {
-        final CancelJobSpectraS3Request request = new CancelJobSpectraS3Request(id).withForce(this.force);
+        // Force is always on in CancelJobSpectraS3Request
+        final CancelJobSpectraS3Request request = new CancelJobSpectraS3Request(id);
         getClient().cancelJobSpectraS3(request);
         return new DefaultResult("SUCCESS: Deleted job '"+ this.id.toString() +"'");
     }
