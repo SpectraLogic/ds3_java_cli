@@ -978,11 +978,11 @@ public class Ds3Cli_Test {
 
         final Path p1 = Paths.get("obj1.txt");
         final Path p2 = Paths.get("obj2.txt");
-        final ImmutableList<Path> retPath = ImmutableList.copyOf(Lists.newArrayList(p1, p2));
+        final ImmutableList<Path> retPath = ImmutableList.of(p1, p2);
 
         final UUID jobId = UUID.randomUUID();
         when(mockedPutJob.getJobId()).thenReturn(jobId);
-        final Iterable<Ds3Object> retObj = Lists.newArrayList(new Ds3Object("obj1.txt", 1245), new Ds3Object("obj2.txt", 12345));
+        final Iterable<Ds3Object> retObj = ImmutableList.of(new Ds3Object("obj1.txt", 1245), new Ds3Object("obj2.txt", 12345));
         when(helpers.startWriteJob(eq("bucketName"), eq(retObj), any(WriteJobOptions.class))).thenReturn(mockedPutJob);
         when(mockedPutJob.withMetadata((Ds3ClientHelpers.MetadataAccess) isNotNull())).thenReturn(mockedPutJob);
 

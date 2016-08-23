@@ -170,7 +170,7 @@ public class Arguments {
         noFollowSymlinks.setLongOpt("no-follow-symlinks");
         final Option followSymLinks = new Option(null, false, "Set to follow symlinks");
         followSymLinks.setLongOpt("follow-symlinks");
-        final Option ignoreNamingConflicts = new Option(null, false, "Set true to ignore existing files of the same name during a bulk put");
+        final Option ignoreNamingConflicts = new Option(null, false, "Set true to ignore existing files of the same name and size during a bulk put");
         ignoreNamingConflicts.setLongOpt("ignore-naming-conflicts");
 
         final Option metadata = Option.builder()
