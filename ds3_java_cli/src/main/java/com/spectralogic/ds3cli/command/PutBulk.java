@@ -64,6 +64,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
     private ImmutableList<Path> pipedFiles;
     private ImmutableMap<String, String> mapNormalizedObjectNameToObjectName = null;
     private boolean followSymlinks;
+    private boolean ignoreNamingConflicts;
 
     public PutBulk() {
     }
@@ -122,8 +123,10 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         }
 
         this.followSymlinks = args.isFollowSymlinks();
-
         LOG.info("Follow symlinks has been set to: {}", this.followSymlinks);
+
+        this.ignoreNamingConflicts = args.doIgnoreNamingConflicts();
+        LOG.info("Ignore naming conflicts has been set to: {}", this.ignoreNamingConflicts);
 
         return this;
     }
@@ -160,8 +163,10 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         final Ds3ClientHelpers.Job job = helpers.startWriteJob(this.bucketName, ds3Objects,
                 WriteJobOptions.create()
                         .withPriority(this.priority)
-                        .withWriteOptimization(this.writeOptimization));
-        job.withMaxParallelRequests(this.numberOfThreads);
+                        .withWriteOptimization(this.writeOptimization)
+                        .withIgnoreNamingConflicts(this.ignoreNamingConflicts));
+                job.withMaxParallelRequests(this.numberOfThreads);
+
         if (this.checksum) {
             throw new RuntimeException("Checksum calculation is not currently supported."); //TODO
 //            Logging.log("Performing bulk put with checksum computation enabled");

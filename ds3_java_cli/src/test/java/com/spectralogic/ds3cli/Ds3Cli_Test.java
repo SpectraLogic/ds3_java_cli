@@ -798,6 +798,7 @@ public class Ds3Cli_Test {
                 + "      \"cachedSizeInBytes\" : 0,\n"
                 + "      \"chunkClientProcessingOrderGuarantee\" : \"NONE\",\n"
                 + "      \"completedSizeInBytes\" : 0,\n"
+                + "      \"entirelyInCache\" : false,\n"
                 + "      \"jobId\" : \"aa5df0cc-b03a-4cb9-b69d-56e7367e917f\",\n"
                 + "      \"naked\" : false,\n"
                 + "      \"name\" : null,\n"
@@ -948,6 +949,40 @@ public class Ds3Cli_Test {
         final UUID jobId = UUID.randomUUID();
         when(mockedPutJob.getJobId()).thenReturn(jobId);
         final Iterable<Ds3Object> retObj = Lists.newArrayList(new Ds3Object("obj1.txt", 1245), new Ds3Object("obj2.txt", 12345));
+        when(helpers.startWriteJob(eq("bucketName"), eq(retObj), any(WriteJobOptions.class))).thenReturn(mockedPutJob);
+        when(mockedPutJob.withMetadata((Ds3ClientHelpers.MetadataAccess) isNotNull())).thenReturn(mockedPutJob);
+
+        PowerMockito.mockStatic(Utils.class);
+        when(Utils.getObjectsToPut((Iterable<Path>)isNotNull(), any(Path.class), any(Boolean.class))).thenCallRealMethod();
+        when(Utils.listObjectsForDirectory(any(Path.class))).thenReturn(retPath);
+        when(Utils.getFileName(any(Path.class), eq(p1))).thenReturn("obj1.txt");
+        when(Utils.getFileSize(eq(p1))).thenReturn(1245L);
+        when(Utils.getFileName(any(Path.class), eq(p2))).thenReturn("obj2.txt");
+        when(Utils.getFileSize(eq(p2))).thenReturn(12345L);
+
+        PowerMockito.mockStatic(BlackPearlUtils.class);
+
+        final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(null, helpers), args, mockedFileUtils);
+        final CommandResponse result = cli.call();
+        assertThat(result.getMessage(), is("SUCCESS: Wrote all the files in dir to bucket bucketName"));
+        assertThat(result.getReturnCode(), is(0));
+    }
+
+    @Test
+    public void putBulkWithIgnoreConflicts() throws Exception {
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!",
+                "-a", "access", "-c", "put_bulk", "-b", "bucketName", "-d", "dir", "--ignore-naming-conflicts"});
+        final Ds3ClientHelpers helpers = mock(Ds3ClientHelpers.class);
+        final Ds3ClientHelpers.Job mockedPutJob = mock(Ds3ClientHelpers.Job.class);
+        final FileUtils mockedFileUtils = mock(FileUtils.class);
+
+        final Path p1 = Paths.get("obj1.txt");
+        final Path p2 = Paths.get("obj2.txt");
+        final ImmutableList<Path> retPath = ImmutableList.of(p1, p2);
+
+        final UUID jobId = UUID.randomUUID();
+        when(mockedPutJob.getJobId()).thenReturn(jobId);
+        final Iterable<Ds3Object> retObj = ImmutableList.of(new Ds3Object("obj1.txt", 1245), new Ds3Object("obj2.txt", 12345));
         when(helpers.startWriteJob(eq("bucketName"), eq(retObj), any(WriteJobOptions.class))).thenReturn(mockedPutJob);
         when(mockedPutJob.withMetadata((Ds3ClientHelpers.MetadataAccess) isNotNull())).thenReturn(mockedPutJob);
 
