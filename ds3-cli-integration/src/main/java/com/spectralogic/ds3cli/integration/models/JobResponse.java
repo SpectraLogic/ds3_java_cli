@@ -64,6 +64,9 @@ public class JobResponse {
 
     public static class JobDetails {
 
+        @JsonProperty("entirelyInCache")
+        private boolean entirelyInCache;
+
         @JsonProperty("Nodes")
         private String nodes;
 
