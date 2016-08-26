@@ -19,6 +19,7 @@ import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.models.DefaultResult;
 import com.spectralogic.ds3client.commands.spectrads3.CancelJobSpectraS3Request;
 import com.spectralogic.ds3client.commands.spectrads3.CancelJobSpectraS3Response;
+import com.spectralogic.ds3client.commands.spectrads3.TruncateActiveJobSpectraS3Request;
 import org.apache.commons.cli.MissingOptionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,9 +28,8 @@ import java.util.UUID;
 
 public class DeleteJob extends CliCommand<DefaultResult> {
 
-    private final static Logger LOG = LoggerFactory.getLogger(DeleteJob.class);
-
     private UUID id;
+    private boolean force;
 
     public DeleteJob() {
     }
@@ -40,14 +40,19 @@ public class DeleteJob extends CliCommand<DefaultResult> {
             throw new MissingOptionException("The delete job command requires '-i' to be set.");
         }
         this.id = UUID.fromString(args.getId());
+        this.force = args.isForce();
         return this;
     }
 
     @Override
     public DefaultResult call() throws Exception {
-        // Force is always on in CancelJobSpectraS3Request
-        final CancelJobSpectraS3Request request = new CancelJobSpectraS3Request(id);
-        final CancelJobSpectraS3Response response = getClient().cancelJobSpectraS3(request);
-        return new DefaultResult("SUCCESS: Deleted job '" + this.id.toString() + "'");
+        if (this.force) {
+            final CancelJobSpectraS3Request request = new CancelJobSpectraS3Request(id);
+            getClient().cancelJobSpectraS3(request);
+            return new DefaultResult("SUCCESS: Forcibly canceled job '" + this.id.toString() + "'");
+        } else {
+            getClient().truncateActiveJobSpectraS3(new TruncateActiveJobSpectraS3Request(id));
+            return new DefaultResult("SUCCESS: Canceled job '" + this.id.toString() + "'");
+        }
     }
 }
