@@ -28,8 +28,6 @@ import org.slf4j.LoggerFactory;
 
 public class VerifyTape extends CliCommand<VerifyTapeResult> {
 
-    private static final Logger LOG = LoggerFactory.getLogger(VerifyTape.class);
-
     private String id;
 
     @Override
@@ -43,12 +41,6 @@ public class VerifyTape extends CliCommand<VerifyTapeResult> {
         final VerifyTapeSpectraS3Response verifyTapeSpectraS3Response = getClient().verifyTapeSpectraS3(new VerifyTapeSpectraS3Request(id));
 
         final Tape tapeResult = verifyTapeSpectraS3Response.getTapeResult();
-
-        if (tapeResult == null) {
-            LOG.info("tape result was empty");
-        } else {
-            LOG.info("tape result was not empty");
-        }
 
         return new VerifyTapeResult(tapeResult);
     }

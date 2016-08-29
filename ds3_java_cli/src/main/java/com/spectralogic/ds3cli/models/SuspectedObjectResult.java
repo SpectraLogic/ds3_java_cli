@@ -13,15 +13,23 @@
  * ***************************************************************************
  */
 
-package com.spectralogic.ds3cli.views.cli;
+package com.spectralogic.ds3cli.models;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.spectralogic.ds3cli.View;
-import com.spectralogic.ds3cli.models.VerifyTapeResult;
+import com.google.common.collect.ImmutableList;
+import com.spectralogic.ds3client.models.BulkObject;
+import com.spectralogic.ds3client.models.SuspectBlobTape;
 
-public class VerifyTapeView implements View<VerifyTapeResult> {
-    @Override
-    public String render(final VerifyTapeResult obj) throws JsonProcessingException {
-        return "Verify task for tape " + obj.getTape().getBarCode() + " has been scheduled";
+import java.util.List;
+
+public class SuspectedObjectResult implements Result {
+
+    private final ImmutableList<BulkObject> suspectBlobTapes;
+
+    public SuspectedObjectResult(final ImmutableList<BulkObject> suspectBlobTapes) {
+        this.suspectBlobTapes = suspectBlobTapes;
+    }
+
+    public ImmutableList<BulkObject> getSuspectBlobTapes() {
+        return suspectBlobTapes;
     }
 }
