@@ -72,8 +72,8 @@ public class Arguments {
     private ImmutableMap<String, String> modifyParams = null;
     private Level consoleLogLevel;
     private Level fileLogLevel;
-
     private boolean ignoreNamingConflicts = false;
+    private boolean inCache = false;
 
     // don't use Logger because the user's preferences are not yet set
     // collect log info that will be logged by Main
@@ -172,6 +172,8 @@ public class Arguments {
         followSymLinks.setLongOpt("follow-symlinks");
         final Option ignoreNamingConflicts = new Option(null, false, "Set true to ignore existing files of the same name and size during a bulk put");
         ignoreNamingConflicts.setLongOpt("ignore-naming-conflicts");
+        final Option inCache = new Option(null, false, "Set to filter out items that are only in cache.  Used with get_suspect_objects");
+        inCache.setLongOpt("in-cache");
 
         final Option metadata = Option.builder()
                 .longOpt("metadata")
@@ -230,6 +232,7 @@ public class Arguments {
         this.options.addOption(modifyParams);
         this.options.addOption(discard);
         this.options.addOption(ignoreNamingConflicts);
+        this.options.addOption(inCache);
         this.processCommandLine();
     }
 
@@ -438,6 +441,10 @@ public class Arguments {
 
         if (cmd.hasOption("ignore-naming-conflicts")) {
             this.setIgnoreNamingConflicts(true);
+        }
+
+        if (cmd.hasOption("in-cache")) {
+            this.setInCache(true);
         }
     }
 
@@ -751,5 +758,12 @@ public class Arguments {
 
     void setIgnoreNamingConflicts(final boolean ignore) { this.ignoreNamingConflicts = ignore; }
 
+    public boolean isInCache() {
+        return inCache;
+    }
+
+    void setInCache(final boolean inCache) {
+        this.inCache = inCache;
+    }
 }
 
