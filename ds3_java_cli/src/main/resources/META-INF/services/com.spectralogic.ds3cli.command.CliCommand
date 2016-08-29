@@ -61,3 +61,4 @@ com.spectralogic.ds3cli.command.VerifySystemHealth
 com.spectralogic.ds3cli.command.VerifyAllTapes
 com.spectralogic.ds3cli.command.VerifyTape
 com.spectralogic.ds3cli.command.GetSuspectObjects
+com.spectralogic.ds3cli.command.GetSuspectBlobTapes

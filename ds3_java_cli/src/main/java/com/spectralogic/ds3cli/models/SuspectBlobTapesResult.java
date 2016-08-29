@@ -13,17 +13,21 @@
  * ***************************************************************************
  */
 
-package com.spectralogic.ds3cli.views.json;
+package com.spectralogic.ds3cli.models;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.spectralogic.ds3cli.View;
-import com.spectralogic.ds3cli.models.DefaultResult;
-import com.spectralogic.ds3cli.util.JsonMapper;
+import com.spectralogic.ds3client.models.SuspectBlobTape;
 
-public class DefaultView implements View<DefaultResult> {
-    @Override
-    public String render(final DefaultResult obj) throws JsonProcessingException {
-        final CommonJsonView view = CommonJsonView.newView(CommonJsonView.Status.OK);
-        return JsonMapper.toJson(view.message(obj.getResult()));
+import java.util.List;
+
+public class SuspectBlobTapesResult implements Result {
+    private final List<SuspectBlobTape> suspectBlobTapes;
+
+    public SuspectBlobTapesResult(final List<SuspectBlobTape> suspectBlobTapes) {
+
+        this.suspectBlobTapes = suspectBlobTapes;
+    }
+
+    public List<SuspectBlobTape> getSuspectBlobTapes() {
+        return suspectBlobTapes;
     }
 }
