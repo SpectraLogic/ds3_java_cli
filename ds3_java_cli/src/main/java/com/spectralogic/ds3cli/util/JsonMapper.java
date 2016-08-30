@@ -23,7 +23,7 @@ import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import java.text.SimpleDateFormat;
 import java.util.TimeZone;
 
-public class JsonMapper {
+public final class JsonMapper {
     private final static ObjectWriter writer;
     private JsonMapper() {
     }

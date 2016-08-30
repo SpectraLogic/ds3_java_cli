@@ -27,7 +27,6 @@ import com.spectralogic.ds3client.networking.FailedRequestException;
 import org.apache.commons.cli.MissingOptionException;
 import org.apache.commons.cli.UnrecognizedOptionException;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
