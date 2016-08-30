@@ -16,7 +16,6 @@
 package com.spectralogic.ds3cli.util;
 
 import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.spectralogic.ds3cli.command.PutBulk;
@@ -34,7 +33,6 @@ import java.io.InputStreamReader;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
-import java.security.SignatureException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
@@ -50,8 +48,11 @@ public final class Utils {
     public final static boolean isWindows = System.getProperty("os.name").contains("Windows");
     public final static double MINIMUM_VERSION_SUPPORTED = 1.2;
 
+    public static boolean isCliSupported(final Ds3Client client) throws IOException {
+        return isCliSupported(client, MINIMUM_VERSION_SUPPORTED);
+    }
 
-    public static boolean isCliSupported(final Ds3Client client) throws IOException, SignatureException {
+    public static boolean isCliSupported(final Ds3Client client, final double minVersion) throws IOException {
         final String buildInfo = client.getSystemInformationSpectraS3(new GetSystemInformationSpectraS3Request()).getSystemInformationResult().getBuildInformation().getVersion();
         final String[] buildInfoArr = buildInfo.split((Pattern.quote(".")));
         final double version = Double.valueOf(

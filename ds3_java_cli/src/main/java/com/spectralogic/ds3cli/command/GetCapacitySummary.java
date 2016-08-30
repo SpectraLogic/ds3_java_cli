@@ -20,18 +20,12 @@ import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.GetCapacitySummaryResult;
-import com.spectralogic.ds3client.commands.spectrads3.GetCacheStateSpectraS3Request;
-import com.spectralogic.ds3client.commands.spectrads3.GetCacheStateSpectraS3Response;
 import com.spectralogic.ds3client.commands.spectrads3.GetSystemCapacitySummarySpectraS3Request;
 import com.spectralogic.ds3client.commands.spectrads3.GetSystemCapacitySummarySpectraS3Response;
-import com.spectralogic.ds3client.models.CacheInformation;
 import com.spectralogic.ds3client.models.CapacitySummaryContainer;
-import com.spectralogic.ds3client.models.StorageDomainCapacitySummary;
 import com.spectralogic.ds3client.networking.FailedRequestException;
-import com.spectralogic.ds3client.utils.SSLSetupException;
 
 import java.io.IOException;
-import java.security.SignatureException;
 
 public class GetCapacitySummary extends CliCommand<GetCapacitySummaryResult> {
 
@@ -44,7 +38,7 @@ public class GetCapacitySummary extends CliCommand<GetCapacitySummaryResult> {
     }
 
     @Override
-    public GetCapacitySummaryResult call() throws IOException, SignatureException, SSLSetupException, CommandException {
+    public GetCapacitySummaryResult call() throws IOException, CommandException {
         try {
             final GetSystemCapacitySummarySpectraS3Response systemCapacitySummaryResponse =
                     getClient().getSystemCapacitySummarySpectraS3(new GetSystemCapacitySummarySpectraS3Request());

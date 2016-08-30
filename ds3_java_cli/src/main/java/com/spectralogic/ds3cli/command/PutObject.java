@@ -36,7 +36,6 @@ import java.nio.channels.SeekableByteChannel;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.security.SignatureException;
 import java.util.Map;
 
 public class PutObject extends CliCommand<DefaultResult> {
@@ -127,7 +126,7 @@ public class PutObject extends CliCommand<DefaultResult> {
         return new DefaultResult("Success: Finished writing file to ds3 appliance.");
     }
 
-    private void transfer(final Ds3ClientHelpers helpers, final Ds3Object ds3Obj) throws SignatureException, IOException, XmlProcessingException {
+    private void transfer(final Ds3ClientHelpers helpers, final Ds3Object ds3Obj) throws IOException, XmlProcessingException {
         final Ds3ClientHelpers.Job putJob = helpers.startWriteJob(this.bucketName, Lists.newArrayList(ds3Obj))
                 .withMaxParallelRequests(this.numberOfThreads);
 

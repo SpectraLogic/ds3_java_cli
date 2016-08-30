@@ -34,7 +34,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.SignatureException;
 import java.util.List;
 
 public class GetObject extends CliCommand<DefaultResult> {
@@ -110,7 +109,7 @@ public class GetObject extends CliCommand<DefaultResult> {
         }
     }
 
-    private void Transfer(final Ds3ClientHelpers helpers, final Ds3Object ds3Obj) throws IOException, SignatureException, XmlProcessingException {
+    private void Transfer(final Ds3ClientHelpers helpers, final Ds3Object ds3Obj) throws IOException, XmlProcessingException {
         final List<Ds3Object> ds3ObjectList = Lists.newArrayList(ds3Obj);
         final Ds3ClientHelpers.Job job = helpers.startReadJob(this.bucketName, ds3ObjectList);
         job.withMaxParallelRequests(this.numberOfThreads);

@@ -50,7 +50,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.SignatureException;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -1209,7 +1208,7 @@ public class Ds3Cli_Test {
     }
 
     @Test
-    public void isCliSupportedTest() throws IOException, SignatureException {
+    public void isCliSupportedTest() throws IOException {
         final Ds3Client client = mock(Ds3Client.class);
         final GetSystemInformationSpectraS3Response systemInformationResponse = mock(GetSystemInformationSpectraS3Response.class);
         final SystemInformation systemInformation = mock(SystemInformation.class);

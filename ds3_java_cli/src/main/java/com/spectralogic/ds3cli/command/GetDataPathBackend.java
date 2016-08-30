@@ -24,10 +24,8 @@ import com.spectralogic.ds3client.commands.spectrads3.GetDataPathBackendSpectraS
 import com.spectralogic.ds3client.commands.spectrads3.GetDataPathBackendSpectraS3Response;
 import com.spectralogic.ds3client.models.DataPathBackend;
 import com.spectralogic.ds3client.networking.FailedRequestException;
-import com.spectralogic.ds3client.utils.SSLSetupException;
 
 import java.io.IOException;
-import java.security.SignatureException;
 
 public class GetDataPathBackend extends CliCommand<GetDataPathBackendResult> {
 
@@ -40,7 +38,7 @@ public class GetDataPathBackend extends CliCommand<GetDataPathBackendResult> {
     }
 
     @Override
-    public GetDataPathBackendResult call() throws IOException, SignatureException, SSLSetupException, CommandException {
+    public GetDataPathBackendResult call() throws IOException, CommandException {
         try {
             final GetDataPathBackendSpectraS3Response response
                     = getClient().getDataPathBackendSpectraS3(new GetDataPathBackendSpectraS3Request());

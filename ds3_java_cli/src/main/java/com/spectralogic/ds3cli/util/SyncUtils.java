@@ -29,7 +29,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
-import java.security.SignatureException;
 import java.util.Date;
 import java.util.regex.Pattern;
 
@@ -39,7 +38,7 @@ public final class SyncUtils {
     private final static int VERSION_SUPPORTED = 3;
     private final static int MAJOR_INDEX = 0;
 
-    public static boolean isSyncSupported(final Ds3Client client) throws IOException, SignatureException {
+    public static boolean isSyncSupported(final Ds3Client client) throws IOException {
         final String buildInfo = client.getSystemInformationSpectraS3(new GetSystemInformationSpectraS3Request()).getSystemInformationResult().getBuildInformation().getVersion();
         final String[] buildInfoArr = buildInfo.split((Pattern.quote(".")));
         if (Integer.parseInt(buildInfoArr[MAJOR_INDEX]) < VERSION_SUPPORTED) {
@@ -65,7 +64,7 @@ public final class SyncUtils {
         return DateTimeComparator.getInstance().compare(localFileDateTime, serverFileDateTime) < 0;
     }
 
-    public static boolean needToSync(final Ds3ClientHelpers helpers, final String bucketName, final Path filePath, final String ds3ObjName, final boolean isPutCommand) throws SignatureException, IOException, XmlProcessingException {
+    public static boolean needToSync(final Ds3ClientHelpers helpers, final String bucketName, final Path filePath, final String ds3ObjName, final boolean isPutCommand) throws IOException, XmlProcessingException {
         final Iterable<Contents> objects = helpers.listObjects(bucketName);
         for (final Contents obj : objects) {
             if (ds3ObjName.equals(obj.getKey())) {

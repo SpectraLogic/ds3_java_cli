@@ -43,7 +43,6 @@ import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.*;
-import java.security.SignatureException;
 import java.util.Map;
 
 public class PutBulk extends CliCommand<PutBulkResult> {
@@ -159,7 +158,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         return this.transfer(helpers, ds3Objects, objectsToPut.getDs3IgnoredObjects());
     }
 
-    private PutBulkResult transfer(final Ds3ClientHelpers helpers, final Iterable<Ds3Object> ds3Objects, final ImmutableList<IgnoreFile> ds3IgnoredObjects) throws SignatureException, IOException, XmlProcessingException {
+    private PutBulkResult transfer(final Ds3ClientHelpers helpers, final Iterable<Ds3Object> ds3Objects, final ImmutableList<IgnoreFile> ds3IgnoredObjects) throws IOException, XmlProcessingException {
         final Ds3ClientHelpers.Job job = helpers.startWriteJob(this.bucketName, ds3Objects,
                 WriteJobOptions.create()
                         .withPriority(this.priority)
@@ -225,13 +224,13 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         private final Path inputDirectory;
         private final ImmutableMap<String, Contents> mapBucketFiles;
 
-        public SyncFilter(final String prefix, final Path inputDirectory, final Ds3ClientHelpers helpers, final String bucketName) throws IOException, SignatureException {
+        public SyncFilter(final String prefix, final Path inputDirectory, final Ds3ClientHelpers helpers, final String bucketName) throws IOException {
             this.prefix = prefix;
             this.inputDirectory = inputDirectory;
             this.mapBucketFiles = generateBucketFileMap(prefix, helpers, bucketName);
         }
 
-        private static ImmutableMap<String, Contents> generateBucketFileMap(final String prefix, final Ds3ClientHelpers helpers, final String bucketName) throws IOException, SignatureException {
+        private static ImmutableMap<String, Contents> generateBucketFileMap(final String prefix, final Ds3ClientHelpers helpers, final String bucketName) throws IOException {
             final Iterable<Contents> contents = helpers.listObjects(bucketName, prefix);
             final ImmutableMap.Builder<String, Contents> bucketFileMapBuilder = ImmutableMap.builder();
             for (final Contents content : contents) {

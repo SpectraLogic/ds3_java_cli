@@ -26,12 +26,17 @@ public class ModifyDataPath extends CliCommand<DefaultResult> {
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
-        verifyLastPercent = args.getVerifyLastPercent();
+        this.verifyLastPercent = args.getVerifyLastPercent();
+        if (this.verifyLastPercent > 100 || this.verifyLastPercent < 0) {
+            throw new IllegalArgumentException("'verifyLastPercent' must be between 0 and 100");
+        }
         return this;
     }
 
     @Override
     public DefaultResult call() throws Exception {
+
+
 
         final ModifyDataPathBackendSpectraS3Response modifyDataPathBackendSpectraS3Response = getClient().modifyDataPathBackendSpectraS3(new ModifyDataPathBackendSpectraS3Request().withPartiallyVerifyLastPercentOfTapes(verifyLastPercent));
 

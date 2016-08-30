@@ -18,21 +18,17 @@ package com.spectralogic.ds3cli.command;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.DefaultResult;
-import com.spectralogic.ds3cli.util.Ds3Provider;
-import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.DeleteBucketRequest;
 import com.spectralogic.ds3client.commands.DeleteObjectsRequest;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.models.Contents;
 import com.spectralogic.ds3client.networking.FailedRequestException;
-import com.spectralogic.ds3client.utils.SSLSetupException;
 import org.apache.commons.cli.MissingOptionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.security.SignatureException;
 
 public class DeleteBucket extends CliCommand<DefaultResult> {
 
@@ -66,7 +62,7 @@ public class DeleteBucket extends CliCommand<DefaultResult> {
         }
     }
 
-    private String deleteBucket() throws SignatureException, SSLSetupException, CommandException, IOException {
+    private String deleteBucket() throws CommandException, IOException {
         try {
             getClient().deleteBucket(new DeleteBucketRequest(bucketName));
         } catch (final FailedRequestException e) {
@@ -79,7 +75,7 @@ public class DeleteBucket extends CliCommand<DefaultResult> {
         return "Success: Deleted bucket '" + bucketName + "'.";
     }
 
-    private String clearObjects() throws SignatureException, SSLSetupException, CommandException {
+    private String clearObjects() throws CommandException {
         // TODO when the multi object delete command has been added to DS3
         // Get the list of objects from the bucket
         LOG.debug("Deleting objects in bucket first");
