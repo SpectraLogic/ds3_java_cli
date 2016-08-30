@@ -25,6 +25,7 @@ import com.spectralogic.ds3client.commands.spectrads3.VerifyBulkJobSpectraS3Requ
 import com.spectralogic.ds3client.commands.spectrads3.VerifyBulkJobSpectraS3Response;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.models.Contents;
+import com.spectralogic.ds3client.models.Priority;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.networking.FailedRequestException;
 import com.spectralogic.ds3client.utils.Guard;
@@ -37,12 +38,11 @@ public class VerifyBulkJob extends CliCommand<VerifyBulkJobResult> {
 
     private String bucketName;
     private String prefix;
-
-    public VerifyBulkJob() {
-    }
+    private Priority priority;
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
+        this.priority = priority;
         this.bucketName = args.getBucket();
         if (Guard.isStringNullOrEmpty(this.bucketName)) {
             throw new MissingOptionException("The verify get command requires '-b' to be set.");
@@ -76,8 +76,14 @@ public class VerifyBulkJob extends CliCommand<VerifyBulkJobResult> {
             }
 
             // Make verify call to API
+            final VerifyBulkJobSpectraS3Request request = new VerifyBulkJobSpectraS3Request(this.bucketName, objectList);
+
+            if (this.priority != null) {
+                request.withPriority(priority);
+            }
+
             final VerifyBulkJobSpectraS3Response verifyResponse
-                    = getClient().verifyBulkJobSpectraS3(new VerifyBulkJobSpectraS3Request(this.bucketName, objectList ));
+                    = getClient().verifyBulkJobSpectraS3(request);
 
             return new VerifyBulkJobResult(this.bucketName, verifyResponse.getMasterObjectListResult().getObjects().iterator());
         } catch (final FailedRequestException e) {

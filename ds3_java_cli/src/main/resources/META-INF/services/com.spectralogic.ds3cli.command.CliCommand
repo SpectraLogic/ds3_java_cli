@@ -63,3 +63,5 @@ com.spectralogic.ds3cli.command.VerifyTape
 com.spectralogic.ds3cli.command.GetSuspectObjects
 com.spectralogic.ds3cli.command.GetSuspectBlobTapes
 com.spectralogic.ds3cli.command.ModifyDataPath
+com.spectralogic.ds3cli.command.VerifyPool
+com.spectralogic.ds3cli.command.VerifyAllPools
