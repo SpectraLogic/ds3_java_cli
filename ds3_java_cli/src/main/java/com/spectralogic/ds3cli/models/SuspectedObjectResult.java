@@ -17,9 +17,6 @@ package com.spectralogic.ds3cli.models;
 
 import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3client.models.BulkObject;
-import com.spectralogic.ds3client.models.SuspectBlobTape;
-
-import java.util.List;
 
 public class SuspectedObjectResult implements Result {
 

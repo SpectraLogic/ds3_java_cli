@@ -20,11 +20,9 @@ import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3cli.models.GetBucketResult;
 import com.spectralogic.ds3client.models.Contents;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.TimeZone;
 
 import static com.spectralogic.ds3cli.util.Utils.nullGuard;
 import static com.spectralogic.ds3cli.util.Utils.nullGuardToDate;

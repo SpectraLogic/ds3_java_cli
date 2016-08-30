@@ -18,11 +18,8 @@ package com.spectralogic.ds3cli.views.cli;
 import com.bethecoder.ascii_table.ASCIITable;
 import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3cli.models.GetCacheStateResult;
-import com.spectralogic.ds3cli.models.GetTapesResult;
 import com.spectralogic.ds3client.models.CacheFilesystem;
 import com.spectralogic.ds3client.models.CacheFilesystemInformation;
-import com.spectralogic.ds3client.models.Tape;
-import com.spectralogic.ds3client.models.TapeList;
 import com.spectralogic.ds3client.utils.Guard;
 
 import java.util.List;

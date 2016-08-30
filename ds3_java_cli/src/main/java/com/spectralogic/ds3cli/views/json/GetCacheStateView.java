@@ -18,11 +18,8 @@ package com.spectralogic.ds3cli.views.json;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.models.GetCacheStateResult;
-import com.spectralogic.ds3cli.models.GetDataPathBackendResult;
 import com.spectralogic.ds3cli.util.JsonMapper;
-import com.spectralogic.ds3client.models.CacheFilesystem;
 import com.spectralogic.ds3client.models.CacheFilesystemInformation;
-import com.spectralogic.ds3client.models.DataPathBackend;
 import com.spectralogic.ds3client.utils.Guard;
 
 import java.util.List;

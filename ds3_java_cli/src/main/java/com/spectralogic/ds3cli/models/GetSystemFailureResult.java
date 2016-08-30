@@ -15,7 +15,6 @@
 
 package com.spectralogic.ds3cli.models;
 
-import com.spectralogic.ds3client.models.DetailedTapeFailureList;
 import com.spectralogic.ds3client.models.SystemFailureList;
 
 public class GetSystemFailureResult implements Result {

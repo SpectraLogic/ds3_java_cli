@@ -110,7 +110,7 @@ public class Main {
 
             fileAppender.setTriggeringPolicy((TriggeringPolicy)sizeBasedTriggeringPolicy);
             fileAppender.setRollingPolicy(sizeBasedRollingPolicy);
-            fileAppender.setEncoder((Encoder<ILoggingEvent>)fileEncoder);
+            fileAppender.setEncoder(fileEncoder);
             fileAppender.setName("LOGFILE");
             sizeBasedRollingPolicy.start();
 
@@ -165,7 +165,7 @@ public class Main {
             System.out.println("ERROR: " + e.getMessage());
             LOG.info("Stack trace: ", e);
             LOG.info("Printing out the response from the server:");
-            LOG.info(((FailedRequestException) e).getResponseString());
+            LOG.info(e.getResponseString());
             System.exit(2);
         } catch (final Exception e) {
             System.out.println("ERROR: " + e.getMessage());

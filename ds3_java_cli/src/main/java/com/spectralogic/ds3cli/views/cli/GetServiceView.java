@@ -21,11 +21,9 @@ import com.spectralogic.ds3cli.models.GetServiceResult;
 import com.spectralogic.ds3client.models.BucketDetails;
 import com.spectralogic.ds3client.models.ListAllMyBucketsResult;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.TimeZone;
 
 import static com.spectralogic.ds3cli.util.Utils.nullGuard;
 import static com.spectralogic.ds3cli.util.Utils.nullGuardToDate;
