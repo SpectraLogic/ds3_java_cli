@@ -17,7 +17,6 @@ package com.spectralogic.ds3cli;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.spectralogic.ds3cli.command.PutObject;
 import com.spectralogic.ds3cli.exceptions.BadArgumentException;
 import com.spectralogic.ds3cli.exceptions.SyncNotSupportedException;
 import com.spectralogic.ds3cli.util.*;
@@ -38,8 +37,6 @@ import org.apache.commons.io.IOUtils;
 import org.hamcrest.core.StringEndsWith;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Matchers;
-import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.powermock.api.mockito.PowerMockito;
@@ -1208,7 +1205,7 @@ public class Ds3Cli_Test {
     }
 
     @Test
-    public void isCliSupportedTest() throws IOException {
+    public void isVersionSupported() throws IOException {
         final Ds3Client client = mock(Ds3Client.class);
         final GetSystemInformationSpectraS3Response systemInformationResponse = mock(GetSystemInformationSpectraS3Response.class);
         final SystemInformation systemInformation = mock(SystemInformation.class);
@@ -1219,13 +1216,34 @@ public class Ds3Cli_Test {
         when(client.getSystemInformationSpectraS3(any(GetSystemInformationSpectraS3Request.class))).thenReturn(systemInformationResponse);
 
         when(buildInformation.getVersion()).thenReturn("1.2.0");
-        assertTrue(Utils.isCliSupported(client));
+        assertTrue(Utils.isVersionSupported(client));
 
         when(buildInformation.getVersion()).thenReturn("3.0.0");
-        assertTrue(Utils.isCliSupported(client));
+        assertTrue(Utils.isVersionSupported(client));
 
         when(buildInformation.getVersion()).thenReturn("1.1.0");
-        assertFalse(Utils.isCliSupported(client));
+        assertFalse(Utils.isVersionSupported(client));
+    }
+
+    @Test
+    public void isCustomVersionSupported() throws IOException {
+        final Ds3Client client = mock(Ds3Client.class);
+        final GetSystemInformationSpectraS3Response systemInformationResponse = mock(GetSystemInformationSpectraS3Response.class);
+        final SystemInformation systemInformation = mock(SystemInformation.class);
+        final BuildInformation buildInformation = mock(BuildInformation.class);
+
+        when(systemInformation.getBuildInformation()).thenReturn(buildInformation);
+        when(systemInformationResponse.getSystemInformationResult()).thenReturn(systemInformation);
+        when(client.getSystemInformationSpectraS3(any(GetSystemInformationSpectraS3Request.class))).thenReturn(systemInformationResponse);
+
+        when(buildInformation.getVersion()).thenReturn("3.2.3");
+        assertTrue(Utils.isVersionSupported(client, "3.2.3"));
+
+        when(buildInformation.getVersion()).thenReturn("3.2.2");
+        assertFalse(Utils.isVersionSupported(client, "3.2.3"));
+
+        when(buildInformation.getVersion()).thenReturn("3.2.4");
+        assertTrue(Utils.isVersionSupported(client, "3.2.3"));
     }
 
     @Test
