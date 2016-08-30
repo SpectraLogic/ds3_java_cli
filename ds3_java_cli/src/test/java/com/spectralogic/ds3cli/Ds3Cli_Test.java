@@ -580,7 +580,7 @@ public class Ds3Cli_Test {
         when(mockedFileUtils.exists(any(Path.class))).thenReturn(true);
         when(mockedFileUtils.isRegularFile(any(Path.class))).thenReturn(true);
         when(mockedFileUtils.size(any(Path.class))).thenReturn(100L);
-        when(helpers.startWriteJob(eq("bucketName"), (Iterable<Ds3Object>) isNotNull(), any())).thenReturn(mockedPutJob);
+        when(helpers.startWriteJob(eq("bucketName"), (Iterable<Ds3Object>) isNotNull(), any(WriteJobOptions.class))).thenReturn(mockedPutJob);
         when(mockedPutJob.withMetadata((Ds3ClientHelpers.MetadataAccess) isNotNull())).thenReturn(mockedPutJob);
         when(mockedPutJob.withMaxParallelRequests(any(int.class))).thenReturn(mockedPutJob);
 
@@ -602,7 +602,7 @@ public class Ds3Cli_Test {
         c.setKey("obj.txt");
         final Iterable<Contents> retObj = Lists.newArrayList(c);
         when(helpers.listObjects(eq("bucketName"))).thenReturn(retObj);
-        when(helpers.startWriteJob(eq("bucketName"), (Iterable<Ds3Object>) isNotNull(), any())).thenReturn(mockedPutJob);
+        when(helpers.startWriteJob(eq("bucketName"), (Iterable<Ds3Object>) isNotNull(), any(WriteJobOptions.class))).thenReturn(mockedPutJob);
         when(mockedPutJob.withMetadata((Ds3ClientHelpers.MetadataAccess) isNotNull())).thenReturn(mockedPutJob);
         when(mockedPutJob.withMaxParallelRequests(any(int.class))).thenReturn(mockedPutJob);
 
@@ -668,7 +668,7 @@ public class Ds3Cli_Test {
         when(mockedFileUtils.exists(any(Path.class))).thenReturn(true);
         when(mockedFileUtils.isRegularFile(any(Path.class))).thenReturn(true);
         when(mockedFileUtils.size(any(Path.class))).thenReturn(100L);
-        when(helpers.startWriteJob(eq("bucketName"), (Iterable<Ds3Object>) isNotNull(), any())).thenReturn(mockedPutJob);
+        when(helpers.startWriteJob(eq("bucketName"), (Iterable<Ds3Object>) isNotNull(), any(WriteJobOptions.class))).thenReturn(mockedPutJob);
         when(mockedPutJob.withMetadata((Ds3ClientHelpers.MetadataAccess) isNotNull())).thenReturn(mockedPutJob);
         when(mockedPutJob.withMaxParallelRequests(any(int.class))).thenReturn(mockedPutJob);
 
@@ -688,7 +688,7 @@ public class Ds3Cli_Test {
         final Ds3ClientHelpers helpers = mock(Ds3ClientHelpers.class);
         final Ds3ClientHelpers.Job mockedGetJob = mock(Ds3ClientHelpers.Job.class);
         final FileUtils mockedFileUtils = mock(FileUtils.class);
-        when(helpers.startReadJob(eq("bucketName"), (Iterable<Ds3Object>) isNotNull(), any())).thenReturn(mockedGetJob);
+        when(helpers.startReadJob(eq("bucketName"), (Iterable<Ds3Object>) isNotNull(), any(ReadJobOptions.class))).thenReturn(mockedGetJob);
 
         PowerMockito.mockStatic(BlackPearlUtils.class);
 
@@ -704,7 +704,7 @@ public class Ds3Cli_Test {
         final Ds3ClientHelpers helpers = mock(Ds3ClientHelpers.class);
         final Ds3ClientHelpers.Job mockedGetJob = mock(Ds3ClientHelpers.Job.class);
         final FileUtils mockedFileUtils = mock(FileUtils.class);
-        when(helpers.startReadJob(eq("bucketName"), (Iterable<Ds3Object>) isNotNull(), any())).thenReturn(mockedGetJob);
+        when(helpers.startReadJob(eq("bucketName"), (Iterable<Ds3Object>) isNotNull(), any(ReadJobOptions.class))).thenReturn(mockedGetJob);
 
         PowerMockito.mockStatic(Utils.class);
         when(Utils.fileExists(any(Path.class))).thenReturn(false);
@@ -746,7 +746,7 @@ public class Ds3Cli_Test {
         final Ds3ClientHelpers helpers = mock(Ds3ClientHelpers.class);
         final Ds3ClientHelpers.Job mockedGetJob = mock(Ds3ClientHelpers.Job.class);
         final FileUtils mockedFileUtils = mock(FileUtils.class);
-        when(helpers.startReadJob(eq("bucketName"), (Iterable<Ds3Object>) isNotNull(), any())).thenReturn(mockedGetJob);
+        when(helpers.startReadJob(eq("bucketName"), (Iterable<Ds3Object>) isNotNull(), any(ReadJobOptions.class))).thenReturn(mockedGetJob);
 
         PowerMockito.mockStatic(BlackPearlUtils.class);
 
