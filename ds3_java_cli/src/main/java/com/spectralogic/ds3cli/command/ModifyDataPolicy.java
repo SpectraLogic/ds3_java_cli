@@ -21,8 +21,6 @@ import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.GetDataPoliciesResult;
-import com.spectralogic.ds3cli.util.Ds3Provider;
-import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3client.commands.spectrads3.*;
 import com.spectralogic.ds3client.models.ChecksumType;
 import com.spectralogic.ds3client.models.DataPolicy;
@@ -30,11 +28,9 @@ import com.spectralogic.ds3client.models.Priority;
 import com.spectralogic.ds3client.models.VersioningLevel;
 import com.spectralogic.ds3client.networking.FailedRequestException;
 import com.spectralogic.ds3client.utils.Guard;
-import com.spectralogic.ds3client.utils.SSLSetupException;
 import org.apache.commons.cli.MissingOptionException;
 
 import java.io.IOException;
-import java.security.SignatureException;
 
 public class ModifyDataPolicy extends CliCommand<GetDataPoliciesResult> {
 
@@ -79,20 +75,20 @@ public class ModifyDataPolicy extends CliCommand<GetDataPoliciesResult> {
     }
 
     @Override
-    public GetDataPoliciesResult call() throws IOException, SignatureException, SSLSetupException, CommandException {
+    public GetDataPoliciesResult call() throws IOException, CommandException {
         try {
             // get the target policy
             final GetDataPolicySpectraS3Response response = getClient().getDataPolicySpectraS3(new GetDataPolicySpectraS3Request(this.policyId));
             response.checkStatusCode(200);
-            DataPolicy policy = response.getDataPolicyResult();
+            final DataPolicy policy = response.getDataPolicyResult();
 
             // update this.policyId to the UUID in case we used name to select it and change the name
             this.policyId = policy.getId().toString();
 
             // apply changes from metadata
-            ModifyDataPolicySpectraS3Request modifyRequest = new ModifyDataPolicySpectraS3Request(this.policyId);
-            for (String paramChange : this.metadata.keySet() ) {
-                String paramNewValue = this.metadata.get(paramChange);
+            final ModifyDataPolicySpectraS3Request modifyRequest = new ModifyDataPolicySpectraS3Request(this.policyId);
+            for (final String paramChange : this.metadata.keySet() ) {
+                final String paramNewValue = this.metadata.get(paramChange);
                 if("blobbing_enabled".equalsIgnoreCase(paramChange)) {
                     modifyRequest.withBlobbingEnabled(Boolean.parseBoolean(paramNewValue));
                 }

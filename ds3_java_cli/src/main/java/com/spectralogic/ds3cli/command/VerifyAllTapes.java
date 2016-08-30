@@ -39,7 +39,6 @@ public class VerifyAllTapes extends CliCommand<VerifyAllTapesResult> {
         final Ds3Client client = getClient();
 
         final VerifyAllTapesSpectraS3Request request = new VerifyAllTapesSpectraS3Request();
-
         if (priority != null) {
             request.withTaskPriority(priority);
         }

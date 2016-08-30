@@ -16,7 +16,6 @@
 package com.spectralogic.ds3cli.util;
 
 import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.spectralogic.ds3cli.command.PutBulk;
@@ -34,7 +33,6 @@ import java.io.InputStreamReader;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
-import java.security.SignatureException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
@@ -48,17 +46,29 @@ public final class Utils {
     private final static Logger LOG = LoggerFactory.getLogger(Utils.class);
 
     public final static boolean isWindows = System.getProperty("os.name").contains("Windows");
-    public final static double MINIMUM_VERSION_SUPPORTED = 1.2;
+    public final static String MINIMUM_VERSION_SUPPORTED = "1.2";
 
+    public static boolean isVersionSupported(final Ds3Client client) throws IOException {
+        return isVersionSupported(client, MINIMUM_VERSION_SUPPORTED);
+    }
 
-    public static boolean isCliSupported(final Ds3Client client) throws IOException, SignatureException {
+    public static boolean isVersionSupported(final Ds3Client client, final String minVersion) throws IOException {
         final String buildInfo = client.getSystemInformationSpectraS3(new GetSystemInformationSpectraS3Request()).getSystemInformationResult().getBuildInformation().getVersion();
         final String[] buildInfoArr = buildInfo.split((Pattern.quote(".")));
-        final double version = Double.valueOf(
-                String.format("%s.%s", buildInfoArr[0], buildInfoArr[1]));
+        final String[] versionInfo = minVersion.split(Pattern.quote("."));
 
-        return version >= MINIMUM_VERSION_SUPPORTED;
+        if (versionInfo.length > 3) {
+            throw new IllegalArgumentException("The version string can have 3 numbers");
+        }
 
+        for (int i = 0; i < versionInfo.length && i < buildInfoArr.length; i++) {
+            final int i1 = Integer.parseInt(buildInfoArr[i]);
+            final int i2 = Integer.parseInt(versionInfo[i]);
+            if (i1 > i2) return true;
+            if (i1 < i2) return false;
+        }
+
+        return true;
     }
 
     public static ImmutableList<Path> listObjectsForDirectory(final Path directory) throws IOException {

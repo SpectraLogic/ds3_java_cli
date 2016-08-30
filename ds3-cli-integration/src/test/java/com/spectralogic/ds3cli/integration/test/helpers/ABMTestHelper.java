@@ -22,7 +22,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.security.SignatureException;
 import java.util.UUID;
 
 import static org.apache.http.util.TextUtils.isEmpty;
@@ -46,7 +45,7 @@ public final class ABMTestHelper {
     public static PutDataPolicySpectraS3Response createDataPolicyWithVersioning(
             final String dataPolicyName,
             final VersioningLevel versioningLevel,
-            final Ds3Client client) throws IOException, SignatureException {
+            final Ds3Client client) throws IOException {
         return createDataPolicyWithVersioningAndCrcRequired(
                 dataPolicyName,
                 versioningLevel,
@@ -63,7 +62,7 @@ public final class ABMTestHelper {
             final String dataPolicyName,
             final VersioningLevel versioningLevel,
             final ChecksumType.Type checksumType,
-            final Ds3Client client) throws IOException, SignatureException {
+            final Ds3Client client) throws IOException {
         //Check if data policy already exists
         try {
             client.getDataPolicySpectraS3(new GetDataPolicySpectraS3Request(dataPolicyName));
@@ -124,7 +123,7 @@ public final class ABMTestHelper {
     public static PutPoolPartitionSpectraS3Response createPoolPartition(
             final String poolPartitionName,
             final PoolType poolType,
-            final Ds3Client client) throws IOException, SignatureException {
+            final Ds3Client client) throws IOException {
         //Check if pool partition already exists
         try {
             client.getPoolPartitionSpectraS3(new GetPoolPartitionSpectraS3Request(poolPartitionName));
@@ -175,7 +174,7 @@ public final class ABMTestHelper {
      */
     public static PutStorageDomainSpectraS3Response createStorageDomain(
             final String storageDomainName,
-            final Ds3Client client) throws IOException, SignatureException {
+            final Ds3Client client) throws IOException {
         //Check if storage domain already exists
         try {
             client.getStorageDomainSpectraS3(new GetStorageDomainSpectraS3Request(storageDomainName));
@@ -226,7 +225,7 @@ public final class ABMTestHelper {
     public static PutPoolStorageDomainMemberSpectraS3Response createPoolStorageDomainMember(
             final UUID storageDomainId,
             final UUID poolPartitionId,
-            final Ds3Client client) throws IOException, SignatureException {
+            final Ds3Client client) throws IOException {
         //Check if storage domain member already exists between specified storage domain and pool partition
         try {
             final GetStorageDomainMembersSpectraS3Response getMembers = client.getStorageDomainMembersSpectraS3(
@@ -283,7 +282,7 @@ public final class ABMTestHelper {
     public static PutDataPersistenceRuleSpectraS3Response createDataPersistenceRule(
             final UUID dataPolicyId,
             final UUID storageDomainId,
-            final Ds3Client client) throws IOException, SignatureException {
+            final Ds3Client client) throws IOException {
         //Check if data persistence rule already exists
         final GetDataPersistenceRulesSpectraS3Response response = client.getDataPersistenceRulesSpectraS3(
                 new GetDataPersistenceRulesSpectraS3Request()
@@ -338,7 +337,7 @@ public final class ABMTestHelper {
      */
     public static PutGroupSpectraS3Response createGroup(
             final String groupName,
-            final Ds3Client client) throws IOException, SignatureException {
+            final Ds3Client client) throws IOException {
         //Check if group already exists
         try {
             final GetGroupSpectraS3Response response = client.getGroupSpectraS3(
@@ -390,7 +389,7 @@ public final class ABMTestHelper {
     public static PutDataPolicyAclForGroupSpectraS3Response createDataPolicyAclForGroup(
             final UUID dataPolicyId,
             final UUID groupId,
-            final Ds3Client client) throws IOException, SignatureException {
+            final Ds3Client client) throws IOException {
         //Check if data policy Acl for group already exists
         final GetDataPolicyAclsSpectraS3Response response = client.getDataPolicyAclsSpectraS3(
                 new GetDataPolicyAclsSpectraS3Request()

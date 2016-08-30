@@ -23,6 +23,8 @@ import com.spectralogic.ds3cli.exceptions.SyncNotSupportedException;
 import com.spectralogic.ds3cli.models.DefaultResult;
 import com.spectralogic.ds3cli.util.*;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
+import com.spectralogic.ds3client.helpers.options.WriteJobOptions;
+import com.spectralogic.ds3client.models.Priority;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.serializer.XmlProcessingException;
 import com.spectralogic.ds3client.utils.Guard;
@@ -36,7 +38,6 @@ import java.nio.channels.SeekableByteChannel;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.security.SignatureException;
 import java.util.Map;
 
 public class PutObject extends CliCommand<DefaultResult> {
@@ -51,12 +52,11 @@ public class PutObject extends CliCommand<DefaultResult> {
     private boolean force;
     private int numberOfThreads;
     private ImmutableMap<String, String> metadata;
-
-    public PutObject() {
-    }
+    private Priority priority;
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
+        this.priority = args.getPriority();
         this.bucketName = args.getBucket();
         if (this.bucketName == null) {
             throw new MissingOptionException("The put object command requires '-b' to be set.");
@@ -127,8 +127,12 @@ public class PutObject extends CliCommand<DefaultResult> {
         return new DefaultResult("Success: Finished writing file to ds3 appliance.");
     }
 
-    private void transfer(final Ds3ClientHelpers helpers, final Ds3Object ds3Obj) throws SignatureException, IOException, XmlProcessingException {
-        final Ds3ClientHelpers.Job putJob = helpers.startWriteJob(this.bucketName, Lists.newArrayList(ds3Obj))
+    private void transfer(final Ds3ClientHelpers helpers, final Ds3Object ds3Obj) throws IOException, XmlProcessingException {
+        final WriteJobOptions writeJobOptions = WriteJobOptions.create();
+        if (priority != null) {
+            writeJobOptions.withPriority(priority);
+        }
+        final Ds3ClientHelpers.Job putJob = helpers.startWriteJob(this.bucketName, Lists.newArrayList(ds3Obj), writeJobOptions)
                 .withMaxParallelRequests(this.numberOfThreads);
 
         if (!Guard.isMapNullOrEmpty(metadata)) {

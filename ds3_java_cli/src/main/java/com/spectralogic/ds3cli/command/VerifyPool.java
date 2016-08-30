@@ -16,20 +16,14 @@
 package com.spectralogic.ds3cli.command;
 
 import com.spectralogic.ds3cli.Arguments;
-import com.spectralogic.ds3cli.View;
-import com.spectralogic.ds3cli.ViewType;
-import com.spectralogic.ds3cli.models.VerifyTapeResult;
-import com.spectralogic.ds3client.commands.spectrads3.VerifyTapeSpectraS3Request;
-import com.spectralogic.ds3client.commands.spectrads3.VerifyTapeSpectraS3Response;
+import com.spectralogic.ds3cli.models.DefaultResult;
+import com.spectralogic.ds3client.commands.spectrads3.VerifyPoolSpectraS3Request;
+import com.spectralogic.ds3client.commands.spectrads3.VerifyPoolSpectraS3Response;
 import com.spectralogic.ds3client.models.Priority;
-import com.spectralogic.ds3client.models.Tape;
 import com.spectralogic.ds3client.utils.Guard;
 import org.apache.commons.cli.MissingArgumentException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-
-public class VerifyTape extends CliCommand<VerifyTapeResult> {
+public class VerifyPool extends CliCommand<DefaultResult> {
 
     private String id;
     private Priority priority;
@@ -45,26 +39,15 @@ public class VerifyTape extends CliCommand<VerifyTapeResult> {
     }
 
     @Override
-    public VerifyTapeResult call() throws Exception {
-        final VerifyTapeSpectraS3Request request = new VerifyTapeSpectraS3Request(id);
+    public DefaultResult call() throws Exception {
+        final VerifyPoolSpectraS3Request verifyPoolSpectraS3Request = new VerifyPoolSpectraS3Request(id);
 
         if (priority != null) {
-            request.withTaskPriority(priority);
+            verifyPoolSpectraS3Request.withPriority(priority);
         }
 
-        final VerifyTapeSpectraS3Response verifyTapeSpectraS3Response = getClient().verifyTapeSpectraS3(request);
+        final VerifyPoolSpectraS3Response verifyPoolSpectraS3Response = getClient().verifyPoolSpectraS3(verifyPoolSpectraS3Request);
 
-        final Tape tapeResult = verifyTapeSpectraS3Response.getTapeResult();
-
-        return new VerifyTapeResult(tapeResult);
-    }
-
-    @Override
-    public View<VerifyTapeResult> getView(final ViewType viewType) {
-        if (viewType == ViewType.JSON) {
-            return new com.spectralogic.ds3cli.views.json.VerifyTapeView();
-        } else {
-            return new com.spectralogic.ds3cli.views.cli.VerifyTapeView();
-        }
+        return new DefaultResult("Successfully scheduled a verify for pool " + verifyPoolSpectraS3Response.getPoolResult().getName());
     }
 }

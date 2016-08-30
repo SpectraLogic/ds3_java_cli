@@ -20,15 +20,11 @@ import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.GetDataPoliciesResult;
-import com.spectralogic.ds3cli.util.Ds3Provider;
-import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3client.commands.spectrads3.GetDataPoliciesSpectraS3Request;
 import com.spectralogic.ds3client.commands.spectrads3.GetDataPoliciesSpectraS3Response;
 import com.spectralogic.ds3client.networking.FailedRequestException;
-import com.spectralogic.ds3client.utils.SSLSetupException;
 
 import java.io.IOException;
-import java.security.SignatureException;
 
 public class GetDataPolicies extends CliCommand<GetDataPoliciesResult> {
 
@@ -41,7 +37,7 @@ public class GetDataPolicies extends CliCommand<GetDataPoliciesResult> {
     }
 
     @Override
-    public GetDataPoliciesResult call() throws IOException, SignatureException, SSLSetupException, CommandException {
+    public GetDataPoliciesResult call() throws IOException, CommandException {
         try {
             final GetDataPoliciesSpectraS3Response response = getClient().getDataPoliciesSpectraS3(new GetDataPoliciesSpectraS3Request());
 

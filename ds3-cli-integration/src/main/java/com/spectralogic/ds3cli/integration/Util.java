@@ -28,7 +28,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.security.SignatureException;
 import java.util.regex.Pattern;
 
 public class Util {
@@ -83,7 +82,7 @@ public class Util {
         }
     }
 
-    public static double getBlackPearlVersion(final Ds3Client client) throws IOException, SignatureException {
+    public static double getBlackPearlVersion(final Ds3Client client) throws IOException {
         final String buildInfo = client.getSystemInformationSpectraS3(new GetSystemInformationSpectraS3Request()).getSystemInformationResult().getBuildInformation().getVersion();
         final String[] buildInfoArr = buildInfo.split((Pattern.quote(".")));
         return Double.valueOf(String.format("%s.%s", buildInfoArr[0], buildInfoArr[1]));

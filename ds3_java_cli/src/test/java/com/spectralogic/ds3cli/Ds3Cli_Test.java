@@ -17,7 +17,6 @@ package com.spectralogic.ds3cli;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.spectralogic.ds3cli.command.PutObject;
 import com.spectralogic.ds3cli.exceptions.BadArgumentException;
 import com.spectralogic.ds3cli.exceptions.SyncNotSupportedException;
 import com.spectralogic.ds3cli.util.*;
@@ -38,8 +37,6 @@ import org.apache.commons.io.IOUtils;
 import org.hamcrest.core.StringEndsWith;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Matchers;
-import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.powermock.api.mockito.PowerMockito;
@@ -50,7 +47,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.SignatureException;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -584,7 +580,7 @@ public class Ds3Cli_Test {
         when(mockedFileUtils.exists(any(Path.class))).thenReturn(true);
         when(mockedFileUtils.isRegularFile(any(Path.class))).thenReturn(true);
         when(mockedFileUtils.size(any(Path.class))).thenReturn(100L);
-        when(helpers.startWriteJob(eq("bucketName"), (Iterable<Ds3Object>) isNotNull())).thenReturn(mockedPutJob);
+        when(helpers.startWriteJob(eq("bucketName"), (Iterable<Ds3Object>) isNotNull(), any(WriteJobOptions.class))).thenReturn(mockedPutJob);
         when(mockedPutJob.withMetadata((Ds3ClientHelpers.MetadataAccess) isNotNull())).thenReturn(mockedPutJob);
         when(mockedPutJob.withMaxParallelRequests(any(int.class))).thenReturn(mockedPutJob);
 
@@ -606,7 +602,7 @@ public class Ds3Cli_Test {
         c.setKey("obj.txt");
         final Iterable<Contents> retObj = Lists.newArrayList(c);
         when(helpers.listObjects(eq("bucketName"))).thenReturn(retObj);
-        when(helpers.startWriteJob(eq("bucketName"), (Iterable<Ds3Object>) isNotNull())).thenReturn(mockedPutJob);
+        when(helpers.startWriteJob(eq("bucketName"), (Iterable<Ds3Object>) isNotNull(), any(WriteJobOptions.class))).thenReturn(mockedPutJob);
         when(mockedPutJob.withMetadata((Ds3ClientHelpers.MetadataAccess) isNotNull())).thenReturn(mockedPutJob);
         when(mockedPutJob.withMaxParallelRequests(any(int.class))).thenReturn(mockedPutJob);
 
@@ -672,7 +668,7 @@ public class Ds3Cli_Test {
         when(mockedFileUtils.exists(any(Path.class))).thenReturn(true);
         when(mockedFileUtils.isRegularFile(any(Path.class))).thenReturn(true);
         when(mockedFileUtils.size(any(Path.class))).thenReturn(100L);
-        when(helpers.startWriteJob(eq("bucketName"), (Iterable<Ds3Object>) isNotNull())).thenReturn(mockedPutJob);
+        when(helpers.startWriteJob(eq("bucketName"), (Iterable<Ds3Object>) isNotNull(), any(WriteJobOptions.class))).thenReturn(mockedPutJob);
         when(mockedPutJob.withMetadata((Ds3ClientHelpers.MetadataAccess) isNotNull())).thenReturn(mockedPutJob);
         when(mockedPutJob.withMaxParallelRequests(any(int.class))).thenReturn(mockedPutJob);
 
@@ -692,7 +688,7 @@ public class Ds3Cli_Test {
         final Ds3ClientHelpers helpers = mock(Ds3ClientHelpers.class);
         final Ds3ClientHelpers.Job mockedGetJob = mock(Ds3ClientHelpers.Job.class);
         final FileUtils mockedFileUtils = mock(FileUtils.class);
-        when(helpers.startReadJob(eq("bucketName"), (Iterable<Ds3Object>) isNotNull())).thenReturn(mockedGetJob);
+        when(helpers.startReadJob(eq("bucketName"), (Iterable<Ds3Object>) isNotNull(), any(ReadJobOptions.class))).thenReturn(mockedGetJob);
 
         PowerMockito.mockStatic(BlackPearlUtils.class);
 
@@ -708,7 +704,7 @@ public class Ds3Cli_Test {
         final Ds3ClientHelpers helpers = mock(Ds3ClientHelpers.class);
         final Ds3ClientHelpers.Job mockedGetJob = mock(Ds3ClientHelpers.Job.class);
         final FileUtils mockedFileUtils = mock(FileUtils.class);
-        when(helpers.startReadJob(eq("bucketName"), (Iterable<Ds3Object>) isNotNull())).thenReturn(mockedGetJob);
+        when(helpers.startReadJob(eq("bucketName"), (Iterable<Ds3Object>) isNotNull(), any(ReadJobOptions.class))).thenReturn(mockedGetJob);
 
         PowerMockito.mockStatic(Utils.class);
         when(Utils.fileExists(any(Path.class))).thenReturn(false);
@@ -750,7 +746,7 @@ public class Ds3Cli_Test {
         final Ds3ClientHelpers helpers = mock(Ds3ClientHelpers.class);
         final Ds3ClientHelpers.Job mockedGetJob = mock(Ds3ClientHelpers.Job.class);
         final FileUtils mockedFileUtils = mock(FileUtils.class);
-        when(helpers.startReadJob(eq("bucketName"), (Iterable<Ds3Object>) isNotNull())).thenReturn(mockedGetJob);
+        when(helpers.startReadJob(eq("bucketName"), (Iterable<Ds3Object>) isNotNull(), any(ReadJobOptions.class))).thenReturn(mockedGetJob);
 
         PowerMockito.mockStatic(BlackPearlUtils.class);
 
@@ -1209,7 +1205,7 @@ public class Ds3Cli_Test {
     }
 
     @Test
-    public void isCliSupportedTest() throws IOException, SignatureException {
+    public void isVersionSupported() throws IOException {
         final Ds3Client client = mock(Ds3Client.class);
         final GetSystemInformationSpectraS3Response systemInformationResponse = mock(GetSystemInformationSpectraS3Response.class);
         final SystemInformation systemInformation = mock(SystemInformation.class);
@@ -1220,13 +1216,34 @@ public class Ds3Cli_Test {
         when(client.getSystemInformationSpectraS3(any(GetSystemInformationSpectraS3Request.class))).thenReturn(systemInformationResponse);
 
         when(buildInformation.getVersion()).thenReturn("1.2.0");
-        assertTrue(Utils.isCliSupported(client));
+        assertTrue(Utils.isVersionSupported(client));
 
         when(buildInformation.getVersion()).thenReturn("3.0.0");
-        assertTrue(Utils.isCliSupported(client));
+        assertTrue(Utils.isVersionSupported(client));
 
         when(buildInformation.getVersion()).thenReturn("1.1.0");
-        assertFalse(Utils.isCliSupported(client));
+        assertFalse(Utils.isVersionSupported(client));
+    }
+
+    @Test
+    public void isCustomVersionSupported() throws IOException {
+        final Ds3Client client = mock(Ds3Client.class);
+        final GetSystemInformationSpectraS3Response systemInformationResponse = mock(GetSystemInformationSpectraS3Response.class);
+        final SystemInformation systemInformation = mock(SystemInformation.class);
+        final BuildInformation buildInformation = mock(BuildInformation.class);
+
+        when(systemInformation.getBuildInformation()).thenReturn(buildInformation);
+        when(systemInformationResponse.getSystemInformationResult()).thenReturn(systemInformation);
+        when(client.getSystemInformationSpectraS3(any(GetSystemInformationSpectraS3Request.class))).thenReturn(systemInformationResponse);
+
+        when(buildInformation.getVersion()).thenReturn("3.2.3");
+        assertTrue(Utils.isVersionSupported(client, "3.2.3"));
+
+        when(buildInformation.getVersion()).thenReturn("3.2.2");
+        assertFalse(Utils.isVersionSupported(client, "3.2.3"));
+
+        when(buildInformation.getVersion()).thenReturn("3.2.4");
+        assertTrue(Utils.isVersionSupported(client, "3.2.3"));
     }
 
     @Test

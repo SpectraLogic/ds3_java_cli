@@ -23,12 +23,11 @@ import com.spectralogic.ds3client.models.DetailedTapeFailure;
 import com.spectralogic.ds3client.utils.Guard;
 
 import java.io.IOException;
-import java.security.SignatureException;
 import java.util.List;
 
 public final class BlackPearlUtils {
 
-    public static void checkBlackPearlForTapeFailure(final Ds3Client client) throws IOException, SignatureException, CommandException {
+    public static void checkBlackPearlForTapeFailure(final Ds3Client client) throws IOException, CommandException {
         final List<DetailedTapeFailure> tapeFailures = client.getTapeFailuresSpectraS3(new GetTapeFailuresSpectraS3Request()).getDetailedTapeFailureListResult().getDetailedTapeFailures();
 
         if (Guard.isNotNullAndNotEmpty(tapeFailures)) {

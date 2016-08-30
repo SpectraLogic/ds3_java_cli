@@ -23,6 +23,8 @@ import com.spectralogic.ds3cli.util.*;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.helpers.FileObjectGetter;
 import com.spectralogic.ds3client.helpers.MetadataReceivedListener;
+import com.spectralogic.ds3client.helpers.options.ReadJobOptions;
+import com.spectralogic.ds3client.models.Priority;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.networking.*;
 import com.spectralogic.ds3client.networking.Metadata;
@@ -34,7 +36,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.SignatureException;
 import java.util.List;
 
 public class GetObject extends CliCommand<DefaultResult> {
@@ -47,12 +48,14 @@ public class GetObject extends CliCommand<DefaultResult> {
     private boolean sync;
     private boolean force;
     private int numberOfThreads;
+    private Priority priority;
 
     public GetObject() {
     }
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
+        this.priority = args.getPriority();
         this.bucketName = args.getBucket();
         if (this.bucketName == null) {
             throw new MissingOptionException("The get object command requires '-b' to be set.");
@@ -110,9 +113,13 @@ public class GetObject extends CliCommand<DefaultResult> {
         }
     }
 
-    private void Transfer(final Ds3ClientHelpers helpers, final Ds3Object ds3Obj) throws IOException, SignatureException, XmlProcessingException {
+    private void Transfer(final Ds3ClientHelpers helpers, final Ds3Object ds3Obj) throws IOException, XmlProcessingException {
         final List<Ds3Object> ds3ObjectList = Lists.newArrayList(ds3Obj);
-        final Ds3ClientHelpers.Job job = helpers.startReadJob(this.bucketName, ds3ObjectList);
+        final ReadJobOptions readJobOptions = ReadJobOptions.create();
+        if (priority != null) {
+            readJobOptions.withPriority(priority);
+        }
+        final Ds3ClientHelpers.Job job = helpers.startReadJob(this.bucketName, ds3ObjectList, readJobOptions);
         job.withMaxParallelRequests(this.numberOfThreads);
         job.attachMetadataReceivedListener(new MetadataReceivedListener() {
             @Override

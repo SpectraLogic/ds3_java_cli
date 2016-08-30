@@ -20,8 +20,6 @@ import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.DefaultResult;
-import com.spectralogic.ds3cli.util.Ds3Provider;
-import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3cli.util.MemoryObjectChannelBuilder;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.DeleteBucketRequest;
@@ -37,7 +35,6 @@ import com.spectralogic.ds3client.serializer.XmlProcessingException;
 import org.apache.commons.cli.MissingOptionException;
 
 import java.io.IOException;
-import java.security.SignatureException;
 import java.util.List;
 
 
@@ -122,7 +119,7 @@ public class Performance extends CliCommand<DefaultResult> {
         return objList;
     }
 
-    private void transfer(final Ds3ClientHelpers helpers, final int numberOfFiles, final long sizeOfFiles, final List<Ds3Object> objList, final boolean isPutCommand) throws SignatureException, IOException, XmlProcessingException {
+    private void transfer(final Ds3ClientHelpers helpers, final int numberOfFiles, final long sizeOfFiles, final List<Ds3Object> objList, final boolean isPutCommand) throws IOException, XmlProcessingException {
         final Ds3ClientHelpers.Job job;
         if (isPutCommand) {
             job = helpers.startWriteJob(this.bucketName, objList);
@@ -142,7 +139,7 @@ public class Performance extends CliCommand<DefaultResult> {
         System.out.println();
     }
 
-    private void deleteAllContents(final Ds3Client client, final String bucketName) throws IOException, SignatureException {
+    private void deleteAllContents(final Ds3Client client, final String bucketName) throws IOException {
         final Ds3ClientHelpers helpers = Ds3ClientHelpers.wrap(client);
         final Iterable<Contents> objects = helpers.listObjects(bucketName);
         for (final Contents contents : objects) {

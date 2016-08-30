@@ -20,15 +20,11 @@ import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.GetUsersResult;
-import com.spectralogic.ds3cli.util.Ds3Provider;
-import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3client.commands.spectrads3.GetUsersSpectraS3Request;
 import com.spectralogic.ds3client.commands.spectrads3.GetUsersSpectraS3Response;
 import com.spectralogic.ds3client.networking.FailedRequestException;
-import com.spectralogic.ds3client.utils.SSLSetupException;
 
 import java.io.IOException;
-import java.security.SignatureException;
 
 public class GetUsers extends CliCommand<GetUsersResult> {
 
@@ -41,7 +37,7 @@ public class GetUsers extends CliCommand<GetUsersResult> {
     }
 
     @Override
-    public GetUsersResult call() throws IOException, SignatureException, SSLSetupException, CommandException {
+    public GetUsersResult call() throws IOException, CommandException {
         try {
             final GetUsersSpectraS3Response response = getClient().getUsersSpectraS3(new GetUsersSpectraS3Request());
 

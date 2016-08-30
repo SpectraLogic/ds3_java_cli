@@ -74,6 +74,7 @@ public class Arguments {
     private Level fileLogLevel;
     private boolean ignoreNamingConflicts = false;
     private boolean inCache = false;
+    private int verifyLastPercent = 20;
 
     // don't use Logger because the user's preferences are not yet set
     // collect log info that will be logged by Main
@@ -191,6 +192,9 @@ public class Arguments {
 
         final Option discard = new Option(null, false, "Discard restoration data (/dev/null) in get_bulk");
         discard.setLongOpt("discard");
+        final Option verifyPercent = new Option(null,true, "Set verify last percent as an integer.  Used with modify_data_path");
+        verifyPercent.setLongOpt("verify-last-percent");
+        verifyPercent.setLongOpt("percent");
 
         this.options.addOption(ds3Endpoint);
         this.options.addOption(bucket);
@@ -233,6 +237,7 @@ public class Arguments {
         this.options.addOption(discard);
         this.options.addOption(ignoreNamingConflicts);
         this.options.addOption(inCache);
+        this.options.addOption(verifyPercent);
         this.processCommandLine();
     }
 
@@ -445,6 +450,10 @@ public class Arguments {
 
         if (cmd.hasOption("in-cache")) {
             this.setInCache(true);
+        }
+
+        if (cmd.hasOption("verify-last-percent")) {
+            this.setVerifyLastPercent(Integer.parseInt(cmd.getOptionValue("verify-last-percent")));
         }
     }
 
@@ -764,6 +773,14 @@ public class Arguments {
 
     void setInCache(final boolean inCache) {
         this.inCache = inCache;
+    }
+
+    public int getVerifyLastPercent() {
+        return verifyLastPercent;
+    }
+
+    void setVerifyLastPercent(final int verifyLastPercent) {
+        this.verifyLastPercent = verifyLastPercent;
     }
 }
 
