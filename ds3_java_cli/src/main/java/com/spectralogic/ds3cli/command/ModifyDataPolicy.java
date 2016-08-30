@@ -80,15 +80,15 @@ public class ModifyDataPolicy extends CliCommand<GetDataPoliciesResult> {
             // get the target policy
             final GetDataPolicySpectraS3Response response = getClient().getDataPolicySpectraS3(new GetDataPolicySpectraS3Request(this.policyId));
             response.checkStatusCode(200);
-            DataPolicy policy = response.getDataPolicyResult();
+            final DataPolicy policy = response.getDataPolicyResult();
 
             // update this.policyId to the UUID in case we used name to select it and change the name
             this.policyId = policy.getId().toString();
 
             // apply changes from metadata
-            ModifyDataPolicySpectraS3Request modifyRequest = new ModifyDataPolicySpectraS3Request(this.policyId);
-            for (String paramChange : this.metadata.keySet() ) {
-                String paramNewValue = this.metadata.get(paramChange);
+            final ModifyDataPolicySpectraS3Request modifyRequest = new ModifyDataPolicySpectraS3Request(this.policyId);
+            for (final String paramChange : this.metadata.keySet() ) {
+                final String paramNewValue = this.metadata.get(paramChange);
                 if("blobbing_enabled".equalsIgnoreCase(paramChange)) {
                     modifyRequest.withBlobbingEnabled(Boolean.parseBoolean(paramNewValue));
                 }
