@@ -20,8 +20,6 @@ import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.GetPhysicalPlacementWithFullDetailsResult;
-import com.spectralogic.ds3cli.util.Ds3Provider;
-import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3client.commands.spectrads3.GetPhysicalPlacementForObjectsWithFullDetailsSpectraS3Request;
 import com.spectralogic.ds3client.commands.spectrads3.GetPhysicalPlacementForObjectsWithFullDetailsSpectraS3Response;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
@@ -29,7 +27,7 @@ import com.spectralogic.ds3client.networking.FailedRequestException;
 import org.apache.commons.cli.MissingOptionException;
 import org.apache.commons.cli.UnrecognizedOptionException;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 
@@ -63,7 +61,7 @@ public class GetPhysicalPlacement extends CliCommand<GetPhysicalPlacementWithFul
     @Override
     public GetPhysicalPlacementWithFullDetailsResult call() throws Exception {
         try {
-            final List<Ds3Object> objectsList = Arrays.asList(new Ds3Object(objectName));
+            final List<Ds3Object> objectsList = Collections.singletonList(new Ds3Object(objectName));
 
             final GetPhysicalPlacementForObjectsWithFullDetailsSpectraS3Response response = getClient().
                     getPhysicalPlacementForObjectsWithFullDetailsSpectraS3(

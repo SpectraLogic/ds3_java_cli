@@ -25,8 +25,6 @@ import com.spectralogic.ds3client.models.Priority;
 import com.spectralogic.ds3client.models.Tape;
 import com.spectralogic.ds3client.utils.Guard;
 import org.apache.commons.cli.MissingArgumentException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 
 public class VerifyTape extends CliCommand<VerifyTapeResult> {

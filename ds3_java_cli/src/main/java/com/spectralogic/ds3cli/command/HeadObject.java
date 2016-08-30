@@ -19,8 +19,6 @@ import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.models.HeadObjectResult;
-import com.spectralogic.ds3cli.util.Ds3Provider;
-import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3client.commands.HeadObjectRequest;
 import com.spectralogic.ds3client.commands.HeadObjectResponse;
 import org.apache.commons.cli.MissingOptionException;

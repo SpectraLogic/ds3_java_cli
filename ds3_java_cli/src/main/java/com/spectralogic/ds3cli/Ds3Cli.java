@@ -26,7 +26,6 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.CaseFormat;
 
-import java.lang.reflect.Constructor;
 import java.util.Iterator;
 import java.util.ServiceLoader;
 import java.util.concurrent.Callable;
@@ -89,7 +88,7 @@ public class Ds3Cli implements Callable<CommandResponse> {
     private CliCommand getCommandExecutor() throws CommandException {
         final String commandName = this.args.getCommand();
 
-        final String commandCamel = CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, commandName.toString());
+        final String commandCamel = CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, commandName);
 
         final Iterator<CliCommand> implementations = getAllCommands();
         while (implementations.hasNext()) {

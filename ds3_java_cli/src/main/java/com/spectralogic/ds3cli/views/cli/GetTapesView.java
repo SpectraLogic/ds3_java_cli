@@ -22,9 +22,7 @@ import com.spectralogic.ds3client.models.Tape;
 import com.spectralogic.ds3client.models.TapeList;
 import com.spectralogic.ds3client.utils.Guard;
 
-import java.text.SimpleDateFormat;
 import java.util.List;
-import java.util.TimeZone;
 
 import static com.spectralogic.ds3cli.util.Utils.nullGuard;
 import static com.spectralogic.ds3cli.util.Utils.nullGuardToDate;

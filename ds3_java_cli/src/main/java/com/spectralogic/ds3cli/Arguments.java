@@ -78,8 +78,8 @@ public class Arguments {
 
     // don't use Logger because the user's preferences are not yet set
     // collect log info that will be logged by Main
-    private static StringBuilder argumentLog = new StringBuilder("Argument processing");
-    private void addToLog(final String logItem) { argumentLog.append(" | " + logItem) ; }
+    private final static StringBuilder argumentLog = new StringBuilder("Argument processing");
+    private void addToLog(final String logItem) { argumentLog.append(" | ").append(logItem); }
     public String getArgumentLog() { return argumentLog.toString(); }
 
     public Arguments(final String[] args) throws BadArgumentException, ParseException {

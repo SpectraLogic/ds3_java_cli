@@ -19,7 +19,6 @@ import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.models.Result;
-import com.spectralogic.ds3cli.models.DefaultResult;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3cli.views.cli.DefaultView;

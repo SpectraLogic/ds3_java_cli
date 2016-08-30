@@ -18,11 +18,8 @@ package com.spectralogic.ds3cli.command;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.models.DefaultResult;
 import com.spectralogic.ds3client.commands.spectrads3.CancelJobSpectraS3Request;
-import com.spectralogic.ds3client.commands.spectrads3.CancelJobSpectraS3Response;
 import com.spectralogic.ds3client.commands.spectrads3.TruncateActiveJobSpectraS3Request;
 import org.apache.commons.cli.MissingOptionException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.UUID;
 

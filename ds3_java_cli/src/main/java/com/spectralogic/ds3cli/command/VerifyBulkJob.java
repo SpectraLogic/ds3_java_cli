@@ -20,7 +20,6 @@ import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.VerifyBulkJobResult;
-import com.spectralogic.ds3cli.util.*;
 import com.spectralogic.ds3client.commands.spectrads3.VerifyBulkJobSpectraS3Request;
 import com.spectralogic.ds3client.commands.spectrads3.VerifyBulkJobSpectraS3Response;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;

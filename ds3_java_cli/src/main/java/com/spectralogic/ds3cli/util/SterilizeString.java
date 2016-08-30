@@ -15,7 +15,7 @@
 
 package com.spectralogic.ds3cli.util;
 
-public class SterilizeString {
+public final class SterilizeString {
 
     private final static String fs = System.getProperty("file.separator");
     private final static boolean isWindows = System.getProperty("os.name").contains("Windows");

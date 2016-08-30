@@ -15,11 +15,7 @@
 
 package com.spectralogic.ds3cli.models;
 
-import com.spectralogic.ds3client.models.CacheFilesystemInformation;
 import com.spectralogic.ds3client.models.CapacitySummaryContainer;
-
-import java.util.Iterator;
-import java.util.List;
 
 public class GetCapacitySummaryResult implements Result {
 

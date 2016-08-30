@@ -15,6 +15,6 @@
 
 package com.spectralogic.ds3cli.util;
 
-class Constants {
+final class Constants {
     static final String DS3_LAST_MODIFIED = "ds3-last-modified";
 }
