@@ -43,7 +43,6 @@ import java.io.IOException;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
-import java.security.SignatureException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -155,7 +154,7 @@ public class GetBulk extends CliCommand<DefaultResult> {
         return new DefaultResult(this.restoreSome(getter));
     }
 
-    private String restoreSome(final Ds3ClientHelpers.ObjectChannelBuilder getter) throws IOException, SignatureException, XmlProcessingException, SSLSetupException {
+    private String restoreSome(final Ds3ClientHelpers.ObjectChannelBuilder getter) throws IOException, XmlProcessingException {
         final Ds3ClientHelpers helper = getClientHelpers();
         final Iterable<Contents> contents = helper.listObjects(this.bucketName, this.prefix);
 
@@ -194,7 +193,7 @@ public class GetBulk extends CliCommand<DefaultResult> {
         }
     }
 
-    private String restoreAll(final Ds3ClientHelpers.ObjectChannelBuilder getter) throws XmlProcessingException, SignatureException, IOException, SSLSetupException {
+    private String restoreAll(final Ds3ClientHelpers.ObjectChannelBuilder getter) throws XmlProcessingException, IOException {
         final Ds3ClientHelpers helper = getClientHelpers();
         final Ds3ClientHelpers.Job job = helper.startReadAllJob(this.bucketName,
                 ReadJobOptions.create().withPriority(this.priority));
