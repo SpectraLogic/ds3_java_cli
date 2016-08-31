@@ -15,37 +15,50 @@
 
 package com.spectralogic.ds3cli.command;
 
-import com.spectralogic.ds3cli.Arguments;
-import com.spectralogic.ds3cli.View;
-import com.spectralogic.ds3cli.ViewType;
+import com.spectralogic.ds3cli.*;
+import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.Result;
+import com.spectralogic.ds3cli.models.DefaultResult;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
+import com.spectralogic.ds3cli.util.Utils;
+import com.spectralogic.ds3cli.views.cli.CommandExceptionCliView;
 import com.spectralogic.ds3cli.views.cli.DefaultView;
+import com.spectralogic.ds3cli.views.json.CommandExceptionJsonView;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 
+import java.io.IOException;
+import java.security.SignatureException;
+import java.util.List;
 import java.util.concurrent.Callable;
 
 import com.spectralogic.ds3cli.util.CommandHelpText;
+import org.apache.commons.cli.MissingOptionException;
+import org.apache.commons.cli.Option;
+import org.apache.commons.io.IOExceptionWithCause;
 
 public abstract class CliCommand<T extends Result> implements Callable<T> {
 
     private Ds3Provider ds3Provider;
     private FileUtils fileUtils;
+    protected Arguments args;
+    protected ViewType viewType = ViewType.CLI;
 
-    // for service provider instantiation
     public CliCommand() {
         this.ds3Provider = null;
         this.fileUtils = null;
     }
 
+    // TODO dlete -- this is just to build
+    // new argument handling uses empty constructor and creates client in init()
     public CliCommand withProvider(final Ds3Provider ds3Provider, final FileUtils fileUtils) {
         this.ds3Provider = ds3Provider;
         this.fileUtils = fileUtils;
         return this;
     }
-
+    // TODO delete -- this is just to build
+    // new argument handling uses empty constructor and creates client in init()
     public CliCommand(final Ds3Provider ds3Provider, final FileUtils fileUtils) {
         this.ds3Provider = ds3Provider;
         this.fileUtils = fileUtils;
@@ -67,29 +80,141 @@ public abstract class CliCommand<T extends Result> implements Callable<T> {
         return this.fileUtils;
     }
 
-    public abstract CliCommand init(final Arguments args) throws Exception;
-
-
-    // help for '--help' command
-    public String getLongHelp(final String command) {
-        return CommandHelpText.getHelpText(command) ;
+    /**
+     * parse command line args and create client
+     * override this method to add command line Options
+     * @param args Arguments object
+     * @returns this
+     * @throws Exception parsing and argumnet exceptions
+     */
+    public CliCommand init(final Arguments args) throws Exception {
+        args.parseCommandLine();
+        createClient(args);
+        return this;
     }
 
-    public View<T> getView(final ViewType viewType) {
-        if (viewType == ViewType.JSON) {
+    /**
+     * Add each Option in a list as a required argument
+     * @param reqArgs List<Option> of required args
+     * @param args Argumnets object
+     */
+    protected void addRequiredArguments(final List<Option> reqArgs, Arguments args) {
+        for (final Option o : reqArgs ) {
+            final Option oReq = o;
+            oReq.setRequired(true);
+            args.addOption(oReq, o.getArgName());
+        }
+    }
+
+    /**
+     * Add each Option in a list as an optional argument
+     * @param reqArgs List<Option> of optional args
+     * @param args Argumnets object
+     */
+    protected void addOptionalArguments(final List<Option> reqArgs, Arguments args) {
+        for (final Option o : reqArgs ) {
+            args.addOption(o, o.getArgName());
+        }
+    }
+
+    /**
+     * Create a ds3 client from command line arguments or environment variables
+     * @param arguments Argumnets object
+     * @throws MissingOptionException if required parameter is not in args or environmnet vars
+     */
+    protected void createClient(Arguments arguments) throws MissingOptionException {
+        // create client and test version
+        final Ds3Client client = arguments.createClient();
+        this.ds3Provider = new Ds3ProviderImpl(client, Ds3ClientHelpers.wrap(client));
+        this.fileUtils = new FileUtilsImpl();
+    }
+    protected void isCliSupported90() throws SignatureException, IOException {
+        if (!Utils.isVersionSupported(this.getClient())) {
+            System.out.println(String.format("ERROR: Minimum Black Pearl supported is %s", Utils.MINIMUM_VERSION_SUPPORTED));
+            System.exit(2);
+        }
+    }
+
+    /**
+     * Compose and send request, parse and format response
+     * @return CommandResponse with status and message
+     * @throws Exception
+     */
+    public CommandResponse render() throws Exception {
+        final View view = getView();
+
+        try {
+            final String message = view.render(call());
+            return new CommandResponse(message, 0);
+        }
+        catch(final CommandException e) {
+            final String message;
+            if (this.args.getOutputFormat() == ViewType.JSON) {
+                message = new CommandExceptionJsonView().render(e);
+            }
+            else {
+                message = new CommandExceptionCliView().render(e);
+            }
+            return new CommandResponse(message, 1);
+        }
+    }
+
+    /**
+     * Lookup help for '--help' command from resource file
+     * (Override or add help text to resources/com/spectralogic/dscli/help.properties
+     * @param command
+     * @return
+     */
+    public static String getLongHelp(final String command) {
+        return CommandHelpText.getHelpText(command.toUpperCase());
+    }
+
+    /**
+     * Inits command to add all options, then prints usage description
+     * @param arguments Arguments object
+     */
+    public void printArgumentHelp(Arguments arguments) {
+        try {
+            // init to install options
+            init(arguments);
+        } catch (Exception e) {}
+        finally {
+            // does not have to parse
+            arguments.printHelp();
+        }
+    }
+
+    // TODO -- this just here to build. Replace with param-less version
+    public View<T> getView(ViewType dummyTodoThroway) {
+        if (this.viewType == ViewType.JSON) {
             return (View<T>) new com.spectralogic.ds3cli.views.json.DefaultView();
         }
         return (View<T>) new DefaultView();
     }
 
+    /**
+     * get the appropriate View to parse and format response
+     * @return
+     */
+    public View<T> getView() {
+        if (this.viewType == ViewType.JSON) {
+            return (View<T>) new com.spectralogic.ds3cli.views.json.DefaultView();
+        }
+        return (View<T>) new DefaultView();
+    }
+
+    /**
+     * get VM and OS info for logging
+     * @return String description of platform variables
+     */
     public static String getPlatformInformation() {
         return String.format("Java Version: {%s}\n", System.getProperty("java.version"))
-        + String.format("Java Vendor: {%s}\n", System.getProperty("java.vendor"))
-        + String.format("JVM Version: {%s}\n", System.getProperty("java.vm.version"))
-        + String.format("JVM Name: {%s}\n", System.getProperty("java.vm.name"))
-        + String.format("OS: {%s}\n", System.getProperty("os.name"))
-        + String.format("OS Arch: {%s}\n", System.getProperty("os.arch"))
-        + String.format("OS Version: {%s}\n", System.getProperty("os.version"));
+                + String.format("Java Vendor: {%s}\n", System.getProperty("java.vendor"))
+                + String.format("JVM Version: {%s}\n", System.getProperty("java.vm.version"))
+                + String.format("JVM Name: {%s}\n", System.getProperty("java.vm.name"))
+                + String.format("OS: {%s}\n", System.getProperty("os.name"))
+                + String.format("OS Arch: {%s}\n", System.getProperty("os.arch"))
+                + String.format("OS Version: {%s}\n", System.getProperty("os.version"));
     }
 
 }
