@@ -194,7 +194,7 @@ public class Arguments {
         discard.setLongOpt("discard");
         final Option verifyPercent = new Option(null,true, "Set verify last percent as an integer.  Used with modify_data_path");
         verifyPercent.setLongOpt("verify-last-percent");
-        verifyPercent.setLongOpt("percent");
+        verifyPercent.setArgName("percent");
 
         this.options.addOption(ds3Endpoint);
         this.options.addOption(bucket);
