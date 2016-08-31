@@ -57,6 +57,7 @@ public class Arguments {
     private static final String DEFAULT_RETRIES = "20";
     private static final String DEFAULT_BUFFERSIZE = "1048576";
     private static final String DEFAULT_NUMBEROFTHREADS = "10";
+    private static final String DEFAULT_VERIFY_PERCENT = "20";
 
     // don't use Logger because the user's preferences are not yet set
     // collect log info that will be logged by Main
@@ -65,17 +66,17 @@ public class Arguments {
     public String getArgumentLog() { return argumentLog.toString(); }
 
     // These options are added in the ARguments class and read in first parsing
-    private final static Option ENDPOINT = new Option("e", true, "The ds3 ENDPOINT to connect to or have \"DS3_ENDPOINT\" set as an environment variable.");
+    private final static Option ENDPOINT = new Option("e", true, "The ds3 endpoint to connect to or have \"DS3_ENDPOINT\" set as an environment variable.");
     private final static Option ACCESS_KEY = new Option("a", true, "Access Key ID or have \"DS3_ACCESS_KEY\" set as an environment variable");
     private final static Option SECRET_KEY = new Option("k", true, "Secret access key or have \"DS3_SECRET_KEY\" set as an environment variable");
     private final static Option COMMAND = new Option("c", true, "The Command to execute.  For Possible values, use '--help list_commands.'" );
     private final static Option PROXY = new Option("x", true, "The URL of the PROXY server to use or have \"http_proxy\" set as an environment variable");
-    private final static Option HTTP = Option.builder().longOpt("HTTP").desc("Send all requests over standard HTTP").build();
-    private final static Option INSECURE = Option.builder().longOpt("INSECURE").desc("Ignore ssl certificate verification").build();
+    private final static Option HTTP = Option.builder().longOpt("http").desc("Send all requests over standard HTTP").build();
+    private final static Option INSECURE = Option.builder().longOpt("insecure").desc("Ignore ssl certificate verification").build();
     private final static Option PRINT_HELP = new Option("h", "Help Menu");
     private final static Option COMMAND_HELP = Option.builder()
             .longOpt("help")
-            .desc("Command Help (provide COMMAND name from -c)")
+            .desc("Command Help (provide command name from -c)")
             .optionalArg(true)
             .numberOfArgs(1)
             .build();
@@ -205,7 +206,7 @@ public class Arguments {
         for (int i = 0; i < this.args.length; i++) {
             final String token = this.args[i];
             // allow get COMMAND (-c) and subsequent argument
-            if (token.equals("-c")) {
+            if (token.equals(COMMAND.getOpt())) {
                 rootArguments.add(token);
                 if (i < this.args.length) {
                     rootArguments.add(this.args[++i]);
@@ -214,7 +215,7 @@ public class Arguments {
                 }
             }
             // allow get COMMAND help and subsequent argument (unless it is followed by an option (- or --)
-            if (token.equals("--help")) {
+            if (token.equals(COMMAND_HELP.getLongOpt())) {
                 rootArguments.add(token);
                 // might or might not have arg
                 if ((i < this.args.length) && (!this.args[i + 1].startsWith("-"))) {
@@ -222,9 +223,10 @@ public class Arguments {
                 }
             }
             // allow version in root parse
-            if ((token.equals("--version")) || (token.equals("-h"))
-                    || (token.equals("--trace")) || (token.equals("--debug")) || (token.equals("--verbose"))
-                    || (token.equals("--log-trace")) || (token.equals("--log-debug")) || (token.equals("--logverbose"))) {
+            if ((token.equals(VERBOSE.getLongOpt())) || (token.equals(PRINT_HELP.getOpt()))
+                    || (token.equals(TRACE.getLongOpt())) || (token.equals(DEBUG.getLongOpt())) || (token.equals(VERBOSE.getLongOpt()))
+                    || (token.equals(LOG_TRACE.getLongOpt())) || (token.equals(LOG_DEBUG.getLongOpt()))
+                    || (token.equals(LOG_VERBOSE.getLongOpt()))) {
                 rootArguments.add(token);
             }
         }
@@ -257,32 +259,32 @@ public class Arguments {
         parseCommandLine(true);
 
         // set the level for connsole and log file logging
-        if (cmd.hasOption("trace")) {
+        if (cmd.hasOption(TRACE.getLongOpt())) {
             setConsoleLogLevel(Level.TRACE);
-        } else if (cmd.hasOption("debug")) {
+        } else if (cmd.hasOption(DEBUG.getLongOpt())) {
             setConsoleLogLevel(Level.DEBUG);
-        } else if (cmd.hasOption("verbose")) {
+        } else if (cmd.hasOption(VERBOSE.getLongOpt())) {
             setConsoleLogLevel(Level.INFO);
         } else {
             setConsoleLogLevel(Level.OFF);
         }
 
-        if (cmd.hasOption("log-trace")) {
+        if (cmd.hasOption(LOG_TRACE.getLongOpt())) {
             setFileLogLevel(Level.TRACE);
-        } else if (cmd.hasOption("log-debug")) {
+        } else if (cmd.hasOption(LOG_DEBUG.getLongOpt())) {
             setFileLogLevel(Level.DEBUG);
-        } else if (cmd.hasOption("log-verbose")) {
+        } else if (cmd.hasOption(LOG_VERBOSE.getLongOpt())) {
             setFileLogLevel(Level.INFO);
         } else {
             setFileLogLevel(Level.OFF);
         }
 
-        if (cmd.hasOption('h')) {
+        if (cmd.hasOption(PRINT_HELP.getOpt())) {
             this.printHelp();
             System.exit(0);
         }
 
-        if (cmd.hasOption("help")) {
+        if (cmd.hasOption(COMMAND_HELP.getLongOpt())) {
             setHelp(true);
             try {
                 if (getHelp() == null) {
@@ -297,14 +299,14 @@ public class Arguments {
             }
         }
 
-        if (cmd.hasOption("version")) {
+        if (cmd.hasOption(PRINT_VERSION.getLongOpt())) {
             this.printVersion();
             System.exit(0);
         }
 
-        if (cmd.hasOption("output-format")) {
+        if (cmd.hasOption(VIEW_TYPE.getLongOpt())) {
             try {
-                final String commandString = cmd.getOptionValue("output-format");
+                final String commandString = cmd.getOptionValue(VIEW_TYPE.getLongOpt());
                 this.setOutputFormat(ViewType.valueOf(commandString.toUpperCase()));
             } catch (final IllegalArgumentException e) {
                 throw new BadArgumentException("Unknown command", e);
@@ -315,7 +317,7 @@ public class Arguments {
             if (getCommand() == null) {
                 // must have -c or --help
                 if (!isHelp()) {
-                    throw new MissingOptionException("c");
+                    throw new MissingOptionException(COMMAND.getOpt());
                 }
             }
         } catch (final IllegalArgumentException e) {
@@ -371,23 +373,23 @@ public class Arguments {
     }
 
     private String getEndpoint() {
-        String endpointValue =  this.getOptionValue("e");
+        String endpointValue =  this.getOptionValue(ENDPOINT.getOpt());
         if (Guard.isStringNullOrEmpty(endpointValue)) {
             endpointValue = System.getenv("DS3_ENDPOINT");
         }
         if (ENDPOINT == null) {
-            missingArgs.add("e");
+            missingArgs.add(ENDPOINT.getOpt());
             return "";
         }
         return endpointValue;
     }
 
     private String getAccessKey() {
-        String accessKeyValue =  this.getOptionValue("a");
+        String accessKeyValue =  this.getOptionValue(ACCESS_KEY.getOpt());
         if (Guard.isStringNullOrEmpty(accessKeyValue)) {
             accessKeyValue = System.getenv("DS3_ACCESS_KEY");
             if (accessKeyValue == null) {
-                missingArgs.add("a");
+                missingArgs.add(ACCESS_KEY.getOpt());
                 return "";
             }
         }
@@ -395,11 +397,11 @@ public class Arguments {
     }
 
     private String getSecretKey() {
-        String secretKeyValue = this.getOptionValue("k");
+        String secretKeyValue = this.getOptionValue(SECRET_KEY.getOpt());
         if (Guard.isStringNullOrEmpty(secretKeyValue)) {
             secretKeyValue = System.getenv("DS3_SECRET_KEY");
             if (secretKeyValue == null) {
-                missingArgs.add("k");
+                missingArgs.add(SECRET_KEY.getOpt());
             }
         }
         return secretKeyValue;
@@ -407,7 +409,7 @@ public class Arguments {
 
     private String getProxy() {
         // can be arg, environment var or null;
-        String proxyValue = cmd.getOptionValue("x");
+        String proxyValue = cmd.getOptionValue(PROXY.getOpt());
         if (Guard.isStringNullOrEmpty(proxyValue)) {
             proxyValue = System.getenv("http_proxy");
         }
@@ -423,10 +425,10 @@ public class Arguments {
         return this.buildDate;
     }
     public String getCommand() {
-        return cmd.getOptionValue("c");
+        return cmd.getOptionValue(COMMAND.getOpt());
     }
     public String getHelp() {
-        return cmd.getOptionValue("help");
+        return cmd.getOptionValue(PRINT_HELP.getLongOpt());
     }
     public ViewType getOutputFormat() {
         return this.outputFormat;
@@ -434,8 +436,8 @@ public class Arguments {
     void setOutputFormat(final ViewType outputFormat) {
         this.outputFormat = outputFormat;
     }
-    public boolean isCertificateVerification() { return !this.optionExists("insecure"); }
-    public boolean isHttps() {  return !this.optionExists("http"); }
+    public boolean isCertificateVerification() { return !this.optionExists(INSECURE.getLongOpt()); }
+    public boolean isHttps() {  return !this.optionExists(HTTP.getLongOpt()); }
     public boolean isHelp() { return this.help; }
     void setHelp(final boolean help) { this.help = help; }
     public Level getConsoleLogLevel() { return this.consoleLogLevel; }
@@ -443,7 +445,7 @@ public class Arguments {
     public Level getFileLogLevel() { return this.fileLogLevel; }
     void setFileLogLevel(Level file) {this.fileLogLevel = file; }
     public int getRetries() {
-        final String retryString = this.getOptionValueWithDefault("r", DEFAULT_RETRIES).toString();
+        final String retryString = this.getOptionValueWithDefault(RETRIES.getOpt(), DEFAULT_RETRIES).toString();
         try {
             return Integer.parseInt(retryString);
         } catch (final NumberFormatException e) {
@@ -454,14 +456,14 @@ public class Arguments {
     }
 
     // convenience getters for public options
-    public String getBucket() { return this.getOptionValue("b"); }
-    public String getDirectory() { return this.getOptionValue("d"); }
-    public String getObjectName()  { return this.getOptionValue("o"); }
-    public boolean isForce() { return this.optionExists("force"); }
-    public String getPrefix()  { return this.getOptionValue("p"); }
-    public boolean isChecksum() { return this.optionExists("checksum"); }
+    public String getBucket() { return this.getOptionValue(BUCKET.getOpt()); }
+    public String getDirectory() { return this.getOptionValue(DIRECTORY.getOpt()); }
+    public String getObjectName()  { return this.getOptionValue(OBJECT_NAME.getOpt()); }
+    public boolean isForce() { return this.optionExists(FORCE.getLongOpt()); }
+    public String getPrefix()  { return this.getOptionValue(PREFIX.getOpt()); }
+    public boolean isChecksum() { return this.optionExists(CHECKSUM.getLongOpt()); }
     public Priority getPriority() {
-        final String priorityString = this.getOptionValue("priority");
+        final String priorityString = this.getOptionValue(PRIORITY.getLongOpt());
         try {
             if (priorityString == null) {
                 return null;
@@ -475,7 +477,7 @@ public class Arguments {
         return null;
     }
     public WriteOptimization getWriteOptimization() {
-        final String writeOptimizationString = this.getOptionValue("write_optimization");
+        final String writeOptimizationString = this.getOptionValue(WRITE_OPTIMIZATION.getLongOpt());
         try {
             if (writeOptimizationString == null) {
                 return null;
@@ -488,40 +490,40 @@ public class Arguments {
         }
         return null;
     }
-    public String getId() { return this.getOptionValue("-i"); }
-    public boolean isCompleted() { return this.optionExists("completed"); }
-    public boolean isSync() { return this.optionExists("sync"); }
-    public String getNumberOfFiles() { return this.getOptionValue("n"); }
-    public String getSizeOfFiles() { return this.getOptionValue("n"); }
-    public String getBufferSize()  { return this.getOptionValueWithDefault("bs", DEFAULT_BUFFERSIZE).toString(); }
-    public String getNumberOfThreads()  { return this.getOptionValueWithDefault("nt", DEFAULT_NUMBEROFTHREADS).toString(); }
-    public boolean isIgnoreErrors() { return this.optionExists("ignore-errors"); }
+    public String getId() { return this.getOptionValue(ID.getOpt()); }
+    public boolean isCompleted() { return this.optionExists(COMPLETED.getLongOpt()); }
+    public boolean isSync() { return this.optionExists(SYNC.getLongOpt()); }
+    public String getNumberOfFiles() { return this.getOptionValue(NUMBER_OF_FILES.getOpt()); }
+    public String getSizeOfFiles() { return this.getOptionValue(SIZE_OF_FILES.getOpt()); }
+    public String getBufferSize()  { return this.getOptionValueWithDefault(BUFFER_SIZE.getLongOpt(), DEFAULT_BUFFERSIZE).toString(); }
+    public String getNumberOfThreads()  { return this.getOptionValueWithDefault(NUMBER_OF_THREADS.getOpt(), DEFAULT_NUMBEROFTHREADS).toString(); }
+    public boolean isIgnoreErrors() { return this.optionExists(IGNORE_ERRORS.getLongOpt()); }
     public boolean isFollowSymlinks()  {
-        return (this.optionExists("follow-symlinks")  && !this.optionExists("no-follow-symlinks"));
+        return (this.optionExists(FOLLOW_SYMLINKS.getLongOpt())  && !this.optionExists(NO_FOLLOW_SYMLINKS.getLongOpt()));
     }
     public ImmutableMap<String, String> getMetadata() {
-        final String[] meta = this.getOptionValues("metadata");
+        final String[] meta = this.getOptionValues(METADATA.getLongOpt());
         if (meta == null) {
             return null;
         }
         return Metadata.parse(meta);
     }
     public ImmutableMap<String, String> getModifyParams() {
-        final String[] meta = this.getOptionValues("modify-params");
+        final String[] meta = this.getOptionValues(MODIFY_PARAMS.getLongOpt());
         if (meta == null) {
             return null;
         }
         return Metadata.parse(meta);
     }
-    public boolean isDiscard() { return this.optionExists("discard"); }
+    public boolean isDiscard() { return this.optionExists(DISCARD.getLongOpt()); }
 
     public int getVerifyLastPercent() {
-        return Integer.parseInt(getOptionValueWithDefault("verifyLastPercent", "20").toString());
+        return Integer.parseInt(getOptionValueWithDefault(VERIFY_PERCENT.getLongOpt(), DEFAULT_VERIFY_PERCENT).toString());
     }
 
-    public boolean doIgnoreNamingConflicts() { return this.optionExists("ignore-naming-conflicts"); }
+    public boolean doIgnoreNamingConflicts() { return this.optionExists(IGNORE_NAMING_CONFLICTS.getLongOpt()); }
 
-    public boolean isInCache() { return this.optionExists("in-cache"); }
+    public boolean isInCache() { return this.optionExists(IN_CACHE.getLongOpt()); }
 
 
 }
