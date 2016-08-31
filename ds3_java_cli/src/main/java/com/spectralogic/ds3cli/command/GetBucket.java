@@ -23,12 +23,9 @@ import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.GetBucketResult;
-import com.spectralogic.ds3cli.util.Ds3Provider;
-import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.models.Contents;
 import com.spectralogic.ds3client.networking.FailedRequestException;
-import org.apache.commons.cli.MissingOptionException;
 import org.apache.commons.cli.Option;
 
 import java.util.Iterator;
@@ -37,8 +34,8 @@ public class GetBucket extends CliCommand<GetBucketResult> {
     private String bucketName;
     private String prefix;
 
-    private final static ImmutableList<Option> requiredArgs = ImmutableList.of(ArgumentFactory.bucket);
-    private final static ImmutableList<Option> optionalArgs = ImmutableList.of(ArgumentFactory.prefix);
+    private final static ImmutableList<Option> requiredArgs = ImmutableList.of(ArgumentFactory.BUCKET);
+    private final static ImmutableList<Option> optionalArgs = ImmutableList.of(ArgumentFactory.PREFIX);
 
     public GetBucket() {
     }
@@ -80,7 +77,7 @@ public class GetBucket extends CliCommand<GetBucketResult> {
                 throw new CommandException("Error: Cannot communicate with the remote DS3 appliance.", e);
             }
             else if(e.getStatusCode() == 404) {
-                throw new CommandException("Error: Unknown bucket.", e);
+                throw new CommandException("Error: Unknown BUCKET.", e);
             }
             else {
                 throw new CommandException("Error: Encountered an unknown error of ("+ e.getStatusCode() +") while accessing the remote DS3 appliance.", e);

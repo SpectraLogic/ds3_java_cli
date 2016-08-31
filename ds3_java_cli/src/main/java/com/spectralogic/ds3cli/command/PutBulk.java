@@ -53,11 +53,11 @@ public class PutBulk extends CliCommand<PutBulkResult> {
 
     private final static Logger LOG = LoggerFactory.getLogger(PutBulk.class);
 
-    private final static ImmutableList<Option> requiredArgs = ImmutableList.of(ArgumentFactory.bucket, ArgumentFactory.directory);
+    private final static ImmutableList<Option> requiredArgs = ImmutableList.of(ArgumentFactory.BUCKET, ArgumentFactory.DIRECTORY);
     private final static ImmutableList<Option> optionalArgs
-            = ImmutableList.of(ArgumentFactory.prefix, ArgumentFactory.numberOfThreads, ArgumentFactory.writeOptimization,
-            ArgumentFactory.followSymLinks, ArgumentFactory.discard, ArgumentFactory.priority, ArgumentFactory.checksum,
-            ArgumentFactory.sync, ArgumentFactory.force, ArgumentFactory.numberOfThreads, ArgumentFactory.ignoreErrors);
+            = ImmutableList.of(ArgumentFactory.PREFIX, ArgumentFactory.NUMBER_OF_THREADS, ArgumentFactory.WRITE_OPTIMIZATION,
+            ArgumentFactory.FOLLOW_SYMLINKS, ArgumentFactory.DISCARD, ArgumentFactory.PRIORITY, ArgumentFactory.CHECKSUM,
+            ArgumentFactory.SYNC, ArgumentFactory.FORCE, ArgumentFactory.NUMBER_OF_THREADS, ArgumentFactory.IGNORE_ERRORS);
 
     private String bucketName;
     private Path inputDirectory;
@@ -133,7 +133,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
 
     @Override
     public PutBulkResult call() throws Exception {
-        /* Ensure the bucket exists and if not create it */
+        /* Ensure the BUCKET exists and if not create it */
         final Ds3ClientHelpers helpers = getClientHelpers();
         helpers.ensureBucketExists(this.bucketName);
 
@@ -167,7 +167,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         job.withMaxParallelRequests(this.numberOfThreads);
         if (this.checksum) {
             throw new RuntimeException("Checksum calculation is not currently supported."); //TODO
-//            Logging.log("Performing bulk put with checksum computation enabled");
+//            Logging.log("Performing bulk put with CHECKSUM computation enabled");
 //            job.withRequestModifier(new ComputedChecksumModifier());
         }
         LOG.info("Created bulk put job {}, starting transfer", job.getJobId().toString());
@@ -249,7 +249,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
                     LOG.info("Syncing new version of {}", fileName);
                     return false;
                 } else {
-                    LOG.info("No need to sync {}", fileName);
+                    LOG.info("No need to SYNC {}", fileName);
                     return true;
                 }
             } catch (final IOException e) {
@@ -317,7 +317,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
                 return fileName;
             } else {
                 if (!fileName.startsWith(this.prefix)) {
-                    LOG.info("The object ({}) does not begin with prefix {}.  Ignoring adding the prefix.", fileName,  this.prefix);
+                    LOG.info("The object ({}) does not begin with PREFIX {}.  Ignoring adding the PREFIX.", fileName,  this.prefix);
                     return fileName;
                 } else {
                     return fileName.substring(this.prefix.length());
@@ -335,7 +335,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
 
         @Override
         public SeekableByteChannel buildChannel(final String s) throws IOException {
-            LOG.info("Putting {} to ds3 endpoint", s);
+            LOG.info("Putting {} to ds3 ENDPOINT", s);
             return this.objectPutter.buildChannel(s);
         }
     }
@@ -381,7 +381,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
     }
 
     /**
-     * Returns a channel and metadata for files that have been piped in via stdin
+     * Returns a channel and METADATA for files that have been piped in via stdin
      */
     static class PipeFileObjectPutter implements Ds3ClientHelpers.ObjectChannelBuilder, Ds3ClientHelpers.MetadataAccess {
 

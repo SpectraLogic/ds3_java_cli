@@ -33,8 +33,6 @@ import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.networking.Metadata;
 import com.spectralogic.ds3client.serializer.XmlProcessingException;
 import com.spectralogic.ds3client.utils.Guard;
-import com.spectralogic.ds3client.utils.SSLSetupException;
-import org.apache.commons.cli.MissingOptionException;
 import org.apache.commons.cli.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,10 +63,10 @@ public class GetBulk extends CliCommand<DefaultResult> {
     private boolean discard;
     private int numberOfThreads;
 
-    private final static ImmutableList<Option> requiredArgs = ImmutableList.of(ArgumentFactory.bucket);
+    private final static ImmutableList<Option> requiredArgs = ImmutableList.of(ArgumentFactory.BUCKET);
     private final static ImmutableList<Option> optionalArgs
-            = ImmutableList.of(ArgumentFactory.directory, ArgumentFactory.prefix, ArgumentFactory.numberOfThreads,
-    ArgumentFactory.discard, ArgumentFactory.priority, ArgumentFactory.checksum, ArgumentFactory.sync, ArgumentFactory.force);
+            = ImmutableList.of(ArgumentFactory.DIRECTORY, ArgumentFactory.PREFIX, ArgumentFactory.NUMBER_OF_THREADS,
+    ArgumentFactory.DISCARD, ArgumentFactory.PRIORITY, ArgumentFactory.CHECKSUM, ArgumentFactory.SYNC, ArgumentFactory.FORCE);
 
     public GetBulk() {
     }
@@ -91,19 +89,9 @@ public class GetBulk extends CliCommand<DefaultResult> {
 
 
         this.bucketName = args.getBucket();
-        if (this.bucketName == null) {
-            throw new MissingOptionException("The bulk get command requires '-b' to be set.");
-        }
-
-        if (args.getObjectName() != null) {
-            System.out.println("Warning: '-o' is not used with bulk get and is ignored.");
-        }
-
         this.discard = args.isDiscard();
-        if (this.discard) {
-            if (directory != null) {
+        if (this.discard && (directory != null)) {
                 throw new CommandException("Cannot set both directory and --discard");
-            }
         }
 
         this.priority = args.getPriority();
@@ -127,7 +115,7 @@ public class GetBulk extends CliCommand<DefaultResult> {
         final Ds3ClientHelpers.ObjectChannelBuilder getter;
         if (this.checksum) {
             throw new RuntimeException("Checksumming is currently not implemented.");//TODO
-//            Logging.log("Performing get_bulk with checksum verification");
+//            Logging.log("Performing get_bulk with CHECKSUM verification");
 //            getter = new VerifyingFileObjectGetter(this.outputPath);
         } else if (this.discard) {
             LOG.warn("Using /dev/null getter -- all incoming data will be discarded");
@@ -205,7 +193,7 @@ public class GetBulk extends CliCommand<DefaultResult> {
         if (this.discard) {
             return "SUCCESS: retrieved and discarded all objects from " + this.bucketName;
         } else {
-            return "SUCCESS: Wrote all the objects from " + this.bucketName + " to directory " + this.outputPath.toString();
+            return "SUCCESS: Wrote all the objects from " + this.bucketName + " to DIRECTORY " + this.outputPath.toString();
         }
     }
 
@@ -225,7 +213,7 @@ public class GetBulk extends CliCommand<DefaultResult> {
                 LOG.info("Syncing new version of {}", filePath.toString());
                 filteredContents.add(content);
             } else {
-                LOG.info("No need to sync {}", filePath.toString());
+                LOG.info("No need to SYNC {}", filePath.toString());
             }
         }
 
