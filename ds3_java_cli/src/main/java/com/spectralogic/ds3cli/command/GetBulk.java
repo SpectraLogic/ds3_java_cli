@@ -15,7 +15,9 @@
 
 package com.spectralogic.ds3cli.command;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import com.spectralogic.ds3cli.ArgumentFactory;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.DefaultResult;
@@ -31,7 +33,9 @@ import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.networking.Metadata;
 import com.spectralogic.ds3client.serializer.XmlProcessingException;
 import com.spectralogic.ds3client.utils.Guard;
+import com.spectralogic.ds3client.utils.SSLSetupException;
 import org.apache.commons.cli.MissingOptionException;
+import org.apache.commons.cli.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,6 +43,7 @@ import java.io.IOException;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
+import java.security.SignatureException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -61,19 +66,21 @@ public class GetBulk extends CliCommand<DefaultResult> {
     private boolean discard;
     private int numberOfThreads;
 
+    private final static ImmutableList<Option> requiredArgs = ImmutableList.of(ArgumentFactory.bucket);
+    private final static ImmutableList<Option> optionalArgs
+            = ImmutableList.of(ArgumentFactory.directory, ArgumentFactory.prefix, ArgumentFactory.numberOfThreads,
+    ArgumentFactory.discard, ArgumentFactory.priority, ArgumentFactory.checksum, ArgumentFactory.sync, ArgumentFactory.force);
+
     public GetBulk() {
     }
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
-        this.bucketName = args.getBucket();
-        if (this.bucketName == null) {
-            throw new MissingOptionException("The bulk get command requires '-b' to be set.");
-        }
-
-        if (args.getObjectName() != null) {
-            System.out.println("Warning: '-o' is not used with bulk get and is ignored.");
-        }
+        // add diectory option
+        addRequiredArguments(requiredArgs, args);
+        addOptionalArguments(optionalArgs, args);
+        args.parseCommandLine();
+        createClient(args);
 
         final String directory = args.getDirectory();
         if (directory == null || directory.equals(".")) {
@@ -81,6 +88,16 @@ public class GetBulk extends CliCommand<DefaultResult> {
         } else {
             final Path dirPath = FileSystems.getDefault().getPath(directory);
             this.outputPath = FileSystems.getDefault().getPath(".").resolve(dirPath);
+        }
+
+
+        this.bucketName = args.getBucket();
+        if (this.bucketName == null) {
+            throw new MissingOptionException("The bulk get command requires '-b' to be set.");
+        }
+
+        if (args.getObjectName() != null) {
+            System.out.println("Warning: '-o' is not used with bulk get and is ignored.");
         }
 
         this.discard = args.isDiscard();
@@ -138,7 +155,7 @@ public class GetBulk extends CliCommand<DefaultResult> {
         return new DefaultResult(this.restoreSome(getter));
     }
 
-    private String restoreSome(final Ds3ClientHelpers.ObjectChannelBuilder getter) throws IOException, XmlProcessingException {
+    private String restoreSome(final Ds3ClientHelpers.ObjectChannelBuilder getter) throws IOException, SignatureException, XmlProcessingException, SSLSetupException {
         final Ds3ClientHelpers helper = getClientHelpers();
         final Iterable<Contents> contents = helper.listObjects(this.bucketName, this.prefix);
 
@@ -177,7 +194,7 @@ public class GetBulk extends CliCommand<DefaultResult> {
         }
     }
 
-    private String restoreAll(final Ds3ClientHelpers.ObjectChannelBuilder getter) throws XmlProcessingException, IOException {
+    private String restoreAll(final Ds3ClientHelpers.ObjectChannelBuilder getter) throws XmlProcessingException, SignatureException, IOException, SSLSetupException {
         final Ds3ClientHelpers helper = getClientHelpers();
         final Ds3ClientHelpers.Job job = helper.startReadAllJob(this.bucketName,
                 ReadJobOptions.create().withPriority(this.priority));
