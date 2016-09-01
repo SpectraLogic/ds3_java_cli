@@ -40,7 +40,7 @@ import org.slf4j.LoggerFactory;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 
-public class Main {
+public final class Main {
     // initialize and add appenders to root logger
     private final static ch.qos.logback.classic.Logger LOG =  (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
     private final static String LOG_FORMAT_PATTERN = "%d{yyyy-MM-dd HH:mm:ss} +++ %msg%n";
@@ -110,7 +110,7 @@ public class Main {
 
             fileAppender.setTriggeringPolicy((TriggeringPolicy)sizeBasedTriggeringPolicy);
             fileAppender.setRollingPolicy(sizeBasedRollingPolicy);
-            fileAppender.setEncoder((Encoder<ILoggingEvent>)fileEncoder);
+            fileAppender.setEncoder(fileEncoder);
             fileAppender.setName("LOGFILE");
             sizeBasedRollingPolicy.start();
 
@@ -145,14 +145,14 @@ public class Main {
                     System.out.println(CliCommandFactory.listAllCommands());
                 } else {
                     System.out.println(CliCommand.getLongHelp(arguments.getHelp()));
-                    CliCommand helpCommand = CliCommandFactory.getCommandExecutor(arguments.getHelp());
+                    final CliCommand helpCommand = CliCommandFactory.getCommandExecutor(arguments.getHelp());
                     helpCommand.printArgumentHelp(arguments);
                 }
                 System.exit(0);
             }
 
             // get COMMAND, parse args
-            CliCommand command = CliCommandFactory.getCommandExecutor(arguments.getCommand());
+            final CliCommand command = CliCommandFactory.getCommandExecutor(arguments.getCommand());
             command.init(arguments);
 
             final Ds3Client client = arguments.createClient();
@@ -172,7 +172,7 @@ public class Main {
             System.exit(response.getReturnCode());
         } catch (final FailedRequestException e) {
             System.out.println("ERROR: " + e.getMessage());
-            LOG.info("Stack TRACE: ", e);
+            LOG.info("Stack trace: ", e);
             LOG.info("Printing out the response from the server:");
             LOG.info(((FailedRequestException) e).getResponseString());
             System.exit(2);
@@ -181,7 +181,7 @@ public class Main {
             System.exit(2);
         } catch (final Exception e) {
             System.out.println("ERROR: " + e.getMessage());
-            LOG.info("Stack TRACE: ", e);
+            LOG.info("Stack trace: ", e);
             System.exit(2);
         }
     }
