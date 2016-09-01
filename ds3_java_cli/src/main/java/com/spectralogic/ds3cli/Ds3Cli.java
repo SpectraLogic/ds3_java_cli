@@ -34,30 +34,30 @@ public class Ds3Cli implements Callable<CommandResponse> {
 
     private final static Logger LOG = LoggerFactory.getLogger(Ds3Cli.class);
 
-    private final Arguments args;
+    private final CliCommand command;
     private final Ds3Provider ds3Provider;
     private final FileUtils fileUtils;
 
 
-    public Ds3Cli(final Ds3Provider provider, final Arguments args, final FileUtils fileUtils) {
-        this.args = args;
+    public Ds3Cli(final Ds3Provider provider, final CliCommand cmd, final FileUtils fileUtils) {
+        this.command = cmd;
         this.ds3Provider = provider;
         this.fileUtils = fileUtils;
+        command.setClient(provider,  fileUtils);
     }
 
     @Override
     public CommandResponse call() throws Exception {
-        final CliCommand command = getCommandExecutor();
 
-        final View view = command.getView(this.args.getOutputFormat());
+        final View view = command.getView();
 
         try {
-            final String message = view.render(command.init(this.args).call());
+            final String message = view.render(command.call());
             return new CommandResponse(message, 0);
         }
         catch(final CommandException e) {
             final String message;
-            if (this.args.getOutputFormat() == ViewType.JSON) {
+            if (command.getOutputFormat() == ViewType.JSON) {
                 message = new CommandExceptionJsonView().render(e);
             }
             else {
@@ -67,56 +67,4 @@ public class Ds3Cli implements Callable<CommandResponse> {
         }
     }
 
-    public CommandResponse getCommandHelp() throws Exception {
-        if (this.args.getCommand().equalsIgnoreCase("LIST_COMMANDS")) {
-            final String message = listAllCommands();
-            return new CommandResponse(message, 0);
-        }
-
-        final CliCommand command = getCommandExecutor();
-
-        try {
-            final String message = command.getLongHelp(this.args.getCommand());
-            return new CommandResponse(message, 0);
-        }
-        catch(final Exception e) {
-            final String message = "getCommandHelp failed";
-            return new CommandResponse(message, 1);
-        }
-    }
-
-    private CliCommand getCommandExecutor() throws CommandException {
-        final String commandName = this.args.getCommand();
-
-        final String commandCamel = CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, commandName);
-
-        final Iterator<CliCommand> implementations = getAllCommands();
-        while (implementations.hasNext()) {
-            final CliCommand implementation = implementations.next();
-            final String className = implementation.getClass().getSimpleName();
-            if (className.equalsIgnoreCase(commandCamel)) {
-                return implementation.withProvider(this.ds3Provider, this.fileUtils);
-            }
-        }
-         throw new CommandException("No command class: " + commandName);
-    }
-
-    private String listAllCommands() {
-        final StringBuilder commands = new StringBuilder("Installed Commands: ");
-        final Iterator<CliCommand> implementations = getAllCommands();
-        while (implementations.hasNext()) {
-            final CliCommand implementation = implementations.next();
-            commands.append(CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, implementation.getClass().getSimpleName()));
-            if (implementations.hasNext()) {
-                commands.append(", ");
-            }
-        }
-        return commands.toString();
-    }
-
-    private Iterator<CliCommand> getAllCommands() {
-        final ServiceLoader<CliCommand> loader =
-                ServiceLoader.load(CliCommand.class);
-        return loader.iterator();
-    }
 }

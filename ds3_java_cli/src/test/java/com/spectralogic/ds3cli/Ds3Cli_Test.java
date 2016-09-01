@@ -17,6 +17,8 @@ package com.spectralogic.ds3cli;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.spectralogic.ds3cli.command.CliCommand;
+import com.spectralogic.ds3cli.command.CliCommandFactory;
 import com.spectralogic.ds3cli.exceptions.BadArgumentException;
 import com.spectralogic.ds3cli.exceptions.SyncNotSupportedException;
 import com.spectralogic.ds3cli.util.*;
@@ -73,8 +75,12 @@ public class Ds3Cli_Test {
                 "| samples     | 2006-02-03T16:41:58.000Z |\n" +
                 "+-------------+--------------------------+\n";
 
-        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_service"});
+        final Arguments args = new Arguments( new String[] {"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_service"});
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
+        command.init(args);
         final Ds3Client client = mock(Ds3Client.class);
+        final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), command, null);
+
         final WebResponse webResponse = mock(WebResponse.class);
         final InputStream stream = IOUtils.toInputStream("<ListAllMyBucketsResult>\n" +
                 "  <Owner>\n" +
@@ -108,10 +114,10 @@ public class Ds3Cli_Test {
         when(webResponse.getResponseStream()).thenReturn(stream);
 
         final GetServiceResponse serviceResponse = new GetServiceResponse(webResponse);
-        final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
-        when(client.getService(any(GetServiceRequest.class))).thenReturn(serviceResponse);
 
-        final CommandResponse result = cli.call();
+        // final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
+        when(client.getService(any(GetServiceRequest.class))).thenReturn(serviceResponse);
+        final CommandResponse result = command.render();
         assertThat(result.getMessage(), is(expectedString));
         assertThat(result.getReturnCode(), is(0));
     }
@@ -142,7 +148,11 @@ public class Ds3Cli_Test {
                 "}";
 
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_service", "--output-format", "json"});
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
+        command.init(args);
         final Ds3Client client = mock(Ds3Client.class);
+        final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), command, null);
+
         final WebResponse webResponse = mock(WebResponse.class);
         final InputStream stream = IOUtils.toInputStream("<ListAllMyBucketsResult>\n" +
                 "  <Owner>\n" +
@@ -176,10 +186,9 @@ public class Ds3Cli_Test {
         when(webResponse.getResponseStream()).thenReturn(stream);
 
         final GetServiceResponse serviceResponse = new GetServiceResponse(webResponse);
-        final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
         when(client.getService(any(GetServiceRequest.class))).thenReturn(serviceResponse);
 
-        final CommandResponse result = cli.call();
+        final CommandResponse result = command.render();
         assertTrue(result.getMessage().endsWith(expectedString));
         assertThat(result.getReturnCode(), is(0));
     }
@@ -187,12 +196,13 @@ public class Ds3Cli_Test {
     @Test
     public void error() throws Exception {
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_service"});
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
         final Ds3Client client = mock(Ds3Client.class);
         when(client.getService(any(GetServiceRequest.class)))
                 .thenThrow(new FailedRequestException(toImmutableIntList(new int[]{200}), 500, new Error(), ""));
 
-        final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
-        final CommandResponse result = cli.call();
+        final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), command, null);
+        final CommandResponse result = command.render();
         assertThat(result.getMessage(), is("Failed Get Service\n"));
         assertThat(result.getReturnCode(), is(1));
     }
@@ -209,12 +219,14 @@ public class Ds3Cli_Test {
                         "}";
 
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_service", "--output-format", "json"});
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
+        command.init(args);
         final Ds3Client client = mock(Ds3Client.class);
+        final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), command, null);
         when(client.getService(any(GetServiceRequest.class)))
                 .thenThrow(new FailedRequestException(toImmutableIntList(new int[]{200}), 500, new Error(), ""));
 
-        final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
-        final CommandResponse result = cli.call();
+        final CommandResponse result = command.render();
         assertTrue(SterilizeString.toUnix(result.getMessage()).endsWith(expected));
         assertThat(result.getReturnCode(), is(1));
     }
@@ -222,7 +234,10 @@ public class Ds3Cli_Test {
     @Test
     public void deleteBucket() throws Exception {
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "delete_bucket", "-b", "bucketName"});
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
+        command.init(args);
         final Ds3Client client = mock(Ds3Client.class);
+        final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), command, null);
         final WebResponse webResponse = mock(WebResponse.class);
         final Headers headers = mock(Headers.class);
         when(webResponse.getStatusCode()).thenReturn(204);
@@ -231,8 +246,7 @@ public class Ds3Cli_Test {
         final DeleteBucketResponse deleteBucketResponse = new DeleteBucketResponse(webResponse);
         when(client.deleteBucket(any(DeleteBucketRequest.class))).thenReturn(deleteBucketResponse);
 
-        final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
-        final CommandResponse result = cli.call();
+        final CommandResponse result = command.render();
         assertThat(result.getMessage(), is("Success: Deleted bucket 'bucketName'."));
         assertThat(result.getReturnCode(), is(0));
     }
@@ -244,7 +258,11 @@ public class Ds3Cli_Test {
                 "}";
 
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "delete_bucket", "-b", "bucketName", "--output-format", "json"});
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
+        command.init(args);
         final Ds3Client client = mock(Ds3Client.class);
+        final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), command, null);
+
         final WebResponse webResponse = mock(WebResponse.class);
         final Headers headers = mock(Headers.class);
         when(webResponse.getStatusCode()).thenReturn(204);
@@ -253,13 +271,11 @@ public class Ds3Cli_Test {
         final DeleteBucketResponse deleteBucketResponse = new DeleteBucketResponse(webResponse);
         when(client.deleteBucket(any(DeleteBucketRequest.class))).thenReturn(deleteBucketResponse);
 
-        final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
-
-        final CommandResponse result = cli.call();
+        final CommandResponse result = command.render();
         assertTrue(result.getMessage().endsWith(expected));
         assertThat(result.getReturnCode(), is(0));
     }
-
+/***
     @Test
     public void deleteFolder() throws Exception {
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!",
@@ -318,14 +334,14 @@ public class Ds3Cli_Test {
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
 
         final CommandResponse result = cli.call();
-        assertThat(result.getMessage(), is("Success: Deleted object 'obj.txt' from bucket 'bucketName'."));
+        assertThat(result.getMessage(), is("Success: Deleted object 'obj.txt' from BUCKET 'bucketName'."));
         assertThat(result.getReturnCode(), is(0));
     }
 
     @Test
     public void testDeleteObjectJson() throws Exception {
         final String expected = "  \"Status\" : \"OK\",\n" +
-                "  \"Message\" : \"Success: Deleted object 'obj.txt' from bucket 'bucketName'.\"\n" +
+                "  \"Message\" : \"Success: Deleted object 'obj.txt' from BUCKET 'bucketName'.\"\n" +
                 "}";
 
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "delete_object", "-b", "bucketName", "-o", "obj.txt", "--output-format", "json"});
@@ -344,7 +360,7 @@ public class Ds3Cli_Test {
         assertTrue(result.getMessage().endsWith(expected));
         assertThat(result.getReturnCode(), is(0));
     }
-
+***/
     @Test
     public void getBucket() throws Exception {
 
@@ -356,8 +372,13 @@ public class Ds3Cli_Test {
                 "+--------------------+--------+----------------+--------------------------+------------------------------------+\n";
 
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_bucket", "-b", "bucketName"});
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
+        command.init(args);
+        final Ds3Client client = mock(Ds3Client.class);
+        final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), command, null);
+
         final String response = "<ListBucketResult>\n" +
-                "    <Name>bucket</Name>\n" +
+                "    <Name>BUCKET</Name>\n" +
                 "    <Prefix/>\n" +
                 "    <Marker/>\n" +
                 "    <MaxKeys>1000</MaxKeys>\n" +
@@ -386,7 +407,6 @@ public class Ds3Cli_Test {
                 "    </Contents>\n" +
                 "</ListBucketResult>";
 
-        final Ds3Client client = mock(Ds3Client.class);
         final WebResponse webResponse = mock(WebResponse.class);
         final Headers headers = mock(Headers.class);
         when(webResponse.getStatusCode()).thenReturn(200);
@@ -395,8 +415,7 @@ public class Ds3Cli_Test {
         final GetBucketResponse getBucketResponse = new GetBucketResponse(webResponse);
         when(client.getBucket(any(GetBucketRequest.class))).thenReturn(getBucketResponse);
 
-        final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
-        final CommandResponse result = cli.call();
+        final CommandResponse result = command.render();
         assertThat(result.getMessage(), is(expected));
         assertThat(result.getReturnCode(), is(0));
     }
@@ -435,8 +454,13 @@ public class Ds3Cli_Test {
                         "}";
 
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_bucket", "-b", "bucketName", "--output-format", "json"});
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
+        command.init(args);
+        final Ds3Client client = mock(Ds3Client.class);
+        final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), command, null);
+
         final String response = "<ListBucketResult>\n" +
-                "    <Name>bucket</Name>\n" +
+                "    <Name>BUCKET</Name>\n" +
                 "    <Prefix/>\n" +
                 "    <Marker/>\n" +
                 "    <MaxKeys>1000</MaxKeys>\n" +
@@ -465,7 +489,6 @@ public class Ds3Cli_Test {
                 "    </Contents>\n" +
                 "</ListBucketResult>";
 
-        final Ds3Client client = mock(Ds3Client.class);
         final WebResponse webResponse = mock(WebResponse.class);
         final Headers headers = mock(Headers.class);
         when(webResponse.getStatusCode()).thenReturn(200);
@@ -474,12 +497,11 @@ public class Ds3Cli_Test {
         final GetBucketResponse getBucketResponse = new GetBucketResponse(webResponse);
         when(client.getBucket(any(GetBucketRequest.class))).thenReturn(getBucketResponse);
 
-        final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
-        final CommandResponse result = cli.call();
+        final CommandResponse result = command.render();
         assertTrue(result.getMessage().endsWith(expected));
         assertThat(result.getReturnCode(), is(0));
     }
-
+/***
     @Test
     public void putBucketView() throws Exception {
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "put_bucket", "-b", "bucketName"});
@@ -495,14 +517,14 @@ public class Ds3Cli_Test {
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
 
         final CommandResponse result = cli.call();
-        assertThat(result.getMessage(), is("Success: created bucket bucketName."));
+        assertThat(result.getMessage(), is("Success: created BUCKET bucketName."));
         assertThat(result.getReturnCode(), is(0));
     }
 
     @Test
     public void putBucketViewJson() throws Exception {
         final String expected = "  \"Status\" : \"OK\",\n" +
-                "  \"Message\" : \"Success: created bucket bucketName.\"\n" +
+                "  \"Message\" : \"Success: created BUCKET bucketName.\"\n" +
                 "}";
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "put_bucket", "-b", "bucketName", "--output-format", "json"});
         final Ds3Client client = mock(Ds3Client.class);
@@ -525,9 +547,9 @@ public class Ds3Cli_Test {
     public void putJob() throws Exception {
         final String jobId = "42b61136-9221-474b-a509-d716d8c554cd";
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!",
-                "-a", "access", "-c", "put_job", "-i", jobId, "--priority", "LOW"});
+                "-a", "access", "-c", "put_job", "-i", jobId, "--PRIORITY", "LOW"});
 
-        final String expected = "Success: Modified job with job id '" + jobId + "' with priority LOW.";
+        final String expected = "Success: Modified job with job ID '" + jobId + "' with PRIORITY LOW.";
         final String response = "<MasterObjectList BucketName=\"test_modify_job\" CachedSizeInBytes=\"0\" ChunkClientProcessingOrderGuarantee=\"IN_ORDER\" CompletedSizeInBytes=\"0\" JobId=\"42b61136-9221-474b-a509-d716d8c554cd\" OriginalSizeInBytes=\"2\" Priority=\"HIGH\" RequestType=\"PUT\" StartDate=\"2015-09-23T20:25:26.000Z\" Status=\"IN_PROGRESS\" UserId=\"c2581493-058c-40d7-a3a1-9a50b20d6d3b\" UserName=\"spectra\" WriteOptimization=\"CAPACITY\"><Nodes><Node EndPoint=\"192.168.56.101\" HttpPort=\"8080\" Id=\"477097a1-5326-11e5-b859-0800271a68bf\"/></Nodes><Objects ChunkId=\"a1004507-24d7-43c8-bdba-19faae3dc349\" ChunkNumber=\"0\"><Object InCache=\"false\" Length=\"2\" Name=\"test\" Offset=\"0\"/></Objects></MasterObjectList>";
 
         final Ds3Client client = mock(Ds3Client.class);
@@ -550,9 +572,9 @@ public class Ds3Cli_Test {
     public void putJobJson() throws Exception {
         final String jobId = "42b61136-9221-474b-a509-d716d8c554cd";
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!",
-                "-a", "access", "-c", "put_job", "-i", jobId, "--priority", "LOW", "--output-format", "json"});
+                "-a", "access", "-c", "put_job", "-i", jobId, "--PRIORITY", "LOW", "--output-format", "json"});
 
-        final String expected = "\"Message\" : \"Success: Modified job with job id '" + jobId + "' with priority LOW.\"\n}";
+        final String expected = "\"Message\" : \"Success: Modified job with job ID '" + jobId + "' with PRIORITY LOW.\"\n}";
         final String response = "<MasterObjectList BucketName=\"test_modify_job\" CachedSizeInBytes=\"0\" ChunkClientProcessingOrderGuarantee=\"IN_ORDER\" CompletedSizeInBytes=\"0\" JobId=\"42b61136-9221-474b-a509-d716d8c554cd\" OriginalSizeInBytes=\"2\" Priority=\"HIGH\" RequestType=\"PUT\" StartDate=\"2015-09-23T20:25:26.000Z\" Status=\"IN_PROGRESS\" UserId=\"c2581493-058c-40d7-a3a1-9a50b20d6d3b\" UserName=\"spectra\" WriteOptimization=\"CAPACITY\"><Nodes><Node EndPoint=\"192.168.56.101\" HttpPort=\"8080\" Id=\"477097a1-5326-11e5-b859-0800271a68bf\"/></Nodes><Objects ChunkId=\"a1004507-24d7-43c8-bdba-19faae3dc349\" ChunkNumber=\"0\"><Object InCache=\"false\" Length=\"2\" Name=\"test\" Offset=\"0\"/></Objects></MasterObjectList>";
 
         final Ds3Client client = mock(Ds3Client.class);
@@ -594,7 +616,7 @@ public class Ds3Cli_Test {
 
     @Test
     public void putObjectWithSync() throws Exception {
-        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "put_object", "-b", "bucketName", "-o", "obj.txt", "--sync"});
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "put_object", "-b", "bucketName", "-o", "obj.txt", "--SYNC"});
 
         final Ds3ClientHelpers.Job mockedPutJob = mock(Ds3ClientHelpers.Job.class);
         final Ds3ClientHelpers helpers = mock(Ds3ClientHelpers.class);
@@ -624,13 +646,13 @@ public class Ds3Cli_Test {
 
         when(SyncUtils.needToSync(any(Ds3ClientHelpers.class), any(String.class), any(Path.class), any(String.class), any(Boolean.class))).thenReturn(false);
         result = cli.call();
-        assertThat(result.getMessage(), is("Success: No need to sync obj.txt"));
+        assertThat(result.getMessage(), is("Success: No need to SYNC obj.txt"));
         assertThat(result.getReturnCode(), is(0));
     }
 
     @Test(expected = SyncNotSupportedException.class)
     public void putObjectWithSyncNotSupportedVersion() throws Exception {
-        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "put_object", "-b", "bucketName", "-o", "obj.txt", "--sync"});
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "put_object", "-b", "bucketName", "-o", "obj.txt", "--SYNC"});
 
         final BuildInformation buildInformation = mock(BuildInformation.class);
         when(buildInformation.getVersion()).thenReturn("1.2.0");
@@ -700,7 +722,7 @@ public class Ds3Cli_Test {
 
     @Test
     public void getObjectWithSync() throws Exception {
-        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_object", "-b", "bucketName", "-o", "obj.txt", "--sync"});
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_object", "-b", "bucketName", "-o", "obj.txt", "--SYNC"});
         final Ds3ClientHelpers helpers = mock(Ds3ClientHelpers.class);
         final Ds3ClientHelpers.Job mockedGetJob = mock(Ds3ClientHelpers.Job.class);
         final FileUtils mockedFileUtils = mock(FileUtils.class);
@@ -734,7 +756,7 @@ public class Ds3Cli_Test {
 
         when(SyncUtils.needToSync(any(Ds3ClientHelpers.class), any(String.class), any(Path.class), any(String.class), any(Boolean.class))).thenReturn(false);
         result = cli.call();
-        assertThat(result.getMessage(), is("SUCCESS: No need to sync obj.txt"));
+        assertThat(result.getMessage(), is("SUCCESS: No need to SYNC obj.txt"));
         assertThat(result.getReturnCode(), is(0));
     }
 
@@ -762,8 +784,8 @@ public class Ds3Cli_Test {
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!",
                 "-a", "access", "-c", "get_job", "-i", jobId});
 
-        final String expected = "JobId: " + jobId + " | Status: COMPLETED | Bucket: bucket | Type: GET | Priority: HIGH | User Name: spectra | Creation Date: 2015-09-28T17:30:43.000Z | Total Size: 32 | Total Transferred: 0";
-        final String response = "<MasterObjectList BucketName=\"bucket\" CachedSizeInBytes=\"0\" ChunkClientProcessingOrderGuarantee=\"NONE\" CompletedSizeInBytes=\"0\" JobId=\"aa5df0cc-b03a-4cb9-b69d-56e7367e917f\" OriginalSizeInBytes=\"32\" Priority=\"HIGH\" RequestType=\"GET\" StartDate=\"2015-09-28T17:30:43.000Z\" Status=\"COMPLETED\" UserId=\"c2581493-058c-40d7-a3a1-9a50b20d6d3b\" UserName=\"spectra\" WriteOptimization=\"CAPACITY\"></MasterObjectList>";
+        final String expected = "JobId: " + jobId + " | Status: COMPLETED | Bucket: BUCKET | Type: GET | Priority: HIGH | User Name: spectra | Creation Date: 2015-09-28T17:30:43.000Z | Total Size: 32 | Total Transferred: 0";
+        final String response = "<MasterObjectList BucketName=\"BUCKET\" CachedSizeInBytes=\"0\" ChunkClientProcessingOrderGuarantee=\"NONE\" CompletedSizeInBytes=\"0\" JobId=\"aa5df0cc-b03a-4cb9-b69d-56e7367e917f\" OriginalSizeInBytes=\"32\" Priority=\"HIGH\" RequestType=\"GET\" StartDate=\"2015-09-28T17:30:43.000Z\" Status=\"COMPLETED\" UserId=\"c2581493-058c-40d7-a3a1-9a50b20d6d3b\" UserName=\"spectra\" WriteOptimization=\"CAPACITY\"></MasterObjectList>";
 
         final Ds3Client client = mock(Ds3Client.class);
         final WebResponse webResponse = mock(WebResponse.class);
@@ -790,7 +812,7 @@ public class Ds3Cli_Test {
         final String expected = "\"Data\" : {\n"
                 + "    \"jobDetails\" : {\n"
                 + "      \"aggregating\" : false,\n"
-                + "      \"bucketName\" : \"bucket\",\n"
+                + "      \"bucketName\" : \"BUCKET\",\n"
                 + "      \"cachedSizeInBytes\" : 0,\n"
                 + "      \"chunkClientProcessingOrderGuarantee\" : \"NONE\",\n"
                 + "      \"completedSizeInBytes\" : 0,\n"
@@ -799,7 +821,7 @@ public class Ds3Cli_Test {
                 + "      \"naked\" : false,\n"
                 + "      \"name\" : null,\n"
                 + "      \"originalSizeInBytes\" : 32,\n"
-                + "      \"priority\" : \"HIGH\",\n"
+                + "      \"PRIORITY\" : \"HIGH\",\n"
                 + "      \"requestType\" : \"GET\",\n"
                 + "      \"startDate\" : \"2015-09-28T17:30:43.000Z\",\n"
                 + "      \"status\" : \"COMPLETED\",\n"
@@ -811,7 +833,7 @@ public class Ds3Cli_Test {
                 + "  },\n  \"Status\" : \"OK\"\n"
                 + "}";
 
-        final String response = "<MasterObjectList BucketName=\"bucket\" CachedSizeInBytes=\"0\" ChunkClientProcessingOrderGuarantee=\"NONE\" CompletedSizeInBytes=\"0\" JobId=\"aa5df0cc-b03a-4cb9-b69d-56e7367e917f\" OriginalSizeInBytes=\"32\" Priority=\"HIGH\" RequestType=\"GET\" StartDate=\"2015-09-28T17:30:43.000Z\" Status=\"COMPLETED\" UserId=\"c2581493-058c-40d7-a3a1-9a50b20d6d3b\" UserName=\"spectra\" WriteOptimization=\"CAPACITY\"></MasterObjectList>";
+        final String response = "<MasterObjectList BucketName=\"BUCKET\" CachedSizeInBytes=\"0\" ChunkClientProcessingOrderGuarantee=\"NONE\" CompletedSizeInBytes=\"0\" JobId=\"aa5df0cc-b03a-4cb9-b69d-56e7367e917f\" OriginalSizeInBytes=\"32\" Priority=\"HIGH\" RequestType=\"GET\" StartDate=\"2015-09-28T17:30:43.000Z\" Status=\"COMPLETED\" UserId=\"c2581493-058c-40d7-a3a1-9a50b20d6d3b\" UserName=\"spectra\" WriteOptimization=\"CAPACITY\"></MasterObjectList>";
 
         final Ds3Client client = mock(Ds3Client.class);
         final WebResponse webResponse = mock(WebResponse.class);
@@ -842,14 +864,14 @@ public class Ds3Cli_Test {
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(null, helpers), args, mockedFileUtils);
         final CommandResponse result = cli.call();
-        assertThat(result.getMessage(), is("SUCCESS: Wrote all the objects from bucketName to directory ."));
+        assertThat(result.getMessage(), is("SUCCESS: Wrote all the objects from bucketName to DIRECTORY ."));
         assertThat(result.getReturnCode(), is(0));
     }
 
     @Test
     public void getBulkWithBadArgs() throws Exception {
-        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_bulk", "-b", "bucketName", "-d", "targetdir", "--discard"});
-        final String expected = "Cannot set both directory and --discard\n";
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_bulk", "-b", "bucketName", "-d", "targetdir", "--DISCARD"});
+        final String expected = "Cannot set both DIRECTORY and --DISCARD\n";
 
         final Ds3ClientHelpers helpers = mock(Ds3ClientHelpers.class);
         final Ds3ClientHelpers.Job mockedGetJob = mock(Ds3ClientHelpers.Job.class);
@@ -868,7 +890,7 @@ public class Ds3Cli_Test {
 
     @Test
     public void getBulkWithSync() throws Exception {
-        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_bulk", "-b", "bucketName", "--sync"});
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_bulk", "-b", "bucketName", "--SYNC"});
         final Ds3ClientHelpers helpers = mock(Ds3ClientHelpers.class);
         final Ds3ClientHelpers.Job mockedGetJob = mock(Ds3ClientHelpers.Job.class);
         final FileUtils mockedFileUtils = mock(FileUtils.class);
@@ -914,7 +936,7 @@ public class Ds3Cli_Test {
 
     @Test
     public void getBulkJson() throws Exception {
-        final String expected = "\"Status\" : \"OK\",\n  \"Message\" : \"SUCCESS: Wrote all the objects from bucketName to directory .\"\n}";
+        final String expected = "\"Status\" : \"OK\",\n  \"Message\" : \"SUCCESS: Wrote all the objects from bucketName to DIRECTORY .\"\n}";
 
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_bulk", "-b", "bucketName", "--output-format", "json"});
         final Ds3ClientHelpers helpers = mock(Ds3ClientHelpers.class);
@@ -960,7 +982,7 @@ public class Ds3Cli_Test {
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(null, helpers), args, mockedFileUtils);
         final CommandResponse result = cli.call();
-        assertThat(result.getMessage(), is("SUCCESS: Wrote all the files in dir to bucket bucketName"));
+        assertThat(result.getMessage(), is("SUCCESS: Wrote all the files in dir to BUCKET bucketName"));
         assertThat(result.getReturnCode(), is(0));
     }
 
@@ -994,13 +1016,13 @@ public class Ds3Cli_Test {
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(null, helpers), args, mockedFileUtils);
         final CommandResponse result = cli.call();
-        assertThat(result.getMessage(), is("SUCCESS: Wrote all the files in dir to bucket bucketName"));
+        assertThat(result.getMessage(), is("SUCCESS: Wrote all the files in dir to BUCKET bucketName"));
         assertThat(result.getReturnCode(), is(0));
     }
 
     @Test
     public void putBulkWithSync() throws Exception {
-        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "put_bulk", "-b", "bucketName", "-d", "dir", "--sync"});
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "put_bulk", "-b", "bucketName", "-d", "dir", "--SYNC"});
         final Ds3ClientHelpers helpers = mock(Ds3ClientHelpers.class);
         final Ds3ClientHelpers.Job mockedPutJob = mock(Ds3ClientHelpers.Job.class);
         final FileUtils mockedFileUtils = mock(FileUtils.class);
@@ -1045,14 +1067,14 @@ public class Ds3Cli_Test {
         when(SyncUtils.isNewFile(any(Path.class), any(Contents.class), any(Boolean.class))).thenReturn(true);
         when(Utils.getFileSize(any(Path.class))).thenReturn(1245L);
         result = cli.call();
-        assertThat(result.getMessage(), is("SUCCESS: Wrote all the files in dir to bucket bucketName"));
+        assertThat(result.getMessage(), is("SUCCESS: Wrote all the files in dir to BUCKET bucketName"));
         assertThat(result.getReturnCode(), is(0));
 
     }
 
     @Test(expected = SyncNotSupportedException.class)
     public void putBulkWithSyncWrongVersion() throws Exception {
-        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "put_bulk", "-b", "bucketName", "-d", "dir", "--sync"});
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "put_bulk", "-b", "bucketName", "-d", "dir", "--SYNC"});
         final Ds3ClientHelpers helpers = mock(Ds3ClientHelpers.class);
         final Ds3ClientHelpers.Job mockedGetJob = mock(Ds3ClientHelpers.Job.class);
         final FileUtils mockedFileUtils = mock(FileUtils.class);
@@ -1080,7 +1102,7 @@ public class Ds3Cli_Test {
 
     @Test
     public void putBulkJson() throws Exception {
-        final String expected = "\"Status\" : \"OK\",\n  \"Message\" : \"SUCCESS: Wrote all the files in dir to bucket bucketName\"\n}";
+        final String expected = "\"Status\" : \"OK\",\n  \"Message\" : \"SUCCESS: Wrote all the files in dir to BUCKET bucketName\"\n}";
 
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "put_bulk", "-b", "bucketName", "-d", "dir", "--output-format", "json"});
         final Ds3ClientHelpers helpers = mock(Ds3ClientHelpers.class);
@@ -1282,7 +1304,7 @@ public class Ds3Cli_Test {
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(null, helpers), args, mockedFileUtils);
         final CommandResponse result = cli.call();
-        final String expected = "WARN: Not all of the files were written to bucket bucketName\n" +
+        final String expected = "WARN: Not all of the files were written to BUCKET bucketName\n" +
                 "+--------------+------------------------------------------------------------------+\n" +
                 "| Ignored File |                              Reason                              |\n" +
                 "+--------------+------------------------------------------------------------------+\n" +
@@ -1334,7 +1356,7 @@ public class Ds3Cli_Test {
 
         final String endsWith = "},\n" +
                 "  \"Data\" : {\n" +
-                "    \"status_message\" : \"WARN: Not all of the files were written to bucket bucketName\",\n" +
+                "    \"status_message\" : \"WARN: Not all of the files were written to BUCKET bucketName\",\n" +
                 "    \"ignored_files\" : [ {\n" +
                 "      \"path\" : \"obj3.txt\",\n" +
                 "      \"error_message\" : \"java.io.IOException: java.nio.file.NoSuchFileException: obj3.txt\"\n" +
@@ -1384,13 +1406,13 @@ public class Ds3Cli_Test {
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(null, helpers), args, mockedFileUtils);
         final CommandResponse result = cli.call();
-        assertThat(result.getMessage(), is("SUCCESS: Wrote all piped files to bucket bucketName"));
+        assertThat(result.getMessage(), is("SUCCESS: Wrote all piped files to BUCKET bucketName"));
         assertThat(result.getReturnCode(), is(0));
     }
 
     @Test
     public void putBulkWithPipeAndSync() throws Exception {
-        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "put_bulk", "-b", "bucketName", "--sync"});
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "put_bulk", "-b", "bucketName", "--SYNC"});
         final Ds3ClientHelpers helpers = mock(Ds3ClientHelpers.class);
         final Ds3ClientHelpers.Job mockedPutJob = mock(Ds3ClientHelpers.Job.class);
         final FileUtils mockedFileUtils = mock(FileUtils.class);
@@ -1433,7 +1455,7 @@ public class Ds3Cli_Test {
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(null, helpers), args, mockedFileUtils);
         final CommandResponse result = cli.call();
-        assertThat(result.getMessage(), is("SUCCESS: Wrote all piped files to bucket bucketName"));
+        assertThat(result.getMessage(), is("SUCCESS: Wrote all piped files to BUCKET bucketName"));
         assertThat(result.getReturnCode(), is(0));
 
         final Contents c1 = new Contents();
@@ -1478,7 +1500,7 @@ public class Ds3Cli_Test {
             fail(); //This is the wrong exception
         }
 
-        final Arguments args3 = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "put_bulk", "-b", "bucketName", "-p", "prefix"});
+        final Arguments args3 = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "put_bulk", "-b", "bucketName", "-p", "PREFIX"});
         final Ds3Cli cli3 = new Ds3Cli(new Ds3ProviderImpl(null, helpers), args3, mockedFileUtils);
         try {
             cli3.call();
@@ -2200,7 +2222,7 @@ public class Ds3Cli_Test {
     @Test(expected = FailedRequestException.class)
     public void verifyBulkJobMissingBucket() throws Exception {
 
-        final String expected = "Cannot locate bucket: fredcoffeehouse";
+        final String expected = "Cannot locate BUCKET: fredcoffeehouse";
 
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_objects_on_tape", "-i", "b4d7cef1-80fa-4552-ad3f-4de716f515ea"});
         final String response = "<Error>" +
@@ -2340,6 +2362,6 @@ public class Ds3Cli_Test {
         assertThat(result.getReturnCode(), is(0));
     }
 
-
+***/
 
 }

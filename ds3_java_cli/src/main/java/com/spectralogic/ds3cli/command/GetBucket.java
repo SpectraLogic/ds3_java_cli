@@ -45,7 +45,6 @@ public class GetBucket extends CliCommand<GetBucketResult> {
         addRequiredArguments(requiredArgs, args);
         addOptionalArguments(optionalArgs, args);
         args.parseCommandLine();
-        createClient(args);
 
         this.bucketName = args.getBucket();
         this.prefix = args.getPrefix();

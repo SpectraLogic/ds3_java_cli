@@ -34,7 +34,7 @@ public class CliCommandFactory {
                 return implementation;
             }
         }
-        throw new CommandException("No command class: " + commandName);
+        throw new CommandException("No COMMAND class: " + commandName);
     }
 
     public static String listAllCommands() {

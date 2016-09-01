@@ -87,7 +87,7 @@ public class Arguments {
     private static final Option LOG_DEBUG = Option.builder().longOpt("log-debug").desc("Debug (more verbose) output to log file.").build();
     private static final Option LOG_TRACE = Option.builder().longOpt("log-trsce").desc("Trace (most verbose) output to log file.").build();
     private static final Option PRINT_VERSION = Option.builder().longOpt("version").desc("Print version information").build();
-    private static final Option VIEW_TYPE = Option.builder().longOpt("output-format")
+    private static final Option VIEW_TYPE = Option.builder().longOpt("output-format").hasArg()
             .desc("Configure how the output should be displayed.  Possible values: [" + ViewType.valuesString() + "]").build();
     private static final Option RETRIES = new Option("r", true,
             "Specifies how many times puts and gets will be attempted before failing the request. The default is 5");
@@ -165,6 +165,10 @@ public class Arguments {
         return defaultValue;
     }
 
+    public static boolean matchesOption(final Option opt, final String token) {
+        return token.equals('-' + opt.getOpt()) || token.equals("--" + opt.getLongOpt());
+    }
+
     /**
      * instantiate object, set args array, complete initial parsing
      * @param args String array of COMMAND line tokens
@@ -206,7 +210,8 @@ public class Arguments {
         for (int i = 0; i < this.args.length; i++) {
             final String token = this.args[i];
             // allow get COMMAND (-c) and subsequent argument
-            if (token.equals(COMMAND.getOpt())) {
+            // or --output-format and subsequent argument
+            if (matchesOption(COMMAND, token) || matchesOption(VIEW_TYPE,  token)) {
                 rootArguments.add(token);
                 if (i < this.args.length) {
                     rootArguments.add(this.args[++i]);
@@ -215,7 +220,7 @@ public class Arguments {
                 }
             }
             // allow get COMMAND help and subsequent argument (unless it is followed by an option (- or --)
-            if (token.equals(COMMAND_HELP.getLongOpt())) {
+            if (matchesOption(COMMAND_HELP, token)) {
                 rootArguments.add(token);
                 // might or might not have arg
                 if ((i < this.args.length) && (!this.args[i + 1].startsWith("-"))) {
@@ -223,10 +228,10 @@ public class Arguments {
                 }
             }
             // allow version in root parse
-            if ((token.equals(VERBOSE.getLongOpt())) || (token.equals(PRINT_HELP.getOpt()))
-                    || (token.equals(TRACE.getLongOpt())) || (token.equals(DEBUG.getLongOpt())) || (token.equals(VERBOSE.getLongOpt()))
-                    || (token.equals(LOG_TRACE.getLongOpt())) || (token.equals(LOG_DEBUG.getLongOpt()))
-                    || (token.equals(LOG_VERBOSE.getLongOpt()))) {
+            if ((matchesOption(VERBOSE, token)) || (matchesOption(PRINT_HELP, token))
+                    || (matchesOption(TRACE, token)) || (matchesOption(DEBUG, token)) || (matchesOption(VERBOSE, token))
+                    || (matchesOption(LOG_TRACE, token)) || (matchesOption(LOG_DEBUG, token))
+                    || (matchesOption(LOG_VERBOSE, token))) {
                 rootArguments.add(token);
             }
         }
@@ -248,7 +253,8 @@ public class Arguments {
     private void parseCommandLine(final boolean isRootParse) throws ParseException, BadArgumentException {
         final CommandLineParser parser = new DefaultParser();
         if (isRootParse) {
-            this.cmd = parser.parse(this.options, rootArgumentsOnly());
+            String[] roots =  rootArgumentsOnly();
+            this.cmd = parser.parse(this.options, roots);
         } else {
             this.cmd = parser.parse(this.options, this.args);
         }
@@ -302,15 +308,6 @@ public class Arguments {
         if (cmd.hasOption(PRINT_VERSION.getLongOpt())) {
             this.printVersion();
             System.exit(0);
-        }
-
-        if (cmd.hasOption(VIEW_TYPE.getLongOpt())) {
-            try {
-                final String commandString = cmd.getOptionValue(VIEW_TYPE.getLongOpt());
-                this.setOutputFormat(ViewType.valueOf(commandString.toUpperCase()));
-            } catch (final IllegalArgumentException e) {
-                throw new BadArgumentException("Unknown command", e);
-            }
         }
 
         try {
@@ -431,11 +428,9 @@ public class Arguments {
         return cmd.getOptionValue(PRINT_HELP.getLongOpt());
     }
     public ViewType getOutputFormat() {
-        return this.outputFormat;
+        return ViewType.valueOf(this.getOptionValueWithDefault(VIEW_TYPE.getLongOpt(), ViewType.CLI).toString().toUpperCase());
     }
-    void setOutputFormat(final ViewType outputFormat) {
-        this.outputFormat = outputFormat;
-    }
+
     public boolean isCertificateVerification() { return !this.optionExists(INSECURE.getLongOpt()); }
     public boolean isHttps() {  return !this.optionExists(HTTP.getLongOpt()); }
     public boolean isHelp() { return this.help; }
@@ -460,7 +455,7 @@ public class Arguments {
     public String getDirectory() { return this.getOptionValue(DIRECTORY.getOpt()); }
     public String getObjectName()  { return this.getOptionValue(OBJECT_NAME.getOpt()); }
     public boolean isForce() { return this.optionExists(FORCE.getLongOpt()); }
-    public String getPrefix()  { return this.getOptionValue(PREFIX.getOpt()); }
+    public String getPrefix()  { return this.getOptionValueWithDefault(PREFIX.getOpt(), "").toString(); }
     public boolean isChecksum() { return this.optionExists(CHECKSUM.getLongOpt()); }
     public Priority getPriority() {
         final String priorityString = this.getOptionValue(PRIORITY.getLongOpt());
@@ -524,7 +519,6 @@ public class Arguments {
     public boolean doIgnoreNamingConflicts() { return this.optionExists(IGNORE_NAMING_CONFLICTS.getLongOpt()); }
 
     public boolean isInCache() { return this.optionExists(IN_CACHE.getLongOpt()); }
-
 
 }
 

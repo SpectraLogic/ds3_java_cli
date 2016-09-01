@@ -81,15 +81,15 @@ public abstract class CliCommand<T extends Result> implements Callable<T> {
     }
 
     /**
-     * parse command line args and create client
-     * override this method to add command line Options
+     * parse COMMAND line args and create client
+     * override this method to add COMMAND line Options
      * @param args Arguments object
      * @returns this
      * @throws Exception parsing and argumnet exceptions
      */
     public CliCommand init(final Arguments args) throws Exception {
         args.parseCommandLine();
-        createClient(args);
+        this.viewType = args.getOutputFormat();
         return this;
     }
 
@@ -118,16 +118,16 @@ public abstract class CliCommand<T extends Result> implements Callable<T> {
     }
 
     /**
-     * Create a ds3 client from command line arguments or environment variables
-     * @param arguments Argumnets object
-     * @throws MissingOptionException if required parameter is not in args or environmnet vars
+     * Set the client
+     * @param provider Ds3Provider
+     * @param utils FileUtils
+     * @throws MissingOptionException if required parameter is not in args or environment vars
      */
-    protected void createClient(Arguments arguments) throws MissingOptionException {
-        // create client and test version
-        final Ds3Client client = arguments.createClient();
-        this.ds3Provider = new Ds3ProviderImpl(client, Ds3ClientHelpers.wrap(client));
-        this.fileUtils = new FileUtilsImpl();
+    public void setClient(final Ds3Provider provider, final FileUtils utils) {
+        this.ds3Provider = provider;
+        this.fileUtils = utils;
     }
+
     protected void isCliSupported90() throws SignatureException, IOException {
         if (!Utils.isVersionSupported(this.getClient())) {
             System.out.println(String.format("ERROR: Minimum Black Pearl supported is %s", Utils.MINIMUM_VERSION_SUPPORTED));
@@ -149,7 +149,7 @@ public abstract class CliCommand<T extends Result> implements Callable<T> {
         }
         catch(final CommandException e) {
             final String message;
-            if (this.args.getOutputFormat() == ViewType.JSON) {
+            if (this.getOutputFormat() == ViewType.JSON) {
                 message = new CommandExceptionJsonView().render(e);
             }
             else {
@@ -160,7 +160,7 @@ public abstract class CliCommand<T extends Result> implements Callable<T> {
     }
 
     /**
-     * Lookup help for '--help' command from resource file
+     * Lookup help for '--help' COMMAND from resource file
      * (Override or add help text to resources/com/spectralogic/dscli/help.properties
      * @param command
      * @return
@@ -170,7 +170,7 @@ public abstract class CliCommand<T extends Result> implements Callable<T> {
     }
 
     /**
-     * Inits command to add all options, then prints usage description
+     * Inits COMMAND to add all options, then prints usage description
      * @param arguments Arguments object
      */
     public void printArgumentHelp(Arguments arguments) {
@@ -201,6 +201,10 @@ public abstract class CliCommand<T extends Result> implements Callable<T> {
             return (View<T>) new com.spectralogic.ds3cli.views.json.DefaultView();
         }
         return (View<T>) new DefaultView();
+    }
+
+    public ViewType getOutputFormat() {
+        return this.viewType;
     }
 
     /**

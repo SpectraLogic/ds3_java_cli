@@ -28,6 +28,11 @@ import ch.qos.logback.core.rolling.*;
 import com.google.common.base.Joiner;
 import com.spectralogic.ds3cli.command.CliCommand;
 import com.spectralogic.ds3cli.command.CliCommandFactory;
+import com.spectralogic.ds3cli.util.Ds3Provider;
+import com.spectralogic.ds3cli.util.FileUtils;
+import com.spectralogic.ds3cli.util.Utils;
+import com.spectralogic.ds3client.Ds3Client;
+import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.networking.FailedRequestException;
 import org.apache.commons.cli.MissingOptionException;
 import org.slf4j.LoggerFactory;
@@ -125,7 +130,7 @@ public class Main {
     public static void main(final String[] args) {
 
         try {
-            // constructor parses for command, help, version, and logging settings
+            // constructor parses for COMMAND, help, version, and logging settings
             final Arguments arguments = new Arguments(args);
 
             configureLogging(arguments.getConsoleLogLevel(), arguments.getFileLogLevel());
@@ -134,7 +139,7 @@ public class Main {
             LOG.info(CliCommand.getPlatformInformation());
             LOG.info(arguments.getArgumentLog());
 
-            // command help
+            // COMMAND help
             if (arguments.isHelp()) {
                 if (arguments.getHelp().equalsIgnoreCase("LIST_COMMANDS")) {
                     System.out.println(CliCommandFactory.listAllCommands());
@@ -146,16 +151,28 @@ public class Main {
                 System.exit(0);
             }
 
-            // get command, parse args
+            // get COMMAND, parse args
             CliCommand command = CliCommandFactory.getCommandExecutor(arguments.getCommand());
             command.init(arguments);
+
+            final Ds3Client client = arguments.createClient();
+            if (!Utils.isVersionSupported(client)) {
+                System.out.println(String.format("ERROR: Minimum Black Pearl supported is %s", Utils.MINIMUM_VERSION_SUPPORTED));
+                System.exit(2);
+            }
+
+            final Ds3Provider provider = new Ds3ProviderImpl(client, Ds3ClientHelpers.wrap(client));
+            final FileUtils fileUtils = new FileUtilsImpl();
+
+            final Ds3Cli runner = new Ds3Cli(provider, command, fileUtils);
+
 
             final CommandResponse response = command.render();
             System.out.println(response.getMessage());
             System.exit(response.getReturnCode());
         } catch (final FailedRequestException e) {
             System.out.println("ERROR: " + e.getMessage());
-            LOG.info("Stack trace: ", e);
+            LOG.info("Stack TRACE: ", e);
             LOG.info("Printing out the response from the server:");
             LOG.info(((FailedRequestException) e).getResponseString());
             System.exit(2);
@@ -164,7 +181,7 @@ public class Main {
             System.exit(2);
         } catch (final Exception e) {
             System.out.println("ERROR: " + e.getMessage());
-            LOG.info("Stack trace: ", e);
+            LOG.info("Stack TRACE: ", e);
             System.exit(2);
         }
     }
