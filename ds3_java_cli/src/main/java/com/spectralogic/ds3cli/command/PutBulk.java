@@ -83,7 +83,6 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         addRequiredArguments(requiredArgs, args);
         addOptionalArguments(optionalArgs, args);
         args.parseCommandLine();
-        createClient(args);
 
         this.bucketName = args.getBucket();
         this.pipe = Utils.isPipe();
