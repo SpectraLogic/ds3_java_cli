@@ -77,7 +77,6 @@ public class GetBulk extends CliCommand<DefaultResult> {
         addRequiredArguments(requiredArgs, args);
         addOptionalArguments(optionalArgs, args);
         args.parseCommandLine();
-        createClient(args);
 
         final String directory = args.getDirectory();
         if (directory == null || directory.equals(".")) {

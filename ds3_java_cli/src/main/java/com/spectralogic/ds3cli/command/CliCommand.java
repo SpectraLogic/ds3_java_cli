@@ -128,7 +128,7 @@ public abstract class CliCommand<T extends Result> implements Callable<T> {
         this.fileUtils = utils;
     }
 
-    protected void isCliSupported90() throws SignatureException, IOException {
+    protected void isCliSupported() throws SignatureException, IOException {
         if (!Utils.isVersionSupported(this.getClient())) {
             System.out.println(String.format("ERROR: Minimum Black Pearl supported is %s", Utils.MINIMUM_VERSION_SUPPORTED));
             System.exit(2);
