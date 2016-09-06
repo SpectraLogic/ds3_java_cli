@@ -39,11 +39,11 @@ public class HeadObjectView extends TableView<HeadObjectResult> {
             default: {
                 this.metadata = obj.getMetadata();
                 if (this.metadata.keys().size() == 0) {
-                    return "The object exists and does not have any metadata";
+                    return "The object exists and does not have any METADATA";
                 } else {
                     initTable(ImmutableList.of("MetaData Key", "MetaData Values"));
 
-                    return "The object exists and contains the following metadata:\n"
+                    return "The object exists and contains the following METADATA:\n"
                             + ASCIITable.getInstance().getTable(getHeaders(), formatTableContents());
                 }
             }

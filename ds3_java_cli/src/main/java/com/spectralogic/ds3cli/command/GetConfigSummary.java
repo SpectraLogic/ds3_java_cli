@@ -86,7 +86,7 @@ public class GetConfigSummary extends CliCommand<GetConfigSummaryResult> {
                 return implementation.withProvider(getProvider(), getFileUtils());
             }
         }
-        throw new CommandException("No command class: " + commandName);
+        throw new CommandException("No COMMAND class: " + commandName);
     }
 
     private Iterator<CliCommand> getAllCommands() {

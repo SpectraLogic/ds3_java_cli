@@ -16,6 +16,8 @@
 package com.spectralogic.ds3cli.integration;
 
 import com.spectralogic.ds3cli.*;
+import com.spectralogic.ds3cli.command.CliCommand;
+import com.spectralogic.ds3cli.command.CliCommandFactory;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3cli.util.Utils;
@@ -41,23 +43,23 @@ public class Util {
     public static CommandResponse command(final Ds3Client client, final Arguments args) throws Exception {
         final Ds3Provider provider = new Ds3ProviderImpl(client, Ds3ClientHelpers.wrap(client));
         final FileUtils fileUtils = new FileUtilsImpl();
-        final Ds3Cli runner = new Ds3Cli(provider, args, fileUtils);
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(provider, fileUtils);
 
         return runner.call();
     }
 
     public static CommandResponse createBucket(final Ds3Client client, final String bucketName) throws Exception {
-        final Arguments args = new Arguments(new String[]{"--http", "-c", "put_bucket", "-b", bucketName});
+        final Arguments args = new Arguments(new String[]{"--HTTP", "-c", "put_bucket", "-b", bucketName});
         return command(client, args);
     }
 
     public static CommandResponse deleteBucket(final Ds3Client client, final String bucketName) throws Exception {
-        final Arguments args = new Arguments(new String[]{"--http", "-c", "delete_bucket", "-b", bucketName, "--force"});
+        final Arguments args = new Arguments(new String[]{"--HTTP", "-c", "delete_bucket", "-b", bucketName, "--FORCE"});
         return command(client, args);
     }
 
     public static CommandResponse loadBookTestData(final Ds3Client client, final String bucketName) throws Exception {
-        final Arguments args = new Arguments(new String[]{"--http", "-c", "put_bulk", "-b", bucketName, "-d", RESOURCE_BASE_NAME});
+        final Arguments args = new Arguments(new String[]{"--HTTP", "-c", "put_bulk", "-b", bucketName, "-d", RESOURCE_BASE_NAME});
         return command(client, args);
     }
 

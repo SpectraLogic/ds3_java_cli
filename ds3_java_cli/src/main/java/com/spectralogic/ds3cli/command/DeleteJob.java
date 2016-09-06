@@ -34,7 +34,7 @@ public class DeleteJob extends CliCommand<DefaultResult> {
     @Override
     public CliCommand init(final Arguments args) throws Exception {
         if (args.getId() == null) {
-            throw new MissingOptionException("The delete job command requires '-i' to be set.");
+            throw new MissingOptionException("The delete job COMMAND requires '-i' to be set.");
         }
         this.id = UUID.fromString(args.getId());
         this.force = args.isForce();

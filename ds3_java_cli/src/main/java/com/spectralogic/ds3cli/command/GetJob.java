@@ -15,6 +15,8 @@
 
 package com.spectralogic.ds3cli.command;
 
+import com.google.common.collect.ImmutableList;
+import com.spectralogic.ds3cli.ArgumentFactory;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
@@ -22,10 +24,13 @@ import com.spectralogic.ds3cli.models.GetJobResult;
 import com.spectralogic.ds3client.commands.spectrads3.GetJobSpectraS3Request;
 import com.spectralogic.ds3client.commands.spectrads3.GetJobSpectraS3Response;
 import org.apache.commons.cli.MissingArgumentException;
+import org.apache.commons.cli.Option;
 
 import java.util.UUID;
 
 public class GetJob extends CliCommand<GetJobResult> {
+
+    private final static ImmutableList<Option> requiredArgs = ImmutableList.of(ArgumentFactory.ID);
 
     private UUID jobId;
 
@@ -34,14 +39,11 @@ public class GetJob extends CliCommand<GetJobResult> {
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
+        addRequiredArguments(requiredArgs, args);
+        args.parseCommandLine();
 
-        final String jobIdString = args.getId();
-        if (jobIdString == null) {
-            throw new MissingArgumentException("The get job command requires '-i' to be set.");
-        }
-
-        this.jobId = UUID.fromString(jobIdString);
-
+        this.jobId = UUID.fromString(args.getId());
+        this.viewType = args.getOutputFormat();
         return this;
     }
 
@@ -53,8 +55,8 @@ public class GetJob extends CliCommand<GetJobResult> {
     }
 
     @Override
-    public View<GetJobResult> getView(final ViewType viewType) {
-        if (viewType == ViewType.JSON) {
+    public View<GetJobResult> getView() {
+        if (this.viewType == ViewType.JSON) {
             return new com.spectralogic.ds3cli.views.json.GetJobView();
         }
         return new com.spectralogic.ds3cli.views.cli.GetJobView();

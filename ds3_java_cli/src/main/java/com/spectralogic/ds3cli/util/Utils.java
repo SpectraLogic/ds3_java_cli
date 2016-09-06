@@ -175,7 +175,7 @@ public final class Utils {
     }
 
     /**
-     * Recursively removes the specified prefix from the beginning of the
+     * Recursively removes the specified PREFIX from the beginning of the
      * object name
      */
     protected static String removePrefixRecursively(final String objectName, final String prefix) {
@@ -223,7 +223,7 @@ public final class Utils {
             while ((line = in.readLine()) != null) {
                 final Path file = Paths.get(line);
                 if (!fileUtils.isRegularFile(file) && !Files.isSymbolicLink(file)) {
-                    LOG.warn(String.format("WARN: piped data must be a regular/symbolic link file and not a directory ==> %s will be skipped", line));
+                    LOG.warn(String.format("WARN: piped data must be a regular/symbolic link file and not a DIRECTORY ==> %s will be skipped", line));
                     continue;
                 }
                 LOG.info("File \"{}\" from stdin", file.toString());

@@ -54,7 +54,7 @@ public final class ABMTestHelper {
     }
 
     /**
-     * Creates a data policy with the specified name and versioning level and checksum, if a
+     * Creates a data policy with the specified name and versioning level and CHECKSUM, if a
      * policy with the same name does not currently exist. If a policy already
      * exists with the specified name, an error is thrown.
      */
@@ -77,7 +77,7 @@ public final class ABMTestHelper {
                     .withVersioning(versioningLevel));
                     // TODO 3.2: .withAlwaysForcePutJobCreation(true));
         }
-        //Create the data policy with versioning and checksum
+        //Create the data policy with versioning and CHECKSUM
         return client.putDataPolicySpectraS3(new PutDataPolicySpectraS3Request(dataPolicyName)
                 .withVersioning(versioningLevel)
                 .withEndToEndCrcRequired(true)

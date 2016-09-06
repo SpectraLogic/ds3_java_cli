@@ -151,9 +151,6 @@ public final class Main {
                 System.exit(0);
             }
 
-            // get COMMAND, parse args
-            final CliCommand command = CliCommandFactory.getCommandExecutor(arguments.getCommand());
-            command.init(arguments);
 
             final Ds3Client client = arguments.createClient();
             if (!Utils.isVersionSupported(client)) {
@@ -164,8 +161,9 @@ public final class Main {
             final Ds3Provider provider = new Ds3ProviderImpl(client, Ds3ClientHelpers.wrap(client));
             final FileUtils fileUtils = new FileUtilsImpl();
 
-            final Ds3Cli runner = new Ds3Cli(provider, command, fileUtils);
-
+            // get command, parse args
+            final CliCommand command = CliCommandFactory.getCommandExecutor(arguments.getCommand()).withProvider(provider,  fileUtils);
+            command.init(arguments);
 
             final CommandResponse response = command.render();
             System.out.println(response.getMessage());

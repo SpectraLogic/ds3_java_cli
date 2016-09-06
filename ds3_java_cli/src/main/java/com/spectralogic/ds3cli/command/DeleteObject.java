@@ -15,11 +15,14 @@
 
 package com.spectralogic.ds3cli.command;
 
+import com.google.common.collect.ImmutableList;
+import com.spectralogic.ds3cli.ArgumentFactory;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.DefaultResult;
 import com.spectralogic.ds3client.commands.DeleteObjectRequest;
 import org.apache.commons.cli.MissingOptionException;
+import org.apache.commons.cli.Option;
 
 import java.io.IOException;
 
@@ -28,19 +31,19 @@ public class DeleteObject extends CliCommand<DefaultResult> {
     private String bucketName;
     private String objectName;
 
+    private final static ImmutableList<Option> requiredArgs = ImmutableList.of(ArgumentFactory.BUCKET, ArgumentFactory.OBJECT_NAME);
+
     public DeleteObject() {
     }
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
-        bucketName = args.getBucket();
-        if (bucketName == null) {
-            throw new MissingOptionException("The delete object command requires '-b' to be set.");
-        }
-        objectName = args.getObjectName();
-        if (objectName == null) {
-            throw new MissingOptionException("The delete object command requires '-o' to be set.");
-        }
+        addRequiredArguments(requiredArgs, args);
+        args.parseCommandLine();
+
+        this.bucketName = args.getBucket();
+        this.objectName = args.getObjectName();
+        this.viewType = args.getOutputFormat();
         return this;
     }
 
@@ -53,6 +56,6 @@ public class DeleteObject extends CliCommand<DefaultResult> {
             throw new CommandException("Error: Request failed with the following error: " + e.getMessage(), e);
         }
 
-        return new DefaultResult("Success: Deleted object '" + this.objectName + "' from bucket '" + this.bucketName + "'.");
+        return new DefaultResult("Success: Deleted object '" + this.objectName + "' from BUCKET '" + this.bucketName + "'.");
     }
 }

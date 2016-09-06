@@ -58,12 +58,12 @@ public class SuspectedObjectsView extends TableView<SuspectedObjectResult> {
     }
 
     /**
-     * Return the bucket name, if is exists, if not search for a bucket Id to use across the tapes
+     * Return the BUCKET name, if is exists, if not search for a BUCKET Id to use across the tapes
      * and pools that an object exists in.
      */
     private String getBucketFromBulkObject(final BulkObject suspectBlobTape) {
         if (suspectBlobTape.getBucket() == null) {
-            // get the bucket id if one exists
+            // get the BUCKET ID if one exists
             for (final Tape tape : suspectBlobTape.getPhysicalPlacement().getTapes()) {
                 if (tape.getBucketId() != null) return tape.getBucketId().toString();
             }

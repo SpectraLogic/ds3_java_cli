@@ -15,7 +15,7 @@
 
 # CLI Command implementations in this jar
 # This file neds to be included in the jar in META-INF/sevices
-# To add a command, put a new jar in the Classpath
+# To add a COMMAND, put a new jar in the Classpath
 # with the same file (named after abstract class)
 # with the name of all implementations
 com.spectralogic.ds3cli.command.DeleteBucket

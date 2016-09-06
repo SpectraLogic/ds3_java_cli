@@ -53,11 +53,12 @@ public class PutBulk extends CliCommand<PutBulkResult> {
 
     private final static Logger LOG = LoggerFactory.getLogger(PutBulk.class);
 
-    private final static ImmutableList<Option> requiredArgs = ImmutableList.of(ArgumentFactory.BUCKET, ArgumentFactory.DIRECTORY);
+    private final static ImmutableList<Option> requiredArgs = ImmutableList.of(ArgumentFactory.BUCKET);
     private final static ImmutableList<Option> optionalArgs
             = ImmutableList.of(ArgumentFactory.PREFIX, ArgumentFactory.NUMBER_OF_THREADS, ArgumentFactory.WRITE_OPTIMIZATION,
             ArgumentFactory.FOLLOW_SYMLINKS, ArgumentFactory.DISCARD, ArgumentFactory.PRIORITY, ArgumentFactory.CHECKSUM,
-            ArgumentFactory.SYNC, ArgumentFactory.FORCE, ArgumentFactory.NUMBER_OF_THREADS, ArgumentFactory.IGNORE_ERRORS);
+            ArgumentFactory.SYNC, ArgumentFactory.FORCE, ArgumentFactory.NUMBER_OF_THREADS, ArgumentFactory.IGNORE_ERRORS,
+            ArgumentFactory.IGNORE_NAMING_CONFLICTS, ArgumentFactory.DIRECTORY);
 
     private String bucketName;
     private Path inputDirectory;
@@ -73,6 +74,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
     private ImmutableList<Path> pipedFiles;
     private ImmutableMap<String, String> mapNormalizedObjectNameToObjectName = null;
     private boolean followSymlinks;
+    private boolean ignoreNamingConflicts;
 
     public PutBulk() {
     }
@@ -124,9 +126,12 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         }
 
         this.followSymlinks = args.isFollowSymlinks();
-
         LOG.info("Follow symlinks has been set to: {}", this.followSymlinks);
 
+        this.ignoreNamingConflicts = args.doIgnoreNamingConflicts();
+        LOG.info("Ignore naming conflicts has been set to: {}", this.ignoreNamingConflicts);
+
+        this.viewType = args.getOutputFormat();
         return this;
     }
 
@@ -209,8 +214,8 @@ public class PutBulk extends CliCommand<PutBulkResult> {
     }
 
     @Override
-    public View<PutBulkResult> getView(final ViewType viewType) {
-        if (viewType == ViewType.JSON) {
+    public View<PutBulkResult> getView() {
+        if (this.viewType == ViewType.JSON) {
             return new com.spectralogic.ds3cli.views.json.PutBulkView();
         }
         return new com.spectralogic.ds3cli.views.cli.PutBulkView();
@@ -280,9 +285,9 @@ public class PutBulk extends CliCommand<PutBulkResult> {
     }
 
     public boolean isOtherArgs(final Arguments args) {
-        return  args.getDirectory()  != null || //-d
-                args.getObjectName() != null || //-o
-                args.getPrefix()     != null;   //-p
+        return  !Guard.isStringNullOrEmpty(args.getDirectory()) ||   //-d
+                !Guard.isStringNullOrEmpty(args.getObjectName()) || //-o
+                !Guard.isStringNullOrEmpty(args.getPrefix());   //-p
     }
 
     static class PrefixedFileObjectPutter implements Ds3ClientHelpers.ObjectChannelBuilder, Ds3ClientHelpers.MetadataAccess {
@@ -316,7 +321,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
                 return fileName;
             } else {
                 if (!fileName.startsWith(this.prefix)) {
-                    LOG.info("The object ({}) does not begin with PREFIX {}.  Ignoring adding the PREFIX.", fileName,  this.prefix);
+                    LOG.info("The object ({}) does not begin with prefix {}.  Ignoring adding the prefix.", fileName,  this.prefix);
                     return fileName;
                 } else {
                     return fileName.substring(this.prefix.length());

@@ -54,6 +54,7 @@ public class GetBulk extends CliCommand<DefaultResult> {
     private final static long DEFAULT_FILE_SIZE = 1024L;
 
     private String bucketName;
+    private String directory;
     private Path outputPath;
     private String prefix;
     private boolean checksum;
@@ -78,15 +79,7 @@ public class GetBulk extends CliCommand<DefaultResult> {
         addOptionalArguments(optionalArgs, args);
         args.parseCommandLine();
 
-        final String directory = args.getDirectory();
-        if (directory == null || directory.equals(".")) {
-            this.outputPath = FileSystems.getDefault().getPath(".");
-        } else {
-            final Path dirPath = FileSystems.getDefault().getPath(directory);
-            this.outputPath = FileSystems.getDefault().getPath(".").resolve(dirPath);
-        }
-
-
+        this.directory = args.getDirectory();
         this.bucketName = args.getBucket();
         this.discard = args.isDiscard();
         if (this.discard && (directory != null)) {
@@ -104,12 +97,19 @@ public class GetBulk extends CliCommand<DefaultResult> {
 
         this.force = args.isForce();
         this.numberOfThreads = Integer.valueOf(args.getNumberOfThreads());
-
+        this.viewType = args.getOutputFormat();
         return this;
     }
 
     @Override
     public DefaultResult call() throws Exception {
+
+        if (this.directory == null || directory.equals(".")) {
+            this.outputPath = FileSystems.getDefault().getPath(".");
+        } else {
+            final Path dirPath = FileSystems.getDefault().getPath(directory);
+            this.outputPath = FileSystems.getDefault().getPath(".").resolve(dirPath);
+        }
 
         final Ds3ClientHelpers.ObjectChannelBuilder getter;
         if (this.checksum) {
@@ -132,7 +132,7 @@ public class GetBulk extends CliCommand<DefaultResult> {
             return new DefaultResult(this.restoreSome(getter));
         }
 
-        if (this.prefix == null) {
+        if (Guard.isStringNullOrEmpty(this.prefix)) {
             LOG.info("Getting all objects from {}", this.bucketName);
             return new DefaultResult(this.restoreAll(getter));
         }
@@ -166,7 +166,7 @@ public class GetBulk extends CliCommand<DefaultResult> {
         job.transfer(loggingFileObjectGetter);
 
         if (this.sync) {
-            if (this.prefix != null) {
+            if (!Guard.isStringNullOrEmpty(this.prefix)) {
                 return "SUCCESS: Synced all the objects that start with '" + this.prefix + "' from " + this.bucketName + " to " + this.outputPath.toString();
             } else {
                 return "SUCCESS: Synced all the objects from " + this.bucketName + " to " + this.outputPath.toString();
@@ -192,7 +192,7 @@ public class GetBulk extends CliCommand<DefaultResult> {
         if (this.discard) {
             return "SUCCESS: retrieved and discarded all objects from " + this.bucketName;
         } else {
-            return "SUCCESS: Wrote all the objects from " + this.bucketName + " to DIRECTORY " + this.outputPath.toString();
+            return "SUCCESS: Wrote all the objects from " + this.bucketName + " to directory " + this.outputPath.toString();
         }
     }
 

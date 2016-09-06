@@ -35,12 +35,12 @@ public class HeadObject extends CliCommand<HeadObjectResult> {
     public CliCommand init(final Arguments args) throws Exception {
         bucketName = args.getBucket();
         if (bucketName == null) {
-            throw new MissingOptionException("The get object command requires '-b' to be set.");
+            throw new MissingOptionException("The get object COMMAND requires '-b' to be set.");
         }
 
         objectName = args.getObjectName();
         if (objectName == null) {
-            throw new MissingOptionException("The get object command requires '-o' to be set.");
+            throw new MissingOptionException("The get object COMMAND requires '-o' to be set.");
         }
 
         return this;

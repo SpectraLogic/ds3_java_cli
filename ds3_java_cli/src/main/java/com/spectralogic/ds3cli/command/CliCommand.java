@@ -113,7 +113,9 @@ public abstract class CliCommand<T extends Result> implements Callable<T> {
      */
     protected void addOptionalArguments(final List<Option> reqArgs, Arguments args) {
         for (final Option o : reqArgs ) {
-            args.addOption(o, o.getArgName());
+            final Option oReq = o;
+            oReq.setRequired(false);
+            args.addOption(oReq, o.getArgName());
         }
     }
 

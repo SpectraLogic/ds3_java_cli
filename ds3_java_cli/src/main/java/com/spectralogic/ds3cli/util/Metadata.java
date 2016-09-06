@@ -24,7 +24,7 @@ public final class Metadata {
         for (final String arg : metadataArgs) {
             final String[] keyValue = arg.split(":");
             if (keyValue.length != 2) {
-                throw new IllegalArgumentException("Malformed metadata entry: " + arg);
+                throw new IllegalArgumentException("Malformed METADATA entry: " + arg);
             }
             metadataBuilder.put(keyValue[0], keyValue[1]);
         }

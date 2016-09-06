@@ -42,7 +42,7 @@ public class CommandExceptionCliView implements View<CommandException> {
                 builder.append(out.toString("utf-8"));
             }
         } catch (final UnsupportedEncodingException e) {
-            System.out.println("ERROR: Failed to parse error stack trace as message, defaulting to standard error printing");
+            System.out.println("ERROR: Failed to parse error stack TRACE as message, defaulting to standard error printing");
             obj.getCause().printStackTrace();
         }
 

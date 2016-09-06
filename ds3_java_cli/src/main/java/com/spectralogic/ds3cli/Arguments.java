@@ -118,7 +118,11 @@ public class Arguments {
      * @return a string representation of the option value
      */
     public String getOptionValue(final String optionName) {
-        return this.cmd.getOptionValue(optionName).toString();
+        final Object val = this.cmd.getOptionValue(optionName);
+        if (val == null) {
+            return null;
+        }
+        return val.toString();
     }
 
     /**
@@ -128,7 +132,7 @@ public class Arguments {
      * @param optionName Option to query
      */
     public String[] getOptionValues(final String optionName) {
-        final String[] values = this.getOptionValues(optionName);
+        final String[] values = this.cmd.getOptionValues(optionName);
         if ((values == null) || (values.length == 0)) {
             return null;
         }
@@ -425,7 +429,7 @@ public class Arguments {
         return cmd.getOptionValue(COMMAND.getOpt());
     }
     public String getHelp() {
-        return cmd.getOptionValue(PRINT_HELP.getLongOpt());
+        return cmd.getOptionValue(COMMAND_HELP.getLongOpt());
     }
     public ViewType getOutputFormat() {
         return ViewType.valueOf(this.getOptionValueWithDefault(VIEW_TYPE.getLongOpt(), ViewType.CLI).toString().toUpperCase());
@@ -490,7 +494,7 @@ public class Arguments {
     public boolean isSync() { return this.optionExists(SYNC.getLongOpt()); }
     public String getNumberOfFiles() { return this.getOptionValue(NUMBER_OF_FILES.getOpt()); }
     public String getSizeOfFiles() { return this.getOptionValue(SIZE_OF_FILES.getOpt()); }
-    public String getBufferSize()  { return this.getOptionValueWithDefault(BUFFER_SIZE.getLongOpt(), DEFAULT_BUFFERSIZE).toString(); }
+    public String getBufferSize()  { return this.getOptionValueWithDefault(BUFFER_SIZE.getOpt(), DEFAULT_BUFFERSIZE).toString(); }
     public String getNumberOfThreads()  { return this.getOptionValueWithDefault(NUMBER_OF_THREADS.getOpt(), DEFAULT_NUMBEROFTHREADS).toString(); }
     public boolean isIgnoreErrors() { return this.optionExists(IGNORE_ERRORS.getLongOpt()); }
     public boolean isFollowSymlinks()  {
