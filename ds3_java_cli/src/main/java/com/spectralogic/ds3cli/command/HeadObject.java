@@ -15,6 +15,8 @@
 
 package com.spectralogic.ds3cli.command;
 
+import com.google.common.collect.ImmutableList;
+import com.spectralogic.ds3cli.ArgumentFactory;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
@@ -22,8 +24,11 @@ import com.spectralogic.ds3cli.models.HeadObjectResult;
 import com.spectralogic.ds3client.commands.HeadObjectRequest;
 import com.spectralogic.ds3client.commands.HeadObjectResponse;
 import org.apache.commons.cli.MissingOptionException;
+import org.apache.commons.cli.Option;
 
 public class HeadObject extends CliCommand<HeadObjectResult> {
+
+    private final static ImmutableList<Option> requiredArgs = ImmutableList.of(ArgumentFactory.BUCKET, ArgumentFactory.OBJECT_NAME);
 
     private String objectName;
     private String bucketName;
@@ -33,16 +38,11 @@ public class HeadObject extends CliCommand<HeadObjectResult> {
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
-        bucketName = args.getBucket();
-        if (bucketName == null) {
-            throw new MissingOptionException("The get object COMMAND requires '-b' to be set.");
-        }
-
-        objectName = args.getObjectName();
-        if (objectName == null) {
-            throw new MissingOptionException("The get object COMMAND requires '-o' to be set.");
-        }
-
+        addRequiredArguments(requiredArgs, args);
+        args.parseCommandLine();
+        this.bucketName = args.getBucket();
+        this.objectName = args.getObjectName();
+        this.viewType = args.getOutputFormat();
         return this;
     }
 
@@ -53,7 +53,7 @@ public class HeadObject extends CliCommand<HeadObjectResult> {
     }
 
     @Override
-    public View<HeadObjectResult> getView(final ViewType viewType) {
+    public View<HeadObjectResult> getView() {
         if (viewType == ViewType.JSON) {
             return new com.spectralogic.ds3cli.views.json.HeadObjectView();
         }

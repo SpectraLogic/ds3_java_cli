@@ -83,6 +83,7 @@ public class TempStorageUtil {
             final String testSetName,
             final TempStorageIds ids,
             final Ds3Client client) throws IOException {
+        deleteBucketsWithDataPolicy(testSetName + DATA_POLICY_NAME, client);
         deleteDataPersistenceRule(ids.getDataPersistenceRuleId(), client);
         deleteDataPolicy(testSetName + DATA_POLICY_NAME, client);
         deleteStorageDomainMember(ids.getStorageDomainMemberId(), client);

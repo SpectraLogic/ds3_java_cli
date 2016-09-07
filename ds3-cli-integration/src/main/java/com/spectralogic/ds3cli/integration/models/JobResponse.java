@@ -91,10 +91,10 @@ public class JobResponse {
         @JsonProperty("userName")
         private String userName;
 
-        @JsonProperty("WRITE_OPTIMIZATION")
+        @JsonProperty("write_optimization")
         private String writeOptimization;
 
-        @JsonProperty("PRIORITY")
+        @JsonProperty("priority")
         private String priority;
 
         @JsonProperty("requestType")

@@ -41,6 +41,7 @@ public class DeleteBucket extends CliCommand<DefaultResult> {
     private boolean force;
 
     private final static ImmutableList<Option> requiredArgs = ImmutableList.of(ArgumentFactory.BUCKET);
+    private final static ImmutableList<Option> optionalArgs = ImmutableList.of(ArgumentFactory.FORCE);
 
     public DeleteBucket() {
     }
@@ -48,9 +49,11 @@ public class DeleteBucket extends CliCommand<DefaultResult> {
     @Override
     public CliCommand init(final Arguments args) throws Exception {
         addRequiredArguments(requiredArgs, args);
+        addOptionalArguments(optionalArgs, args);
         args.parseCommandLine();
 
         this.bucketName = args.getBucket();
+        this.force = args.isForce();
         this.viewType = args.getOutputFormat();
         return this;
     }
@@ -60,7 +63,7 @@ public class DeleteBucket extends CliCommand<DefaultResult> {
     @Override
     public DefaultResult call() throws Exception {
 
-        if (force) {
+        if (this.force) {
             return new DefaultResult(clearObjects());
         } else {
             return new DefaultResult(deleteBucket());

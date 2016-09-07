@@ -44,22 +44,22 @@ public class Util {
         final Ds3Provider provider = new Ds3ProviderImpl(client, Ds3ClientHelpers.wrap(client));
         final FileUtils fileUtils = new FileUtilsImpl();
         final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(provider, fileUtils);
-
-        return runner.call();
+        command.init(args);
+        return command.render();
     }
 
     public static CommandResponse createBucket(final Ds3Client client, final String bucketName) throws Exception {
-        final Arguments args = new Arguments(new String[]{"--HTTP", "-c", "put_bucket", "-b", bucketName});
+        final Arguments args = new Arguments(new String[]{"--http", "-c", "put_bucket", "-b", bucketName});
         return command(client, args);
     }
 
     public static CommandResponse deleteBucket(final Ds3Client client, final String bucketName) throws Exception {
-        final Arguments args = new Arguments(new String[]{"--HTTP", "-c", "delete_bucket", "-b", bucketName, "--FORCE"});
+        final Arguments args = new Arguments(new String[]{"--http", "-c", "delete_bucket", "-b", bucketName, "--force"});
         return command(client, args);
     }
 
     public static CommandResponse loadBookTestData(final Ds3Client client, final String bucketName) throws Exception {
-        final Arguments args = new Arguments(new String[]{"--HTTP", "-c", "put_bulk", "-b", bucketName, "-d", RESOURCE_BASE_NAME});
+        final Arguments args = new Arguments(new String[]{"--http", "-c", "put_bulk", "-b", bucketName, "-d", RESOURCE_BASE_NAME});
         return command(client, args);
     }
 
