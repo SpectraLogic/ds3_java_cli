@@ -48,14 +48,6 @@ public class GetService extends CliCommand<GetServiceResult> {
     }
 
     @Override
-    public View<GetServiceResult> getView(final ViewType viewType) {
-        if (viewType == ViewType.JSON) {
-            return new com.spectralogic.ds3cli.views.json.GetServiceView();
-        }
-        return new com.spectralogic.ds3cli.views.cli.GetServiceView();
-    }
-
-    @Override
     public View<GetServiceResult> getView() {
         if (viewType == ViewType.JSON) {
             return new com.spectralogic.ds3cli.views.json.GetServiceView();

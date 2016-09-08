@@ -36,6 +36,7 @@ import com.spectralogic.ds3client.networking.FailedRequestException;
 import com.spectralogic.ds3client.networking.Headers;
 import com.spectralogic.ds3client.networking.WebResponse;
 import com.spectralogic.ds3client.serializer.XmlOutput;
+import com.sun.xml.internal.messaging.saaj.soap.impl.HeaderImpl;
 import org.apache.commons.cli.UnrecognizedOptionException;
 import org.apache.commons.io.IOUtils;
 import org.hamcrest.core.StringEndsWith;
@@ -51,9 +52,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import static com.spectralogic.ds3client.utils.ResponseUtils.toImmutableIntList;
 import static org.hamcrest.CoreMatchers.is;
@@ -266,6 +265,72 @@ public class Ds3Cli_Test {
 
         final DeleteBucketResponse deleteBucketResponse = new DeleteBucketResponse(webResponse);
         when(client.deleteBucket(any(DeleteBucketRequest.class))).thenReturn(deleteBucketResponse);
+
+        final CommandResponse result = command.render();
+        assertTrue(result.getMessage().endsWith(expected));
+        assertThat(result.getReturnCode(), is(0));
+    }
+
+    @Test
+    public void deleteJob() throws Exception {
+        final String jobId = "30d53d6b-ba2e-4fc8-a06e-11b5c903b1ab";
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "delete_job", "-i", jobId});
+        final Ds3Client client = mock(Ds3Client.class);
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, null), null);
+        command.init(args);
+        final WebResponse webResponse = mock(WebResponse.class);
+        final Headers headers = mock(Headers.class);
+        when(webResponse.getStatusCode()).thenReturn(204);
+        when(webResponse.getHeaders()).thenReturn(headers);
+
+        final CancelJobSpectraS3Response response = new CancelJobSpectraS3Response(webResponse);
+        when(client.cancelJobSpectraS3(any(CancelJobSpectraS3Request.class))).thenReturn(response);
+
+        final CommandResponse result = command.render();
+        assertThat(result.getMessage(), is("SUCCESS: Canceled job '" + jobId + "'"));
+        assertThat(result.getReturnCode(), is(0));
+    }
+
+    @Test
+    public void deleteJobWithForce() throws Exception {
+        final String jobId = "30d53d6b-ba2e-4fc8-a06e-11b5c903b1ab";
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "delete_job", "-i", jobId, "--force"});
+        final Ds3Client client = mock(Ds3Client.class);
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, null), null);
+        command.init(args);
+        final WebResponse webResponse = mock(WebResponse.class);
+        final Headers headers = mock(Headers.class);
+        when(webResponse.getStatusCode()).thenReturn(204);
+        when(webResponse.getHeaders()).thenReturn(headers);
+
+        final TruncateActiveJobSpectraS3Response response = new TruncateActiveJobSpectraS3Response(webResponse);
+        when(client.truncateActiveJobSpectraS3(any(TruncateActiveJobSpectraS3Request.class))).thenReturn(response);
+
+        final CommandResponse result = command.render();
+        assertThat(result.getMessage(), is("SUCCESS: Forcibly canceled job '" + jobId + "'"));
+        assertThat(result.getReturnCode(), is(0));
+    }
+
+    @Test
+    public void deleteJobJson() throws Exception {
+        final String jobId = "30d53d6b-ba2e-4fc8-a06e-11b5c903b1ab";
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "delete_job", "-i", jobId, "--output-format", "json"});
+        final String expected = "  \"Status\" : \"OK\",\n" +
+                "  \"Message\" : \"" +
+                "SUCCESS: Canceled job '" + jobId + "'\"\n" +
+                "}";
+
+        final Ds3Client client = mock(Ds3Client.class);
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, null), null);
+        command.init(args);
+
+        final WebResponse webResponse = mock(WebResponse.class);
+        final Headers headers = mock(Headers.class);
+        when(webResponse.getStatusCode()).thenReturn(204);
+        when(webResponse.getHeaders()).thenReturn(headers);
+
+        final CancelJobSpectraS3Response response = new CancelJobSpectraS3Response(webResponse);
+        when(client.cancelJobSpectraS3(any(CancelJobSpectraS3Request.class))).thenReturn(response);
 
         final CommandResponse result = command.render();
         assertTrue(result.getMessage().endsWith(expected));
@@ -1179,6 +1244,50 @@ public class Ds3Cli_Test {
         command.init(args);
         final CommandResponse result = command.render();
         assertTrue(result.getMessage().endsWith(expected));
+        assertThat(result.getReturnCode(), is(0));
+    }
+
+    @Test
+    public void deleteTape() throws Exception {
+        final String expected = "Success: Deleted tape c2581493-058c-40d7-a3a1-9a50b20d6d3b";
+
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "delete_tape", "-i", "c2581493-058c-40d7-a3a1-9a50b20d6d3b"});
+        final Ds3Client client = mock(Ds3Client.class);
+
+        final WebResponse webResponse = mock(WebResponse.class);
+        final Headers headers = mock(Headers.class);
+        when(webResponse.getStatusCode()).thenReturn(204);
+        when(webResponse.getHeaders()).thenReturn(headers);
+
+        final DeletePermanentlyLostTapeSpectraS3Response deleteTapeResponse = new DeletePermanentlyLostTapeSpectraS3Response(webResponse);
+        when(client.deletePermanentlyLostTapeSpectraS3(any(DeletePermanentlyLostTapeSpectraS3Request.class))).thenReturn(deleteTapeResponse);
+
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, null), null);
+        command.init(args);
+        final CommandResponse result = command.render();
+        assertThat(result.getMessage(), is(expected));
+        assertThat(result.getReturnCode(), is(0));
+    }
+
+    @Test
+    public void deleteTapeFailure() throws Exception {
+        final String expected = "Success: Deleted tape failure Id: c2581493-058c-40d7-a3a1-9a50b20d6d3b";
+
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "delete_tape_failure", "-i", "c2581493-058c-40d7-a3a1-9a50b20d6d3b"});
+        final Ds3Client client = mock(Ds3Client.class);
+
+        final WebResponse webResponse = mock(WebResponse.class);
+        final Headers headers = mock(Headers.class);
+        when(webResponse.getStatusCode()).thenReturn(204);
+        when(webResponse.getHeaders()).thenReturn(headers);
+
+        final DeleteTapeFailureSpectraS3Response deleteTapeResponse = new DeleteTapeFailureSpectraS3Response(webResponse);
+        when(client.deleteTapeFailureSpectraS3(any(DeleteTapeFailureSpectraS3Request.class))).thenReturn(deleteTapeResponse);
+
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, null), null);
+        command.init(args);
+        final CommandResponse result = command.render();
+        assertThat(result.getMessage(), is(expected));
         assertThat(result.getReturnCode(), is(0));
     }
 
@@ -2448,5 +2557,481 @@ public class Ds3Cli_Test {
         assertThat(result.getMessage(), is(expectedString));
         assertThat(result.getReturnCode(), is(0));
     }
+
+    @Test
+    public void headObject() throws Exception {
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "head_object", "-b", "bucketName", "-o", "ulysses.txt"});
+        final Ds3Client client = mock(Ds3Client.class);
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, null), null);
+        command.init(args);
+        final WebResponse webResponse = mock(WebResponse.class);
+        final Headers headers = mock(Headers.class);
+
+        when(webResponse.getStatusCode()).thenReturn(200);
+        when(webResponse.getHeaders()).thenReturn(headers);
+
+        final HeadObjectResponse response = new HeadObjectResponse(webResponse);
+        when(client.headObject(any(HeadObjectRequest.class))).thenReturn(response);
+
+        final CommandResponse result = command.render();
+        assertThat(result.getReturnCode(), is(0));
+    }
+
+    @Test
+    public void getCacheState() throws Exception {
+        final String expectedString =
+                "+-----------------------------------------+--------------------+---------------+----------------------+----------------+--------------+------------------------+-----------------+-----------------+--------------------------------------+--------------------------------------+\n" +
+                        "|                   Path                  | Available Capacity | Used Capacity | Unavailable Capacity | Total Capacity | Max Capacity | Auto Reclaim Threshold | Burst Threshold | Max Utilization |                  ID                  |                Node ID               |\n" +
+                        "+-----------------------------------------+--------------------+---------------+----------------------+----------------+--------------+------------------------+-----------------+-----------------+--------------------------------------+--------------------------------------+\n" +
+                        "| /usr/local/bluestorm/frontend/cachedir/ | 13652840915953     | 171154354395  | 0                    | 13823995270348 | N/A          | 0.82                   | 0.85            | 0.9             | a1c27433-74f2-11e6-8d1e-002590c31f18 | a1c27433-74f2-11e6-8d1e-002590c31f18 |\n" +
+                        "+-----------------------------------------+--------------------+---------------+----------------------+----------------+--------------+------------------------+-----------------+-----------------+--------------------------------------+--------------------------------------+\n";
+
+        final Arguments args = new Arguments( new String[] {"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_cache_state"});
+        final Ds3Client client = mock(Ds3Client.class);
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, null), null);
+        command.init(args);
+
+        final WebResponse webResponse = mock(WebResponse.class);
+
+        final InputStream stream = IOUtils.toInputStream("<Data><Filesystems>" +
+                "<AvailableCapacityInBytes>13652840915953</AvailableCapacityInBytes>" +
+                "<CacheFilesystem>" +
+                "<AutoReclaimInitiateThreshold>0.82</AutoReclaimInitiateThreshold>" +
+                "<AutoReclaimTerminateThreshold>0.72</AutoReclaimTerminateThreshold>" +
+                "<BurstThreshold>0.85</BurstThreshold>" +
+                "<Id>a1c27433-74f2-11e6-8d1e-002590c31f18</Id>" +
+                "<MaxCapacityInBytes/><MaxPercentUtilizationOfFilesystem>0.9</MaxPercentUtilizationOfFilesystem>" +
+                "<NodeId>a1c27433-74f2-11e6-8d1e-002590c31f18</NodeId>" +
+                "<Path>/usr/local/bluestorm/frontend/cachedir/</Path>" +
+                "</CacheFilesystem>" +
+                "<Summary>12378 blobs allocated by cache (1475975 max): 159 GB allocated, 12715 GB available (0 B pending reclaim), 12874 GB total.  Cache throttling starts at 10943 GB.  Auto-reclaims start at 10557 GB and stop early once usage drops below 9269 GB.</Summary>" +
+                "<TotalCapacityInBytes>13823995270348</TotalCapacityInBytes>" +
+                "<UnavailableCapacityInBytes>0</UnavailableCapacityInBytes>" +
+                "<UsedCapacityInBytes>171154354395</UsedCapacityInBytes>" +
+                "</Filesystems></Data>", "utf-8");
+
+        final Headers headers = mock(Headers.class);
+        when(webResponse.getStatusCode()).thenReturn(200);
+        when(webResponse.getHeaders()).thenReturn(headers);
+        when(webResponse.getResponseStream()).thenReturn(stream);
+
+        GetCacheStateSpectraS3Response cacheStateResponse = new GetCacheStateSpectraS3Response(webResponse);
+
+        when(client.getCacheStateSpectraS3(any(GetCacheStateSpectraS3Request.class))).thenReturn(cacheStateResponse);
+        final CommandResponse result = command.render();
+        assertThat(result.getMessage(), is(expectedString));
+        assertThat(result.getReturnCode(), is(0));
+    }
+
+    @Test
+    public void getCacheStateJson() throws Exception {
+        final String expectedString =
+                "  \"Data\" : [ {\n" +
+                "    \"AvailableCapacityInBytes\" : 13652840915953,\n" +
+                "    \"CacheFilesystem\" : {\n" +
+                "      \"AutoReclaimInitiateThreshold\" : 0.82,\n" +
+                "      \"AutoReclaimTerminateThreshold\" : 0.72,\n" +
+                "      \"BurstThreshold\" : 0.85,\n" +
+                "      \"Id\" : \"a1c27433-74f2-11e6-8d1e-002590c31f18\",\n" +
+                "      \"MaxCapacityInBytes\" : null,\n" +
+                "      \"MaxPercentUtilizationOfFilesystem\" : 0.9,\n" +
+                "      \"NodeId\" : \"a1c27433-74f2-11e6-8d1e-002590c31f18\",\n" +
+                "      \"Path\" : \"/usr/local/bluestorm/frontend/cachedir/\"\n" +
+                "    },\n" +
+                "    \"Entries\" : [ ],\n" +
+                "    \"Summary\" : \"12378 blobs allocated by cache (1475975 max): 159 GB allocated, 12715 GB available (0 B pending reclaim), 12874 GB total.  Cache throttling starts at 10943 GB.  Auto-reclaims start at 10557 GB and stop early once usage drops below 9269 GB.\",\n" +
+                "    \"TotalCapacityInBytes\" : 13823995270348,\n" +
+                "    \"UnavailableCapacityInBytes\" : 0,\n" +
+                "    \"UsedCapacityInBytes\" : 171154354395\n" +
+                "  } ],\n" +
+                "  \"Status\" : \"OK\"\n" +
+                "}";
+
+
+        final Arguments args = new Arguments( new String[] {"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_cache_state", "--output-format", "json"});
+        final Ds3Client client = mock(Ds3Client.class);
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, null), null);
+        command.init(args);
+
+        final WebResponse webResponse = mock(WebResponse.class);
+
+        final InputStream stream = IOUtils.toInputStream("<Data><Filesystems>" +
+                "<AvailableCapacityInBytes>13652840915953</AvailableCapacityInBytes>" +
+                "<CacheFilesystem>" +
+                "<AutoReclaimInitiateThreshold>0.82</AutoReclaimInitiateThreshold>" +
+                "<AutoReclaimTerminateThreshold>0.72</AutoReclaimTerminateThreshold>" +
+                "<BurstThreshold>0.85</BurstThreshold>" +
+                "<Id>a1c27433-74f2-11e6-8d1e-002590c31f18</Id>" +
+                "<MaxCapacityInBytes/><MaxPercentUtilizationOfFilesystem>0.9</MaxPercentUtilizationOfFilesystem>" +
+                "<NodeId>a1c27433-74f2-11e6-8d1e-002590c31f18</NodeId>" +
+                "<Path>/usr/local/bluestorm/frontend/cachedir/</Path>" +
+                "</CacheFilesystem>" +
+                "<Summary>12378 blobs allocated by cache (1475975 max): 159 GB allocated, 12715 GB available (0 B pending reclaim), 12874 GB total.  Cache throttling starts at 10943 GB.  Auto-reclaims start at 10557 GB and stop early once usage drops below 9269 GB.</Summary>" +
+                "<TotalCapacityInBytes>13823995270348</TotalCapacityInBytes>" +
+                "<UnavailableCapacityInBytes>0</UnavailableCapacityInBytes>" +
+                "<UsedCapacityInBytes>171154354395</UsedCapacityInBytes>" +
+                "</Filesystems></Data>", "utf-8");
+
+        final Headers headers = mock(Headers.class);
+        when(webResponse.getStatusCode()).thenReturn(200);
+        when(webResponse.getHeaders()).thenReturn(headers);
+        when(webResponse.getResponseStream()).thenReturn(stream);
+
+        GetCacheStateSpectraS3Response cacheStateResponse = new GetCacheStateSpectraS3Response(webResponse);
+
+        when(client.getCacheStateSpectraS3(any(GetCacheStateSpectraS3Request.class))).thenReturn(cacheStateResponse);
+        final CommandResponse result = command.render();
+        assertTrue(result.getMessage().endsWith(expectedString));
+        assertThat(result.getReturnCode(), is(0));
+    }
+
+    @Test
+    public void getCapacitySummary() throws Exception {
+        final String expectedString =
+                "+-------------+-----------+------+------+\n" +
+                        "|  Container  | Allocated | Used | Free |\n" +
+                        "+-------------+-----------+------+------+\n" +
+                        "| Pool        | 9         | 7    | 2    |\n" +
+                        "| Tape        | 8         | 5    | 3    |\n" +
+                        "+-------------+-----------+------+------+\n";
+
+        final Arguments args = new Arguments( new String[] {"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_capacity_summary"});
+        final Ds3Client client = mock(Ds3Client.class);
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, null), null);
+        command.init(args);
+
+        final WebResponse webResponse = mock(WebResponse.class);
+
+        final InputStream stream = IOUtils.toInputStream("<Data>" +
+                "<Pool>" +
+                "<PhysicalAllocated>9</PhysicalAllocated>" +
+                "<PhysicalAvailable>0</PhysicalAvailable>" +
+                "<PhysicalFree>2</PhysicalFree>" +
+                "<PhysicalUsed>7</PhysicalUsed>" +
+                "</Pool>" +
+                "<Tape>" +
+                "<PhysicalAllocated>8</PhysicalAllocated>" +
+                "<PhysicalAvailable>0</PhysicalAvailable>" +
+                "<PhysicalFree>3</PhysicalFree>" +
+                "<PhysicalUsed>5</PhysicalUsed>" +
+                "</Tape>" +
+                "</Data>", "utf-8");
+
+        final Headers headers = mock(Headers.class);
+        when(webResponse.getStatusCode()).thenReturn(200);
+        when(webResponse.getHeaders()).thenReturn(headers);
+        when(webResponse.getResponseStream()).thenReturn(stream);
+
+        GetSystemCapacitySummarySpectraS3Response response = new GetSystemCapacitySummarySpectraS3Response(webResponse);
+
+        when(client.getSystemCapacitySummarySpectraS3(any(GetSystemCapacitySummarySpectraS3Request.class))).thenReturn(response);
+        final CommandResponse result = command.render();
+        assertThat(result.getMessage(), is(expectedString));
+        assertThat(result.getReturnCode(), is(0));
+    }
+
+    @Test
+    public void getCapacitySummaryJson() throws Exception {
+        final String expectedString =
+                "  \"Data\" : {\n" +
+                        "    \"Pool\" : {\n" +
+                        "      \"PhysicalAllocated\" : 9,\n" +
+                        "      \"PhysicalFree\" : 2,\n" +
+                        "      \"PhysicalUsed\" : 7\n" +
+                        "    },\n" +
+                        "    \"Tape\" : {\n" +
+                        "      \"PhysicalAllocated\" : 8,\n" +
+                        "      \"PhysicalFree\" : 3,\n" +
+                        "      \"PhysicalUsed\" : 5\n" +
+                        "    }\n" +
+                        "  },\n" +
+                        "  \"Status\" : \"OK\"\n" +
+                        "}";
+
+        final Arguments args = new Arguments( new String[] {"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_capacity_summary", "--output-format", "json"});
+        final Ds3Client client = mock(Ds3Client.class);
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, null), null);
+        command.init(args);
+
+        final WebResponse webResponse = mock(WebResponse.class);
+
+        final InputStream stream = IOUtils.toInputStream("<Data>" +
+                "<Pool>" +
+                "<PhysicalAllocated>9</PhysicalAllocated>" +
+                "<PhysicalAvailable>0</PhysicalAvailable>" +
+                "<PhysicalFree>2</PhysicalFree>" +
+                "<PhysicalUsed>7</PhysicalUsed>" +
+                "</Pool>" +
+                "<Tape>" +
+                "<PhysicalAllocated>8</PhysicalAllocated>" +
+                "<PhysicalAvailable>0</PhysicalAvailable>" +
+                "<PhysicalFree>3</PhysicalFree>" +
+                "<PhysicalUsed>5</PhysicalUsed>" +
+                "</Tape>" +
+                "</Data>", "utf-8");
+
+        final Headers headers = mock(Headers.class);
+        when(webResponse.getStatusCode()).thenReturn(200);
+        when(webResponse.getHeaders()).thenReturn(headers);
+        when(webResponse.getResponseStream()).thenReturn(stream);
+
+        GetSystemCapacitySummarySpectraS3Response response = new GetSystemCapacitySummarySpectraS3Response(webResponse);
+
+        when(client.getSystemCapacitySummarySpectraS3(any(GetSystemCapacitySummarySpectraS3Request.class))).thenReturn(response);
+        final CommandResponse result = command.render();
+        assertTrue(result.getMessage().endsWith(expectedString));
+        assertThat(result.getReturnCode(), is(0));
+    }
+
+    @Test
+    public void getDataPathBackend() throws Exception {
+        final String expectedString =
+                "+-----------+--------------+--------------+---------------------+--------------------------------------+--------------------------+--------------------------+-----------------------------+----------------------------------+\n" +
+                        "| Activated | Auto Timeout | Auto Inspect | Conflict Resolution |                  ID                  |      Last Heartbeat      | Unavailable Media Policy | Unavailable Pool Retry Mins | Unavailable Partition Retry Mins |\n" +
+                        "+-----------+--------------+--------------+---------------------+--------------------------------------+--------------------------+--------------------------+-----------------------------+----------------------------------+\n" +
+                        "| true      | 30           | DEFAULT      | CANCEL              | 5d45ab7a-b83f-4dc1-95d5-a45b59e48718 | 2016-09-07T22:09:55.000Z | DISALLOW                 | 20                          | 20                               |\n" +
+                        "+-----------+--------------+--------------+---------------------+--------------------------------------+--------------------------+--------------------------+-----------------------------+----------------------------------+\n";
+
+        final Arguments args = new Arguments( new String[] {"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_data_path_backend"});
+        final Ds3Client client = mock(Ds3Client.class);
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, null), null);
+        command.init(args);
+
+        final WebResponse webResponse = mock(WebResponse.class);
+
+        final InputStream stream = IOUtils.toInputStream("<Data>" +
+                "<Activated>true</Activated>" +
+                "<AutoActivateTimeoutInMins>30</AutoActivateTimeoutInMins>" +
+                "<AutoInspect>DEFAULT</AutoInspect>" +
+                "<DefaultImportConflictResolutionMode>CANCEL</DefaultImportConflictResolutionMode>" +
+                "<Id>5d45ab7a-b83f-4dc1-95d5-a45b59e48718</Id>" +
+                "<InstanceId>5d45ab7a-b83f-4dc1-95d5-a45b59e48718</InstanceId>" +
+                "<LastHeartbeat>2016-09-07T22:09:55.000Z</LastHeartbeat>" +
+                "<PartiallyVerifyLastPercentOfTapes/>" +
+                "<UnavailableMediaPolicy>DISALLOW</UnavailableMediaPolicy>" +
+                "<UnavailablePoolMaxJobRetryInMins>20</UnavailablePoolMaxJobRetryInMins>" +
+                "<UnavailableTapePartitionMaxJobRetryInMins>20</UnavailableTapePartitionMaxJobRetryInMins>" +
+                "</Data>", "utf-8");
+
+        final Headers headers = mock(Headers.class);
+        when(webResponse.getStatusCode()).thenReturn(200);
+        when(webResponse.getHeaders()).thenReturn(headers);
+        when(webResponse.getResponseStream()).thenReturn(stream);
+
+        GetDataPathBackendSpectraS3Response response = new GetDataPathBackendSpectraS3Response(webResponse);
+
+        when(client.getDataPathBackendSpectraS3(any(GetDataPathBackendSpectraS3Request.class))).thenReturn(response);
+        final CommandResponse result = command.render();
+        assertThat(result.getMessage(), is(expectedString));
+        assertThat(result.getReturnCode(), is(0));
+    }
+
+    @Test
+    public void getDataPathBackendJson() throws Exception {
+        final String expectedString =
+                        "  \"Data\" : {\n" +
+                        "    \"Activated\" : true,\n" +
+                        "    \"AutoActivateTimeoutInMins\" : 30,\n" +
+                        "    \"AutoInspect\" : \"DEFAULT\",\n" +
+                        "    \"DefaultImportConflictResolutionMode\" : \"CANCEL\",\n" +
+                        "    \"Id\" : \"5d45ab7a-b83f-4dc1-95d5-a45b59e48718\",\n" +
+                        "    \"InstanceId\" : \"5d45ab7a-b83f-4dc1-95d5-a45b59e48718\",\n" +
+                        "    \"LastHeartbeat\" : \"2016-09-07T22:09:55.000Z\",\n" +
+                        "    \"PartiallyVerifyLastPercentOfTapes\" : null,\n" +
+                        "    \"UnavailableMediaPolicy\" : \"DISALLOW\",\n" +
+                        "    \"UnavailablePoolMaxJobRetryInMins\" : 20,\n" +
+                        "    \"UnavailableTapePartitionMaxJobRetryInMins\" : 20\n" +
+                        "  },\n" +
+                        "  \"Status\" : \"OK\"\n" +
+                        "}";
+
+        final Arguments args = new Arguments( new String[] {"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_data_path_backend", "--output-format", "json"});
+        final Ds3Client client = mock(Ds3Client.class);
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, null), null);
+        command.init(args);
+
+        final WebResponse webResponse = mock(WebResponse.class);
+
+        final InputStream stream = IOUtils.toInputStream("<Data>" +
+                "<Activated>true</Activated>" +
+                "<AutoActivateTimeoutInMins>30</AutoActivateTimeoutInMins>" +
+                "<AutoInspect>DEFAULT</AutoInspect>" +
+                "<DefaultImportConflictResolutionMode>CANCEL</DefaultImportConflictResolutionMode>" +
+                "<Id>5d45ab7a-b83f-4dc1-95d5-a45b59e48718</Id>" +
+                "<InstanceId>5d45ab7a-b83f-4dc1-95d5-a45b59e48718</InstanceId>" +
+                "<LastHeartbeat>2016-09-07T22:09:55.000Z</LastHeartbeat>" +
+                "<PartiallyVerifyLastPercentOfTapes/>" +
+                "<UnavailableMediaPolicy>DISALLOW</UnavailableMediaPolicy>" +
+                "<UnavailablePoolMaxJobRetryInMins>20</UnavailablePoolMaxJobRetryInMins>" +
+                "<UnavailableTapePartitionMaxJobRetryInMins>20</UnavailableTapePartitionMaxJobRetryInMins>" +
+                "</Data>", "utf-8");
+
+        final Headers headers = mock(Headers.class);
+        when(webResponse.getStatusCode()).thenReturn(200);
+        when(webResponse.getHeaders()).thenReturn(headers);
+        when(webResponse.getResponseStream()).thenReturn(stream);
+
+        GetDataPathBackendSpectraS3Response response = new GetDataPathBackendSpectraS3Response(webResponse);
+
+        when(client.getDataPathBackendSpectraS3(any(GetDataPathBackendSpectraS3Request.class))).thenReturn(response);
+        final CommandResponse result = command.render();
+        assertTrue(result.getMessage().endsWith(expectedString));
+        assertThat(result.getReturnCode(), is(0));
+    }
+
+    @Test
+    public void getJobs() throws Exception {
+        final String expectedString =
+                "+-------------+--------------------------------------+------------------------------+-----------+----------+-------------+\n" +
+                        "| Bucket Name |                Job Id                |         Creation Date        | User Name | Job Type |    Status   |\n" +
+                        "+-------------+--------------------------------------+------------------------------+-----------+----------+-------------+\n" +
+                        "| coffeehouse | 52dc72a9-7876-4024-9034-d2f6e886f7e7 | Tue Aug 30 16:14:49 MDT 2016 | jk        | PUT      | IN_PROGRESS |\n" +
+                        "+-------------+--------------------------------------+------------------------------+-----------+----------+-------------+\n";
+
+        final Arguments args = new Arguments( new String[] {"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_jobs"});
+        final Ds3Client client = mock(Ds3Client.class);
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, null), null);
+        command.init(args);
+
+        final WebResponse webResponse = mock(WebResponse.class);
+
+        final InputStream stream = IOUtils.toInputStream("<Jobs>" +
+                "<Job Aggregating=\"false\" BucketName=\"coffeehouse\" " +
+                "CachedSizeInBytes=\"343479386\" " +
+                "ChunkClientProcessingOrderGuarantee=\"IN_ORDER\" " +
+                "CompletedSizeInBytes=\"0\" " +
+                "JobId=\"52dc72a9-7876-4024-9034-d2f6e886f7e7\" " +
+                "Naked=\"false\" Name=\"PUT by 192.168.1.12\" " +
+                "OriginalSizeInBytes=\"343479386\" Priority=\"NORMAL\" " +
+                "RequestType=\"PUT\" StartDate=\"2016-08-30T22:14:49.000Z\" " +
+                "Status=\"IN_PROGRESS\" UserId=\"5079e312-bcff-43c7-bd54-d8148af0a515\" " +
+                "UserName=\"jk\"><Nodes/></Job></Jobs>", "utf-8");
+
+        final Headers headers = mock(Headers.class);
+        when(webResponse.getStatusCode()).thenReturn(200);
+        when(webResponse.getHeaders()).thenReturn(headers);
+        when(webResponse.getResponseStream()).thenReturn(stream);
+
+        GetJobsSpectraS3Response response = new GetJobsSpectraS3Response(webResponse);
+
+        when(client.getJobsSpectraS3(any(GetJobsSpectraS3Request.class))).thenReturn(response);
+        final CommandResponse result = command.render();
+        assertThat(result.getMessage(), is(expectedString));
+        assertThat(result.getReturnCode(), is(0));
+    }
+
+    @Test
+    public void getJobsWithCompleted() throws Exception {
+        final String expectedString =
+                "+-------------+--------------------------------------+------------------------------+-----------+----------+-------------+\n" +
+                "| Bucket Name |                Job Id                |         Creation Date        | User Name | Job Type |    Status   |\n" +
+                "+-------------+--------------------------------------+------------------------------+-----------+----------+-------------+\n" +
+                "| coffeehouse | 52dc72a9-7876-4024-9034-d2f6e886f7e7 | Tue Aug 30 16:14:49 MDT 2016 | jk        | PUT      | IN_PROGRESS |\n" +
+                "| coffeehouse | 2e9cc564-95d4-4f25-abe2-acee0746b5a7 | Tue Aug 30 15:55:09 MDT 2016 | jk        | PUT      | CANCELED    |\n" +
+                "+-------------+--------------------------------------+------------------------------+-----------+----------+-------------+\n";
+
+        final Arguments args = new Arguments( new String[] {"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_jobs", "--completed"});
+        final Ds3Client client = mock(Ds3Client.class);
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, null), null);
+        command.init(args);
+
+        final WebResponse webResponse = mock(WebResponse.class);
+
+        final InputStream stream = IOUtils.toInputStream("<Jobs>" +
+                "<Job Aggregating=\"false\" BucketName=\"coffeehouse\" " +
+                "CachedSizeInBytes=\"343479386\" " +
+                "ChunkClientProcessingOrderGuarantee=\"IN_ORDER\" " +
+                "CompletedSizeInBytes=\"0\" " +
+                "JobId=\"52dc72a9-7876-4024-9034-d2f6e886f7e7\" " +
+                "Naked=\"false\" Name=\"PUT by 192.168.1.12\" " +
+                "OriginalSizeInBytes=\"343479386\" Priority=\"NORMAL\" " +
+                "RequestType=\"PUT\" StartDate=\"2016-08-30T22:14:49.000Z\" " +
+                "Status=\"IN_PROGRESS\" UserId=\"5079e312-bcff-43c7-bd54-d8148af0a515\" " +
+                "UserName=\"jk\"><Nodes/></Job>" +
+                "<Job Aggregating=\"false\" BucketName=\"coffeehouse\" " +
+                "CachedSizeInBytes=\"343509281\" " +
+                "ChunkClientProcessingOrderGuarantee=\"IN_ORDER\" " +
+                "CompletedSizeInBytes=\"0\" " +
+                "JobId=\"2e9cc564-95d4-4f25-abe2-acee0746b5a7\" " +
+                "Naked=\"false\" Name=\"PUT by 192.168.1.12\" " +
+                "OriginalSizeInBytes=\"343509281\" Priority=\"NORMAL\" " +
+                "RequestType=\"PUT\" StartDate=\"2016-08-30T21:55:09.000Z\" " +
+                "Status=\"CANCELED\" UserId=\"5079e312-bcff-43c7-bd54-d8148af0a515\" " +
+                "UserName=\"jk\"><Nodes/></Job>" +
+                "</Jobs>", "utf-8");
+
+        final Headers headers = mock(Headers.class);
+        when(webResponse.getStatusCode()).thenReturn(200);
+        when(webResponse.getHeaders()).thenReturn(headers);
+        when(webResponse.getResponseStream()).thenReturn(stream);
+
+        GetJobsSpectraS3Response response = new GetJobsSpectraS3Response(webResponse);
+
+        when(client.getJobsSpectraS3(any(GetJobsSpectraS3Request.class))).thenReturn(response);
+        final CommandResponse result = command.render();
+        assertThat(result.getMessage(), is(expectedString));
+        assertThat(result.getReturnCode(), is(0));
+    }
+
+    @Test
+    public void getJobsJson() throws Exception {
+        final String expectedString =
+                "  \"Data\" : {\n" +
+                        "    \"Job\" : [ {\n" +
+                        "      \"aggregating\" : false,\n" +
+                        "      \"bucketName\" : \"coffeehouse\",\n" +
+                        "      \"cachedSizeInBytes\" : 343479386,\n" +
+                        "      \"chunkClientProcessingOrderGuarantee\" : \"IN_ORDER\",\n" +
+                        "      \"completedSizeInBytes\" : 0,\n" +
+                        "      \"entirelyInCache\" : false,\n" +
+                        "      \"jobId\" : \"52dc72a9-7876-4024-9034-d2f6e886f7e7\",\n" +
+                        "      \"naked\" : false,\n" +
+                        "      \"name\" : \"PUT by 192.168.1.12\",\n" +
+                        "      \"originalSizeInBytes\" : 343479386,\n" +
+                        "      \"priority\" : \"NORMAL\",\n" +
+                        "      \"requestType\" : \"PUT\",\n" +
+                        "      \"startDate\" : \"2016-08-30T22:14:49.000Z\",\n" +
+                        "      \"status\" : \"IN_PROGRESS\",\n" +
+                        "      \"userId\" : \"5079e312-bcff-43c7-bd54-d8148af0a515\",\n" +
+                        "      \"userName\" : \"jk\",\n" +
+                        "      \"Nodes\" : null\n" +
+                        "    } ]\n" +
+                        "  },\n" +
+                        "  \"Status\" : \"OK\"\n" +
+                        "}";
+
+        final Arguments args = new Arguments( new String[] {"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_jobs", "--output-format", "json"});
+        final Ds3Client client = mock(Ds3Client.class);
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, null), null);
+        command.init(args);
+
+        final WebResponse webResponse = mock(WebResponse.class);
+
+        final InputStream stream = IOUtils.toInputStream("<Jobs>" +
+                "<Job Aggregating=\"false\" BucketName=\"coffeehouse\" " +
+                "CachedSizeInBytes=\"343479386\" " +
+                "ChunkClientProcessingOrderGuarantee=\"IN_ORDER\" " +
+                "CompletedSizeInBytes=\"0\" " +
+                "JobId=\"52dc72a9-7876-4024-9034-d2f6e886f7e7\" " +
+                "Naked=\"false\" Name=\"PUT by 192.168.1.12\" " +
+                "OriginalSizeInBytes=\"343479386\" Priority=\"NORMAL\" " +
+                "RequestType=\"PUT\" StartDate=\"2016-08-30T22:14:49.000Z\" " +
+                "Status=\"IN_PROGRESS\" UserId=\"5079e312-bcff-43c7-bd54-d8148af0a515\" " +
+                "UserName=\"jk\"><Nodes/></Job></Jobs>", "utf-8");
+
+        final Headers headers = mock(Headers.class);
+        when(webResponse.getStatusCode()).thenReturn(200);
+        when(webResponse.getHeaders()).thenReturn(headers);
+        when(webResponse.getResponseStream()).thenReturn(stream);
+
+        GetJobsSpectraS3Response response = new GetJobsSpectraS3Response(webResponse);
+
+        when(client.getJobsSpectraS3(any(GetJobsSpectraS3Request.class))).thenReturn(response);
+        final CommandResponse result = command.render();
+        final String message = result.getMessage();
+        assertTrue(result.getMessage().endsWith(expectedString));
+        assertThat(result.getReturnCode(), is(0));
+    }
+
 
 }

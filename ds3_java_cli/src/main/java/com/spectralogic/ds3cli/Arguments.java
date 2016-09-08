@@ -215,7 +215,9 @@ public class Arguments {
             final String token = this.args[i];
             // allow get COMMAND (-c) and subsequent argument
             // or --output-format and subsequent argument
-            if (matchesOption(COMMAND, token) || matchesOption(VIEW_TYPE,  token)) {
+            if (matchesOption(COMMAND, token) || matchesOption(VIEW_TYPE,  token) ||
+                matchesOption(ACCESS_KEY, token) || matchesOption(SECRET_KEY,  token) ||
+                matchesOption(ENDPOINT, token) || matchesOption(PROXY,  token))  {
                 rootArguments.add(token);
                 if (i < this.args.length) {
                     rootArguments.add(this.args[++i]);

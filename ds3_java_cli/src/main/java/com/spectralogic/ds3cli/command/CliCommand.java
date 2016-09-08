@@ -186,14 +186,6 @@ public abstract class CliCommand<T extends Result> implements Callable<T> {
         }
     }
 
-    // TODO -- this just here to build. Replace with param-less version
-    public View<T> getView(ViewType dummyTodoThroway) {
-        if (this.viewType == ViewType.JSON) {
-            return (View<T>) new com.spectralogic.ds3cli.views.json.DefaultView();
-        }
-        return (View<T>) new DefaultView();
-    }
-
     /**
      * get the appropriate View to parse and format response
      * @return
