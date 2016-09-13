@@ -22,6 +22,9 @@ import com.spectralogic.ds3cli.models.SuspectedObjectResult;
 import com.spectralogic.ds3client.models.BulkObject;
 import com.spectralogic.ds3client.models.Pool;
 import com.spectralogic.ds3client.models.Tape;
+import com.spectralogic.ds3client.utils.Guard;
+
+import java.util.List;
 
 import static com.spectralogic.ds3cli.util.Utils.nullGuard;
 import static com.spectralogic.ds3cli.util.Utils.nullGuardToString;
@@ -58,17 +61,24 @@ public class SuspectedObjectsView extends TableView<SuspectedObjectResult> {
     }
 
     /**
-     * Return the BUCKET name, if is exists, if not search for a BUCKET Id to use across the tapes
+     * Return the bucket name, if is exists, if not search for a bucket Id to use across the tapes
      * and pools that an object exists in.
      */
     private String getBucketFromBulkObject(final BulkObject suspectBlobTape) {
         if (suspectBlobTape.getBucket() == null) {
-            // get the BUCKET ID if one exists
-            for (final Tape tape : suspectBlobTape.getPhysicalPlacement().getTapes()) {
-                if (tape.getBucketId() != null) return tape.getBucketId().toString();
+            // get the bucket id if one exists
+
+            final List<Tape> tapes = suspectBlobTape.getPhysicalPlacement().getTapes();
+            if (!Guard.isNullOrEmpty(tapes)) {
+                for (final Tape tape : tapes) {
+                    if (tape.getBucketId() != null) return tape.getBucketId().toString();
+                }
             }
-            for (final Pool pool : suspectBlobTape.getPhysicalPlacement().getPools()) {
-                if (pool.getBucketId() != null) return pool.getBucketId().toString();
+            final List<Pool> pools = suspectBlobTape.getPhysicalPlacement().getPools();
+            if (!Guard.isNullOrEmpty(pools)) {
+                for (final Pool pool : pools) {
+                    if (pool.getBucketId() != null) return pool.getBucketId().toString();
+                }
             }
         }
         return suspectBlobTape.getBucket();
