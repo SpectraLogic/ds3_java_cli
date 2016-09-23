@@ -17,7 +17,6 @@ package com.spectralogic.ds3cli.views.cli;
 
 import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3cli.models.GetDetailedObjectsResult;
-import com.spectralogic.ds3cli.views.csv.CsvView;
 import com.spectralogic.ds3client.models.BulkObject;
 import com.spectralogic.ds3client.models.DetailedS3Object;
 import com.spectralogic.ds3client.models.Tape;
@@ -28,15 +27,15 @@ import java.util.ArrayList;
 import static com.spectralogic.ds3cli.util.Utils.*;
 
 public class DetailedObjectsPhysicalView extends TableView<GetDetailedObjectsResult> {
-    private ImmutableList<DetailedS3Object> objects;
+    private Iterable<DetailedS3Object> objects;
 
     @Override
     public String render(final GetDetailedObjectsResult obj) {
-        if (obj == null || (obj.getObjIterator() == null) || !obj.getObjIterator().hasNext()) {
+        if (obj == null || (obj.getObjIterator() == null) || !obj.getObjIterator().iterator().hasNext()) {
             return "No objects returned";
         }
 
-        objects = ImmutableList.copyOf(obj.getObjIterator());
+        objects = obj.getObjIterator();
         initTable(ImmutableList.of("Name", "Bucket", "Owner", "Size", "Type", "Creation Date", "Barcode", "State"));
 
         return renderTable();

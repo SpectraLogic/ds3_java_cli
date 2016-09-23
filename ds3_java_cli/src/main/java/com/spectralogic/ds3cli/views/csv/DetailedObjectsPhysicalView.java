@@ -29,7 +29,7 @@ public class DetailedObjectsPhysicalView extends CsvView<GetDetailedObjectsResul
 
     @Override
     public String render(final GetDetailedObjectsResult obj) {
-        if (obj == null || (obj.getObjIterator() == null) || !obj.getObjIterator().hasNext()) {
+        if (obj == null || (obj.getObjIterator() == null) || !obj.getObjIterator().iterator().hasNext()) {
             return "No objects returned";
         }
 

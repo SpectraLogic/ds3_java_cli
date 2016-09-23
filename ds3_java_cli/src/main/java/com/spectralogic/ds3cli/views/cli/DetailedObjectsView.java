@@ -22,7 +22,6 @@ import com.spectralogic.ds3client.models.*;
 import com.spectralogic.ds3client.utils.Guard;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import static com.spectralogic.ds3cli.util.Utils.*;
 
@@ -34,7 +33,7 @@ public class DetailedObjectsView extends TableView<GetDetailedObjectsResult> {
 
     @Override
     public String render(final GetDetailedObjectsResult obj) {
-        if (obj == null || (obj.getObjIterator() == null) || !obj.getObjIterator().hasNext()) {
+        if (obj == null || (obj.getObjIterator() == null) || !obj.getObjIterator().iterator().hasNext()) {
             return "No objects returned";
         }
 
@@ -46,8 +45,8 @@ public class DetailedObjectsView extends TableView<GetDetailedObjectsResult> {
 
     @Override
     protected String[][] formatTableContents() {
-        final String [][] formatArray = new String[objects.size()][];
-        int i = 0;
+        final ArrayList<String[]> formatArray = new ArrayList<String[]>();
+        int lineCount = 0;
         for (final DetailedS3Object detailedObject : this.objects) {
             final String [] bucketArray = new String[this.columnCount];
             bucketArray[0] = nullGuard(detailedObject.getName());
@@ -58,9 +57,11 @@ public class DetailedObjectsView extends TableView<GetDetailedObjectsResult> {
             bucketArray[5] = nullGuardToDate(detailedObject.getCreationDate(), DATE_FORMAT);
             bucketArray[6] = concatenateTapes(detailedObject.getBlobs());
             bucketArray[7] = concatenatePools(detailedObject.getBlobs());
-            formatArray[i++] = (bucketArray);
+            formatArray.add(bucketArray);
+            lineCount++;
         }
-        return formatArray;
+        final String[][] ret = new String[lineCount][this.columnCount];
+        return formatArray.toArray(ret);
     }
 
     private String concatenateTapes(final BulkObjectList objects) {

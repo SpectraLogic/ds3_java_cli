@@ -20,13 +20,13 @@ import com.spectralogic.ds3client.models.DetailedS3Object;
 import java.util.Iterator;
 
 public class GetDetailedObjectsResult implements Result {
-    final private Iterator<DetailedS3Object> objIterator;
+    final private Iterable<DetailedS3Object> objects;
 
     public GetDetailedObjectsResult(final Iterable<DetailedS3Object> objects) {
-        this.objIterator = objects.iterator();
+        this.objects = objects;
     }
 
-    public Iterator<DetailedS3Object> getObjIterator() {
-        return objIterator;
+    public Iterable<DetailedS3Object> getObjIterator() {
+        return this.objects;
     }
 }

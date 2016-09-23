@@ -30,15 +30,15 @@ public class DetailedObjectsView extends CsvView<GetDetailedObjectsResult> {
 
     private static final String TAPE_SEPARATOR = " | ";
 
-    private ImmutableList<DetailedS3Object> objects;
+    private Iterable<DetailedS3Object> objects;
 
     @Override
     public String render(final GetDetailedObjectsResult obj) {
-        if (obj == null || (obj.getObjIterator() == null) || !obj.getObjIterator().hasNext()) {
+        if (obj == null || (obj.getObjIterator() == null) || !obj.getObjIterator().iterator().hasNext()) {
             return "No objects returned";
         }
 
-        objects = ImmutableList.copyOf(obj.getObjIterator());
+        objects = obj.getObjIterator();
         initTable(ImmutableList.of("Name", "Bucket", "Owner", "Size", "Type", "Creation Date", "Tapes", "Pools"));
 
         return renderTable();
@@ -46,8 +46,8 @@ public class DetailedObjectsView extends CsvView<GetDetailedObjectsResult> {
 
     @Override
     protected String[][] formatTableContents() {
-        final String [][] formatArray = new String[objects.size()][];
-        int i = 0;
+        final ArrayList<String[]> formatArray = new ArrayList<String[]>();
+        int lineCount = 0;
         for (final DetailedS3Object detailedObject : this.objects) {
             final String [] bucketArray = new String[this.columnCount];
             bucketArray[0] = nullGuard(detailedObject.getName());
@@ -58,11 +58,13 @@ public class DetailedObjectsView extends CsvView<GetDetailedObjectsResult> {
             bucketArray[5] = nullGuardToDate(detailedObject.getCreationDate(), DATE_FORMAT);
             bucketArray[6] = concatenateTapes(detailedObject.getBlobs());
             bucketArray[7] = concatenatePools(detailedObject.getBlobs());
-            formatArray[i++] = (bucketArray);
+            formatArray.add(bucketArray);
+            lineCount++;
         }
-        return formatArray;
+        final String[][] ret = new String[lineCount][this.columnCount];
+        return formatArray.toArray(ret);
     }
-
+    
     private String concatenateTapes(final BulkObjectList objects) {
         if(Guard.isNullOrEmpty(objects.getObjects())) {
             return "No Physical Placement";
