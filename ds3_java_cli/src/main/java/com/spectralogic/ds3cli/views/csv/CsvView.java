@@ -13,20 +13,28 @@
  * ***************************************************************************
  */
 
-package com.spectralogic.ds3cli.views.cli;
+package com.spectralogic.ds3cli.views.csv;
 
-import com.bethecoder.ascii_table.ASCIITable;
-import com.bethecoder.ascii_table.ASCIITableHeader;
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.models.Result;
 
 import java.text.SimpleDateFormat;
 import java.util.TimeZone;
 
-public abstract class TableView<T extends Result> implements View<T> {
+/**
+ * Replace TableView base class to provide CSV output
+ * @param <T> Result Type
+ */
+public abstract class CsvView<T extends Result> implements View<T> {
 
-    protected ASCIITableHeader[] header;
+    protected final static String LINE_SEPARATOR = "\n";
+    protected final static String CELL_SEPARATOR = "\",\"";
+    protected final static char CELL_QUOTE = '"';
+
+    protected ImmutableList<String> header;
     protected int columnCount;
 
     protected static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
@@ -38,30 +46,33 @@ public abstract class TableView<T extends Result> implements View<T> {
 
     public void initTable(final ImmutableList<String> columnHeads) {
         this.columnCount = columnHeads.size();
-
-        // create the header
-        this.header = new ASCIITableHeader[this.columnCount];
-        for (int i = 0; i < this.columnCount; i++) {
-            header[i] = new ASCIITableHeader(columnHeads.get(i), ASCIITable.ALIGN_LEFT);
-        }
+        this.header = columnHeads;
     }
 
     public void setTableDataAlignment(final ImmutableList<Integer> columnAlign) {
-        // set alignment
-        if ((this.header != null) && (this.columnCount > 0)) {
-            for (int i = 0; i < this.columnCount; i++) {
-                this.header[i].setDataAlign(columnAlign.get(i).shortValue());
-            }
-        }
-    }
-
-    protected String renderTable() {
-        return ASCIITable.getInstance().getTable(getHeaders(), formatTableContents());
+        // pass -- significant in cli
     }
 
     protected abstract String[][] formatTableContents();
 
-    protected ASCIITableHeader[] getHeaders() {
+    protected ImmutableList<String> getHeaders() {
         return this.header;
     }
+
+    protected String renderTable() {
+        StringBuilder csvOut = new StringBuilder();
+        csvOut.append(CELL_QUOTE);
+        csvOut.append(Joiner.on(CELL_SEPARATOR).join(getHeaders()));
+        csvOut.append(CELL_QUOTE);
+        csvOut.append(LINE_SEPARATOR);
+        String[][] body = formatTableContents();
+        for(String[] line : body) {
+            csvOut.append(CELL_QUOTE);
+            csvOut.append(Joiner.on(CELL_SEPARATOR).join(line));
+            csvOut.append(CELL_QUOTE);
+            csvOut.append(LINE_SEPARATOR);
+        }
+        return csvOut.toString();
+    }
+
 }

@@ -70,6 +70,7 @@ public class Arguments {
     private boolean followSymlinks = false;
     private ImmutableMap<String, String> metadata = null;
     private ImmutableMap<String, String> modifyParams = null;
+    private ImmutableMap<String, String> filterParams = null;
     private Level consoleLogLevel;
     private Level fileLogLevel;
     private boolean ignoreNamingConflicts = false;
@@ -150,7 +151,7 @@ public class Arguments {
         logVerbose.setLongOpt("log-verbose");
         final Option logDebug = new Option(null, "Debug (more verbose) output to log file.");
         logDebug.setLongOpt("log-debug");
-        final Option logTrace = new Option(null, "Trace (moset verbose) output to log file.");
+        final Option logTrace = new Option(null, "Trace (most verbose) output to log file.");
         logTrace.setLongOpt("log-trace");
 
         final Option completed = new Option(null, false, "Used with the command get_jobs to include the display of completed jobs");
@@ -186,6 +187,13 @@ public class Arguments {
         final Option modifyParams = Option.builder()
                 .longOpt("modify-params")
                 .desc("Parameters for modifying features using the format key:value,key2:value2. For modify_user: default_data_policy_id")
+                .hasArgs()
+                .valueSeparator(',')
+                .build();
+
+        final Option filterParams = Option.builder()
+                .longOpt("filter-params")
+                .desc("Filter returned objects using the format key:value,key2:value2. Supports newerthan:d2.h3.m4.s5,largerthan:100")
                 .hasArgs()
                 .valueSeparator(',')
                 .build();
@@ -234,6 +242,7 @@ public class Arguments {
         this.options.addOption(followSymLinks);
         this.options.addOption(metadata);
         this.options.addOption(modifyParams);
+        this.options.addOption(filterParams);
         this.options.addOption(discard);
         this.options.addOption(ignoreNamingConflicts);
         this.options.addOption(inCache);
@@ -438,6 +447,9 @@ public class Arguments {
         }
         if (cmd.hasOption("modify-params")) {
             this.setModifyParams(Metadata.parse(cmd.getOptionValues("modify-params")));
+        }
+        if (cmd.hasOption("filter-params")) {
+            this.setFilterParams(Metadata.parse(cmd.getOptionValues("filter-params")));
         }
 
         if (cmd.hasOption("discard")) {
@@ -737,11 +749,17 @@ public class Arguments {
         return modifyParams;
     }
 
+    public ImmutableMap<String, String> getFilterParams() {
+        return filterParams;
+    }
+
     void setMetadata(final ImmutableMap<String, String> metadata) {
         this.metadata = metadata;
     }
 
     void setModifyParams(final ImmutableMap<String, String> modifyParams) { this.modifyParams = modifyParams; }
+
+    void setFilterParams(final ImmutableMap<String, String> filterParams) { this.filterParams = filterParams; }
 
     public boolean isDiscard() {
         return discard;

@@ -13,24 +13,18 @@
  * ***************************************************************************
  */
 
-package com.spectralogic.ds3cli;
+package com.spectralogic.ds3cli.views.json;
 
-import com.google.common.base.Function;
-import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.spectralogic.ds3cli.View;
+import com.spectralogic.ds3cli.models.GetBucketResult;
+import com.spectralogic.ds3cli.models.GetDetailedObjectsResult;
+import com.spectralogic.ds3cli.util.JsonMapper;
 
-import java.util.ArrayList;
-
-public enum ViewType {
-    CLI, JSON, CSV;
-
-    public static String valuesString() {
-        final ArrayList<ViewType> list = Lists.newArrayList(ViewType.values());
-        return Joiner.on(", ").join(Lists.transform(list, new Function<ViewType, String>() {
-            @Override
-            public String apply(final ViewType input) {
-                return input.toString().toLowerCase();
-            }
-        }));
+public class DetailedObjectsView implements View<GetDetailedObjectsResult> {
+    @Override
+    public String render(final GetDetailedObjectsResult result) throws JsonProcessingException {
+        final CommonJsonView view = CommonJsonView.newView(CommonJsonView.Status.OK);
+        return JsonMapper.toJson(view.data(result));
     }
 }
