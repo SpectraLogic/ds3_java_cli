@@ -17,12 +17,18 @@ package com.spectralogic.ds3cli.views.csv;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.models.Result;
 
+import org.apache.commons.csv.CSVPrinter;
+import org.apache.commons.csv.CSVFormat;
+import org.slf4j.LoggerFactory;
+
+import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.TimeZone;
+
+import static java.lang.System.out;
 
 /**
  * Replace TableView base class to provide CSV output
@@ -30,18 +36,16 @@ import java.util.TimeZone;
  */
 public abstract class CsvView<T extends Result> implements View<T> {
 
-    protected final static String LINE_SEPARATOR = "\n";
-    protected final static String CELL_SEPARATOR = "\",\"";
-    protected final static char CELL_QUOTE = '"';
+    private final static org.slf4j.Logger LOG = LoggerFactory.getLogger(CsvView.class);
 
     protected ImmutableList<String> header;
     protected int columnCount;
 
     protected static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-
     static {
         DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
     }
+
     public abstract String render(final T result);
 
     public void initTable(final ImmutableList<String> columnHeads) {
@@ -59,20 +63,21 @@ public abstract class CsvView<T extends Result> implements View<T> {
         return this.header;
     }
 
-    protected String renderTable() {
-        final StringBuilder csvOut = new StringBuilder();
-        csvOut.append(CELL_QUOTE);
-        csvOut.append(Joiner.on(CELL_SEPARATOR).join(getHeaders()));
-        csvOut.append(CELL_QUOTE);
-        csvOut.append(LINE_SEPARATOR);
-        final String[][] body = formatTableContents();
-        for(final String[] line : body) {
-            csvOut.append(CELL_QUOTE);
-            csvOut.append(Joiner.on(CELL_SEPARATOR).join(line));
-            csvOut.append(CELL_QUOTE);
-            csvOut.append(LINE_SEPARATOR);
+    protected String renderTable()  {
+        final Appendable outs = new StringWriter();
+        try {
+            final CSVPrinter csv = new CSVPrinter(outs, CSVFormat.EXCEL);
+            csv.printRecord(getHeaders());
+            final String[][] body = formatTableContents();
+            for (final String[] line : body) {
+                csv.printRecord(line);
+            }
+            csv.flush();
+            csv.close();
+        } catch (IOException e) {
+            LOG.warn("Failed to create CSV output", e);
+            return "ERROR: Failed to create CSV output";
         }
-        return csvOut.toString();
+        return outs.toString();
     }
-
 }

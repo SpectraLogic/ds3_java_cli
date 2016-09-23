@@ -53,16 +53,7 @@ public class DetailedObjectsPhysicalView extends TableView<GetDetailedObjectsRes
                     if (object.getPhysicalPlacement() != null) {
                         if (!Guard.isNullOrEmpty(object.getPhysicalPlacement().getTapes())) {
                             for (final Tape tape : object.getPhysicalPlacement().getTapes()) {
-                                final String[] bucketArray = new String[this.columnCount];
-                                bucketArray[0] = nullGuard(detailedObject.getName());
-                                bucketArray[1] = nullGuardToString(detailedObject.getBucketId());
-                                bucketArray[2] = nullGuardToString(detailedObject.getOwner());
-                                bucketArray[3] = nullGuardToString(detailedObject.getSize());
-                                bucketArray[4] = nullGuardToString(detailedObject.getType());
-                                bucketArray[5] = nullGuardToDate(detailedObject.getCreationDate(), DATE_FORMAT);
-                                bucketArray[6] = nullGuard(tape.getBarCode());
-                                bucketArray[7] = nullGuardToString(tape.getState());
-                                formatArray.add(bucketArray);
+                                formatArray.add(writeLine(tape, detailedObject));
                                 lineCount++;
                             } // for tapes
                         } // if tapes
@@ -72,6 +63,19 @@ public class DetailedObjectsPhysicalView extends TableView<GetDetailedObjectsRes
         } // for DetailedS3Object
         final String[][] ret = new String[lineCount][this.columnCount];
         return formatArray.toArray(ret);
+    }
+
+    private String[] writeLine(final Tape tape, final DetailedS3Object detailedObject) {
+        final String[] tapeArray = new String[this.columnCount];
+        tapeArray[0] = nullGuard(detailedObject.getName());
+        tapeArray[1] = nullGuardToString(detailedObject.getBucketId());
+        tapeArray[2] = nullGuardToString(detailedObject.getOwner());
+        tapeArray[3] = nullGuardToString(detailedObject.getSize());
+        tapeArray[4] = nullGuardToString(detailedObject.getType());
+        tapeArray[5] = nullGuardToDate(detailedObject.getCreationDate(), DATE_FORMAT);
+        tapeArray[6] = nullGuard(tape.getBarCode());
+        tapeArray[7] = nullGuardToString(tape.getState());
+        return tapeArray;
     }
 
 }
