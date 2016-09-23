@@ -22,7 +22,6 @@ import com.google.common.collect.ImmutableMap;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
-import com.spectralogic.ds3cli.exceptions.BadArgumentException;
 import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.GetDetailedObjectsResult;
 import com.spectralogic.ds3cli.util.Utils;
@@ -31,11 +30,14 @@ import com.spectralogic.ds3client.helpers.pagination.GetObjectsFullDetailsLoader
 import com.spectralogic.ds3client.models.DetailedS3Object;
 import com.spectralogic.ds3client.utils.Guard;
 import com.spectralogic.ds3client.utils.collections.LazyIterable;
+import org.slf4j.LoggerFactory;
+
 
 import java.util.Date;
 import javax.annotation.Nullable;
 
 public class GetFilteredObjects extends CliCommand<GetDetailedObjectsResult> {
+    private final static org.slf4j.Logger LOG = LoggerFactory.getLogger(GetFilteredObjects.class);
 
     private ImmutableMap<String, String> filterParams;
     private String bucketName;
@@ -47,7 +49,7 @@ public class GetFilteredObjects extends CliCommand<GetDetailedObjectsResult> {
         this.bucketName = args.getBucket();
 
         if (!Guard.isStringNullOrEmpty(args.getPrefix())) {
-            throw new BadArgumentException("'-p' prefix is not supported.");
+            LOG.warn("'-p' prefix is not supported.");
         }
         this.prefix = null;
         return this;
@@ -56,66 +58,69 @@ public class GetFilteredObjects extends CliCommand<GetDetailedObjectsResult> {
     @Override
     public GetDetailedObjectsResult call() throws Exception {
 
-        final ImmutableList<DetailedS3Object> suspectBulkObjects;
-        Predicate<DetailedS3Object> filterPredicate;
+        final Iterable suspectBulkObjects;
+        final Predicate<DetailedS3Object> filterPredicate = getPredicate();
 
+
+        // get filtered list using pagination
+        suspectBulkObjects = FluentIterable.from(new LazyIterable<DetailedS3Object>(
+                        new GetObjectsFullDetailsLoaderFactory(getClient(), this.bucketName, this.prefix, 100, 5, true)))
+                        .filter(filterPredicate);
+
+        return new GetDetailedObjectsResult(suspectBulkObjects);
+    }
+
+    protected Predicate<DetailedS3Object> getPredicate() throws CommandException {
         if (Guard.isMapNullOrEmpty(this.filterParams)) {
             // no filter params specified, run wide open
-            filterPredicate = new Predicate<DetailedS3Object>() {
+            return new Predicate<DetailedS3Object>() {
                 @Override
                 public boolean apply(@Nullable final DetailedS3Object input) {
                     return (input != null);
-                }};
-        } else {
-            long larger = 0L;
-            long smaller = Long.MAX_VALUE;
-            Date newer = new Date(0);
-            Date older = new Date(Long.MAX_VALUE);
-
-            for (final String paramChange : this.filterParams.keySet()) {
-                final String paramNewValue = this.filterParams.get(paramChange);
-                if ("largerthan".equalsIgnoreCase(paramChange)) {
-                    larger = Long.parseLong(paramNewValue);
-                } else if ("smallerthan".equalsIgnoreCase(paramChange)) {
-                    smaller = Long.parseLong(paramNewValue);
-                } else if ("newerthan".equalsIgnoreCase(paramChange)) {
-                    newer = new Date(new Date().getTime() - Utils.dateDiffToSeconds(paramNewValue) * 1000);
-                } else if ("olderthan".equalsIgnoreCase(paramChange)) {
-                    older = new Date(new Date().getTime() - Utils.dateDiffToSeconds(paramNewValue) * 1000);
-                } else {
-                    throw new CommandException("Unrecognized filter parameter: " + paramChange);
-                }
-            } // for
-
-            // make final for inner class
-            final long largerthan = larger;
-            final long smallerthan = smaller;
-            final Date newerthan = newer;
-            final Date olderthan = older;
-
-            filterPredicate = new Predicate<DetailedS3Object>() {
-                @Override
-                public boolean apply(@Nullable final DetailedS3Object input) {
-                    if (input == null) {
-                        return false;
-                    }
-                    return (input.getSize() > largerthan
-                            && input.getSize() < smallerthan
-                            && input.getCreationDate().after(newerthan)
-                            && input.getCreationDate().before(olderthan)
-                    );
                 }
             };
         }
+        long larger = 0L;
+        long smaller = Long.MAX_VALUE;
+        Date newer = new Date(0);
+        Date older = new Date(Long.MAX_VALUE);
 
-        // get filtered list using pagination
-        suspectBulkObjects = ImmutableList.copyOf(
-                FluentIterable.from(new LazyIterable<DetailedS3Object>(
-                        new GetObjectsFullDetailsLoaderFactory(getClient(), this.bucketName, this.prefix, 100, 5, true))).filter(
-                        filterPredicate));
+        for (final String paramChange : this.filterParams.keySet()) {
+            final String paramNewValue = this.filterParams.get(paramChange);
+            if ("largerthan".equalsIgnoreCase(paramChange)) {
+                larger = Long.parseLong(paramNewValue);
+            } else if ("smallerthan".equalsIgnoreCase(paramChange)) {
+                smaller = Long.parseLong(paramNewValue);
+            } else if ("newerthan".equalsIgnoreCase(paramChange)) {
+                newer = new Date(new Date().getTime() - Utils.dateDiffToSeconds(paramNewValue) * 1000);
+            } else if ("olderthan".equalsIgnoreCase(paramChange)) {
+                older = new Date(new Date().getTime() - Utils.dateDiffToSeconds(paramNewValue) * 1000);
+            } else {
+                throw new CommandException("Unrecognized filter parameter: " + paramChange);
+            }
+        } // for
 
-        return new GetDetailedObjectsResult(suspectBulkObjects.iterator());
+        // make final for inner class
+        final long largerthan = larger;
+        final long smallerthan = smaller;
+        final Date newerthan = newer;
+        final Date olderthan = older;
+
+        return new Predicate<DetailedS3Object>() {
+            @Override
+            public boolean apply(@Nullable final DetailedS3Object input) {
+                if (input == null) {
+                    return false;
+                }
+                return (input.getSize() > largerthan
+                        && input.getSize() < smallerthan
+                        && input.getCreationDate().after(newerthan)
+                        && input.getCreationDate().before(olderthan)
+                );
+            }
+        };
     }
+
 
     @Override
     public View<GetDetailedObjectsResult> getView(final ViewType viewType) {

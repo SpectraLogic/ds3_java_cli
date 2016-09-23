@@ -22,8 +22,8 @@ import java.util.Iterator;
 public class GetDetailedObjectsResult implements Result {
     final private Iterator<DetailedS3Object> objIterator;
 
-    public GetDetailedObjectsResult(final Iterator<DetailedS3Object> objIterator) {
-        this.objIterator = objIterator;
+    public GetDetailedObjectsResult(final Iterable<DetailedS3Object> objects) {
+        this.objIterator = objects.iterator();
     }
 
     public Iterator<DetailedS3Object> getObjIterator() {

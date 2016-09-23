@@ -67,7 +67,7 @@ public class DetailedObjectsPhysicalView extends CsvView<GetDetailedObjectsResul
                 } // for objects
             } // if
         } // for DetailedS3Object
-        String[][] ret = new String[lineCount][this.columnCount];
+        final String[][] ret = new String[lineCount][this.columnCount];
         return formatArray.toArray(ret);
     }
 

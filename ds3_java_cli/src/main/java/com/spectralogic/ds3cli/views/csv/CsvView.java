@@ -60,13 +60,13 @@ public abstract class CsvView<T extends Result> implements View<T> {
     }
 
     protected String renderTable() {
-        StringBuilder csvOut = new StringBuilder();
+        final StringBuilder csvOut = new StringBuilder();
         csvOut.append(CELL_QUOTE);
         csvOut.append(Joiner.on(CELL_SEPARATOR).join(getHeaders()));
         csvOut.append(CELL_QUOTE);
         csvOut.append(LINE_SEPARATOR);
-        String[][] body = formatTableContents();
-        for(String[] line : body) {
+        final String[][] body = formatTableContents();
+        for(final String[] line : body) {
             csvOut.append(CELL_QUOTE);
             csvOut.append(Joiner.on(CELL_SEPARATOR).join(line));
             csvOut.append(CELL_QUOTE);
