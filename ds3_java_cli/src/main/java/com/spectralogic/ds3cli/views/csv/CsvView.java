@@ -74,7 +74,7 @@ public abstract class CsvView<T extends Result> implements View<T> {
             }
             csv.flush();
             csv.close();
-        } catch (IOException e) {
+        } catch (final IOException e) {
             LOG.warn("Failed to create CSV output", e);
             return "ERROR: Failed to create CSV output";
         }
