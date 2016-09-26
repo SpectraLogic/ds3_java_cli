@@ -134,9 +134,9 @@ public class GetFilteredObjects extends CliCommand<GetDetailedObjectsResult> {
             if (ranges.containsKey(paramChange)) {
                 if(paramChange.equals(NEWERTHAN) || paramChange.equals(OLDERTHAN)){
                     final long relativeDate = new Date().getTime() - (Utils.dateDiffToSeconds(paramNewValue) * 1000);
-                    ranges.replace(paramChange, Long.toString(relativeDate));
+                    ranges.put(paramChange, Long.toString(relativeDate));
                 } else {
-                    ranges.replace(paramChange, paramNewValue);
+                    ranges.put(paramChange, paramNewValue);
                 }
             } else {
                 throw new CommandException("Unrecognized filter parameter: " + paramChange);
