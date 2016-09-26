@@ -34,10 +34,17 @@ import org.slf4j.LoggerFactory;
 
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import javax.annotation.Nullable;
 
 public class GetFilteredObjects extends CliCommand<GetDetailedObjectsResult> {
     private final static org.slf4j.Logger LOG = LoggerFactory.getLogger(GetFilteredObjects.class);
+
+    private final static String NEWERTHAN = "newerthan";
+    private final static String OLDERTHAN = "olderthan";
+    private final static String LARGERTHAN = "largerthan";
+    private final static String SMALLERTHAN = "smallerthan";
 
     private ImmutableMap<String, String> filterParams;
     private String bucketName;
@@ -61,7 +68,6 @@ public class GetFilteredObjects extends CliCommand<GetDetailedObjectsResult> {
         final Iterable suspectBulkObjects;
         final Predicate<DetailedS3Object> filterPredicate = getPredicate();
 
-
         // get filtered list using pagination
         suspectBulkObjects = FluentIterable.from(new LazyIterable<DetailedS3Object>(
                         new GetObjectsFullDetailsLoaderFactory(getClient(), this.bucketName, this.prefix, 100, 5, true)))
@@ -80,47 +86,29 @@ public class GetFilteredObjects extends CliCommand<GetDetailedObjectsResult> {
                 }
             };
         }
-        long larger = 0L;
-        long smaller = Long.MAX_VALUE;
-        Date newer = new Date(0);
-        Date older = new Date(Long.MAX_VALUE);
 
-        for (final String paramChange : this.filterParams.keySet()) {
-            final String paramNewValue = this.filterParams.get(paramChange);
-            if ("largerthan".equalsIgnoreCase(paramChange)) {
-                larger = Long.parseLong(paramNewValue);
-            } else if ("smallerthan".equalsIgnoreCase(paramChange)) {
-                smaller = Long.parseLong(paramNewValue);
-            } else if ("newerthan".equalsIgnoreCase(paramChange)) {
-                newer = new Date(new Date().getTime() - Utils.dateDiffToSeconds(paramNewValue) * 1000);
-            } else if ("olderthan".equalsIgnoreCase(paramChange)) {
-                older = new Date(new Date().getTime() - Utils.dateDiffToSeconds(paramNewValue) * 1000);
-            } else {
-                throw new CommandException("Unrecognized filter parameter: " + paramChange);
-            }
-        } // for
-
-        // make final for inner class
-        final long largerthan = larger;
-        final long smallerthan = smaller;
-        final Date newerthan = newer;
-        final Date olderthan = older;
+        // else build a predicate from search-params
+        final Map<String, String> ranges = parseMeta();
+        final long largerthan = Long.parseLong(ranges.get(LARGERTHAN));
+        final long smallerthan = Long.parseLong(ranges.get(SMALLERTHAN));
+        final Date newerthan = new Date(Long.parseLong(ranges.get(NEWERTHAN)));
+        final Date olderthan = new Date(Long.parseLong(ranges.get(OLDERTHAN)));
 
         return new Predicate<DetailedS3Object>() {
             @Override
             public boolean apply(@Nullable final DetailedS3Object input) {
                 if (input == null) {
                     return false;
+                } else {
+                    return (input.getSize() > largerthan
+                            && input.getSize() < smallerthan
+                            && input.getCreationDate().after(newerthan)
+                            && input.getCreationDate().before(olderthan)
+                    );
                 }
-                return (input.getSize() > largerthan
-                        && input.getSize() < smallerthan
-                        && input.getCreationDate().after(newerthan)
-                        && input.getCreationDate().before(olderthan)
-                );
             }
         };
     }
-
 
     @Override
     public View<GetDetailedObjectsResult> getView(final ViewType viewType) {
@@ -131,6 +119,30 @@ public class GetFilteredObjects extends CliCommand<GetDetailedObjectsResult> {
         } else {
             return new DetailedObjectsView();
         }
+    }
+
+    private Map<String, String> parseMeta() throws CommandException {
+        // load defaults and define legal values
+        final Map<String, String> ranges = new HashMap<String, String>();
+        ranges.put(NEWERTHAN, "0");
+        ranges.put(OLDERTHAN, Long.toString(Long.MAX_VALUE));
+        ranges.put(LARGERTHAN, "0");
+        ranges.put(SMALLERTHAN, Long.toString(Long.MAX_VALUE));
+
+        for (final String paramChange : this.filterParams.keySet()) {
+            final String paramNewValue = this.filterParams.get(paramChange);
+            if (ranges.containsKey(paramChange)) {
+                if(paramChange.equals(NEWERTHAN) || paramChange.equals(OLDERTHAN)){
+                    final long relativeDate = new Date().getTime() - (Utils.dateDiffToSeconds(paramNewValue) * 1000);
+                    ranges.replace(paramChange, Long.toString(relativeDate));
+                } else {
+                    ranges.replace(paramChange, paramNewValue);
+                }
+            } else {
+                throw new CommandException("Unrecognized filter parameter: " + paramChange);
+            }
+        } // for
+        return ranges;
     }
 
 }
