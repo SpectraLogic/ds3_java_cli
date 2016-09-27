@@ -13,55 +13,71 @@
  * ***************************************************************************
  */
 
-package com.spectralogic.ds3cli.views.cli;
+package com.spectralogic.ds3cli.views.csv;
 
-import com.bethecoder.ascii_table.ASCIITable;
-import com.bethecoder.ascii_table.ASCIITableHeader;
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.models.Result;
 
+import org.apache.commons.csv.CSVPrinter;
+import org.apache.commons.csv.CSVFormat;
+import org.slf4j.LoggerFactory;
+
+import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.TimeZone;
 
-public abstract class TableView<T extends Result> implements View<T> {
+import static java.lang.System.out;
 
-    protected ASCIITableHeader[] header;
+/**
+ * Replace TableView base class to provide CSV output
+ * @param <T> Result Type
+ */
+public abstract class CsvView<T extends Result> implements View<T> {
+
+    private final static org.slf4j.Logger LOG = LoggerFactory.getLogger(CsvView.class);
+
+    protected ImmutableList<String> header;
     protected int columnCount;
 
     protected static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-
     static {
         DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
     }
+
     public abstract String render(final T result);
 
     public void initTable(final ImmutableList<String> columnHeads) {
         this.columnCount = columnHeads.size();
-
-        // create the header
-        this.header = new ASCIITableHeader[this.columnCount];
-        for (int i = 0; i < this.columnCount; i++) {
-            header[i] = new ASCIITableHeader(columnHeads.get(i), ASCIITable.ALIGN_LEFT);
-        }
+        this.header = columnHeads;
     }
 
     public void setTableDataAlignment(final ImmutableList<Integer> columnAlign) {
-        // set alignment
-        if ((this.header != null) && (this.columnCount > 0)) {
-            for (int i = 0; i < this.columnCount; i++) {
-                this.header[i].setDataAlign(columnAlign.get(i).shortValue());
-            }
-        }
-    }
-
-    protected String renderTable() {
-        return ASCIITable.getInstance().getTable(getHeaders(), formatTableContents());
+        // pass -- significant in cli
     }
 
     protected abstract String[][] formatTableContents();
 
-    protected ASCIITableHeader[] getHeaders() {
+    protected ImmutableList<String> getHeaders() {
         return this.header;
+    }
+
+    protected String renderTable()  {
+        final Appendable outs = new StringWriter();
+        try {
+            final CSVPrinter csv = new CSVPrinter(outs, CSVFormat.EXCEL);
+            csv.printRecord(getHeaders());
+            final String[][] body = formatTableContents();
+            for (final String[] line : body) {
+                csv.printRecord(line);
+            }
+            csv.flush();
+            csv.close();
+        } catch (final IOException e) {
+            LOG.error("Failed to create CSV output", e);
+            return "ERROR: Failed to create CSV output";
+        }
+        return outs.toString();
     }
 }

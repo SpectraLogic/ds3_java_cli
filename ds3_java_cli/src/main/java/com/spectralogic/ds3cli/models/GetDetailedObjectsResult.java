@@ -13,24 +13,20 @@
  * ***************************************************************************
  */
 
-package com.spectralogic.ds3cli;
+package com.spectralogic.ds3cli.models;
 
-import com.google.common.base.Function;
-import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
+import com.spectralogic.ds3client.models.DetailedS3Object;
 
-import java.util.ArrayList;
+import java.util.Iterator;
 
-public enum ViewType {
-    CLI, JSON, CSV;
+public class GetDetailedObjectsResult implements Result {
+    final private Iterable<DetailedS3Object> objects;
 
-    public static String valuesString() {
-        final ArrayList<ViewType> list = Lists.newArrayList(ViewType.values());
-        return Joiner.on(", ").join(Lists.transform(list, new Function<ViewType, String>() {
-            @Override
-            public String apply(final ViewType input) {
-                return input.toString().toLowerCase();
-            }
-        }));
+    public GetDetailedObjectsResult(final Iterable<DetailedS3Object> objects) {
+        this.objects = objects;
+    }
+
+    public Iterable<DetailedS3Object> getObjIterator() {
+        return this.objects;
     }
 }

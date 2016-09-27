@@ -272,4 +272,34 @@ public final class Utils {
         return joiner.join(optionEnum);
     }
 
+    /**
+     * parse a string to get time span in seconds
+     * @param diff format ddays.hhours.mminutes.sseconds e.g., "d2.h8.m30.s45"
+     * @return span in seconds
+     */
+    public static long dateDiffToSeconds(final String diff) {
+        long secs = 0;
+        final String[] units = diff.split("[.]");
+        for (final String unit : units) {
+            if (unit.matches("[dhms][0-9]+")) {
+                char unitdesc = unit.charAt(0);
+                switch (unitdesc) {
+                    case ('s'):
+                        secs += Integer.parseInt(unit.replace("s", ""));
+                        break;
+                    case ('m'):
+                        secs += Integer.parseInt(unit.replace("m", "")) * 60;
+                        break;
+                    case ('h'):
+                        secs += Integer.parseInt(unit.replace("h", "")) * 60 * 60;
+                        break;
+                    case ('d'):
+                        secs += Integer.parseInt(unit.replace("d", "")) * 60 * 60 * 24;
+                        break;
+                }
+            }
+        }
+        return secs;
+    }
+
 }
