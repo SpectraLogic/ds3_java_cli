@@ -16,8 +16,8 @@
 package com.spectralogic.ds3cli.command;
 
 import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
 import com.google.common.collect.FluentIterable;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.View;
@@ -38,8 +38,8 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.Nullable;
 
-public class GetFilteredObjects extends CliCommand<GetDetailedObjectsResult> {
-    private final static org.slf4j.Logger LOG = LoggerFactory.getLogger(GetFilteredObjects.class);
+public class GetDetailedObjects extends CliCommand<GetDetailedObjectsResult> {
+    private final static org.slf4j.Logger LOG = LoggerFactory.getLogger(GetDetailedObjects.class);
 
     private final static String NEWERTHAN = "newerthan";
     private final static String OLDERTHAN = "olderthan";
@@ -65,26 +65,25 @@ public class GetFilteredObjects extends CliCommand<GetDetailedObjectsResult> {
     @Override
     public GetDetailedObjectsResult call() throws Exception {
 
-        final Iterable suspectBulkObjects;
+        final FluentIterable suspectBulkObjects;
         final Predicate<DetailedS3Object> filterPredicate = getPredicate();
 
         // get filtered list using pagination
         suspectBulkObjects = FluentIterable.from(new LazyIterable<DetailedS3Object>(
                         new GetObjectsFullDetailsLoaderFactory(getClient(), this.bucketName, this.prefix, 100, 5, true)))
-                        .filter(filterPredicate);
+                .filter(Predicates.notNull());
+
+        if (filterPredicate != null) {
+            return new GetDetailedObjectsResult(suspectBulkObjects.filter(filterPredicate));
+        }
 
         return new GetDetailedObjectsResult(suspectBulkObjects);
     }
 
     protected Predicate<DetailedS3Object> getPredicate() throws CommandException {
+
         if (Guard.isMapNullOrEmpty(this.filterParams)) {
-            // no filter params specified, run wide open
-            return new Predicate<DetailedS3Object>() {
-                @Override
-                public boolean apply(@Nullable final DetailedS3Object input) {
-                    return (input != null);
-                }
-            };
+            return null;
         }
 
         // else build a predicate from search-params
@@ -97,15 +96,11 @@ public class GetFilteredObjects extends CliCommand<GetDetailedObjectsResult> {
         return new Predicate<DetailedS3Object>() {
             @Override
             public boolean apply(@Nullable final DetailedS3Object input) {
-                if (input == null) {
-                    return false;
-                } else {
-                    return (input.getSize() > largerthan
-                            && input.getSize() < smallerthan
-                            && input.getCreationDate().after(newerthan)
-                            && input.getCreationDate().before(olderthan)
-                    );
-                }
+                return (input.getSize() > largerthan
+                        && input.getSize() < smallerthan
+                        && input.getCreationDate().after(newerthan)
+                        && input.getCreationDate().before(olderthan)
+                );
             }
         };
     }

@@ -17,6 +17,8 @@ package com.spectralogic.ds3cli.views.csv;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
+import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.models.GetDetailedObjectsResult;
 import com.spectralogic.ds3client.models.*;
 import com.spectralogic.ds3client.utils.Guard;
@@ -25,47 +27,39 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.spectralogic.ds3cli.util.Utils.*;
+import static com.spectralogic.ds3cli.views.csv.CsvView.DATE_FORMAT;
 
-public class DetailedObjectsView extends CsvView<GetDetailedObjectsResult> {
+public class DetailedObjectsView implements View<GetDetailedObjectsResult> {
 
     private static final String TAPE_SEPARATOR = " | ";
 
-    private Iterable<DetailedS3Object> objects;
-
     @Override
     public String render(final GetDetailedObjectsResult obj) {
-        if (obj == null || (obj.getObjIterator() == null) || !obj.getObjIterator().iterator().hasNext()) {
+        if (obj == null || Iterables.isEmpty(obj.getObjIterator())) {
             return "No objects returned";
         }
 
-        objects = obj.getObjIterator();
-        initTable(ImmutableList.of("Name", "Bucket", "Owner", "Size", "Type", "Creation Date", "Tapes", "Pools"));
+        final ImmutableList<String> headers = ImmutableList.of("Name", "Bucket", "Owner", "Size", "Type", "Creation Date", "Tapes", "Pools");
 
-        return renderTable();
+        return new CsvOutput<DetailedS3Object>(headers, obj.getObjIterator(), new CsvOutput.ContentFormatter<DetailedS3Object>() {
+            @Override
+            public Iterable<String> format(final DetailedS3Object content) {
+
+                final ImmutableList.Builder<String> builder = ImmutableList.builder();
+                builder.add(nullGuard(content.getName()));
+                builder.add(nullGuardToString(content.getBucketId()));
+                builder.add(nullGuardToString(content.getOwner()));
+                builder.add(nullGuardToString(content.getSize()));
+                builder.add(nullGuardToString(content.getType()));
+                builder.add(nullGuardToDate(content.getCreationDate(), DATE_FORMAT));
+                builder.add(concatenateTapes(content.getBlobs()));
+                builder.add(concatenatePools(content.getBlobs()));
+                return builder.build();
+            }
+        }).toString();
     }
 
-    @Override
-    protected String[][] formatTableContents() {
-        final ArrayList<String[]> formatArray = new ArrayList<String[]>();
-        int lineCount = 0;
-        for (final DetailedS3Object detailedObject : this.objects) {
-            final String [] bucketArray = new String[this.columnCount];
-            bucketArray[0] = nullGuard(detailedObject.getName());
-            bucketArray[1] = nullGuardToString(detailedObject.getBucketId());
-            bucketArray[2] = nullGuardToString(detailedObject.getOwner());
-            bucketArray[3] = nullGuardToString(detailedObject.getSize());
-            bucketArray[4] = nullGuardToString(detailedObject.getType());
-            bucketArray[5] = nullGuardToDate(detailedObject.getCreationDate(), DATE_FORMAT);
-            bucketArray[6] = concatenateTapes(detailedObject.getBlobs());
-            bucketArray[7] = concatenatePools(detailedObject.getBlobs());
-            formatArray.add(bucketArray);
-            lineCount++;
-        }
-        final String[][] ret = new String[lineCount][this.columnCount];
-        return formatArray.toArray(ret);
-    }
-    
-    private String concatenateTapes(final BulkObjectList objects) {
+    private static String concatenateTapes(final BulkObjectList objects) {
         if(Guard.isNullOrEmpty(objects.getObjects())) {
             return "No Physical Placement";
         }
@@ -83,7 +77,7 @@ public class DetailedObjectsView extends CsvView<GetDetailedObjectsResult> {
         return Joiner.on(TAPE_SEPARATOR).join(tapes);
     }
 
-    private String concatenatePools(final BulkObjectList objects) {
+    private static String concatenatePools(final BulkObjectList objects) {
         if(Guard.isNullOrEmpty(objects.getObjects())) {
             return "No Physical Placement";
         }
@@ -100,5 +94,4 @@ public class DetailedObjectsView extends CsvView<GetDetailedObjectsResult> {
         }
         return Joiner.on(TAPE_SEPARATOR).join(pools);
     }
-
 }

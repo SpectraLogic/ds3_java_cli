@@ -23,7 +23,7 @@ import com.spectralogic.ds3cli.models.GetDetailedObjectsResult;
  * Use the DetailedObjectsPhysicalView to format output
  * by physical placement: one line for each instance on tape
  */
-public class GetFilteredObjectsPhysical extends GetFilteredObjects {
+public class GetDetailedObjectsPhysical extends GetDetailedObjects {
 
     @Override
     public View<GetDetailedObjectsResult> getView(final ViewType viewType) {
