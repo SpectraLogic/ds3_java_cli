@@ -32,7 +32,7 @@ public class TapeFailureException extends Exception {
     }
 
     private static String BuildTapeFailureMessage(final Iterator<DetailedTapeFailure> tapeFailures) {
-        return String.format("There are tape failures found in BlackPearl\n%sTo ignore this error use --force",
+        return String.format("There are tape failures found in BlackPearl\n%sTo ignore this error use --FORCE",
                 ASCIITable.getInstance().getTable(getHeaders(), formatBucketList(tapeFailures)));
     }
 

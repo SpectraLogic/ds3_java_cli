@@ -21,11 +21,15 @@ import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.GetServiceResult;
+import com.spectralogic.ds3cli.util.Ds3Provider;
+import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3client.commands.GetServiceRequest;
 import com.spectralogic.ds3client.commands.GetServiceResponse;
 import com.spectralogic.ds3client.networking.FailedRequestException;
+import com.spectralogic.ds3client.utils.SSLSetupException;
 
 import java.io.IOException;
+import java.security.SignatureException;
 
 public class GetService extends CliCommand<GetServiceResult> {
 
@@ -33,12 +37,7 @@ public class GetService extends CliCommand<GetServiceResult> {
     }
 
     @Override
-    public CliCommand init(final Arguments args) throws Exception {
-        return this;
-    }
-
-    @Override
-    public GetServiceResult call() throws IOException, CommandException {
+    public GetServiceResult call() throws IOException, SignatureException, SSLSetupException, CommandException {
         try {
             final GetServiceResponse response = getClient().getService(new GetServiceRequest());
 
@@ -49,7 +48,7 @@ public class GetService extends CliCommand<GetServiceResult> {
     }
 
     @Override
-    public View<GetServiceResult> getView(final ViewType viewType) {
+    public View<GetServiceResult> getView() {
         if (viewType == ViewType.JSON) {
             return new com.spectralogic.ds3cli.views.json.GetServiceView();
         }

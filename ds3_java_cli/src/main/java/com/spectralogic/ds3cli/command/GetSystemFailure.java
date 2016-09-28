@@ -31,11 +31,6 @@ public class GetSystemFailure extends CliCommand<GetSystemFailureResult> {
     }
 
     @Override
-    public CliCommand init(final Arguments args) throws Exception {
-        return this;
-    }
-
-    @Override
     public GetSystemFailureResult call() throws Exception {
 
         try {
@@ -56,8 +51,8 @@ public class GetSystemFailure extends CliCommand<GetSystemFailureResult> {
     }
 
     @Override
-    public View<GetSystemFailureResult> getView(final ViewType viewType) {
-        if (viewType == ViewType.JSON) {
+    public View<GetSystemFailureResult> getView() {
+        if (this.viewType == ViewType.JSON) {
             return new com.spectralogic.ds3cli.views.json.GetSystemFailureView();
         }
         return new com.spectralogic.ds3cli.views.cli.GetSystemFailureView();

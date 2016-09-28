@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
+import com.spectralogic.ds3cli.ArgumentFactory;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
@@ -36,6 +37,7 @@ import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.serializer.XmlProcessingException;
 import com.spectralogic.ds3client.utils.Guard;
 import org.apache.commons.cli.MissingOptionException;
+import org.apache.commons.cli.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,11 +45,20 @@ import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.*;
+import java.security.SignatureException;
 import java.util.Map;
+
 
 public class PutBulk extends CliCommand<PutBulkResult> {
 
     private final static Logger LOG = LoggerFactory.getLogger(PutBulk.class);
+
+    private final static ImmutableList<Option> requiredArgs = ImmutableList.of(ArgumentFactory.BUCKET);
+    private final static ImmutableList<Option> optionalArgs
+            = ImmutableList.of(ArgumentFactory.PREFIX, ArgumentFactory.NUMBER_OF_THREADS, ArgumentFactory.WRITE_OPTIMIZATION,
+            ArgumentFactory.FOLLOW_SYMLINKS, ArgumentFactory.DISCARD, ArgumentFactory.PRIORITY, ArgumentFactory.CHECKSUM,
+            ArgumentFactory.SYNC, ArgumentFactory.FORCE, ArgumentFactory.NUMBER_OF_THREADS, ArgumentFactory.IGNORE_ERRORS,
+            ArgumentFactory.IGNORE_NAMING_CONFLICTS, ArgumentFactory.DIRECTORY);
 
     private String bucketName;
     private Path inputDirectory;
@@ -70,11 +81,12 @@ public class PutBulk extends CliCommand<PutBulkResult> {
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
-        this.bucketName = args.getBucket();
-        if (this.bucketName == null) {
-            throw new MissingOptionException("The bulk put command requires '-b' to be set.");
-        }
+        // set up Options and parse
+        addRequiredArguments(requiredArgs, args);
+        addOptionalArguments(optionalArgs, args);
+        args.parseCommandLine();
 
+        this.bucketName = args.getBucket();
         this.pipe = Utils.isPipe();
         if (this.pipe) {
             if (this.isOtherArgs(args)) {
@@ -88,15 +100,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
             this.mapNormalizedObjectNameToObjectName = this.getNormalizedObjectNameToObjectName(this.pipedFiles);
         } else {
             final String srcDir = args.getDirectory();
-            if (srcDir == null) {
-                throw new MissingOptionException("The bulk put command required '-d' to be set.");
-            }
             this.inputDirectory = Paths.get(srcDir);
-
-            if (args.getObjectName() != null) {
-                System.err.println("Warning: '-o' is not used with bulk put and is ignored.");
-            }
-
             this.prefix = args.getPrefix();
         }
 
@@ -127,12 +131,13 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         this.ignoreNamingConflicts = args.doIgnoreNamingConflicts();
         LOG.info("Ignore naming conflicts has been set to: {}", this.ignoreNamingConflicts);
 
+        this.viewType = args.getOutputFormat();
         return this;
     }
 
     @Override
     public PutBulkResult call() throws Exception {
-        /* Ensure the bucket exists and if not create it */
+        /* Ensure the BUCKET exists and if not create it */
         final Ds3ClientHelpers helpers = getClientHelpers();
         helpers.ensureBucketExists(this.bucketName);
 
@@ -140,9 +145,9 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         if (this.sync) {
             filesToPut = new FilteringIterable<>(filesToPut,
                     new SyncFilter(this.prefix != null ? this.prefix : "",
-                        this.inputDirectory,
-                        this.getClientHelpers(),
-                        this.bucketName
+                            this.inputDirectory,
+                            this.getClientHelpers(),
+                            this.bucketName
                     )
             );
 
@@ -158,17 +163,15 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         return this.transfer(helpers, ds3Objects, objectsToPut.getDs3IgnoredObjects());
     }
 
-    private PutBulkResult transfer(final Ds3ClientHelpers helpers, final Iterable<Ds3Object> ds3Objects, final ImmutableList<IgnoreFile> ds3IgnoredObjects) throws IOException, XmlProcessingException {
+    private PutBulkResult transfer(final Ds3ClientHelpers helpers, final Iterable<Ds3Object> ds3Objects, final ImmutableList<IgnoreFile> ds3IgnoredObjects) throws SignatureException, IOException, XmlProcessingException {
         final Ds3ClientHelpers.Job job = helpers.startWriteJob(this.bucketName, ds3Objects,
                 WriteJobOptions.create()
                         .withPriority(this.priority)
-                        .withWriteOptimization(this.writeOptimization)
-                        .withIgnoreNamingConflicts(this.ignoreNamingConflicts));
-                job.withMaxParallelRequests(this.numberOfThreads);
-
+                        .withWriteOptimization(this.writeOptimization));
+        job.withMaxParallelRequests(this.numberOfThreads);
         if (this.checksum) {
             throw new RuntimeException("Checksum calculation is not currently supported."); //TODO
-//            Logging.log("Performing bulk put with checksum computation enabled");
+//            Logging.log("Performing bulk put with CHECKSUM computation enabled");
 //            job.withRequestModifier(new ComputedChecksumModifier());
         }
         LOG.info("Created bulk put job {}, starting transfer", job.getJobId().toString());
@@ -211,26 +214,26 @@ public class PutBulk extends CliCommand<PutBulkResult> {
     }
 
     @Override
-    public View<PutBulkResult> getView(final ViewType viewType) {
-        if (viewType == ViewType.JSON) {
+    public View<PutBulkResult> getView() {
+        if (this.viewType == ViewType.JSON) {
             return new com.spectralogic.ds3cli.views.json.PutBulkView();
         }
         return new com.spectralogic.ds3cli.views.cli.PutBulkView();
     }
-    
+
     private static class SyncFilter implements FilteringIterable.FilterFunction<Path> {
 
         private final String prefix;
         private final Path inputDirectory;
         private final ImmutableMap<String, Contents> mapBucketFiles;
 
-        public SyncFilter(final String prefix, final Path inputDirectory, final Ds3ClientHelpers helpers, final String bucketName) throws IOException {
+        public SyncFilter(final String prefix, final Path inputDirectory, final Ds3ClientHelpers helpers, final String bucketName) throws IOException, SignatureException {
             this.prefix = prefix;
             this.inputDirectory = inputDirectory;
             this.mapBucketFiles = generateBucketFileMap(prefix, helpers, bucketName);
         }
 
-        private static ImmutableMap<String, Contents> generateBucketFileMap(final String prefix, final Ds3ClientHelpers helpers, final String bucketName) throws IOException {
+        private static ImmutableMap<String, Contents> generateBucketFileMap(final String prefix, final Ds3ClientHelpers helpers, final String bucketName) throws IOException, SignatureException {
             final Iterable<Contents> contents = helpers.listObjects(bucketName, prefix);
             final ImmutableMap.Builder<String, Contents> bucketFileMapBuilder = ImmutableMap.builder();
             for (final Contents content : contents) {
@@ -250,7 +253,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
                     LOG.info("Syncing new version of {}", fileName);
                     return false;
                 } else {
-                    LOG.info("No need to sync {}", fileName);
+                    LOG.info("No need to SYNC {}", fileName);
                     return true;
                 }
             } catch (final IOException e) {
@@ -282,9 +285,9 @@ public class PutBulk extends CliCommand<PutBulkResult> {
     }
 
     public boolean isOtherArgs(final Arguments args) {
-        return  args.getDirectory()  != null || //-d
-                args.getObjectName() != null || //-o
-                args.getPrefix()     != null;   //-p
+        return  !Guard.isStringNullOrEmpty(args.getDirectory()) ||   //-d
+                !Guard.isStringNullOrEmpty(args.getObjectName()) || //-o
+                !Guard.isStringNullOrEmpty(args.getPrefix());   //-p
     }
 
     static class PrefixedFileObjectPutter implements Ds3ClientHelpers.ObjectChannelBuilder, Ds3ClientHelpers.MetadataAccess {
@@ -336,7 +339,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
 
         @Override
         public SeekableByteChannel buildChannel(final String s) throws IOException {
-            LOG.info("Putting {} to ds3 endpoint", s);
+            LOG.info("Putting {} to ds3 ENDPOINT", s);
             return this.objectPutter.buildChannel(s);
         }
     }
@@ -382,7 +385,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
     }
 
     /**
-     * Returns a channel and metadata for files that have been piped in via stdin
+     * Returns a channel and METADATA for files that have been piped in via stdin
      */
     static class PipeFileObjectPutter implements Ds3ClientHelpers.ObjectChannelBuilder, Ds3ClientHelpers.MetadataAccess {
 

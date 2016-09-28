@@ -105,7 +105,6 @@ public class GetDetailedObjects extends CliCommand<GetDetailedObjectsResult> {
         };
     }
 
-    @Override
     public View<GetDetailedObjectsResult> getView(final ViewType viewType) {
         if (viewType == ViewType.JSON) {
             return new com.spectralogic.ds3cli.views.json.DetailedObjectsView();

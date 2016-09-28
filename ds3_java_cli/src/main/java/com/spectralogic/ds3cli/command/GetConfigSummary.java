@@ -62,7 +62,7 @@ public class GetConfigSummary extends CliCommand<GetConfigSummaryResult> {
             final Result result =  (Result)command.init(this.mainArgs).call();
             resultsMap.put(commandName, result);
             if (viewType.equals(ViewType.CLI)) {
-                final View view = command.getView(this.viewType);
+                final View view = command.getView();
                 appendResult(commandName, view.render(result));
             }
         }
@@ -86,7 +86,7 @@ public class GetConfigSummary extends CliCommand<GetConfigSummaryResult> {
                 return implementation.withProvider(getProvider(), getFileUtils());
             }
         }
-        throw new CommandException("No command class: " + commandName);
+        throw new CommandException("No COMMAND class: " + commandName);
     }
 
     private Iterator<CliCommand> getAllCommands() {
@@ -95,8 +95,8 @@ public class GetConfigSummary extends CliCommand<GetConfigSummaryResult> {
     }
 
     @Override
-    public View<GetConfigSummaryResult> getView(final ViewType viewType) {
-        if (viewType == ViewType.JSON) {
+    public View<GetConfigSummaryResult> getView() {
+        if (this.viewType == ViewType.JSON) {
             return new com.spectralogic.ds3cli.views.json.GetConfigSummaryView();
         }
         return new com.spectralogic.ds3cli.views.cli.GetConfigSummaryView();

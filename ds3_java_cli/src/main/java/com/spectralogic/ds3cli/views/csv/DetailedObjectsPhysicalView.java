@@ -28,7 +28,7 @@ import com.spectralogic.ds3client.utils.Guard;
 import javax.annotation.Nullable;
 
 import static com.spectralogic.ds3cli.util.Utils.*;
-import static com.spectralogic.ds3cli.views.csv.CsvView.DATE_FORMAT;
+import static com.spectralogic.ds3cli.views.cli.TableView.DATE_FORMAT;
 
 public class DetailedObjectsPhysicalView implements View<GetDetailedObjectsResult> {
 

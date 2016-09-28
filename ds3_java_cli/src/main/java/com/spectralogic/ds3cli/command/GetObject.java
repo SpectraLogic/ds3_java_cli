@@ -15,7 +15,9 @@
 
 package com.spectralogic.ds3cli.command;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.spectralogic.ds3cli.ArgumentFactory;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.DefaultResult;
@@ -30,6 +32,7 @@ import com.spectralogic.ds3client.networking.*;
 import com.spectralogic.ds3client.networking.Metadata;
 import com.spectralogic.ds3client.serializer.XmlProcessingException;
 import org.apache.commons.cli.MissingOptionException;
+import org.apache.commons.cli.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,6 +44,10 @@ import java.util.List;
 public class GetObject extends CliCommand<DefaultResult> {
 
     private final static Logger LOG = LoggerFactory.getLogger(GetObject.class);
+
+    private final static ImmutableList<Option> requiredArgs = ImmutableList.of(ArgumentFactory.BUCKET, ArgumentFactory.OBJECT_NAME);
+    private final static ImmutableList<Option> optionalArgs = ImmutableList.of(ArgumentFactory.DIRECTORY, ArgumentFactory.SYNC,
+            ArgumentFactory.FORCE, ArgumentFactory.NUMBER_OF_THREADS, ArgumentFactory.PRIORITY);
 
     private String bucketName;
     private String objectName;
@@ -55,30 +62,23 @@ public class GetObject extends CliCommand<DefaultResult> {
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
-        this.priority = args.getPriority();
+        addRequiredArguments(requiredArgs, args);
+        addOptionalArguments(optionalArgs, args);
+        args.parseCommandLine();
         this.bucketName = args.getBucket();
-        if (this.bucketName == null) {
-            throw new MissingOptionException("The get object command requires '-b' to be set.");
-        }
-
+        this.priority = args.getPriority();
         this.objectName = args.getObjectName();
-        if (this.objectName == null) {
-            throw new MissingOptionException("The get object command requires '-o' to be set.");
-        }
-
         this.prefix = args.getDirectory();
         if (this.prefix == null) {
             this.prefix = ".";
         }
-
         if (args.isSync()) {
             LOG.info("Using sync command");
             this.sync = true;
         }
-
         this.force = args.isForce();
         this.numberOfThreads = Integer.valueOf(args.getNumberOfThreads());
-
+        this.viewType = args.getOutputFormat();
         return this;
     }
 

@@ -31,7 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.spectralogic.ds3cli.util.Utils.*;
-import static com.spectralogic.ds3cli.views.csv.CsvView.DATE_FORMAT;
+import static com.spectralogic.ds3cli.views.cli.TableView.DATE_FORMAT;
 
 public class DetailedObjectsView implements View<GetDetailedObjectsResult> {
 

@@ -20,6 +20,7 @@ import com.spectralogic.ds3client.commands.spectrads3.*;
 import com.spectralogic.ds3client.models.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.spectralogic.ds3client.utils.Guard;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -54,7 +55,7 @@ public final class ABMTestHelper {
     }
 
     /**
-     * Creates a data policy with the specified name and versioning level and checksum, if a
+     * Creates a data policy with the specified name and versioning level and CHECKSUM, if a
      * policy with the same name does not currently exist. If a policy already
      * exists with the specified name, an error is thrown.
      */
@@ -77,7 +78,7 @@ public final class ABMTestHelper {
                     .withVersioning(versioningLevel));
                     // TODO 3.2: .withAlwaysForcePutJobCreation(true));
         }
-        //Create the data policy with versioning and checksum
+        //Create the data policy with versioning and CHECKSUM
         return client.putDataPolicySpectraS3(new PutDataPolicySpectraS3Request(dataPolicyName)
                 .withVersioning(versioningLevel)
                 .withEndToEndCrcRequired(true)
@@ -452,4 +453,50 @@ public final class ABMTestHelper {
             }
         }
     }
+
+    /**
+     * Deletes all buckets associted with a data policy
+     * to ensure that said policy can be deleted
+     * If any buckets using the policy are not properly deleted, an error is logged.
+     */
+    public static void deleteBucketsWithDataPolicy(
+            final String dataPolicyName,
+            final Ds3Client client) {
+        if (isEmpty(dataPolicyName)) {
+            //This might not be an error if this function is called as part of cleanup code
+            LOG.debug("Data policy name is null or empty");
+            return;
+        }
+        //Get all buckets using the data policy
+        try {
+            final GetBucketsSpectraS3Response bucketsResponse = client
+                    .getBucketsSpectraS3(new GetBucketsSpectraS3Request().withDataPolicyId(dataPolicyName));
+
+            final BucketList bucketList = bucketsResponse.getBucketListResult();
+
+            for (final Bucket bucket : bucketList.getBuckets()) {
+                // delete each
+                final DeleteBucketSpectraS3Response deleteBucketSpectraS3Response = client
+                        .deleteBucketSpectraS3(new DeleteBucketSpectraS3Request(bucket.getName()).withForce(true));
+                assertThat(deleteBucketSpectraS3Response.getStatusCode(), is(204));
+            }
+
+        } catch (final IOException|AssertionError e) {
+            LOG.error("Bucket assigned to data policy was not deleted as expected: " + dataPolicyName, e);
+        }
+
+        // Verify that no buckets are attached to the data policy
+        try {
+            final GetBucketsSpectraS3Response bucketsResponse = client
+                    .getBucketsSpectraS3(new GetBucketsSpectraS3Request().withDataPolicyId(dataPolicyName));
+
+            final BucketList bucketList = bucketsResponse.getBucketListResult();
+            if (!Guard.isNullOrEmpty(bucketList.getBuckets())) {
+                LOG.error("Buckets using data policy still exist despite deletion attempt");
+            }
+        } catch (final IOException e) {
+            LOG.error("Failed getting buckets to verify none use data policy " + dataPolicyName, e);
+        }
+    }
+
 }

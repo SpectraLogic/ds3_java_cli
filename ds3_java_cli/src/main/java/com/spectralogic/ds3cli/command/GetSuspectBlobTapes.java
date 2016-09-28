@@ -23,10 +23,6 @@ import com.spectralogic.ds3client.commands.spectrads3.GetSuspectBlobTapesSpectra
 import com.spectralogic.ds3client.commands.spectrads3.GetSuspectBlobTapesSpectraS3Response;
 
 public class GetSuspectBlobTapes extends CliCommand<SuspectBlobTapesResult> {
-    @Override
-    public CliCommand init(final Arguments args) throws Exception {
-        return this;
-    }
 
     @Override
     public SuspectBlobTapesResult call() throws Exception {
@@ -35,8 +31,8 @@ public class GetSuspectBlobTapes extends CliCommand<SuspectBlobTapesResult> {
     }
 
     @Override
-    public View<SuspectBlobTapesResult> getView(final ViewType viewType) {
-        if (viewType == ViewType.JSON) {
+    public View<SuspectBlobTapesResult> getView() {
+        if (this.viewType == ViewType.JSON) {
             return new com.spectralogic.ds3cli.views.json.GetSuspectBlobTapesView();
         } else {
             return new com.spectralogic.ds3cli.views.cli.GetSuspectBlobTapesView();

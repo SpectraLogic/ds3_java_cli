@@ -15,6 +15,8 @@
 
 package com.spectralogic.ds3cli.command;
 
+import com.google.common.collect.ImmutableList;
+import com.spectralogic.ds3cli.ArgumentFactory;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
@@ -24,10 +26,13 @@ import com.spectralogic.ds3client.commands.spectrads3.GetDataPolicySpectraS3Requ
 import com.spectralogic.ds3client.commands.spectrads3.GetDataPolicySpectraS3Response;
 import com.spectralogic.ds3client.networking.FailedRequestException;
 import org.apache.commons.cli.MissingOptionException;
+import org.apache.commons.cli.Option;
 
 import java.io.IOException;
 
 public class GetDataPolicy extends CliCommand<GetDataPoliciesResult> {
+
+    private final static ImmutableList<Option> requiredArgs = ImmutableList.of(ArgumentFactory.ID);
 
     // name or guid
     private String policyId;
@@ -37,10 +42,11 @@ public class GetDataPolicy extends CliCommand<GetDataPoliciesResult> {
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
+        addRequiredArguments(requiredArgs, args);
+        args.parseCommandLine();
+
         this.policyId = args.getId();
-        if (this.policyId == null) {
-            throw new MissingOptionException("The get policy command requires '-i' to be set with the policy name or Id");
-        }
+        this.viewType = args.getOutputFormat();
         return this;
     }
 
@@ -56,8 +62,8 @@ public class GetDataPolicy extends CliCommand<GetDataPoliciesResult> {
     }
 
     @Override
-    public View<GetDataPoliciesResult> getView(final ViewType viewType) {
-        if (viewType == ViewType.JSON) {
+    public View<GetDataPoliciesResult> getView() {
+        if (this.viewType == ViewType.JSON) {
             return new com.spectralogic.ds3cli.views.json.GetDataPoliciesView();
         }
         return new com.spectralogic.ds3cli.views.cli.GetDataPoliciesView();

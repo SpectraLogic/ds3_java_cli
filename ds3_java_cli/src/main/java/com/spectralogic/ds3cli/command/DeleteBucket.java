@@ -15,6 +15,8 @@
 
 package com.spectralogic.ds3cli.command;
 
+import com.google.common.collect.ImmutableList;
+import com.spectralogic.ds3cli.ArgumentFactory;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.DefaultResult;
@@ -25,6 +27,7 @@ import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.models.Contents;
 import com.spectralogic.ds3client.networking.FailedRequestException;
 import org.apache.commons.cli.MissingOptionException;
+import org.apache.commons.cli.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,16 +40,21 @@ public class DeleteBucket extends CliCommand<DefaultResult> {
     private String bucketName;
     private boolean force;
 
+    private final static ImmutableList<Option> requiredArgs = ImmutableList.of(ArgumentFactory.BUCKET);
+    private final static ImmutableList<Option> optionalArgs = ImmutableList.of(ArgumentFactory.FORCE);
+
     public DeleteBucket() {
     }
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
-        bucketName = args.getBucket();
-        if (bucketName == null) {
-            throw new MissingOptionException("The delete bucket command requires '-b' to be set.");
-        }
-        force = args.isForce();
+        addRequiredArguments(requiredArgs, args);
+        addOptionalArguments(optionalArgs, args);
+        args.parseCommandLine();
+
+        this.bucketName = args.getBucket();
+        this.force = args.isForce();
+        this.viewType = args.getOutputFormat();
         return this;
     }
 
@@ -55,7 +63,7 @@ public class DeleteBucket extends CliCommand<DefaultResult> {
     @Override
     public DefaultResult call() throws Exception {
 
-        if (force) {
+        if (this.force) {
             return new DefaultResult(clearObjects());
         } else {
             return new DefaultResult(deleteBucket());
@@ -76,9 +84,9 @@ public class DeleteBucket extends CliCommand<DefaultResult> {
     }
 
     private String clearObjects() throws CommandException {
-        // TODO when the multi object delete command has been added to DS3
-        // Get the list of objects from the bucket
-        LOG.debug("Deleting objects in bucket first");
+        // TODO when the multi object delete COMMAND has been added to DS3
+        // Get the list of objects from the BUCKET
+        LOG.debug("Deleting objects in BUCKET first");
         final Ds3Client client = getClient();
         final Ds3ClientHelpers helper = Ds3ClientHelpers.wrap(client);
 
@@ -86,7 +94,7 @@ public class DeleteBucket extends CliCommand<DefaultResult> {
             final Iterable<Contents> fileList = helper.listObjects(bucketName);
             client.deleteObjects(new DeleteObjectsRequest(bucketName, fileList));
 
-            LOG.debug("Deleting bucket");
+            LOG.debug("Deleting BUCKET");
             getClient().deleteBucket(new DeleteBucketRequest(bucketName));
 
         } catch (final IOException e) {

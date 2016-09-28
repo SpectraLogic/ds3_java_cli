@@ -18,6 +18,7 @@ package com.spectralogic.ds3cli.command;
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
+import com.spectralogic.ds3cli.ArgumentFactory;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
@@ -27,15 +28,21 @@ import com.spectralogic.ds3client.commands.spectrads3.GetSuspectObjectsWithFullD
 import com.spectralogic.ds3client.commands.spectrads3.GetSuspectObjectsWithFullDetailsSpectraS3Response;
 import com.spectralogic.ds3client.models.BulkObject;
 import com.spectralogic.ds3client.models.BulkObjectList;
+import org.apache.commons.cli.Option;
 
 import javax.annotation.Nullable;
 
 public class GetSuspectObjects extends CliCommand<SuspectedObjectResult> {
 
+    private final static ImmutableList<Option> optionalArgs = ImmutableList.of(ArgumentFactory.IN_CACHE);
+
     private boolean inCache;
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
+        addOptionalArguments(optionalArgs, args);
+        args.parseCommandLine();
+        this.viewType = args.getOutputFormat();
         this.inCache = args.isInCache();
         return this;
     }
@@ -71,8 +78,8 @@ public class GetSuspectObjects extends CliCommand<SuspectedObjectResult> {
     }
 
     @Override
-    public View<SuspectedObjectResult> getView(final ViewType viewType) {
-        if (viewType == ViewType.JSON) {
+    public View<SuspectedObjectResult> getView() {
+        if (this.viewType == ViewType.JSON) {
             return new com.spectralogic.ds3cli.views.json.SuspectedObjectsView();
         } else {
             return new SuspectedObjectsView();

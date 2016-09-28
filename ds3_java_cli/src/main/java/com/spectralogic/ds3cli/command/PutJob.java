@@ -15,12 +15,15 @@
 
 package com.spectralogic.ds3cli.command;
 
+import com.google.common.collect.ImmutableList;
+import com.spectralogic.ds3cli.ArgumentFactory;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.DefaultResult;
 import com.spectralogic.ds3client.commands.spectrads3.ModifyJobSpectraS3Request;
 import com.spectralogic.ds3client.models.Priority;
 import org.apache.commons.cli.MissingOptionException;
+import org.apache.commons.cli.Option;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -30,16 +33,21 @@ public class PutJob extends CliCommand<DefaultResult> {
     private UUID jobId;
     private Priority priority;
 
+    private final static ImmutableList<Option> requiredArgs = ImmutableList.of(ArgumentFactory.ID);
+    private final static ImmutableList<Option> optionalArgs = ImmutableList.of(ArgumentFactory.PRIORITY);
+
     public PutJob() {
     }
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
-        if (args.getId() == null) {
-            throw new MissingOptionException("The put job command requires '-i' to be set.");
-        }
-        jobId = UUID.fromString(args.getId());
-        priority = args.getPriority();
+        addRequiredArguments(requiredArgs, args);
+        addOptionalArguments(optionalArgs, args);
+        args.parseCommandLine();
+
+        this.jobId = UUID.fromString(args.getId());
+        this.priority = args.getPriority();
+        this.viewType = args.getOutputFormat();
         return this;
     }
 
@@ -55,9 +63,9 @@ public class PutJob extends CliCommand<DefaultResult> {
         catch (final IOException e) {
             throw new CommandException("Error: Request failed with the following error: " + e.getMessage(), e);
         }
-        String result = "Success: Modified job with job id '" + jobId.toString() + "'";
+        String result = "Success: Modified job with job ID '" + jobId.toString() + "'";
         if (priority != null) {
-            result = result.concat(" with priority " + priority.toString());
+            result = result.concat(" with PRIORITY " + priority.toString());
         }
         return new DefaultResult(result + ".");
     }

@@ -16,6 +16,8 @@
 package com.spectralogic.ds3cli.integration;
 
 import com.spectralogic.ds3cli.*;
+import com.spectralogic.ds3cli.command.CliCommand;
+import com.spectralogic.ds3cli.command.CliCommandFactory;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3cli.util.Utils;
@@ -41,9 +43,9 @@ public class Util {
     public static CommandResponse command(final Ds3Client client, final Arguments args) throws Exception {
         final Ds3Provider provider = new Ds3ProviderImpl(client, Ds3ClientHelpers.wrap(client));
         final FileUtils fileUtils = new FileUtilsImpl();
-        final Ds3Cli runner = new Ds3Cli(provider, args, fileUtils);
-
-        return runner.call();
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(provider, fileUtils);
+        command.init(args);
+        return command.render();
     }
 
     public static CommandResponse createBucket(final Ds3Client client, final String bucketName) throws Exception {
