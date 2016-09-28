@@ -30,6 +30,7 @@ import com.spectralogic.ds3client.helpers.pagination.GetObjectsFullDetailsLoader
 import com.spectralogic.ds3client.models.DetailedS3Object;
 import com.spectralogic.ds3client.utils.Guard;
 import com.spectralogic.ds3client.utils.collections.LazyIterable;
+import org.apache.commons.cli.MissingOptionException;
 import org.slf4j.LoggerFactory;
 
 
@@ -54,6 +55,10 @@ public class GetDetailedObjects extends CliCommand<GetDetailedObjectsResult> {
     public CliCommand init(final Arguments args) throws Exception {
         this.filterParams = args.getFilterParams();
         this.bucketName = args.getBucket();
+
+        if (Guard.isStringNullOrEmpty(this.bucketName)) {
+            throw new MissingOptionException("The get detailed objects command requires '-b' to be set.");
+        }
 
         if (!Guard.isStringNullOrEmpty(args.getPrefix())) {
             LOG.warn("'-p' prefix is not supported.");
