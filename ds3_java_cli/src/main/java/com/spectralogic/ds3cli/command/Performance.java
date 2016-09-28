@@ -53,22 +53,22 @@ public class Performance extends CliCommand<DefaultResult> {
     @Override
     public CliCommand init(final Arguments args) throws Exception {
         if (args.getOutputFormat() == ViewType.JSON) {
-            throw new CommandException("Json output is not supported with the performance command");
+            throw new CommandException("Json output is not supported with the performance COMMAND");
         }
 
         bucketName = args.getBucket();
         if (bucketName == null) {
-            throw new MissingOptionException("The performance command requires '-b' to be set.");
+            throw new MissingOptionException("The performance COMMAND requires '-b' to be set.");
         }
 
         numberOfFiles = args.getNumberOfFiles();
         if (numberOfFiles == null) {
-            throw new MissingOptionException("The performance command requires '-n' to be set.");
+            throw new MissingOptionException("The performance COMMAND requires '-n' to be set.");
         }
 
         sizeOfFiles = args.getSizeOfFiles();
         if (sizeOfFiles == null) {
-            throw new MissingOptionException("The performance command requires '-s' to be set.");
+            throw new MissingOptionException("The performance COMMAND requires '-s' to be set.");
         }
 
         bufferSize = Integer.valueOf(args.getBufferSize());
@@ -90,7 +90,7 @@ public class Performance extends CliCommand<DefaultResult> {
             } catch(final FailedRequestException e) {
                 this.doNotDelete = true;
                 if (e.getStatusCode() == 409) {
-                    throw new CommandException("Bucket " + bucketName + " already exists. To avoid any conflicts please use a non-existent bucket.");
+                    throw new CommandException("Bucket " + bucketName + " already exists. To avoid any conflicts please use a non-existent BUCKET.");
                 }
                 throw new CommandException("Encountered a DS3 Error", e);
             }
@@ -200,7 +200,7 @@ public class Performance extends CliCommand<DefaultResult> {
             }
 
 
-            System.out.print(String.format("\r%s Statistics: (%d/%d MB), files (%d/%d completed), Time (%.03f sec), MBps (%.03f), Highest MBps (%.03f)",
+            System.out.print(String.format("\r%s Statistics: (%d/%d MB), files (%d/%d COMPLETED), Time (%.03f sec), MBps (%.03f), Highest MBps (%.03f)",
                     messagePrefix, content, numberOfMB, numberOfFiles, totalNumberOfFiles, time, mbps, highestMbps));
         }
     }

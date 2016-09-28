@@ -33,11 +33,6 @@ public class GetCapacitySummary extends CliCommand<GetCapacitySummaryResult> {
     }
 
     @Override
-    public CliCommand init(final Arguments args) throws Exception {
-        return this;
-    }
-
-    @Override
     public GetCapacitySummaryResult call() throws IOException, CommandException {
         try {
             final GetSystemCapacitySummarySpectraS3Response systemCapacitySummaryResponse =
@@ -51,8 +46,8 @@ public class GetCapacitySummary extends CliCommand<GetCapacitySummaryResult> {
     }
 
     @Override
-    public View<GetCapacitySummaryResult> getView(final ViewType viewType) {
-        if (viewType == ViewType.JSON) {
+    public View<GetCapacitySummaryResult> getView() {
+        if (this.viewType == ViewType.JSON) {
             return new com.spectralogic.ds3cli.views.json.GetCapacitySummaryView();
         }
         return new com.spectralogic.ds3cli.views.cli.GetCapacitySummaryView();

@@ -15,8 +15,10 @@
 
 package com.spectralogic.ds3cli.command;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.spectralogic.ds3cli.ArgumentFactory;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.exceptions.BadArgumentException;
 import com.spectralogic.ds3cli.exceptions.SyncNotSupportedException;
@@ -29,6 +31,7 @@ import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.serializer.XmlProcessingException;
 import com.spectralogic.ds3client.utils.Guard;
 import org.apache.commons.cli.MissingOptionException;
+import org.apache.commons.cli.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,6 +47,11 @@ public class PutObject extends CliCommand<DefaultResult> {
 
     private final static Logger LOG = LoggerFactory.getLogger(PutObject.class);
 
+    private final static ImmutableList<Option> requiredArgs = ImmutableList.of(ArgumentFactory.BUCKET, ArgumentFactory.OBJECT_NAME);
+    private final static ImmutableList<Option> optionalArgs
+            = ImmutableList.of(ArgumentFactory.PREFIX, ArgumentFactory.SYNC, ArgumentFactory.FORCE, ArgumentFactory.NUMBER_OF_THREADS,
+            ArgumentFactory.METADATA, ArgumentFactory.PRIORITY);
+
     private String bucketName;
     private Path objectPath;
     private String objectName;
@@ -56,50 +64,40 @@ public class PutObject extends CliCommand<DefaultResult> {
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
+        addRequiredArguments(requiredArgs, args);
+        addOptionalArguments(optionalArgs, args);
+        args.parseCommandLine();
+
         this.priority = args.getPriority();
         this.bucketName = args.getBucket();
-        if (this.bucketName == null) {
-            throw new MissingOptionException("The put object command requires '-b' to be set.");
-        }
         this.objectName = args.getObjectName();
-        if (this.objectName == null) {
-            throw new MissingOptionException("The put object command requires '-o' to be set.");
-        }
-
-        if (args.getDirectory() != null) {
-            throw new BadArgumentException("'-d' should not be used with the command 'put_object'.  If you want to move an entire directory, use 'put_bulk' instead.");
-        }
-
-        this.objectPath = FileSystems.getDefault().getPath(args.getObjectName());
-        if (!getFileUtils().exists(this.objectPath)) {
-            throw new BadArgumentException("File '" + this.objectName + "' does not exist.");
-        }
-        if (!getFileUtils().isRegularFile(this.objectPath)) {
-            throw new BadArgumentException("The '-o' command must be a file and not a directory.");
-        }
-
+        this.objectPath = FileSystems.getDefault().getPath(this.objectName);
         this.prefix = args.getPrefix();
         this.force = args.isForce();
-
-        if (args.isSync()) {
-            if (!SyncUtils.isSyncSupported(getClient())) {
-                throw new SyncNotSupportedException("The sync command is not supported with your version of BlackPearl.");
-            }
-
+        if (this.sync = args.isSync()) {
             LOG.info("Using sync command");
-            this.sync = true;
         }
-
         this.numberOfThreads = Integer.valueOf(args.getNumberOfThreads());
-
         this.metadata = args.getMetadata();
-
+        this.viewType = args.getOutputFormat();
         return this;
     }
 
     @Override
     public DefaultResult call() throws Exception {
         final Ds3ClientHelpers helpers = getClientHelpers();
+        if (!getFileUtils().exists(this.objectPath)) {
+            throw new BadArgumentException("File '" + this.objectName + "' does not exist.");
+        }
+        if (!getFileUtils().isRegularFile(this.objectPath)) {
+            throw new BadArgumentException("The '-o' command must be a file and not a directory.");
+        }
+        if (this.sync) {
+            if (!SyncUtils.isSyncSupported(getClient())) {
+                throw new SyncNotSupportedException("The sync command is not supported with your version of BlackPearl.");
+            }
+        }
+
         final Ds3Object ds3Obj = new Ds3Object(Utils.normalizeObjectName(this.objectName), getFileUtils().size(this.objectPath));
 
         if (this.prefix != null) {
@@ -107,7 +105,7 @@ public class PutObject extends CliCommand<DefaultResult> {
             ds3Obj.setName(this.prefix + ds3Obj.getName());
         }
 
-        /* Ensure the bucket exists and if not create it */
+        /* Ensure the BUCKET exists and if not create it */
         helpers.ensureBucketExists(this.bucketName);
 
         if (this.sync) {

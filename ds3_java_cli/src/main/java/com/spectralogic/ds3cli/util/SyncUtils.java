@@ -42,7 +42,7 @@ public final class SyncUtils {
         final String buildInfo = client.getSystemInformationSpectraS3(new GetSystemInformationSpectraS3Request()).getSystemInformationResult().getBuildInformation().getVersion();
         final String[] buildInfoArr = buildInfo.split((Pattern.quote(".")));
         if (Integer.parseInt(buildInfoArr[MAJOR_INDEX]) < VERSION_SUPPORTED) {
-            LOG.info("The sync command can not be used with BlackPearl {}", buildInfo);
+            LOG.info("The SYNC COMMAND can not be used with BlackPearl {}", buildInfo);
             return false;
         }
         LOG.info("Using BlackPearl {}", buildInfo);
@@ -72,7 +72,7 @@ public final class SyncUtils {
                     LOG.info("Syncing new version of {}",ds3ObjName);
                     return true;
                 } else {
-                    LOG.info("No need to sync {}", ds3ObjName);
+                    LOG.info("No need to SYNC {}", ds3ObjName);
                     return false;
                 }
             }

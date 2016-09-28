@@ -34,7 +34,7 @@ public class GetBucketView extends TableView<GetBucketResult> {
     @Override
     public String render(final GetBucketResult br) {
         if( (null == br.getObjIterator()) || !br.getObjIterator().hasNext()) {
-            return "No objects were reported in bucket '" + br.getBucketName() + "'";
+            return "No objects were reported in BUCKET '" + br.getBucketName() + "'";
         }
         this.objectIterator = br.getObjIterator();
         initTable(ImmutableList.of("File Name", "Size", "Owner", "Last Modified", "ETag"));

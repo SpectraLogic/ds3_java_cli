@@ -15,6 +15,8 @@
 
 package com.spectralogic.ds3cli.command;
 
+import com.google.common.collect.ImmutableList;
+import com.spectralogic.ds3cli.ArgumentFactory;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
@@ -24,11 +26,14 @@ import com.spectralogic.ds3client.commands.spectrads3.*;
 import com.spectralogic.ds3client.networking.FailedRequestException;
 import com.spectralogic.ds3client.utils.Guard;
 import org.apache.commons.cli.MissingOptionException;
+import org.apache.commons.cli.Option;
 
 import java.io.IOException;
 
 
 public class GetObjectsOnTape extends CliCommand<GetObjectsOnTapeResult> {
+
+    private final static ImmutableList<Option> requiredArgs = ImmutableList.of(ArgumentFactory.ID);
 
     // Barcode or tape ID
     private String tapeId;
@@ -38,11 +43,12 @@ public class GetObjectsOnTape extends CliCommand<GetObjectsOnTapeResult> {
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
+        addRequiredArguments(requiredArgs, args);
+        args.parseCommandLine();
+
         this.tapeId = args.getId();
-        if (Guard.isStringNullOrEmpty(this.tapeId)) {
-            throw new MissingOptionException("The get_objects_on_tape command requires '-i' to be set with the tape Id or barcode");
-        }
-        return this;
+        this.viewType = args.getOutputFormat();
+        return  this;
     }
 
     @Override
@@ -67,8 +73,8 @@ public class GetObjectsOnTape extends CliCommand<GetObjectsOnTapeResult> {
     }
 
     @Override
-    public View<GetObjectsOnTapeResult> getView(final ViewType viewType) {
-        if (viewType == ViewType.JSON) {
+    public View<GetObjectsOnTapeResult> getView() {
+        if (this.viewType == ViewType.JSON) {
             return new com.spectralogic.ds3cli.views.json.GetObjectsOnTapeView();
         }
         return new com.spectralogic.ds3cli.views.cli.GetObjectsOnTapeView();

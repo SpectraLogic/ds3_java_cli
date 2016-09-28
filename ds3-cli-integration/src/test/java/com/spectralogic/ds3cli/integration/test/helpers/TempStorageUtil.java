@@ -83,6 +83,7 @@ public class TempStorageUtil {
             final String testSetName,
             final TempStorageIds ids,
             final Ds3Client client) throws IOException {
+        deleteBucketsWithDataPolicy(testSetName + DATA_POLICY_NAME, client);
         deleteDataPersistenceRule(ids.getDataPersistenceRuleId(), client);
         deleteDataPolicy(testSetName + DATA_POLICY_NAME, client);
         deleteStorageDomainMember(ids.getStorageDomainMemberId(), client);
@@ -91,7 +92,7 @@ public class TempStorageUtil {
     }
 
     /**
-     * Creates a Data Policy with the specified checksum type and end-to-end crc requirement
+     * Creates a Data Policy with the specified CHECKSUM type and end-to-end crc requirement
      */
     public static UUID setupDataPolicy(
             final String testSetName,

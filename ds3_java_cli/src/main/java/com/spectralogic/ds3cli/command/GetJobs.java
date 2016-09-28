@@ -15,13 +15,18 @@
 
 package com.spectralogic.ds3cli.command;
 
+import com.google.common.collect.ImmutableList;
+import com.spectralogic.ds3cli.ArgumentFactory;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.models.GetJobsResult;
 import com.spectralogic.ds3client.commands.spectrads3.GetJobsSpectraS3Request;
+import org.apache.commons.cli.Option;
 
 public class GetJobs extends CliCommand<GetJobsResult> {
+
+    private final static ImmutableList<Option> optionalArgs = ImmutableList.of(ArgumentFactory.COMPLETED);
 
     private boolean completed;
 
@@ -30,6 +35,10 @@ public class GetJobs extends CliCommand<GetJobsResult> {
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
+        addOptionalArguments(optionalArgs, args);
+        args.parseCommandLine();
+
+        this.viewType = args.getOutputFormat();
         this.completed = args.isCompleted();
         return this;
     }
@@ -45,8 +54,8 @@ public class GetJobs extends CliCommand<GetJobsResult> {
     }
 
      @Override
-    public View<GetJobsResult> getView(final ViewType viewType) {
-        if (viewType == ViewType.JSON) {
+    public View<GetJobsResult> getView() {
+        if (this.viewType == ViewType.JSON) {
             return new com.spectralogic.ds3cli.views.json.GetJobsView();
         }
         return new com.spectralogic.ds3cli.views.cli.GetJobsView();
