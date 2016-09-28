@@ -56,10 +56,6 @@ public class GetDetailedObjects extends CliCommand<GetDetailedObjectsResult> {
         this.filterParams = args.getFilterParams();
         this.bucketName = args.getBucket();
 
-        if (Guard.isStringNullOrEmpty(this.bucketName)) {
-            throw new MissingOptionException("The get detailed objects command requires '-b' to be set.");
-        }
-
         if (!Guard.isStringNullOrEmpty(args.getPrefix())) {
             LOG.warn("'-p' prefix is not supported.");
         }
@@ -74,7 +70,7 @@ public class GetDetailedObjects extends CliCommand<GetDetailedObjectsResult> {
         final Predicate<DetailedS3Object> filterPredicate = getPredicate();
 
         // get filtered list using pagination
-        suspectBulkObjects = FluentIterable.from(new LazyIterable<DetailedS3Object>(
+        suspectBulkObjects = FluentIterable.from(new LazyIterable<>(
                         new GetObjectsFullDetailsLoaderFactory(getClient(), this.bucketName, this.prefix, 100, 5, true)))
                 .filter(Predicates.notNull());
 
@@ -122,7 +118,7 @@ public class GetDetailedObjects extends CliCommand<GetDetailedObjectsResult> {
 
     private Map<String, String> parseMeta() throws CommandException {
         // load defaults and define legal values
-        final Map<String, String> ranges = new HashMap<String, String>();
+        final Map<String, String> ranges = new HashMap<>();
         ranges.put(NEWERTHAN, "0");
         ranges.put(OLDERTHAN, Long.toString(Long.MAX_VALUE));
         ranges.put(LARGERTHAN, "0");
