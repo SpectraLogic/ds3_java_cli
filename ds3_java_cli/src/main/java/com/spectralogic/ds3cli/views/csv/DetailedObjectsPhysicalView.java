@@ -15,63 +15,116 @@
 
 package com.spectralogic.ds3cli.views.csv;
 
+import com.google.common.base.Function;
+import com.google.common.base.Predicate;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
+import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.models.GetDetailedObjectsResult;
 import com.spectralogic.ds3client.models.*;
 import com.spectralogic.ds3client.utils.Guard;
 
-import java.util.ArrayList;
+import javax.annotation.Nullable;
 
 import static com.spectralogic.ds3cli.util.Utils.*;
+import static com.spectralogic.ds3cli.views.csv.CsvView.DATE_FORMAT;
 
-public class DetailedObjectsPhysicalView extends CsvView<GetDetailedObjectsResult> {
-    private ImmutableList<DetailedS3Object> objects;
+public class DetailedObjectsPhysicalView implements View<GetDetailedObjectsResult> {
 
     @Override
     public String render(final GetDetailedObjectsResult obj) {
-        if (obj == null || (obj.getObjIterator() == null) || !obj.getObjIterator().iterator().hasNext()) {
+        if (obj == null || obj.getObjIterator() == null || Iterables.isEmpty(obj.getObjIterator())) {
             return "No objects returned";
         }
 
-        objects = ImmutableList.copyOf(obj.getObjIterator());
-        initTable(ImmutableList.of("Name", "Bucket", "Owner", "Size", "Type", "Creation Date", "Barcode", "State"));
+        final ImmutableList<String> headers = ImmutableList.of("Name", "Bucket", "Owner", "Size", "Type", "Creation Date", "Barcode", "State");
 
-        return renderTable();
+        final FluentIterable<DetailedTapeInfo> objects = FluentIterable.from(obj.getObjIterator())
+                .filter(new Predicate<DetailedS3Object>() {
+                    @Override
+                    public boolean apply(@Nullable final DetailedS3Object input) {
+                        return input.getBlobs() != null && !Guard.isNullOrEmpty(input.getBlobs().getObjects());
+                    }
+                }).transformAndConcat(new DetailedDs3ObjectMapper());
+
+        return new CsvOutput<>(headers, objects, new CsvOutput.ContentFormatter<DetailedTapeInfo>() {
+            @Override
+            public Iterable<String> format(final DetailedTapeInfo content) {
+
+                final ImmutableList.Builder<String> csvRow = ImmutableList.builder();
+                final DetailedS3Object detailedObject = content.getDetailedS3Object();
+                final Tape tape = content.getTape();
+
+                csvRow.add(nullGuard(detailedObject.getName()));
+                csvRow.add(nullGuardToString(detailedObject.getBucketId()));
+                csvRow.add(nullGuardToString(detailedObject.getOwner()));
+                csvRow.add(nullGuardToString(detailedObject.getSize()));
+                csvRow.add(nullGuardToString(detailedObject.getType()));
+                csvRow.add(nullGuardToDate(detailedObject.getCreationDate(), DATE_FORMAT));
+                csvRow.add(nullGuard(tape.getBarCode()));
+                csvRow.add(nullGuardToString(tape.getState()));
+                return csvRow.build();
+            }
+        }).toString();
     }
 
-    @Override
-    protected String[][] formatTableContents() {
-        final ArrayList<String[]> formatArray = new ArrayList<String[]>();
-        int lineCount = 0;
-        for (final DetailedS3Object detailedObject : this.objects) {
-            // one line for each instance on tape -- mine down to get Physical Placement
-            if((detailedObject.getBlobs() != null) && !Guard.isNullOrEmpty(detailedObject.getBlobs().getObjects())) {
-                for (final BulkObject object : detailedObject.getBlobs().getObjects()) {
-                    if (object.getPhysicalPlacement() != null) {
-                        if (!Guard.isNullOrEmpty(object.getPhysicalPlacement().getTapes())) {
-                            for (final Tape tape : object.getPhysicalPlacement().getTapes()) {
-                                formatArray.add(writeLine(tape, detailedObject));
-                                lineCount++;
-                            } // for tapes
-                        } // if tapes
-                    } // if physical placement
-                } // for objects
-            } // if
-        } // for DetailedS3Object
-        final String[][] ret = new String[lineCount][this.columnCount];
-        return formatArray.toArray(ret);
+    /**
+     * Takes a DetailedS3Object and converts it to an Iterable of DetailedTapeInfo objects
+     */
+    private class DetailedDs3ObjectMapper implements Function<DetailedS3Object, Iterable<DetailedTapeInfo>> {
+        @Nullable
+        @Override
+        public Iterable<DetailedTapeInfo> apply(@Nullable final DetailedS3Object detailedS3Object) {
+
+            return FluentIterable.from(detailedS3Object.getBlobs().getObjects()).filter(new Predicate<BulkObject>() {
+                @Override
+                public boolean apply(@Nullable final BulkObject input) {
+                    return input.getPhysicalPlacement() != null && !Guard.isNullOrEmpty(input.getPhysicalPlacement().getTapes());
+                }
+            }).transformAndConcat(new ToDetailedTapeInfo(detailedS3Object));
+        }
     }
 
-    private String[] writeLine(final Tape tape, final DetailedS3Object detailedObject) {
-        final String[] tapeArray = new String[this.columnCount];
-        tapeArray[0] = nullGuard(detailedObject.getName());
-        tapeArray[1] = nullGuardToString(detailedObject.getBucketId());
-        tapeArray[2] = nullGuardToString(detailedObject.getOwner());
-        tapeArray[3] = nullGuardToString(detailedObject.getSize());
-        tapeArray[4] = nullGuardToString(detailedObject.getType());
-        tapeArray[5] = nullGuardToDate(detailedObject.getCreationDate(), DATE_FORMAT);
-        tapeArray[6] = nullGuard(tape.getBarCode());
-        tapeArray[7] = nullGuardToString(tape.getState());
-        return tapeArray;
+    /**
+     * Takes a DetailedS3Object and Tape, and returns an Iterable of DetailedTapeInfo objects
+     */
+    private class ToDetailedTapeInfo implements Function<BulkObject, Iterable<DetailedTapeInfo>> {
+
+        private final DetailedS3Object detailedS3Object;
+
+        private ToDetailedTapeInfo(final DetailedS3Object detailedS3Object) {
+            this.detailedS3Object = detailedS3Object;
+        }
+
+        @Nullable
+        @Override
+        public Iterable<DetailedTapeInfo> apply(@Nullable final BulkObject bulkObject) {
+            return FluentIterable.from(bulkObject.getPhysicalPlacement().getTapes()).transform(new Function<Tape, DetailedTapeInfo>() {
+                @Nullable
+                @Override
+                public DetailedTapeInfo apply(@Nullable final Tape tape) {
+                    return new DetailedTapeInfo(tape, detailedS3Object);
+                }
+            });
+        }
+    }
+
+    private class DetailedTapeInfo {
+        private final Tape tape;
+        private final DetailedS3Object detailedS3Object;
+
+        private DetailedTapeInfo(final Tape tape, final DetailedS3Object detailedS3Object) {
+            this.tape = tape;
+            this.detailedS3Object = detailedS3Object;
+        }
+
+        public Tape getTape() {
+            return tape;
+        }
+
+        public DetailedS3Object getDetailedS3Object() {
+            return detailedS3Object;
+        }
     }
 }
