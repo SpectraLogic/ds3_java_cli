@@ -15,7 +15,10 @@
 
 package com.spectralogic.ds3cli.views.csv;
 
+import com.google.common.base.Function;
 import com.google.common.base.Joiner;
+import com.google.common.base.Predicate;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.spectralogic.ds3cli.View;
@@ -23,6 +26,7 @@ import com.spectralogic.ds3cli.models.GetDetailedObjectsResult;
 import com.spectralogic.ds3client.models.*;
 import com.spectralogic.ds3client.utils.Guard;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,13 +39,13 @@ public class DetailedObjectsView implements View<GetDetailedObjectsResult> {
 
     @Override
     public String render(final GetDetailedObjectsResult obj) {
-        if (obj == null || Iterables.isEmpty(obj.getObjIterator())) {
+        if (obj == null || obj.getObjIterator() == null || Iterables.isEmpty(obj.getObjIterator())) {
             return "No objects returned";
         }
 
         final ImmutableList<String> headers = ImmutableList.of("Name", "Bucket", "Owner", "Size", "Type", "Creation Date", "Tapes", "Pools");
 
-        return new CsvOutput<DetailedS3Object>(headers, obj.getObjIterator(), new CsvOutput.ContentFormatter<DetailedS3Object>() {
+        return new CsvOutput<>(headers, obj.getObjIterator(), new CsvOutput.ContentFormatter<DetailedS3Object>() {
             @Override
             public Iterable<String> format(final DetailedS3Object content) {
 
@@ -63,35 +67,53 @@ public class DetailedObjectsView implements View<GetDetailedObjectsResult> {
         if(Guard.isNullOrEmpty(objects.getObjects())) {
             return "No Physical Placement";
         }
-        final ArrayList<String> tapes = new ArrayList<String>();
-        for (final BulkObject object : objects.getObjects()) {
-            // hang on tight, we're mining for the items we want.
-            if (object.getPhysicalPlacement() != null) {
-                if (!Guard.isNullOrEmpty(object.getPhysicalPlacement().getTapes())) {
-                    for (final Tape tape : object.getPhysicalPlacement().getTapes()) {
-                        tapes.add(tape.getBarCode());
-                    }
-                }
+
+        final FluentIterable<String> iterable = FluentIterable.from(objects.getObjects()).filter(new Predicate<BulkObject>() {
+            @Override
+            public boolean apply(@Nullable final BulkObject bulkObject) {
+                return bulkObject.getPhysicalPlacement() != null && !Guard.isNullOrEmpty(bulkObject.getPhysicalPlacement().getTapes());
             }
-        }
-        return Joiner.on(TAPE_SEPARATOR).join(tapes);
+        }).transformAndConcat(new Function<BulkObject, Iterable<String>>() {
+            @Nullable
+            @Override
+            public Iterable<String> apply(@Nullable final BulkObject bulkObject) {
+                return FluentIterable.from(bulkObject.getPhysicalPlacement().getTapes()).transform(new Function<Tape, String>() {
+                    @Nullable
+                    @Override
+                    public String apply(@Nullable final Tape tape) {
+                        return tape.getBarCode();
+                    }
+                });
+            }
+        });
+
+        return Joiner.on(TAPE_SEPARATOR).join(iterable);
     }
 
     private static String concatenatePools(final BulkObjectList objects) {
         if(Guard.isNullOrEmpty(objects.getObjects())) {
             return "No Physical Placement";
         }
-        final ArrayList<String> pools = new ArrayList<String>();
-        for (final BulkObject object : objects.getObjects()) {
-            // hang on tight, we're mining for the items we want.
-            if (object.getPhysicalPlacement() != null) {
-                if (!Guard.isNullOrEmpty(object.getPhysicalPlacement().getPools())) {
-                    for (final Pool pool : object.getPhysicalPlacement().getPools()) {
-                        pools.add(pool.getName());
-                    }
-                }
+
+        final FluentIterable<String> iterable = FluentIterable.from(objects.getObjects()).filter(new Predicate<BulkObject>() {
+            @Override
+            public boolean apply(@Nullable final BulkObject bulkObject) {
+                return bulkObject.getPhysicalPlacement() != null && !Guard.isNullOrEmpty(bulkObject.getPhysicalPlacement().getPools());
             }
-        }
-        return Joiner.on(TAPE_SEPARATOR).join(pools);
+        }).transformAndConcat(new Function<BulkObject, Iterable<String>>() {
+            @Nullable
+            @Override
+            public Iterable<String> apply(@Nullable final BulkObject bulkObject) {
+                return FluentIterable.from(bulkObject.getPhysicalPlacement().getPools()).transform(new Function<Pool, String>() {
+                    @Nullable
+                    @Override
+                    public String apply(@Nullable final Pool pool) {
+                        return pool.getName();
+                    }
+                });
+            }
+        });
+
+        return Joiner.on(TAPE_SEPARATOR).join(iterable);
     }
 }
