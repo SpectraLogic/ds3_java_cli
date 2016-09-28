@@ -70,7 +70,7 @@ public class GetDetailedObjects extends CliCommand<GetDetailedObjectsResult> {
     @Override
     public GetDetailedObjectsResult call() throws Exception {
 
-        final FluentIterable suspectBulkObjects;
+        final FluentIterable<DetailedS3Object> suspectBulkObjects;
         final Predicate<DetailedS3Object> filterPredicate = getPredicate();
 
         // get filtered list using pagination
@@ -101,11 +101,10 @@ public class GetDetailedObjects extends CliCommand<GetDetailedObjectsResult> {
         return new Predicate<DetailedS3Object>() {
             @Override
             public boolean apply(@Nullable final DetailedS3Object input) {
-                return (input.getSize() > largerthan
+                return input.getSize() > largerthan
                         && input.getSize() < smallerthan
                         && input.getCreationDate().after(newerthan)
-                        && input.getCreationDate().before(olderthan)
-                );
+                        && input.getCreationDate().before(olderthan);
             }
         };
     }
@@ -133,7 +132,7 @@ public class GetDetailedObjects extends CliCommand<GetDetailedObjectsResult> {
             final String paramNewValue = this.filterParams.get(paramChange);
             if (ranges.containsKey(paramChange)) {
                 if(paramChange.equals(NEWERTHAN) || paramChange.equals(OLDERTHAN)){
-                    final long relativeDate = new Date().getTime() - (Utils.dateDiffToSeconds(paramNewValue) * 1000);
+                    final long relativeDate = new Date().getTime() - Utils.dateDiffToSeconds(paramNewValue) * 1000;
                     ranges.put(paramChange, Long.toString(relativeDate));
                 } else {
                     ranges.put(paramChange, paramNewValue);

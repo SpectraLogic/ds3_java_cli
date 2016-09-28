@@ -21,8 +21,6 @@ import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3cli.views.cli.CommandExceptionCliView;
 import com.spectralogic.ds3cli.views.json.CommandExceptionJsonView;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.base.CaseFormat;
 
@@ -31,8 +29,6 @@ import java.util.ServiceLoader;
 import java.util.concurrent.Callable;
 
 public class Ds3Cli implements Callable<CommandResponse> {
-
-    private final static Logger LOG = LoggerFactory.getLogger(Ds3Cli.class);
 
     private final Arguments args;
     private final Ds3Provider ds3Provider;

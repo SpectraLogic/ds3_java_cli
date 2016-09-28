@@ -30,7 +30,7 @@ import java.io.IOException;
 
 public class GetUser extends CliCommand<GetUsersResult> {
 
-    // name or guid
+    // name or uuid
     private String userId;
 
     public GetUser() {

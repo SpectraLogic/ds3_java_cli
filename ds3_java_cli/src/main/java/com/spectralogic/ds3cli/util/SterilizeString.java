@@ -44,7 +44,7 @@ public final class SterilizeString {
         return osSpecificPath(str, false);
     }
 
-    public static String osSpecificPath(final String str, boolean isEscaped) {
+    public static String osSpecificPath(final String str, final boolean isEscaped) {
         if(fs.compareTo("\\") == 0) {
             if(isEscaped) {
                 return str.replace("/", "\\\\");

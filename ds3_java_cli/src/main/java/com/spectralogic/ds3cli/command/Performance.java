@@ -174,7 +174,7 @@ public class Performance extends CliCommand<DefaultResult> {
             final long currentTime = System.currentTimeMillis();
             synchronized (this) {
                 totalByteTransferred += size;
-                time = (currentTime - this.startTime == 0) ? 1.0 : (currentTime - this.startTime) / 1000D;
+                time = currentTime - this.startTime == 0 ? 1.0 : (currentTime - this.startTime) / 1000D;
                 content = totalByteTransferred / 1024L / 1024L;
                 mbps = content / time;
                 if (mbps > highestMbps) highestMbps = mbps;

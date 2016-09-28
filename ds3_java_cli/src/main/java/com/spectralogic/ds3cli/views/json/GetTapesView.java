@@ -27,7 +27,7 @@ public class GetTapesView implements View<GetTapesResult> {
         final TapeList result = obj.getTapes();
         final CommonJsonView view = CommonJsonView.newView(CommonJsonView.Status.OK);
 
-        if ((result == null) || (null == result.getTapes())) {
+        if (result == null || null == result.getTapes()) {
             view.message("You do not have any tapes");
             return JsonMapper.toJson(view);
         }

@@ -40,7 +40,7 @@ public final class SyncUtils {
 
     public static boolean isSyncSupported(final Ds3Client client) throws IOException {
         final String buildInfo = client.getSystemInformationSpectraS3(new GetSystemInformationSpectraS3Request()).getSystemInformationResult().getBuildInformation().getVersion();
-        final String[] buildInfoArr = buildInfo.split((Pattern.quote(".")));
+        final String[] buildInfoArr = buildInfo.split(Pattern.quote("."));
         if (Integer.parseInt(buildInfoArr[MAJOR_INDEX]) < VERSION_SUPPORTED) {
             LOG.info("The sync command can not be used with BlackPearl {}", buildInfo);
             return false;

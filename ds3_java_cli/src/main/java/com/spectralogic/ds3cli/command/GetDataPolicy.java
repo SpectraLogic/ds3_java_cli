@@ -29,7 +29,7 @@ import java.io.IOException;
 
 public class GetDataPolicy extends CliCommand<GetDataPoliciesResult> {
 
-    // name or guid
+    // name or uuid
     private String policyId;
 
     public GetDataPolicy() {

@@ -17,8 +17,6 @@ package com.spectralogic.ds3cli.models;
 
 import com.spectralogic.ds3client.models.DetailedS3Object;
 
-import java.util.Iterator;
-
 public class GetDetailedObjectsResult implements Result {
     final private Iterable<DetailedS3Object> objects;
 
@@ -26,7 +24,7 @@ public class GetDetailedObjectsResult implements Result {
         this.objects = objects;
     }
 
-    public Iterable<DetailedS3Object> getObjIterator() {
+    public Iterable<DetailedS3Object> getDetailedObjects() {
         return this.objects;
     }
 }

@@ -27,11 +27,9 @@ import com.spectralogic.ds3client.models.*;
 import com.spectralogic.ds3client.utils.Guard;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.List;
 
+import static com.spectralogic.ds3cli.util.Constants.DATE_FORMAT;
 import static com.spectralogic.ds3cli.util.Utils.*;
-import static com.spectralogic.ds3cli.views.csv.CsvView.DATE_FORMAT;
 
 public class DetailedObjectsView implements View<GetDetailedObjectsResult> {
 
@@ -39,13 +37,13 @@ public class DetailedObjectsView implements View<GetDetailedObjectsResult> {
 
     @Override
     public String render(final GetDetailedObjectsResult obj) {
-        if (obj == null || obj.getObjIterator() == null || Iterables.isEmpty(obj.getObjIterator())) {
+        if (obj == null || obj.getDetailedObjects() == null || Iterables.isEmpty(obj.getDetailedObjects())) {
             return "No objects returned";
         }
 
         final ImmutableList<String> headers = ImmutableList.of("Name", "Bucket", "Owner", "Size", "Type", "Creation Date", "Tapes", "Pools");
 
-        return new CsvOutput<>(headers, obj.getObjIterator(), new CsvOutput.ContentFormatter<DetailedS3Object>() {
+        return new CsvOutput<>(headers, obj.getDetailedObjects(), new CsvOutput.ContentFormatter<DetailedS3Object>() {
             @Override
             public Iterable<String> format(final DetailedS3Object content) {
 

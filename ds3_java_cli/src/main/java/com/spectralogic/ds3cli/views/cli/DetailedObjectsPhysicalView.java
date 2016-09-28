@@ -16,6 +16,7 @@
 package com.spectralogic.ds3cli.views.cli;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.spectralogic.ds3cli.models.GetDetailedObjectsResult;
 import com.spectralogic.ds3client.models.BulkObject;
 import com.spectralogic.ds3client.models.DetailedS3Object;
@@ -24,6 +25,7 @@ import com.spectralogic.ds3client.utils.Guard;
 
 import java.util.ArrayList;
 
+import static com.spectralogic.ds3cli.util.Constants.DATE_FORMAT;
 import static com.spectralogic.ds3cli.util.Utils.*;
 
 public class DetailedObjectsPhysicalView extends TableView<GetDetailedObjectsResult> {
@@ -31,11 +33,11 @@ public class DetailedObjectsPhysicalView extends TableView<GetDetailedObjectsRes
 
     @Override
     public String render(final GetDetailedObjectsResult obj) {
-        if (obj == null || (obj.getObjIterator() == null) || !obj.getObjIterator().iterator().hasNext()) {
+        if (obj == null || obj.getDetailedObjects() == null || Iterables.isEmpty(obj.getDetailedObjects())) {
             return "No objects returned";
         }
 
-        objects = obj.getObjIterator();
+        objects = obj.getDetailedObjects();
         initTable(ImmutableList.of("Name", "Bucket", "Owner", "Size", "Type", "Creation Date", "Barcode", "State"));
 
         return renderTable();
@@ -43,7 +45,7 @@ public class DetailedObjectsPhysicalView extends TableView<GetDetailedObjectsRes
 
     @Override
     protected String[][] formatTableContents() {
-        final ArrayList<String[]> formatArray = new ArrayList<String[]>();
+        final ArrayList<String[]> formatArray = new ArrayList<>();
         int lineCount = 0;
         for (final DetailedS3Object detailedObject : this.objects) {
             // one line for each instance on tape -- mine down to get Physical Placement

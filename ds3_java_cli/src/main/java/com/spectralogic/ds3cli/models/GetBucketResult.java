@@ -28,19 +28,19 @@ public class GetBucketResult implements Result {
     @JacksonXmlElementWrapper(
             useWrapping = true
     )
-    final private Iterator<Contents> objIterator;
+    final private Iterable<Contents> contents;
 
 
     public String getBucketName() {
         return bucketName;
     }
 
-    public Iterator<Contents> getObjIterator() {
-        return objIterator;
+    public Iterable<Contents> getContents() {
+        return contents;
     }
 
-    public GetBucketResult(final String bucketName, final Iterator<Contents> objIterator) {
+    public GetBucketResult(final String bucketName, final Iterable<Contents> contents) {
         this.bucketName = bucketName;
-        this.objIterator = objIterator;
+        this.contents = contents;
     }
 }

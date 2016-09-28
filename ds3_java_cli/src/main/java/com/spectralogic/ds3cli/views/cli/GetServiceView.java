@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import static com.spectralogic.ds3cli.util.Constants.DATE_FORMAT;
 import static com.spectralogic.ds3cli.util.Utils.nullGuard;
 import static com.spectralogic.ds3cli.util.Utils.nullGuardToDate;
 
@@ -34,7 +35,7 @@ public class GetServiceView extends TableView<GetServiceResult> {
     @Override
     public String render(final GetServiceResult obj) {
         final ListAllMyBucketsResult result = obj.getResult();
-        if( (result == null) || (null == result.getBuckets()) ){
+        if (result == null || null == result.getBuckets()) {
             return "You do not have any buckets";
         }
         this.objectIterator = result.getBuckets().iterator();
@@ -53,7 +54,7 @@ public class GetServiceView extends TableView<GetServiceResult> {
             final BucketDetails bucket = objectIterator.next();
             final String[] bucketArray = new String[this.columnCount];
             bucketArray[0] = nullGuard(bucket.getName());
-            bucketArray[1] = nullGuardToDate(bucket.getCreationDate(),DATE_FORMAT);
+            bucketArray[1] = nullGuardToDate(bucket.getCreationDate(), DATE_FORMAT);
             contents.add(bucketArray);
         }
         return contents.toArray(new String[contents.size()][]);

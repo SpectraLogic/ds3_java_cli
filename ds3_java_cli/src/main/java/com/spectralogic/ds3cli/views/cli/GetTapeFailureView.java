@@ -24,6 +24,7 @@ import com.spectralogic.ds3client.utils.Guard;
 
 import java.util.List;
 
+import static com.spectralogic.ds3cli.util.Constants.DATE_FORMAT;
 import static com.spectralogic.ds3cli.util.Utils.nullGuard;
 import static com.spectralogic.ds3cli.util.Utils.nullGuardToString;
 import static com.spectralogic.ds3cli.util.Utils.nullGuardToDate;
@@ -35,7 +36,7 @@ public class GetTapeFailureView extends TableView<GetTapeFailureResult> {
     @Override
     public String render(final GetTapeFailureResult obj) {
         final DetailedTapeFailureList result = obj.getResult();
-        if( (result == null) || (Guard.isNullOrEmpty(result.getDetailedTapeFailures())) ) {
+        if (result == null || Guard.isNullOrEmpty(result.getDetailedTapeFailures())) {
             return "No tape failures on remote appliance";
         }
         this.failures = result.getDetailedTapeFailures();

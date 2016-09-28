@@ -41,7 +41,7 @@ public class VerifyBulkJob extends CliCommand<VerifyBulkJobResult> {
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
-        this.priority = priority;
+        this.priority = args.getPriority();
         this.bucketName = args.getBucket();
         if (Guard.isStringNullOrEmpty(this.bucketName)) {
             throw new MissingOptionException("The verify get command requires '-b' to be set.");

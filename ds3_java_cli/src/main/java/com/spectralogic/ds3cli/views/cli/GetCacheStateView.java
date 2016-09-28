@@ -60,7 +60,7 @@ public class GetCacheStateView extends TableView<GetCacheStateResult> {
             bucketArray[8] = nullGuardToString(cacheFilesystem.getMaxPercentUtilizationOfFilesystem());
             bucketArray[9] = nullGuardToString(cacheFilesystem.getId());
             bucketArray[10] = nullGuardToString(cacheFilesystem.getNodeId());
-            formatArray[i++] = (bucketArray);
+            formatArray[i++] = bucketArray;
         }
         return formatArray;
     }

@@ -17,26 +17,27 @@ package com.spectralogic.ds3cli.views.cli;
 
 import com.bethecoder.ascii_table.ASCIITable;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.spectralogic.ds3cli.models.GetDataPoliciesResult;
 import com.spectralogic.ds3client.models.DataPolicy;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
+import static com.spectralogic.ds3cli.util.Constants.DATE_FORMAT;
 import static com.spectralogic.ds3cli.util.Utils.nullGuardToString;
 import static com.spectralogic.ds3cli.util.Utils.nullGuardToDate;
 
 public class GetDataPoliciesView extends TableView<GetDataPoliciesResult> {
 
-    protected Iterator<DataPolicy> objectIterator;
+    protected Iterable<DataPolicy> dataPolicies;
 
     @Override
     public String render(final GetDataPoliciesResult br) {
-        if( (null == br.getObjIterator()) || !br.getObjIterator().hasNext()) {
+        if (null == br.getPolicyList() || br.getPolicyList().getDataPolicies() == null || Iterables.isEmpty(br.getPolicyList().getDataPolicies())) {
             return "No Data Policies returned." ;
         }
-        this.objectIterator = br.getObjIterator();
+        this.dataPolicies = br.getPolicyList().getDataPolicies();
 
         initTable(ImmutableList.of("Name", "Created", "Versioning", "Checksum Type", "End-to-End CRC Required",
                 "Blobbing Enabled", "Default Blob Size", "Default Get Job Priority","Default Put Job Priority",
@@ -47,25 +48,27 @@ public class GetDataPoliciesView extends TableView<GetDataPoliciesResult> {
     }
 
     protected String[][] formatTableContents() {
-        final List<String[]> contents = new ArrayList<>();
 
-        while(this.objectIterator.hasNext()) {
-            final DataPolicy content = this.objectIterator.next();
+        final ImmutableList.Builder<String[]> builder = ImmutableList.builder();
+
+        for (final DataPolicy dataPolicy: dataPolicies) {
             final String[] arrayEntry = new String[this.columnCount];
-            arrayEntry[0] = nullGuardToString(content.getName());
-            arrayEntry[1] = nullGuardToDate(content.getCreationDate(), DATE_FORMAT);
-            arrayEntry[2] = nullGuardToString(content.getVersioning());
-            arrayEntry[3] = nullGuardToString(content.getChecksumType());
-            arrayEntry[4] = nullGuardToString(content.getEndToEndCrcRequired());
-            arrayEntry[5] = nullGuardToString(content.getBlobbingEnabled());
-            arrayEntry[6] = nullGuardToString(content.getDefaultBlobSize());
-            arrayEntry[7] = nullGuardToString(content.getDefaultGetJobPriority());
-            arrayEntry[8] = nullGuardToString(content.getDefaultPutJobPriority());
-            arrayEntry[9] = nullGuardToString(content.getDefaultVerifyJobPriority());
-            arrayEntry[10] = nullGuardToString(content.getId());
-            arrayEntry[11] = nullGuardToString(content.getLtfsObjectNamingAllowed());
-            contents.add(arrayEntry);
+            arrayEntry[0] = nullGuardToString(dataPolicy.getName());
+            arrayEntry[1] = nullGuardToDate(dataPolicy.getCreationDate(), DATE_FORMAT);
+            arrayEntry[2] = nullGuardToString(dataPolicy.getVersioning());
+            arrayEntry[3] = nullGuardToString(dataPolicy.getChecksumType());
+            arrayEntry[4] = nullGuardToString(dataPolicy.getEndToEndCrcRequired());
+            arrayEntry[5] = nullGuardToString(dataPolicy.getBlobbingEnabled());
+            arrayEntry[6] = nullGuardToString(dataPolicy.getDefaultBlobSize());
+            arrayEntry[7] = nullGuardToString(dataPolicy.getDefaultGetJobPriority());
+            arrayEntry[8] = nullGuardToString(dataPolicy.getDefaultPutJobPriority());
+            arrayEntry[9] = nullGuardToString(dataPolicy.getDefaultVerifyJobPriority());
+            arrayEntry[10] = nullGuardToString(dataPolicy.getId());
+            arrayEntry[11] = nullGuardToString(dataPolicy.getLtfsObjectNamingAllowed());
+            builder.add(arrayEntry);
         }
-        return contents.toArray(new String[contents.size()][]);
+
+        final ImmutableList<String[]> dataPolicyStrings = builder.build();
+        return dataPolicyStrings.toArray(new String[dataPolicyStrings.size()][]);
     }
 }

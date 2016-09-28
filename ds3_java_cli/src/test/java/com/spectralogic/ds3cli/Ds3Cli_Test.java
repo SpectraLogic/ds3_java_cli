@@ -59,7 +59,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 
-@PrepareForTest({Utils.class, SyncUtils.class, BlackPearlUtils.class, GetPhysicalPlacementForObjectsWithFullDetailsSpectraS3Response.class})
+@PrepareForTest({Utils.class, SyncUtils.class, GetPhysicalPlacementForObjectsWithFullDetailsSpectraS3Response.class})
 @RunWith(PowerMockRunner.class)
 public class Ds3Cli_Test {
 
@@ -584,8 +584,6 @@ public class Ds3Cli_Test {
         when(mockedPutJob.withMetadata((Ds3ClientHelpers.MetadataAccess) isNotNull())).thenReturn(mockedPutJob);
         when(mockedPutJob.withMaxParallelRequests(any(int.class))).thenReturn(mockedPutJob);
 
-        PowerMockito.mockStatic(BlackPearlUtils.class);
-
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(null, helpers), args, mockedFileUtils);
         final CommandResponse result = cli.call();
         assertThat(result.getMessage(), is("Success: Finished writing file to ds3 appliance."));
@@ -614,8 +612,6 @@ public class Ds3Cli_Test {
         PowerMockito.mockStatic(SyncUtils.class);
         when(SyncUtils.isSyncSupported(any(Ds3Client.class))).thenReturn(true);
         when(SyncUtils.needToSync(any(Ds3ClientHelpers.class), any(String.class), any(Path.class), any(String.class), any(Boolean.class))).thenReturn(true);
-
-        PowerMockito.mockStatic(BlackPearlUtils.class);
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(null, helpers), args, mockedFileUtils);
         CommandResponse result = cli.call();
@@ -651,8 +647,6 @@ public class Ds3Cli_Test {
         when(mockedFileUtils.isRegularFile(any(Path.class))).thenReturn(true);
         when(mockedFileUtils.size(any(Path.class))).thenReturn(100L);
 
-        PowerMockito.mockStatic(BlackPearlUtils.class);
-
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, helpers), args, mockedFileUtils);
         cli.call(); //should throw SyncNotSupportedException
     }
@@ -672,8 +666,6 @@ public class Ds3Cli_Test {
         when(mockedPutJob.withMetadata((Ds3ClientHelpers.MetadataAccess) isNotNull())).thenReturn(mockedPutJob);
         when(mockedPutJob.withMaxParallelRequests(any(int.class))).thenReturn(mockedPutJob);
 
-        PowerMockito.mockStatic(BlackPearlUtils.class);
-
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(null, helpers), args, mockedFileUtils);
         final CommandResponse result = cli.call();
         assertTrue(result.getMessage().endsWith(expected));
@@ -689,8 +681,6 @@ public class Ds3Cli_Test {
         final Ds3ClientHelpers.Job mockedGetJob = mock(Ds3ClientHelpers.Job.class);
         final FileUtils mockedFileUtils = mock(FileUtils.class);
         when(helpers.startReadJob(eq("bucketName"), (Iterable<Ds3Object>) isNotNull(), any(ReadJobOptions.class))).thenReturn(mockedGetJob);
-
-        PowerMockito.mockStatic(BlackPearlUtils.class);
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(null, helpers), args, mockedFileUtils);
         final CommandResponse result = cli.call();
@@ -708,8 +698,6 @@ public class Ds3Cli_Test {
 
         PowerMockito.mockStatic(Utils.class);
         when(Utils.fileExists(any(Path.class))).thenReturn(false);
-
-        PowerMockito.mockStatic(BlackPearlUtils.class);
 
         PowerMockito.mockStatic(SyncUtils.class);
         when(SyncUtils.isSyncSupported(any(Ds3Client.class))).thenReturn(true);
@@ -747,8 +735,6 @@ public class Ds3Cli_Test {
         final Ds3ClientHelpers.Job mockedGetJob = mock(Ds3ClientHelpers.Job.class);
         final FileUtils mockedFileUtils = mock(FileUtils.class);
         when(helpers.startReadJob(eq("bucketName"), (Iterable<Ds3Object>) isNotNull(), any(ReadJobOptions.class))).thenReturn(mockedGetJob);
-
-        PowerMockito.mockStatic(BlackPearlUtils.class);
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(null, helpers), args, mockedFileUtils);
         final CommandResponse result = cli.call();
@@ -838,8 +824,6 @@ public class Ds3Cli_Test {
 
         when(helpers.startReadAllJob(eq("bucketName"), any(ReadJobOptions.class))).thenReturn(mockedGetJob);
 
-        PowerMockito.mockStatic(BlackPearlUtils.class);
-
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(null, helpers), args, mockedFileUtils);
         final CommandResponse result = cli.call();
         assertThat(result.getMessage(), is("SUCCESS: Wrote all the objects from bucketName to directory ."));
@@ -856,8 +840,6 @@ public class Ds3Cli_Test {
         final FileUtils mockedFileUtils = mock(FileUtils.class);
 
         when(helpers.startReadAllJob(eq("bucketName"), any(ReadJobOptions.class))).thenReturn(mockedGetJob);
-
-        PowerMockito.mockStatic(BlackPearlUtils.class);
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(null, helpers), args, mockedFileUtils);
         final CommandResponse result = cli.call();
@@ -899,8 +881,6 @@ public class Ds3Cli_Test {
         when(SyncUtils.isSyncSupported(any(Ds3Client.class))).thenReturn(true);
         when(SyncUtils.isNewFile(any(Path.class), any(Contents.class), any(Boolean.class))).thenReturn(false);
 
-        PowerMockito.mockStatic(BlackPearlUtils.class);
-
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(null, helpers), args, mockedFileUtils);
         CommandResponse result = cli.call();
         assertThat(result.getMessage(), is("SUCCESS: All files are up to date"));
@@ -922,8 +902,6 @@ public class Ds3Cli_Test {
         final FileUtils mockedFileUtils = mock(FileUtils.class);
 
         when(helpers.startReadAllJob(eq("bucketName"), any(ReadJobOptions.class))).thenReturn(mockedGetJob);
-
-        PowerMockito.mockStatic(BlackPearlUtils.class);
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(null, helpers), args, mockedFileUtils);
         final CommandResponse result = cli.call();
@@ -956,8 +934,6 @@ public class Ds3Cli_Test {
         when(Utils.getFileName(any(Path.class), eq(p2))).thenReturn("obj2.txt");
         when(Utils.getFileSize(eq(p2))).thenReturn(12345L);
 
-        PowerMockito.mockStatic(BlackPearlUtils.class);
-
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(null, helpers), args, mockedFileUtils);
         final CommandResponse result = cli.call();
         assertThat(result.getMessage(), is("SUCCESS: Wrote all the files in dir to bucket bucketName"));
@@ -989,8 +965,6 @@ public class Ds3Cli_Test {
         when(Utils.getFileSize(eq(p1))).thenReturn(1245L);
         when(Utils.getFileName(any(Path.class), eq(p2))).thenReturn("obj2.txt");
         when(Utils.getFileSize(eq(p2))).thenReturn(12345L);
-
-        PowerMockito.mockStatic(BlackPearlUtils.class);
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(null, helpers), args, mockedFileUtils);
         final CommandResponse result = cli.call();
@@ -1033,8 +1007,6 @@ public class Ds3Cli_Test {
         when(Utils.getFileName(any(Path.class), eq(p1))).thenReturn("obj1.txt");
         when(Utils.getFileName(any(Path.class), eq(p2))).thenReturn("obj2.txt");
 
-        PowerMockito.mockStatic(BlackPearlUtils.class);
-
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(null, helpers), args, mockedFileUtils);
 
         when(SyncUtils.isNewFile(any(Path.class), any(Contents.class), any(Boolean.class))).thenReturn(false);
@@ -1072,8 +1044,6 @@ public class Ds3Cli_Test {
         when(systemInformationResponse.getSystemInformationResult()).thenReturn(systemInformation);
         when(client.getSystemInformationSpectraS3(any(GetSystemInformationSpectraS3Request.class))).thenReturn(systemInformationResponse);
 
-        PowerMockito.mockStatic(BlackPearlUtils.class);
-
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, helpers), args, mockedFileUtils);
         cli.call(); //should throw SyncNotSupportedException
     }
@@ -1104,8 +1074,6 @@ public class Ds3Cli_Test {
         when(mockedPutJob.withMetadata((Ds3ClientHelpers.MetadataAccess) isNotNull())).thenReturn(mockedPutJob);
         when(mockedPutJob.getJobId()).thenReturn(jobId);
         when(helpers.startWriteJob(eq("bucketName"), eq(retObj), any(WriteJobOptions.class))).thenReturn(mockedPutJob);
-
-        PowerMockito.mockStatic(BlackPearlUtils.class);
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(null, helpers), args, mockedFileUtils);
         final CommandResponse result = cli.call();
@@ -1253,8 +1221,6 @@ public class Ds3Cli_Test {
         final Ds3ClientHelpers.Job mockedPutJob = mock(Ds3ClientHelpers.Job.class);
         final FileUtils mockedFileUtils = mock(FileUtils.class);
 
-        PowerMockito.mockStatic(BlackPearlUtils.class);
-
         final Path p1 = Paths.get("obj1.txt");
         final Path p2 = Paths.get("obj2.txt");
         final Path p3 = Paths.get("obj3.txt");
@@ -1298,8 +1264,6 @@ public class Ds3Cli_Test {
         final Ds3ClientHelpers helpers = mock(Ds3ClientHelpers.class);
         final Ds3ClientHelpers.Job mockedPutJob = mock(Ds3ClientHelpers.Job.class);
         final FileUtils mockedFileUtils = mock(FileUtils.class);
-
-        PowerMockito.mockStatic(BlackPearlUtils.class);
 
         final Path p1 = Paths.get("obj1.txt");
         final Path p2 = Paths.get("obj2.txt");
@@ -1380,8 +1344,6 @@ public class Ds3Cli_Test {
         when(Utils.getFileName(any(Path.class), eq(p2))).thenReturn(p2.toString());
         when(Utils.getFileSize(eq(p2))).thenReturn(12345L);
 
-        PowerMockito.mockStatic(BlackPearlUtils.class);
-
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(null, helpers), args, mockedFileUtils);
         final CommandResponse result = cli.call();
         assertThat(result.getMessage(), is("SUCCESS: Wrote all piped files to bucket bucketName"));
@@ -1428,8 +1390,6 @@ public class Ds3Cli_Test {
         PowerMockito.mockStatic(SyncUtils.class);
         when(SyncUtils.isSyncSupported(any(Ds3Client.class))).thenReturn(true);
 
-        PowerMockito.mockStatic(BlackPearlUtils.class);
-
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(null, helpers), args, mockedFileUtils);
         final CommandResponse result = cli.call();
@@ -1456,8 +1416,6 @@ public class Ds3Cli_Test {
 
         PowerMockito.mockStatic(Utils.class);
         when(Utils.isPipe()).thenReturn(true);
-
-        PowerMockito.mockStatic(BlackPearlUtils.class);
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(null, helpers), args, mockedFileUtils);
         try {
@@ -2179,7 +2137,6 @@ public class Ds3Cli_Test {
         cont1.setSize(1234L);
         final Iterable<Contents> retObj = Lists.newArrayList(cont1);
         when(helpers.listObjects(eq("coffeehouse"), eq(""))).thenReturn(retObj);
-        PowerMockito.mockStatic(BlackPearlUtils.class);
 
         final Ds3Client client = mock(Ds3Client.class);
         final WebResponse webResponse = mock(WebResponse.class);

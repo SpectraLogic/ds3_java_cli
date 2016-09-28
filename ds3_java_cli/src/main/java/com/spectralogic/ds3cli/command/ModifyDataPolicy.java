@@ -34,7 +34,7 @@ import java.io.IOException;
 
 public class ModifyDataPolicy extends CliCommand<GetDataPoliciesResult> {
 
-    // name or guid
+    // name or uuid
     private String policyId;
     private ImmutableMap<String, String> metadata;
 

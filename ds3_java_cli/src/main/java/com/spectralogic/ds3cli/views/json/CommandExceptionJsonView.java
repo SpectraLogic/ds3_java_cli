@@ -48,7 +48,7 @@ public class CommandExceptionJsonView implements View<CommandException> {
                     obj.printStackTrace(pOut);
                     try {
                         jsonBackingMap.put("StackTrace", out.toString("utf-8"));
-                    } catch (UnsupportedEncodingException e) {
+                    } catch (final UnsupportedEncodingException e) {
                         e.printStackTrace();
                     }
                 }

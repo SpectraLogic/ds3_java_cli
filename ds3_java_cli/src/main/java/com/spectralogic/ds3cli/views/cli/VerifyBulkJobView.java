@@ -34,7 +34,7 @@ public class VerifyBulkJobView extends TableView<VerifyBulkJobResult> {
 
     @Override
     public String render(final VerifyBulkJobResult verifyResult) {
-        if ((null == verifyResult.getObjIterator()) || !verifyResult.getObjIterator().hasNext()) {
+        if (null == verifyResult.getObjIterator() || !verifyResult.getObjIterator().hasNext()) {
             return "No objects were reported in tape '" + verifyResult.getBucketId() + "'";
         }
 

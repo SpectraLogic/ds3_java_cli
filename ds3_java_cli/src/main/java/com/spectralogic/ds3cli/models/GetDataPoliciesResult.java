@@ -15,6 +15,7 @@
 
 package com.spectralogic.ds3cli.models;
 
+import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3client.models.DataPolicy;
 import com.spectralogic.ds3client.models.DataPolicyList;
 
@@ -36,25 +37,13 @@ public class GetDataPoliciesResult implements Result {
 
         // put it in a List of one to use data policies view
         this.dataPolicyListResult = new DataPolicyList();
-        List<DataPolicy> listOfOne = new ArrayList<DataPolicy>();
-        listOfOne.add(policy);
-        this.dataPolicyListResult.setDataPolicies(listOfOne);
+        this.dataPolicyListResult.setDataPolicies(ImmutableList.of(policy));
     }
 
     public DataPolicyList getPolicyList() {
         return dataPolicyListResult;
     }
 
-    public Iterator<DataPolicy> getObjIterator() {
-        DataPolicyList policylist = getPolicyList();
-        if (policylist != null) {
-            List<DataPolicy> policies = policylist.getDataPolicies();
-            if (policies != null) {
-                return policies.iterator();
-            }
-        }
-        return Collections.emptyListIterator();
-    }
 }
 
 
