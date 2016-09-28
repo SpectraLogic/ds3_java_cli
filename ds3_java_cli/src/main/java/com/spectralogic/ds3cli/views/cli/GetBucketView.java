@@ -17,26 +17,24 @@ package com.spectralogic.ds3cli.views.cli;
 
 import com.bethecoder.ascii_table.ASCIITable;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.spectralogic.ds3cli.models.GetBucketResult;
 import com.spectralogic.ds3client.models.Contents;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
+import static com.spectralogic.ds3cli.util.Constants.DATE_FORMAT;
 import static com.spectralogic.ds3cli.util.Utils.nullGuard;
 import static com.spectralogic.ds3cli.util.Utils.nullGuardToDate;
 
 public class GetBucketView extends TableView<GetBucketResult> {
 
-    private Iterator<Contents> objectIterator;
+    private Iterable<Contents> contents;
 
     @Override
     public String render(final GetBucketResult br) {
-        if( (null == br.getObjIterator()) || !br.getObjIterator().hasNext()) {
+        if (null == br.getContents() || Iterables.isEmpty(br.getContents())) {
             return "No objects were reported in bucket '" + br.getBucketName() + "'";
         }
-        this.objectIterator = br.getObjIterator();
+        this.contents = br.getContents();
         initTable(ImmutableList.of("File Name", "Size", "Owner", "Last Modified", "ETag"));
         setTableDataAlignment(ImmutableList.of(ASCIITable.ALIGN_LEFT, ASCIITable.ALIGN_RIGHT, ASCIITable.ALIGN_RIGHT ,ASCIITable.ALIGN_LEFT, ASCIITable.ALIGN_RIGHT ));
 
@@ -44,20 +42,22 @@ public class GetBucketView extends TableView<GetBucketResult> {
     }
 
     protected String[][] formatTableContents() {
-        final List<String[]> contents = new ArrayList<>();
 
-        while(this.objectIterator.hasNext()) {
-            final Contents content = this.objectIterator.next();
+        final ImmutableList.Builder<String[]> builder = ImmutableList.builder();
+
+
+        for (final Contents content : contents) {
             final String[] arrayEntry = new String[5];
             arrayEntry[0] = nullGuard(content.getKey());
             arrayEntry[1] = nullGuard(Long.toString(content.getSize()));
             arrayEntry[2] = nullGuard(content.getOwner().getDisplayName());
             arrayEntry[3] = nullGuardToDate(content.getLastModified(), DATE_FORMAT);
             arrayEntry[4] = nullGuard(content.getETag());
-            contents.add(arrayEntry);
+            builder.add(arrayEntry);
         }
 
-        return contents.toArray(new String[contents.size()][]);
+        final ImmutableList<String[]> contentStrings = builder.build();
+        return contentStrings.toArray(new String[contentStrings.size()][]);
     }
 
 }

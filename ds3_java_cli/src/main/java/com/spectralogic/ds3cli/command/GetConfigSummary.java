@@ -21,7 +21,6 @@ import com.spectralogic.ds3cli.models.DefaultResult;
 import com.spectralogic.ds3cli.models.GetConfigSummaryResult;
 import com.spectralogic.ds3cli.models.Result;
 
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 /***
@@ -29,7 +28,6 @@ import java.util.*;
  */
 public class GetConfigSummary extends CliCommand<GetConfigSummaryResult> {
 
-    protected static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
     private final StringBuilder completeResult = new StringBuilder("CONFIGURATION SUMMARY\n");
     private final Map<String, Result> resultsMap = new HashMap<String, Result>();
 

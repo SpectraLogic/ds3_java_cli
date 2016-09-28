@@ -17,12 +17,14 @@ package com.spectralogic.ds3cli.views.cli;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.spectralogic.ds3cli.models.GetDetailedObjectsResult;
 import com.spectralogic.ds3client.models.*;
 import com.spectralogic.ds3client.utils.Guard;
 
 import java.util.ArrayList;
 
+import static com.spectralogic.ds3cli.util.Constants.DATE_FORMAT;
 import static com.spectralogic.ds3cli.util.Utils.*;
 
 public class DetailedObjectsView extends TableView<GetDetailedObjectsResult> {
@@ -33,11 +35,11 @@ public class DetailedObjectsView extends TableView<GetDetailedObjectsResult> {
 
     @Override
     public String render(final GetDetailedObjectsResult obj) {
-        if (obj == null || (obj.getObjIterator() == null) || !obj.getObjIterator().iterator().hasNext()) {
+        if (obj == null || obj.getDetailedObjects() == null || Iterables.isEmpty(obj.getDetailedObjects())) {
             return "No objects returned";
         }
 
-        objects = ImmutableList.copyOf(obj.getObjIterator());
+        objects = ImmutableList.copyOf(obj.getDetailedObjects());
         initTable(ImmutableList.of("Name", "Bucket", "Owner", "Size", "Type", "Creation Date", "Tapes", "Pools"));
 
         return renderTable();
@@ -45,7 +47,7 @@ public class DetailedObjectsView extends TableView<GetDetailedObjectsResult> {
 
     @Override
     protected String[][] formatTableContents() {
-        final ArrayList<String[]> formatArray = new ArrayList<String[]>();
+        final ArrayList<String[]> formatArray = new ArrayList<>();
         int lineCount = 0;
         for (final DetailedS3Object detailedObject : this.objects) {
             final String [] bucketArray = new String[this.columnCount];
@@ -68,7 +70,7 @@ public class DetailedObjectsView extends TableView<GetDetailedObjectsResult> {
         if(Guard.isNullOrEmpty(objects.getObjects())) {
             return "No Physical Placement";
         }
-        final ArrayList<String> tapes = new ArrayList<String>();
+        final ArrayList<String> tapes = new ArrayList<>();
         for (final BulkObject object : objects.getObjects()) {
             // hang on tight, we're mining for the items we want.
             if (object.getPhysicalPlacement() != null) {
@@ -86,7 +88,7 @@ public class DetailedObjectsView extends TableView<GetDetailedObjectsResult> {
         if(Guard.isNullOrEmpty(objects.getObjects())) {
             return "No Physical Placement";
         }
-        final ArrayList<String> pools = new ArrayList<String>();
+        final ArrayList<String> pools = new ArrayList<>();
         for (final BulkObject object : objects.getObjects()) {
             // hang on tight, we're mining for the items we want.
             if (object.getPhysicalPlacement() != null) {

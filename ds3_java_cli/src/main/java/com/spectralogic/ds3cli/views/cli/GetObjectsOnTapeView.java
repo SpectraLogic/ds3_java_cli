@@ -33,7 +33,7 @@ public class GetObjectsOnTapeView extends TableView<GetObjectsOnTapeResult> {
 
     @Override
     public String render(final GetObjectsOnTapeResult blobsResult) {
-        if ((null == blobsResult.getObjIterator()) || !blobsResult.getObjIterator().hasNext()) {
+        if (null == blobsResult.getObjIterator() || !blobsResult.getObjIterator().hasNext()) {
             return "No objects were reported in tape '" + blobsResult.getTapeId() + "'";
         }
         this.objectIterator = blobsResult.getObjIterator();

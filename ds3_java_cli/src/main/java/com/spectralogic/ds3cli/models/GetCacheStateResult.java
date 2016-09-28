@@ -17,7 +17,6 @@ package com.spectralogic.ds3cli.models;
 
 import com.spectralogic.ds3client.models.CacheFilesystemInformation;
 
-import java.util.Iterator;
 import java.util.List;
 
 public class GetCacheStateResult implements Result {
@@ -32,7 +31,4 @@ public class GetCacheStateResult implements Result {
         return this.result;
     }
 
-    public Iterator getIterator() {
-        return getResult().iterator();
-    }
 }

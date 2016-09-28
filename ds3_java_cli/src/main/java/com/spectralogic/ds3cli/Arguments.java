@@ -775,11 +775,11 @@ public class Arguments {
 
     public Level getConsoleLogLevel() { return this.consoleLogLevel; }
 
-    void setConsoleLogLevel(Level console) {this.consoleLogLevel = console; }
+    void setConsoleLogLevel(final Level console) {this.consoleLogLevel = console; }
 
     public Level getFileLogLevel() { return this.fileLogLevel; }
 
-    void setFileLogLevel(Level file) {this.fileLogLevel = file; }
+    void setFileLogLevel(final Level file) {this.fileLogLevel = file; }
 
     public boolean doIgnoreNamingConflicts() { return this.ignoreNamingConflicts; }
 

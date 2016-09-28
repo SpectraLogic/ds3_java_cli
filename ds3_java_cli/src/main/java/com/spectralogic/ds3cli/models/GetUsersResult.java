@@ -41,14 +41,14 @@ public class GetUsersResult implements Result {
         this.spectraUserListResult.setSpectraUsers(listOfOne);
     }
 
-    public SpectraUserList getuserList() {
+    public SpectraUserList getUserList() {
         return spectraUserListResult;
     }
 
     public Iterator<SpectraUser> getObjIterator() {
-        final SpectraUserList userlist = getuserList();
-        if (userlist != null) {
-            final List<SpectraUser> users = userlist.getSpectraUsers();
+        final SpectraUserList userList = getUserList();
+        if (userList != null) {
+            final List<SpectraUser> users = userList.getSpectraUsers();
             if (Guard.isNotNullAndNotEmpty(users)) {
                 return users.iterator();
             }

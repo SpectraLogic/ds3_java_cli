@@ -25,6 +25,7 @@ import com.spectralogic.ds3client.models.Objects;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import static com.spectralogic.ds3cli.util.Constants.DATE_FORMAT;
 import static com.spectralogic.ds3cli.util.Utils.nullGuard;
 import static com.spectralogic.ds3cli.util.Utils.nullGuardToDate;
 import static com.spectralogic.ds3cli.util.Utils.nullGuardToString;

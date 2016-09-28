@@ -24,6 +24,7 @@ import com.spectralogic.ds3client.utils.Guard;
 
 import java.util.List;
 
+import static com.spectralogic.ds3cli.util.Constants.DATE_FORMAT;
 import static com.spectralogic.ds3cli.util.Utils.*;
 
 public class GetSystemFailureView extends TableView<GetSystemFailureResult> {
@@ -33,7 +34,7 @@ public class GetSystemFailureView extends TableView<GetSystemFailureResult> {
     @Override
     public String render(final GetSystemFailureResult obj) {
         final SystemFailureList result = obj.getResult();
-        if( (result == null) || (Guard.isNullOrEmpty(result.getSystemFailures())) ) {
+        if (result == null || Guard.isNullOrEmpty(result.getSystemFailures())) {
             return "No system failures on remote appliance";
         }
         this.failures = result.getSystemFailures();

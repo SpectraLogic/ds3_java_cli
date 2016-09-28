@@ -21,19 +21,11 @@ import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.models.Result;
 
-import java.text.SimpleDateFormat;
-import java.util.TimeZone;
-
 public abstract class TableView<T extends Result> implements View<T> {
 
     protected ASCIITableHeader[] header;
     protected int columnCount;
 
-    protected static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-
-    static {
-        DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
-    }
     public abstract String render(final T result);
 
     public void initTable(final ImmutableList<String> columnHeads) {
@@ -48,7 +40,7 @@ public abstract class TableView<T extends Result> implements View<T> {
 
     public void setTableDataAlignment(final ImmutableList<Integer> columnAlign) {
         // set alignment
-        if ((this.header != null) && (this.columnCount > 0)) {
+        if (this.header != null && this.columnCount > 0) {
             for (int i = 0; i < this.columnCount; i++) {
                 this.header[i].setDataAlign(columnAlign.get(i).shortValue());
             }

@@ -32,7 +32,7 @@ public class GetUsersView extends TableView<GetUsersResult> {
 
     @Override
     public String render(final GetUsersResult usersResult) {
-        if ((null == usersResult.getObjIterator()) || !usersResult.getObjIterator().hasNext()) {
+        if (null == usersResult.getObjIterator() || !usersResult.getObjIterator().hasNext()) {
             return "No Users returned." ;
         }
 

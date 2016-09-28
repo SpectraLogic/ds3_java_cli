@@ -28,7 +28,7 @@ public class GetDataPathBackendView implements View<GetDataPathBackendResult> {
         final CommonJsonView view = CommonJsonView.newView(CommonJsonView.Status.OK);
 
         final DataPathBackend dataPathBackend = obj.getBackend();
-        if( (dataPathBackend == null) || (null == dataPathBackend.getId()) ){
+        if (dataPathBackend == null || null == dataPathBackend.getId()){
             return "No valid Data Path Backend on remote appliance";
         }
 

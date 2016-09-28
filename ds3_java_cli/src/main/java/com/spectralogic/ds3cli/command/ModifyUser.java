@@ -30,7 +30,7 @@ import java.io.IOException;
 
 public class ModifyUser extends CliCommand<GetUsersResult> {
 
-    // name or guid
+    // name or uuid
     private String userId;
     private String defaultPolicyId;
     private ImmutableMap<String, String> modifyParams;

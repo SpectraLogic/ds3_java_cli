@@ -28,7 +28,7 @@ public class GetServiceView implements View<GetServiceResult> {
         final ListAllMyBucketsResult result = obj.getResult();
         final CommonJsonView view = CommonJsonView.newView(CommonJsonView.Status.OK);
 
-        if( (result == null) || (null == result.getBuckets()) ){
+        if (result == null || null == result.getBuckets()) {
             view.message("You do not have any buckets");
             return JsonMapper.toJson(view);
         }

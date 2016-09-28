@@ -32,7 +32,7 @@ public class GetCapacitySummaryView extends TableView<GetCapacitySummaryResult> 
     public String render(final GetCapacitySummaryResult obj) {
         final CapacitySummaryContainer result = obj.getResult();
         if (result == null){
-            return "No Capacity Summary result treturned.";
+            return "No Capacity Summary result returned.";
         }
         poolCapacity = result.getPool();
         tapeCapacity = result.getTape();

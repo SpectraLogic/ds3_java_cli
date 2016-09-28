@@ -30,6 +30,7 @@ import com.spectralogic.ds3client.helpers.pagination.GetObjectsFullDetailsLoader
 import com.spectralogic.ds3client.models.DetailedS3Object;
 import com.spectralogic.ds3client.utils.Guard;
 import com.spectralogic.ds3client.utils.collections.LazyIterable;
+import org.apache.commons.cli.MissingOptionException;
 import org.slf4j.LoggerFactory;
 
 
@@ -65,11 +66,11 @@ public class GetDetailedObjects extends CliCommand<GetDetailedObjectsResult> {
     @Override
     public GetDetailedObjectsResult call() throws Exception {
 
-        final FluentIterable suspectBulkObjects;
+        final FluentIterable<DetailedS3Object> suspectBulkObjects;
         final Predicate<DetailedS3Object> filterPredicate = getPredicate();
 
         // get filtered list using pagination
-        suspectBulkObjects = FluentIterable.from(new LazyIterable<DetailedS3Object>(
+        suspectBulkObjects = FluentIterable.from(new LazyIterable<>(
                         new GetObjectsFullDetailsLoaderFactory(getClient(), this.bucketName, this.prefix, 100, 5, true)))
                 .filter(Predicates.notNull());
 
@@ -96,11 +97,10 @@ public class GetDetailedObjects extends CliCommand<GetDetailedObjectsResult> {
         return new Predicate<DetailedS3Object>() {
             @Override
             public boolean apply(@Nullable final DetailedS3Object input) {
-                return (input.getSize() > largerthan
+                return input.getSize() > largerthan
                         && input.getSize() < smallerthan
                         && input.getCreationDate().after(newerthan)
-                        && input.getCreationDate().before(olderthan)
-                );
+                        && input.getCreationDate().before(olderthan);
             }
         };
     }
@@ -118,7 +118,7 @@ public class GetDetailedObjects extends CliCommand<GetDetailedObjectsResult> {
 
     private Map<String, String> parseMeta() throws CommandException {
         // load defaults and define legal values
-        final Map<String, String> ranges = new HashMap<String, String>();
+        final Map<String, String> ranges = new HashMap<>();
         ranges.put(NEWERTHAN, "0");
         ranges.put(OLDERTHAN, Long.toString(Long.MAX_VALUE));
         ranges.put(LARGERTHAN, "0");
@@ -128,7 +128,7 @@ public class GetDetailedObjects extends CliCommand<GetDetailedObjectsResult> {
             final String paramNewValue = this.filterParams.get(paramChange);
             if (ranges.containsKey(paramChange)) {
                 if(paramChange.equals(NEWERTHAN) || paramChange.equals(OLDERTHAN)){
-                    final long relativeDate = new Date().getTime() - (Utils.dateDiffToSeconds(paramNewValue) * 1000);
+                    final long relativeDate = new Date().getTime() - Utils.dateDiffToSeconds(paramNewValue) * 1000;
                     ranges.put(paramChange, Long.toString(relativeDate));
                 } else {
                     ranges.put(paramChange, paramNewValue);

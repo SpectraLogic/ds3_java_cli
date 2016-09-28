@@ -15,6 +15,13 @@
 
 package com.spectralogic.ds3cli.util;
 
-final class Constants {
-    static final String DS3_LAST_MODIFIED = "ds3-last-modified";
+import java.text.SimpleDateFormat;
+import java.util.TimeZone;
+
+public final class Constants {
+    public static final String DS3_LAST_MODIFIED = "ds3-last-modified";
+    public static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+    static {
+        DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
+    }
 }

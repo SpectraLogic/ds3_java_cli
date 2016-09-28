@@ -27,20 +27,20 @@ import com.spectralogic.ds3client.utils.Guard;
 
 import javax.annotation.Nullable;
 
+import static com.spectralogic.ds3cli.util.Constants.DATE_FORMAT;
 import static com.spectralogic.ds3cli.util.Utils.*;
-import static com.spectralogic.ds3cli.views.csv.CsvView.DATE_FORMAT;
 
 public class DetailedObjectsPhysicalView implements View<GetDetailedObjectsResult> {
 
     @Override
     public String render(final GetDetailedObjectsResult obj) {
-        if (obj == null || obj.getObjIterator() == null || Iterables.isEmpty(obj.getObjIterator())) {
+        if (obj == null || obj.getDetailedObjects() == null || Iterables.isEmpty(obj.getDetailedObjects())) {
             return "No objects returned";
         }
 
         final ImmutableList<String> headers = ImmutableList.of("Name", "Bucket", "Owner", "Size", "Type", "Creation Date", "Barcode", "State");
 
-        final FluentIterable<DetailedTapeInfo> objects = FluentIterable.from(obj.getObjIterator())
+        final FluentIterable<DetailedTapeInfo> objects = FluentIterable.from(obj.getDetailedObjects())
                 .filter(new Predicate<DetailedS3Object>() {
                     @Override
                     public boolean apply(@Nullable final DetailedS3Object input) {

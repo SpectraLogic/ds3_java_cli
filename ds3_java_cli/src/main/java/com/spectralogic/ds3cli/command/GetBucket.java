@@ -26,8 +26,6 @@ import com.spectralogic.ds3client.models.Contents;
 import com.spectralogic.ds3client.networking.FailedRequestException;
 import org.apache.commons.cli.MissingOptionException;
 
-import java.util.Iterator;
-
 public class GetBucket extends CliCommand<GetBucketResult> {
     private String bucketName;
     private String prefix;
@@ -60,9 +58,7 @@ public class GetBucket extends CliCommand<GetBucketResult> {
                 objects = helper.listObjects(bucketName, this.prefix);
             }
 
-            final Iterator<Contents> objIterator = objects.iterator();
-
-            return new GetBucketResult( bucketName, objIterator);
+            return new GetBucketResult(bucketName, objects);
         }
         catch(final FailedRequestException e) {
             if(e.getStatusCode() == 500) {

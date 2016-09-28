@@ -44,6 +44,7 @@ import static com.spectralogic.ds3cli.command.PutBulk.ObjectsToPut;
 public final class Utils {
 
     private final static Logger LOG = LoggerFactory.getLogger(Utils.class);
+    private final static String QUOTE = Pattern.quote(".");
 
     public final static boolean isWindows = System.getProperty("os.name").contains("Windows");
     public final static String MINIMUM_VERSION_SUPPORTED = "1.2";
@@ -54,8 +55,8 @@ public final class Utils {
 
     public static boolean isVersionSupported(final Ds3Client client, final String minVersion) throws IOException {
         final String buildInfo = client.getSystemInformationSpectraS3(new GetSystemInformationSpectraS3Request()).getSystemInformationResult().getBuildInformation().getVersion();
-        final String[] buildInfoArr = buildInfo.split((Pattern.quote(".")));
-        final String[] versionInfo = minVersion.split(Pattern.quote("."));
+        final String[] buildInfoArr = buildInfo.split(QUOTE);
+        final String[] versionInfo = minVersion.split(QUOTE);
 
         if (versionInfo.length > 3) {
             throw new IllegalArgumentException("The version string can have 3 numbers");
@@ -117,7 +118,7 @@ public final class Utils {
         return o.toString();
     }
 
-    public static String nullGuardToDate(final Object o, SimpleDateFormat dateFormat) {
+    public static String nullGuardToDate(final Object o, final SimpleDateFormat dateFormat) {
         if (o == null) {
             return dateFormat.format(new Date(0L));
         }
@@ -282,18 +283,18 @@ public final class Utils {
         final String[] units = diff.split("[.]");
         for (final String unit : units) {
             if (unit.matches("[dhms][0-9]+")) {
-                char unitdesc = unit.charAt(0);
+                final char unitdesc = unit.charAt(0);
                 switch (unitdesc) {
-                    case ('s'):
+                    case 's':
                         secs += Integer.parseInt(unit.replace("s", ""));
                         break;
-                    case ('m'):
+                    case 'm':
                         secs += Integer.parseInt(unit.replace("m", "")) * 60;
                         break;
-                    case ('h'):
+                    case 'h':
                         secs += Integer.parseInt(unit.replace("h", "")) * 60 * 60;
                         break;
-                    case ('d'):
+                    case 'd':
                         secs += Integer.parseInt(unit.replace("d", "")) * 60 * 60 * 24;
                         break;
                 }
@@ -301,5 +302,4 @@ public final class Utils {
         }
         return secs;
     }
-
 }

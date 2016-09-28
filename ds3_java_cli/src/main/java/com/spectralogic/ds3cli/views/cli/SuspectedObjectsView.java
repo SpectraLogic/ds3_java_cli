@@ -55,7 +55,7 @@ public class SuspectedObjectsView extends TableView<SuspectedObjectResult> {
             bucketArray[2] = nullGuardToString(suspectBlobTape.getInCache());
             bucketArray[3] = nullGuardToString(suspectBlobTape.getOffset());
             bucketArray[4] = nullGuardToString(suspectBlobTape.getLength());
-            formatArray[i++] = (bucketArray);
+            formatArray[i++] = bucketArray;
         }
         return formatArray;
     }
