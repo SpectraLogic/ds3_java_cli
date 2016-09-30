@@ -15,6 +15,8 @@
 
 package com.spectralogic.ds3cli.command;
 
+import com.google.common.collect.ImmutableList;
+import com.spectralogic.ds3cli.ArgumentFactory;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
@@ -29,11 +31,15 @@ import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.networking.FailedRequestException;
 import com.spectralogic.ds3client.utils.Guard;
 import org.apache.commons.cli.MissingOptionException;
+import org.apache.commons.cli.Option;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class VerifyBulkJob extends CliCommand<VerifyBulkJobResult> {
+
+    private final static ImmutableList<Option> requiredArgs = ImmutableList.of(ArgumentFactory.BUCKET);
+    private final static ImmutableList<Option> optionalArgs = ImmutableList.of(ArgumentFactory.PREFIX, ArgumentFactory.PRIORITY);
 
     private String bucketName;
     private String prefix;
@@ -41,20 +47,16 @@ public class VerifyBulkJob extends CliCommand<VerifyBulkJobResult> {
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
-        this.priority = args.getPriority();
+        addRequiredArguments(requiredArgs, args);
+        addOptionalArguments(optionalArgs, args);
+        args.parseCommandLine();
+        this.priority = priority;
         this.bucketName = args.getBucket();
-        if (Guard.isStringNullOrEmpty(this.bucketName)) {
-            throw new MissingOptionException("The verify get command requires '-b' to be set.");
-        }
-        if (!Guard.isStringNullOrEmpty(args.getObjectName())) {
-            System.out.println("Warning: '-o' is not used with verify and is ignored.");
-        }
         this.prefix = args.getPrefix();
         // for java SDK7 unit tests
         if (this.prefix == null) {
             this.prefix = "";
         }
-
         return this;
     }
 
@@ -99,7 +101,7 @@ public class VerifyBulkJob extends CliCommand<VerifyBulkJobResult> {
     }
 
     @Override
-    public View<VerifyBulkJobResult> getView(final ViewType viewType) {
+    public View<VerifyBulkJobResult> getView() {
         if (viewType == ViewType.JSON) {
             return new com.spectralogic.ds3cli.views.json.VerifyBulkJobView();
         }

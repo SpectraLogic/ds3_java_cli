@@ -15,7 +15,9 @@
 
 package com.spectralogic.ds3cli.command;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.spectralogic.ds3cli.ArgumentFactory;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
@@ -29,48 +31,29 @@ import com.spectralogic.ds3client.models.VersioningLevel;
 import com.spectralogic.ds3client.networking.FailedRequestException;
 import com.spectralogic.ds3client.utils.Guard;
 import org.apache.commons.cli.MissingOptionException;
+import org.apache.commons.cli.Option;
 
 import java.io.IOException;
 
 public class ModifyDataPolicy extends CliCommand<GetDataPoliciesResult> {
 
+    private final static ImmutableList<Option> requiredArgs = ImmutableList.of(ArgumentFactory.ID, ArgumentFactory.MODIFY_PARAMS);
+
     // name or uuid
     private String policyId;
-    private ImmutableMap<String, String> metadata;
-
-    private boolean blobbingEnabled;
-
-    private ChecksumType.Type checksumType;
-
-    private Long defaultBlobSize;
-
-    private Priority defaultGetJobPriority;
-
-    private Priority defaultPutJobPriority;
-
-    private Priority defaultVerifyJobPriority;
-
-    private boolean endToEndCrcRequired;
-
-    private String name;
-
-    private Priority rebuildPriority;
-
-    private VersioningLevel versioning;
+    private ImmutableMap<String, String> policyParams;
 
     public ModifyDataPolicy() {
     }
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
+        addRequiredArguments(requiredArgs, args);
+        args.parseCommandLine();
+
         this.policyId = args.getId();
-        if (this.policyId == null) {
-            throw new MissingOptionException("The modify policy command requires '-i' to be set with the policy name or Id");
-        }
-        this.metadata = args.getModifyParams();
-        if (Guard.isMapNullOrEmpty(this.metadata)) {
-            throw new MissingOptionException("The modify_policy command requires '--modify-params' to be set with at least one key:value default_data_policy_id:a85aa599-7a58-4141-adbe-79bfd1d42e48,key2:value2");
-        }
+        this.viewType = args.getOutputFormat();
+        this.policyParams = args.getModifyParams();
         return this;
     }
 
@@ -87,8 +70,8 @@ public class ModifyDataPolicy extends CliCommand<GetDataPoliciesResult> {
 
             // apply changes from metadata
             final ModifyDataPolicySpectraS3Request modifyRequest = new ModifyDataPolicySpectraS3Request(this.policyId);
-            for (final String paramChange : this.metadata.keySet() ) {
-                final String paramNewValue = this.metadata.get(paramChange);
+            for (final String paramChange : this.policyParams.keySet() ) {
+                final String paramNewValue = this.policyParams.get(paramChange);
                 if("blobbing_enabled".equalsIgnoreCase(paramChange)) {
                     modifyRequest.withBlobbingEnabled(Boolean.parseBoolean(paramNewValue));
                 }
@@ -135,7 +118,7 @@ public class ModifyDataPolicy extends CliCommand<GetDataPoliciesResult> {
     }
 
     @Override
-    public View<GetDataPoliciesResult> getView(final ViewType viewType) {
+    public View<GetDataPoliciesResult> getView() {
         if (viewType == ViewType.JSON) {
             return new com.spectralogic.ds3cli.views.json.GetDataPoliciesView();
         }

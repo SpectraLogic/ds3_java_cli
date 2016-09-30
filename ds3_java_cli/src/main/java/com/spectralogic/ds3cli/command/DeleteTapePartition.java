@@ -15,15 +15,20 @@
 
 package com.spectralogic.ds3cli.command;
 
+import com.google.common.collect.ImmutableList;
+import com.spectralogic.ds3cli.ArgumentFactory;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.DefaultResult;
 import com.spectralogic.ds3client.commands.spectrads3.DeleteTapePartitionSpectraS3Request;
 import org.apache.commons.cli.MissingOptionException;
+import org.apache.commons.cli.Option;
 
 import java.io.IOException;
 
 public class DeleteTapePartition extends CliCommand<DefaultResult> {
+
+    private final static ImmutableList<Option> requiredArgs = ImmutableList.of(ArgumentFactory.ID);
 
     private String id;
 
@@ -32,10 +37,11 @@ public class DeleteTapePartition extends CliCommand<DefaultResult> {
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
+        addRequiredArguments(requiredArgs, args);
+        args.parseCommandLine();
+
         this.id = args.getId();
-        if (this.id == null) {
-            throw new MissingOptionException("The delete tape partition command requires '-i' to be set.");
-        }
+        this.viewType = args.getOutputFormat();
         return this;
     }
 

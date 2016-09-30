@@ -26,7 +26,7 @@ import com.spectralogic.ds3cli.models.GetDetailedObjectsResult;
 public class GetDetailedObjectsPhysical extends GetDetailedObjects {
 
     @Override
-    public View<GetDetailedObjectsResult> getView(final ViewType viewType) {
+    public View<GetDetailedObjectsResult> getView() {
         if (viewType == ViewType.JSON) {
             // sorting performed in view -- json would be no different
             return new com.spectralogic.ds3cli.views.json.DetailedObjectsView();

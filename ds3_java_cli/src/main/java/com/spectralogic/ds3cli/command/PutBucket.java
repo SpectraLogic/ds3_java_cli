@@ -15,16 +15,21 @@
 
 package com.spectralogic.ds3cli.command;
 
+import com.google.common.collect.ImmutableList;
+import com.spectralogic.ds3cli.ArgumentFactory;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.DefaultResult;
 import com.spectralogic.ds3client.commands.PutBucketRequest;
 import com.spectralogic.ds3client.networking.FailedRequestException;
 import org.apache.commons.cli.MissingOptionException;
+import org.apache.commons.cli.Option;
 
 import java.io.IOException;
 
 public class PutBucket extends CliCommand<DefaultResult> {
+
+    private final static ImmutableList<Option> requiredArgs = ImmutableList.of(ArgumentFactory.BUCKET);
 
     private String bucketName;
 
@@ -33,11 +38,11 @@ public class PutBucket extends CliCommand<DefaultResult> {
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
-        this.bucketName = args.getBucket();
-        if (bucketName == null) {
-            throw new MissingOptionException("The put bucket command requires '-b' to be set.");
-        }
+        addRequiredArguments(requiredArgs, args);
+        args.parseCommandLine();
 
+        this.bucketName = args.getBucket();
+        this.viewType = args.getOutputFormat();
         return this;
     }
 

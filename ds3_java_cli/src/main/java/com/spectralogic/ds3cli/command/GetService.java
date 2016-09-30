@@ -33,11 +33,6 @@ public class GetService extends CliCommand<GetServiceResult> {
     }
 
     @Override
-    public CliCommand init(final Arguments args) throws Exception {
-        return this;
-    }
-
-    @Override
     public GetServiceResult call() throws IOException, CommandException {
         try {
             final GetServiceResponse response = getClient().getService(new GetServiceRequest());
@@ -49,7 +44,7 @@ public class GetService extends CliCommand<GetServiceResult> {
     }
 
     @Override
-    public View<GetServiceResult> getView(final ViewType viewType) {
+    public View<GetServiceResult> getView() {
         if (viewType == ViewType.JSON) {
             return new com.spectralogic.ds3cli.views.json.GetServiceView();
         }

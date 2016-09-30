@@ -31,7 +31,6 @@ public class GetConfigSummary extends CliCommand<GetConfigSummaryResult> {
     private final StringBuilder completeResult = new StringBuilder("CONFIGURATION SUMMARY\n");
     private final Map<String, Result> resultsMap = new HashMap<String, Result>();
 
-    private ViewType viewType;
     private Arguments mainArgs;
     // commands to be executed (use real class name, not underscore format)
     private final String[] commandList = {"SystemInformation", "VerifySystemHealth", "GetDataPathBackend",
@@ -60,7 +59,7 @@ public class GetConfigSummary extends CliCommand<GetConfigSummaryResult> {
             final Result result =  (Result)command.init(this.mainArgs).call();
             resultsMap.put(commandName, result);
             if (viewType.equals(ViewType.CLI)) {
-                final View view = command.getView(this.viewType);
+                final View view = command.getView();
                 appendResult(commandName, view.render(result));
             }
         }
@@ -93,7 +92,7 @@ public class GetConfigSummary extends CliCommand<GetConfigSummaryResult> {
     }
 
     @Override
-    public View<GetConfigSummaryResult> getView(final ViewType viewType) {
+    public View<GetConfigSummaryResult> getView() {
         if (viewType == ViewType.JSON) {
             return new com.spectralogic.ds3cli.views.json.GetConfigSummaryView();
         }
