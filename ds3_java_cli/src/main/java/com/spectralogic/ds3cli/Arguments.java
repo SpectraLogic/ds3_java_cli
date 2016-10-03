@@ -62,7 +62,7 @@ public class Arguments {
     // don't use Logger because the user's preferences are not yet set
     // collect log info that will be logged by Main
     private static final StringBuilder argumentLog = new StringBuilder("Argument processing");
-    private void addToLog(final String logItem) { argumentLog.append(" | " ).append(logItem) ; }
+    private void addToLog(final String logItem) { argumentLog.append(" | ").append(logItem) ; }
     public String getArgumentLog() { return argumentLog.toString(); }
 
     // These options are added in the ARguments class and read in first parsing
@@ -147,10 +147,7 @@ public class Arguments {
      * @return true if option was set
      */
     public boolean optionExists(final String optionName) {
-        if (this.cmd.hasOption(optionName)) {
-            return true;
-        }
-        return false;
+        return this.cmd.hasOption(optionName);
     }
 
     /**
@@ -442,9 +439,9 @@ public class Arguments {
     public boolean isHelp() { return this.help; }
     void setHelp(final boolean help) { this.help = help; }
     public Level getConsoleLogLevel() { return this.consoleLogLevel; }
-    void setConsoleLogLevel(Level console) {this.consoleLogLevel = console; }
+    void setConsoleLogLevel(final Level console) {this.consoleLogLevel = console; }
     public Level getFileLogLevel() { return this.fileLogLevel; }
-    void setFileLogLevel(Level file) {this.fileLogLevel = file; }
+    void setFileLogLevel(final Level file) {this.fileLogLevel = file; }
     public int getRetries() {
         final String retryString = this.getOptionValueWithDefault(RETRIES.getOpt(), DEFAULT_RETRIES).toString();
         try {

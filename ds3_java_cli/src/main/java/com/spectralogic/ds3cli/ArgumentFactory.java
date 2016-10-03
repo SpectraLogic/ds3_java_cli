@@ -39,7 +39,7 @@ public class ArgumentFactory {
 
     // added as needed by commands
     public static final Option BUCKET = Option.builder("b").hasArg(true)
-            .desc("The ds3 bucket to copy to").argName("bucketName").build();
+            .desc("The ds3 bucket").argName("bucketName").build();
     public static final Option DIRECTORY = Option.builder("d").hasArg(true)
             .desc("Specify a directory to interact with if required").argName("directoty").build();
     public static final Option PREFIX = Option.builder("p").hasArg(true).argName("prefix")
@@ -93,7 +93,7 @@ public class ArgumentFactory {
             .hasArgs()
             .build();
     public static final Option VERIFY_PERCENT = Option.builder().longOpt("verify-last-percent").argName("percent")
-            .desc("Set verify last percent as an integer.  Used with modify_data_path").build();
+            .desc("Set verify last percent as an integer.").build();
     public static final Option IGNORE_NAMING_CONFLICTS = Option.builder().longOpt("ignore-naming-conflicts")
             .desc("Set true to ignore existing files of the same name and size during a bulk put").build();
     public static final Option IN_CACHE = Option.builder().longOpt("in-cache")

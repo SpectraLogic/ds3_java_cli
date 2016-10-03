@@ -102,7 +102,7 @@ public abstract class CliCommand<T extends Result> implements Callable<T> {
      * Inits COMMAND to add all options, then prints usage description
      * @param arguments Arguments object
      */
-    public void printArgumentHelp(Arguments arguments) {
+    public void printArgumentHelp(final Arguments arguments) {
         try {
             // init to install options
             init(arguments);
@@ -118,7 +118,7 @@ public abstract class CliCommand<T extends Result> implements Callable<T> {
      * @param reqArgs List<Option> of required args
      * @param args Argumnets object
      */
-    protected void addRequiredArguments(final List<Option> reqArgs, Arguments args) {
+    protected void addRequiredArguments(final List<Option> reqArgs, final Arguments args) {
         for (final Option o : reqArgs ) {
             final Option oReq = o;
             oReq.setRequired(true);
@@ -162,7 +162,7 @@ public abstract class CliCommand<T extends Result> implements Callable<T> {
             final String message = view.render(call());
             return new CommandResponse(message, 0);
         }
-        catch(final CommandException e) {
+        catch (final CommandException e) {
             final String message;
             if (this.getOutputFormat() == ViewType.JSON) {
                 message = new CommandExceptionJsonView().render(e);
