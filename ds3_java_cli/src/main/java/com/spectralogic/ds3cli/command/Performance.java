@@ -17,7 +17,7 @@ package com.spectralogic.ds3cli.command;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.spectralogic.ds3cli.ArgumentFactory;
+import static com.spectralogic.ds3cli.ArgumentFactory.*;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.exceptions.CommandException;
@@ -44,7 +44,7 @@ import java.util.List;
 public class Performance extends CliCommand<DefaultResult> {
 
     private final static ImmutableList<Option> requiredArgs
-            = ImmutableList.of(ArgumentFactory.BUCKET, ArgumentFactory.NUMBER_OF_FILES, ArgumentFactory.SIZE_OF_FILES);
+            = ImmutableList.of(BUCKET, NUMBER_OF_FILES, SIZE_OF_FILES);
 
     private String bucketName;
     private String numberOfFiles;

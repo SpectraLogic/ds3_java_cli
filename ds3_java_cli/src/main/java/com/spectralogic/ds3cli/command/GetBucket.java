@@ -17,7 +17,7 @@ package com.spectralogic.ds3cli.command;
 
 
 import com.google.common.collect.ImmutableList;
-import com.spectralogic.ds3cli.ArgumentFactory;
+import static com.spectralogic.ds3cli.ArgumentFactory.*;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
@@ -31,8 +31,8 @@ import org.apache.commons.cli.Option;
 
 public class GetBucket extends CliCommand<GetBucketResult> {
 
-    private final static ImmutableList<Option> requiredArgs = ImmutableList.of(ArgumentFactory.BUCKET);
-    private final static ImmutableList<Option> optionalArgs = ImmutableList.of(ArgumentFactory.PREFIX);
+    private final static ImmutableList<Option> requiredArgs = ImmutableList.of(BUCKET);
+    private final static ImmutableList<Option> optionalArgs = ImmutableList.of(PREFIX);
 
     private String bucketName;
     private String prefix;

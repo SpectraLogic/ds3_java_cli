@@ -16,7 +16,7 @@
 package com.spectralogic.ds3cli.command;
 
 import com.google.common.collect.ImmutableList;
-import com.spectralogic.ds3cli.ArgumentFactory;
+import static com.spectralogic.ds3cli.ArgumentFactory.*;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
@@ -33,7 +33,7 @@ import java.io.IOException;
 
 public class GetUser extends CliCommand<GetUsersResult> {
 
-    private final static ImmutableList<Option> requiredArgs = ImmutableList.of(ArgumentFactory.ID);
+    private final static ImmutableList<Option> requiredArgs = ImmutableList.of(ID);
 
     // name or uuid
     private String userId;

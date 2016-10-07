@@ -19,7 +19,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
-import com.spectralogic.ds3cli.ArgumentFactory;
+import static com.spectralogic.ds3cli.ArgumentFactory.*;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
@@ -51,12 +51,12 @@ public class PutBulk extends CliCommand<PutBulkResult> {
 
     private final static Logger LOG = LoggerFactory.getLogger(PutBulk.class);
 
-    private final static ImmutableList<Option> requiredArgs = ImmutableList.of(ArgumentFactory.BUCKET);
+    private final static ImmutableList<Option> requiredArgs = ImmutableList.of(BUCKET);
     private final static ImmutableList<Option> optionalArgs
-            = ImmutableList.of(ArgumentFactory.PREFIX, ArgumentFactory.NUMBER_OF_THREADS, ArgumentFactory.WRITE_OPTIMIZATION,
-            ArgumentFactory.FOLLOW_SYMLINKS, ArgumentFactory.PRIORITY, ArgumentFactory.CHECKSUM,
-            ArgumentFactory.SYNC, ArgumentFactory.FORCE, ArgumentFactory.NUMBER_OF_THREADS, ArgumentFactory.IGNORE_ERRORS,
-            ArgumentFactory.IGNORE_NAMING_CONFLICTS, ArgumentFactory.DIRECTORY);
+            = ImmutableList.of(PREFIX, NUMBER_OF_THREADS, WRITE_OPTIMIZATION,
+            FOLLOW_SYMLINKS, PRIORITY, CHECKSUM,
+            SYNC, FORCE, NUMBER_OF_THREADS, IGNORE_ERRORS,
+            IGNORE_NAMING_CONFLICTS, DIRECTORY);
 
     private String bucketName;
     private Path inputDirectory;

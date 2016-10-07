@@ -18,7 +18,7 @@ package com.spectralogic.ds3cli.command;
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
-import com.spectralogic.ds3cli.ArgumentFactory;
+import static com.spectralogic.ds3cli.ArgumentFactory.*;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
@@ -34,7 +34,7 @@ import javax.annotation.Nullable;
 
 public class GetSuspectObjects extends CliCommand<SuspectedObjectResult> {
 
-    private final static ImmutableList<Option> optionalArgs = ImmutableList.of(ArgumentFactory.IN_CACHE);
+    private final static ImmutableList<Option> optionalArgs = ImmutableList.of(IN_CACHE);
 
     private boolean inCache;
 

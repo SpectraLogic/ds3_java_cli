@@ -20,7 +20,7 @@ import com.google.common.base.Predicates;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.spectralogic.ds3cli.ArgumentFactory;
+import static com.spectralogic.ds3cli.ArgumentFactory.*;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
@@ -45,7 +45,7 @@ import javax.annotation.Nullable;
 public class GetDetailedObjects extends CliCommand<GetDetailedObjectsResult> {
     private final static org.slf4j.Logger LOG = LoggerFactory.getLogger(GetDetailedObjects.class);
 
-    private final static ImmutableList<Option> optionalArgs = ImmutableList.of(ArgumentFactory.FILTER_PARAMS, ArgumentFactory.BUCKET);
+    private final static ImmutableList<Option> optionalArgs = ImmutableList.of(FILTER_PARAMS, BUCKET);
 
     private final static String NEWERTHAN = "newerthan";
     private final static String OLDERTHAN = "olderthan";

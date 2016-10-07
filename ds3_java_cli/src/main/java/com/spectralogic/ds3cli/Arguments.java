@@ -51,7 +51,6 @@ public class Arguments {
     private boolean help;
     private Level consoleLogLevel;
     private Level fileLogLevel;
-    private final ViewType outputFormat = ViewType.CLI;
     private String version = "N/a";
     private String buildDate = "N/a";
     private static final String DEFAULT_RETRIES = "20";
@@ -64,34 +63,6 @@ public class Arguments {
     private static final StringBuilder argumentLog = new StringBuilder("Argument processing");
     private void addToLog(final String logItem) { argumentLog.append(" | ").append(logItem) ; }
     public String getArgumentLog() { return argumentLog.toString(); }
-
-    // These options are added in the ARguments class and read in first parsing
-    private final static Option ENDPOINT = new Option("e", true, "The ds3 endpoint to connect to or have \"DS3_ENDPOINT\" set as an environment variable.");
-    private final static Option ACCESS_KEY = new Option("a", true, "Access Key ID or have \"DS3_ACCESS_KEY\" set as an environment variable");
-    private final static Option SECRET_KEY = new Option("k", true, "Secret access key or have \"DS3_SECRET_KEY\" set as an environment variable");
-    private final static Option COMMAND = new Option("c", true, "The Command to execute.  For Possible values, use '--help list_commands.'" );
-    private final static Option PROXY = new Option("x", true, "The URL of the PROXY server to use or have \"http_proxy\" set as an environment variable");
-    private final static Option HTTP = Option.builder().longOpt("http").desc("Send all requests over standard HTTP").build();
-    private final static Option INSECURE = Option.builder().longOpt("insecure").desc("Ignore ssl certificate verification").build();
-    private final static Option PRINT_HELP = new Option("h", "Help Menu");
-    private final static Option COMMAND_HELP = Option.builder()
-            .longOpt("help")
-            .desc("Command Help (provide command name from -c)")
-            .optionalArg(true)
-            .numberOfArgs(1)
-            .build();
-    private static final Option VERBOSE = Option.builder().longOpt("verbose").desc("Log output to console.").build();
-    private static final Option DEBUG = Option.builder().longOpt("debug").desc("Debug (more verbose) output to console.").build();
-    private static final Option TRACE = Option.builder().longOpt("trace").desc("Trace (most verbose) output to console.").build();
-    private static final Option LOG_VERBOSE = Option.builder().longOpt("log-verbose").desc("Log output to log file.").build();
-    private static final Option LOG_DEBUG = Option.builder().longOpt("log-debug").desc("Debug (more verbose) output to log file.").build();
-    private static final Option LOG_TRACE = Option.builder().longOpt("log-trsce").desc("Trace (most verbose) output to log file.").build();
-    private static final Option PRINT_VERSION = Option.builder().longOpt("version").desc("Print version information").build();
-    private static final Option VIEW_TYPE = Option.builder().longOpt("output-format").hasArg()
-            .desc("Configure how the output should be displayed.  Possible values: [" + ViewType.valuesString() + "]").build();
-    private static final Option RETRIES = new Option("r", true,
-            "Specifies how many times puts and gets will be attempted before failing the request. The default is 5");
-    private static final Option BUFFER_SIZE = new Option("bs", true, "Set the buffer size in bytes. The defalut is 1MB");
 
     /**
      * add an argument option

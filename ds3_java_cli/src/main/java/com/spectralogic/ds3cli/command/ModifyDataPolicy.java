@@ -17,7 +17,7 @@ package com.spectralogic.ds3cli.command;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.spectralogic.ds3cli.ArgumentFactory;
+import static com.spectralogic.ds3cli.ArgumentFactory.*;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
@@ -37,7 +37,7 @@ import java.io.IOException;
 
 public class ModifyDataPolicy extends CliCommand<GetDataPoliciesResult> {
 
-    private final static ImmutableList<Option> requiredArgs = ImmutableList.of(ArgumentFactory.ID, ArgumentFactory.MODIFY_PARAMS);
+    private final static ImmutableList<Option> requiredArgs = ImmutableList.of(ID, MODIFY_PARAMS);
 
     // name or uuid
     private String policyId;

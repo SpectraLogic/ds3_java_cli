@@ -16,7 +16,7 @@
 package com.spectralogic.ds3cli.command;
 
 import com.google.common.collect.ImmutableList;
-import com.spectralogic.ds3cli.ArgumentFactory;
+import static com.spectralogic.ds3cli.ArgumentFactory.*;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.models.DefaultResult;
 import com.spectralogic.ds3client.commands.spectrads3.VerifyPoolSpectraS3Request;
@@ -28,8 +28,8 @@ import org.apache.commons.cli.Option;
 
 public class VerifyPool extends CliCommand<DefaultResult> {
 
-    private final static ImmutableList<Option> requiredArgs = ImmutableList.of(ArgumentFactory.ID);
-    private final static ImmutableList<Option> optionalArgs = ImmutableList.of(ArgumentFactory.PRIORITY);
+    private final static ImmutableList<Option> requiredArgs = ImmutableList.of(ID);
+    private final static ImmutableList<Option> optionalArgs = ImmutableList.of(PRIORITY);
 
     private String id;
     private Priority priority;

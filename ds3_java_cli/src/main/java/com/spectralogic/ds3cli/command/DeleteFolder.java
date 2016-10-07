@@ -16,7 +16,7 @@
 package com.spectralogic.ds3cli.command;
 
 import com.google.common.collect.ImmutableList;
-import com.spectralogic.ds3cli.ArgumentFactory;
+import static com.spectralogic.ds3cli.ArgumentFactory.*;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.DefaultResult;
@@ -31,7 +31,7 @@ public class DeleteFolder extends CliCommand<DefaultResult> {
     private String bucketName;
     private String folderName;
 
-    private final static ImmutableList<Option> requiredArgs = ImmutableList.of(ArgumentFactory.BUCKET, ArgumentFactory.DIRECTORY);
+    private final static ImmutableList<Option> requiredArgs = ImmutableList.of(BUCKET, DIRECTORY);
 
     public DeleteFolder() {
     }

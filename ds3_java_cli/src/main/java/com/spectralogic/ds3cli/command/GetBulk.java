@@ -17,7 +17,7 @@ package com.spectralogic.ds3cli.command;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-import com.spectralogic.ds3cli.ArgumentFactory;
+import static com.spectralogic.ds3cli.ArgumentFactory.*;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.DefaultResult;
@@ -65,10 +65,10 @@ public class GetBulk extends CliCommand<DefaultResult> {
     private boolean discard;
     private int numberOfThreads;
 
-    private final static ImmutableList<Option> requiredArgs = ImmutableList.of(ArgumentFactory.BUCKET);
+    private final static ImmutableList<Option> requiredArgs = ImmutableList.of(BUCKET);
     private final static ImmutableList<Option> optionalArgs
-            = ImmutableList.of(ArgumentFactory.DIRECTORY, ArgumentFactory.PREFIX, ArgumentFactory.NUMBER_OF_THREADS,
-            ArgumentFactory.DISCARD, ArgumentFactory.PRIORITY, ArgumentFactory.CHECKSUM, ArgumentFactory.SYNC, ArgumentFactory.FORCE);
+            = ImmutableList.of(DIRECTORY, PREFIX, NUMBER_OF_THREADS,
+            DISCARD, PRIORITY, CHECKSUM, SYNC, FORCE);
 
     public GetBulk() {
     }

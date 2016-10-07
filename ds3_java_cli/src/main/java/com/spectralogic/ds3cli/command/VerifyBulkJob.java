@@ -16,7 +16,7 @@
 package com.spectralogic.ds3cli.command;
 
 import com.google.common.collect.ImmutableList;
-import com.spectralogic.ds3cli.ArgumentFactory;
+import static com.spectralogic.ds3cli.ArgumentFactory.*;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
@@ -38,8 +38,8 @@ import java.util.List;
 
 public class VerifyBulkJob extends CliCommand<VerifyBulkJobResult> {
 
-    private final static ImmutableList<Option> requiredArgs = ImmutableList.of(ArgumentFactory.BUCKET);
-    private final static ImmutableList<Option> optionalArgs = ImmutableList.of(ArgumentFactory.PREFIX, ArgumentFactory.PRIORITY);
+    private final static ImmutableList<Option> requiredArgs = ImmutableList.of(BUCKET);
+    private final static ImmutableList<Option> optionalArgs = ImmutableList.of(PREFIX, PRIORITY);
 
     private String bucketName;
     private String prefix;

@@ -17,7 +17,7 @@ package com.spectralogic.ds3cli.command;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.spectralogic.ds3cli.ArgumentFactory;
+import static com.spectralogic.ds3cli.ArgumentFactory.*;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.DefaultResult;
@@ -45,9 +45,9 @@ public class GetObject extends CliCommand<DefaultResult> {
 
     private final static Logger LOG = LoggerFactory.getLogger(GetObject.class);
 
-    private final static ImmutableList<Option> requiredArgs = ImmutableList.of(ArgumentFactory.BUCKET, ArgumentFactory.OBJECT_NAME);
-    private final static ImmutableList<Option> optionalArgs = ImmutableList.of(ArgumentFactory.DIRECTORY, ArgumentFactory.SYNC,
-            ArgumentFactory.FORCE, ArgumentFactory.NUMBER_OF_THREADS, ArgumentFactory.PRIORITY);
+    private final static ImmutableList<Option> requiredArgs = ImmutableList.of(BUCKET, OBJECT_NAME);
+    private final static ImmutableList<Option> optionalArgs = ImmutableList.of(DIRECTORY, SYNC,
+            FORCE, NUMBER_OF_THREADS, PRIORITY);
 
     private String bucketName;
     private String objectName;

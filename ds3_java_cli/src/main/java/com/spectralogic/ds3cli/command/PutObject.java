@@ -18,7 +18,7 @@ package com.spectralogic.ds3cli.command;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import com.spectralogic.ds3cli.ArgumentFactory;
+import static com.spectralogic.ds3cli.ArgumentFactory.*;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.exceptions.BadArgumentException;
 import com.spectralogic.ds3cli.exceptions.SyncNotSupportedException;
@@ -47,10 +47,10 @@ public class PutObject extends CliCommand<DefaultResult> {
 
     private final static Logger LOG = LoggerFactory.getLogger(PutObject.class);
 
-    private final static ImmutableList<Option> requiredArgs = ImmutableList.of(ArgumentFactory.BUCKET, ArgumentFactory.OBJECT_NAME);
+    private final static ImmutableList<Option> requiredArgs = ImmutableList.of(BUCKET, OBJECT_NAME);
     private final static ImmutableList<Option> optionalArgs
-            = ImmutableList.of(ArgumentFactory.PREFIX, ArgumentFactory.SYNC, ArgumentFactory.NUMBER_OF_THREADS,
-            ArgumentFactory.METADATA, ArgumentFactory.PRIORITY);
+            = ImmutableList.of(PREFIX, SYNC, NUMBER_OF_THREADS,
+            METADATA, PRIORITY);
 
     private String bucketName;
     private Path objectPath;
