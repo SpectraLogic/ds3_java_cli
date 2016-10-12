@@ -104,7 +104,7 @@ public class Arguments {
      */
     public String[] getOptionValues(final String optionName) {
         final String[] values = this.cmd.getOptionValues(optionName);
-        if ((values == null) || (values.length == 0)) {
+        if (values == null || values.length == 0) {
             return null;
         }
         return values;
@@ -130,7 +130,7 @@ public class Arguments {
      * @return option value as Object if secified on COMMAND, else defaultValue
      */
     public Object getOptionValueWithDefault(final String optionName, final Object defaultValue) {
-        final Object returnValue = this.cmd.getOptionValue(optionName);
+        final Object returnValue = this.getOptionValue(optionName);
         if (returnValue != null) {
             return returnValue;
         }
@@ -177,7 +177,7 @@ public class Arguments {
     private String[] rootArgumentsOnly() throws BadArgumentException {
         // Present only COMMAND, help and version arguments to parser, After the COMMAND
         // is instantiated, the full parse will be run against the complete Options list.
-        List<String> rootArguments = new ArrayList<String>();
+        final List<String> rootArguments = new ArrayList<String>();
 
         for (int i = 0; i < this.args.length; i++) {
             final String token = this.args[i];
@@ -185,7 +185,8 @@ public class Arguments {
             // or --output-format and subsequent argument
             if (matchesOption(COMMAND, token) || matchesOption(VIEW_TYPE,  token) ||
                     matchesOption(ACCESS_KEY, token) || matchesOption(SECRET_KEY,  token) ||
-                    matchesOption(ENDPOINT, token) || matchesOption(PROXY,  token))  {
+                    matchesOption(ENDPOINT, token) || matchesOption(PROXY,  token) ||
+                    matchesOption(RETRIES, token)) {
                 rootArguments.add(token);
                 if (i < this.args.length) {
                     rootArguments.add(this.args[++i]);
@@ -211,9 +212,7 @@ public class Arguments {
         }
 
         // create a String[] of only valid root parse args.
-        String[] ret = new String[rootArguments.size()];
-        ret = rootArguments.toArray(ret);
-        return ret;
+        return rootArguments.toArray(new String[rootArguments.size()]);
     }
 
     /**
@@ -227,7 +226,7 @@ public class Arguments {
     private void parseCommandLine(final boolean isRootParse) throws ParseException, BadArgumentException {
         final CommandLineParser parser = new DefaultParser();
         if (isRootParse) {
-            String[] roots =  rootArgumentsOnly();
+            final String[] roots =  rootArgumentsOnly();
             this.cmd = parser.parse(this.options, roots);
         } else {
             this.cmd = parser.parse(this.options, this.args);
@@ -327,7 +326,7 @@ public class Arguments {
     }
 
     // build client from Arguments
-    public Ds3Client createClient() throws MissingOptionException {
+    public Ds3Client createClient() throws MissingOptionException, BadArgumentException {
         final Ds3ClientBuilder builder = Ds3ClientBuilder.create(
                 getEndpoint(),
                 new Credentials(getAccessKey(), getSecretKey())
@@ -413,15 +412,14 @@ public class Arguments {
     void setConsoleLogLevel(final Level console) {this.consoleLogLevel = console; }
     public Level getFileLogLevel() { return this.fileLogLevel; }
     void setFileLogLevel(final Level file) {this.fileLogLevel = file; }
-    public int getRetries() {
+
+    public int getRetries() throws BadArgumentException {
         final String retryString = this.getOptionValueWithDefault(RETRIES.getOpt(), DEFAULT_RETRIES).toString();
-        try {
+        try{
             return Integer.parseInt(retryString);
-        } catch (final NumberFormatException e) {
-            System.err.printf("Error: Argument (%s) to '-r' was not a number\n", retryString);
-            System.exit(1);
+        } catch (NumberFormatException e) {
+            throw new BadArgumentException("Argument to '-r' was not a number", e);
         }
-        return -1;
     }
 
     // convenience getters for public options
@@ -431,7 +429,8 @@ public class Arguments {
     public boolean isForce() { return this.optionExists(FORCE.getLongOpt()); }
     public String getPrefix()  { return this.getOptionValueWithDefault(PREFIX.getOpt(), "").toString(); }
     public boolean isChecksum() { return this.optionExists(CHECKSUM.getLongOpt()); }
-    public Priority getPriority() {
+
+    public Priority getPriority() throws BadArgumentException {
         final String priorityString = this.getOptionValue(PRIORITY.getLongOpt());
         try {
             if (priorityString == null) {
@@ -440,12 +439,11 @@ public class Arguments {
                 return Priority.valueOf(priorityString.toUpperCase());
             }
         } catch (final IllegalArgumentException e) {
-            System.err.printf("Error: Unknown priority: %s", priorityString);
-            System.exit(1);
+            throw new BadArgumentException("Unknown priority: " + priorityString, e);
         }
-        return null;
     }
-    public WriteOptimization getWriteOptimization() {
+
+    public WriteOptimization getWriteOptimization() throws BadArgumentException{
         final String writeOptimizationString = this.getOptionValue(WRITE_OPTIMIZATION.getLongOpt());
         try {
             if (writeOptimizationString == null) {
@@ -454,11 +452,10 @@ public class Arguments {
                 return WriteOptimization.valueOf(writeOptimizationString.toUpperCase());
             }
         } catch (final IllegalArgumentException e) {
-            System.err.printf("Error: Unknown write_optimization: %s", writeOptimizationString);
-            System.exit(1);
+            throw new BadArgumentException("Error: Unknown write_optimization:" + writeOptimizationString, e);
         }
-        return null;
     }
+
     public String getId() { return this.getOptionValue(ID.getOpt()); }
     public boolean isCompleted() { return this.optionExists(COMPLETED.getLongOpt()); }
     public boolean isSync() { return this.optionExists(SYNC.getLongOpt()); }

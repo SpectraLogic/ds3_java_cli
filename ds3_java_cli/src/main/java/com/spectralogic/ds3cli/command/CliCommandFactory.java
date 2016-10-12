@@ -16,8 +16,12 @@
 package com.spectralogic.ds3cli.command;
 
 import com.google.common.base.CaseFormat;
+import com.google.common.base.Function;
+import com.google.common.base.Joiner;
+import com.google.common.collect.FluentIterable;
 import com.spectralogic.ds3cli.exceptions.CommandException;
 
+import javax.annotation.Nullable;
 import java.util.Iterator;
 import java.util.ServiceLoader;
 
@@ -26,9 +30,8 @@ public class CliCommandFactory {
     public static CliCommand getCommandExecutor(final String commandName) throws CommandException {
         final String commandCamel = CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, commandName.toString());
 
-        final Iterator<CliCommand> implementations = getAllCommands();
-        while (implementations.hasNext()) {
-            final CliCommand implementation = implementations.next();
+        final Iterable<CliCommand> implementations = getAllCommands();
+        for  (final CliCommand implementation : implementations) {
             final String className = implementation.getClass().getSimpleName();
             if (className.equalsIgnoreCase(commandCamel)) {
                 return implementation;
@@ -38,24 +41,27 @@ public class CliCommandFactory {
     }
 
     public static String listAllCommands() {
-        final StringBuilder commands = new StringBuilder("Installed Commands: ");
-        final Iterator<CliCommand> implementations = getAllCommands();
-        while (implementations.hasNext()) {
-            final CliCommand implementation = implementations.next();
-            commands.append(CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, implementation.getClass().getSimpleName()));
-            if (implementations.hasNext()) {
-                commands.append(", ");
-            }
-        }
-        return commands.toString();
+        final StringBuilder commandHelp = new StringBuilder("Installed Commands: ");
+
+        FluentIterable<String> commands = FluentIterable.from(getAllCommands()).transform(
+                new Function<CliCommand, String>() {
+                    @Nullable
+                    @Override
+                    public String apply(@Nullable CliCommand input) {
+                        return CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, input.getClass().getSimpleName());
+                    }
+                }
+        );
+        final Joiner joiner = Joiner.on(", ");
+        commandHelp.append(joiner.join(commands));
+        return commandHelp.toString();
     }
 
-    private static Iterator<CliCommand> getAllCommands() {
+    private static Iterable<CliCommand> getAllCommands() {
         final ServiceLoader<CliCommand> loader =
                 ServiceLoader.load(CliCommand.class);
-        return loader.iterator();
+        return loader;
     }
-
 
 }
 
