@@ -415,9 +415,9 @@ public class Arguments {
 
     public int getRetries() throws BadArgumentException {
         final String retryString = this.getOptionValueWithDefault(RETRIES.getOpt(), DEFAULT_RETRIES).toString();
-        try{
+        try {
             return Integer.parseInt(retryString);
-        } catch (NumberFormatException e) {
+        } catch (final NumberFormatException e) {
             throw new BadArgumentException("Argument to '-r' was not a number", e);
         }
     }
