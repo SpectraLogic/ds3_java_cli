@@ -58,9 +58,7 @@ public class CliCommandFactory {
     }
 
     private static Iterable<CliCommand> getAllCommands() {
-        final ServiceLoader<CliCommand> loader =
-                ServiceLoader.load(CliCommand.class);
-        return loader;
+        return ServiceLoader.load(CliCommand.class);
     }
 
 }
