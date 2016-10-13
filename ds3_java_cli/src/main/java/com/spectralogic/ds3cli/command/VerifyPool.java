@@ -15,6 +15,8 @@
 
 package com.spectralogic.ds3cli.command;
 
+import com.google.common.collect.ImmutableList;
+import static com.spectralogic.ds3cli.ArgumentFactory.*;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.models.DefaultResult;
 import com.spectralogic.ds3client.commands.spectrads3.VerifyPoolSpectraS3Request;
@@ -22,19 +24,24 @@ import com.spectralogic.ds3client.commands.spectrads3.VerifyPoolSpectraS3Respons
 import com.spectralogic.ds3client.models.Priority;
 import com.spectralogic.ds3client.utils.Guard;
 import org.apache.commons.cli.MissingArgumentException;
+import org.apache.commons.cli.Option;
 
 public class VerifyPool extends CliCommand<DefaultResult> {
+
+    private final static ImmutableList<Option> requiredArgs = ImmutableList.of(ID);
+    private final static ImmutableList<Option> optionalArgs = ImmutableList.of(PRIORITY);
 
     private String id;
     private Priority priority;
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
+        addRequiredArguments(requiredArgs, args);
+        addOptionalArguments(optionalArgs, args);
+        args.parseCommandLine();
+        this.viewType = args.getOutputFormat();
         this.priority = args.getPriority();
         this.id = args.getId();
-        if (Guard.isStringNullOrEmpty(this.id)) {
-            throw new MissingArgumentException("The '-i' option is a required argument");
-        }
         return this;
     }
 

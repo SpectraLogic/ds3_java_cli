@@ -15,7 +15,9 @@
 
 package com.spectralogic.ds3cli.command;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import static com.spectralogic.ds3cli.ArgumentFactory.*;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
@@ -25,14 +27,16 @@ import com.spectralogic.ds3client.commands.spectrads3.*;
 import com.spectralogic.ds3client.networking.FailedRequestException;
 import com.spectralogic.ds3client.utils.Guard;
 import org.apache.commons.cli.MissingOptionException;
+import org.apache.commons.cli.Option;
 
 import java.io.IOException;
 
 public class ModifyUser extends CliCommand<GetUsersResult> {
 
+    private final static ImmutableList<Option> requiredArgs = ImmutableList.of(ID, MODIFY_PARAMS);
+
     // name or uuid
     private String userId;
-    private String defaultPolicyId;
     private ImmutableMap<String, String> modifyParams;
 
     public ModifyUser() {
@@ -40,14 +44,12 @@ public class ModifyUser extends CliCommand<GetUsersResult> {
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
+        addRequiredArguments(requiredArgs, args);
+        args.parseCommandLine();
+
         this.userId = args.getId();
-        if (Guard.isStringNullOrEmpty(this.userId)) {
-            throw new MissingOptionException("The modify_user command requires '-i' to be set with the username or Id");
-        }
+        this.viewType = args.getOutputFormat();
         this.modifyParams = args.getModifyParams();
-        if (Guard.isMapNullOrEmpty(this.modifyParams)) {
-            throw new MissingOptionException("The modify_user command requires '--modify-params' to be set with at least one key:value default_data_policy_id:a85aa599-7a58-4141-adbe-79bfd1d42e48,key2:value2");
-        }
         return this;
     }
 
@@ -82,7 +84,7 @@ public class ModifyUser extends CliCommand<GetUsersResult> {
     }
 
     @Override
-    public View<GetUsersResult> getView(final ViewType viewType) {
+    public View<GetUsersResult> getView() {
         if (viewType == ViewType.JSON) {
             return new com.spectralogic.ds3cli.views.json.GetUsersView();
         }

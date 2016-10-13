@@ -27,11 +27,6 @@ public class ReclaimCache extends CliCommand<DefaultResult> {
     }
 
     @Override
-    public CliCommand init(final Arguments args) throws Exception {
-        return this;
-    }
-
-    @Override
     public DefaultResult call() throws Exception {
 
         try {

@@ -33,11 +33,6 @@ public class GetCacheState extends CliCommand<GetCacheStateResult> {
     }
 
     @Override
-    public CliCommand init(final Arguments args) throws Exception {
-        return this;
-    }
-
-    @Override
     public GetCacheStateResult call() throws IOException, CommandException {
         try {
             final GetCacheStateSpectraS3Response cacheStateResponse
@@ -50,7 +45,7 @@ public class GetCacheState extends CliCommand<GetCacheStateResult> {
     }
 
     @Override
-    public View<GetCacheStateResult> getView(final ViewType viewType) {
+    public View<GetCacheStateResult> getView() {
         if (viewType == ViewType.JSON) {
             return new com.spectralogic.ds3cli.views.json.GetCacheStateView();
         }

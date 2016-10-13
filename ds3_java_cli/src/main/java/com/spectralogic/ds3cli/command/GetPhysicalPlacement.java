@@ -15,6 +15,8 @@
 
 package com.spectralogic.ds3cli.command;
 
+import com.google.common.collect.ImmutableList;
+import static com.spectralogic.ds3cli.ArgumentFactory.*;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
@@ -25,6 +27,7 @@ import com.spectralogic.ds3client.commands.spectrads3.GetPhysicalPlacementForObj
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.networking.FailedRequestException;
 import org.apache.commons.cli.MissingOptionException;
+import org.apache.commons.cli.Option;
 import org.apache.commons.cli.UnrecognizedOptionException;
 
 import java.util.Collections;
@@ -32,6 +35,8 @@ import java.util.List;
 
 
 public class GetPhysicalPlacement extends CliCommand<GetPhysicalPlacementWithFullDetailsResult> {
+
+    private final static ImmutableList<Option> requiredArgs = ImmutableList.of(BUCKET, OBJECT_NAME);
 
     private String bucketName;
     private String objectName;
@@ -41,20 +46,12 @@ public class GetPhysicalPlacement extends CliCommand<GetPhysicalPlacementWithFul
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
-        if (args.getDirectory() != null) {
-            throw new UnrecognizedOptionException("The get_physical_placement command does not work with '-d' as it only applies to a single object.");
-        }
+        addRequiredArguments(requiredArgs, args);
+        args.parseCommandLine();
 
         this.bucketName = args.getBucket();
-        if (this.bucketName == null) {
-            throw new MissingOptionException("The get_physical_placement command requires '-b' to be set.");
-        }
-
         this.objectName = args.getObjectName();
-        if (this.objectName == null) {
-            throw new MissingOptionException("The get_physical_placement command requires '-o' to be set.");
-        }
-
+        this.viewType = args.getOutputFormat();
         return this;
     }
 
@@ -74,7 +71,7 @@ public class GetPhysicalPlacement extends CliCommand<GetPhysicalPlacementWithFul
     }
 
     @Override
-    public View<GetPhysicalPlacementWithFullDetailsResult> getView(final ViewType viewType) {
+    public View<GetPhysicalPlacementWithFullDetailsResult> getView() {
         if (viewType == ViewType.JSON) {
             return new com.spectralogic.ds3cli.views.json.GetPhysicalPlacementWithFullDetailsView();
         }

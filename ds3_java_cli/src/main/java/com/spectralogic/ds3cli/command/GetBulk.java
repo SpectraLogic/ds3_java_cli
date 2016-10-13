@@ -15,7 +15,9 @@
 
 package com.spectralogic.ds3cli.command;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import static com.spectralogic.ds3cli.ArgumentFactory.*;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.DefaultResult;
@@ -32,6 +34,7 @@ import com.spectralogic.ds3client.networking.Metadata;
 import com.spectralogic.ds3client.serializer.XmlProcessingException;
 import com.spectralogic.ds3client.utils.Guard;
 import org.apache.commons.cli.MissingOptionException;
+import org.apache.commons.cli.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,6 +55,7 @@ public class GetBulk extends CliCommand<DefaultResult> {
     private final static long DEFAULT_FILE_SIZE = 1024L;
 
     private String bucketName;
+    private String directory;
     private Path outputPath;
     private String prefix;
     private boolean checksum;
@@ -61,33 +65,26 @@ public class GetBulk extends CliCommand<DefaultResult> {
     private boolean discard;
     private int numberOfThreads;
 
+    private final static ImmutableList<Option> requiredArgs = ImmutableList.of(BUCKET);
+    private final static ImmutableList<Option> optionalArgs
+            = ImmutableList.of(DIRECTORY, PREFIX, NUMBER_OF_THREADS,
+            DISCARD, PRIORITY, CHECKSUM, SYNC, FORCE);
+
     public GetBulk() {
     }
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
+        // add diectory option
+        addRequiredArguments(requiredArgs, args);
+        addOptionalArguments(optionalArgs, args);
+        args.parseCommandLine();
+
+        this.directory = args.getDirectory();
         this.bucketName = args.getBucket();
-        if (this.bucketName == null) {
-            throw new MissingOptionException("The bulk get command requires '-b' to be set.");
-        }
-
-        if (args.getObjectName() != null) {
-            System.out.println("Warning: '-o' is not used with bulk get and is ignored.");
-        }
-
-        final String directory = args.getDirectory();
-        if (directory == null || directory.equals(".")) {
-            this.outputPath = FileSystems.getDefault().getPath(".");
-        } else {
-            final Path dirPath = FileSystems.getDefault().getPath(directory);
-            this.outputPath = FileSystems.getDefault().getPath(".").resolve(dirPath);
-        }
-
         this.discard = args.isDiscard();
-        if (this.discard) {
-            if (directory != null) {
-                throw new CommandException("Cannot set both directory and --discard");
-            }
+        if (this.discard && !Guard.isStringNullOrEmpty(directory)) {
+            throw new CommandException("Cannot set both directory and --discard");
         }
 
         this.priority = args.getPriority();
@@ -101,12 +98,19 @@ public class GetBulk extends CliCommand<DefaultResult> {
 
         this.force = args.isForce();
         this.numberOfThreads = Integer.valueOf(args.getNumberOfThreads());
-
+        this.viewType = args.getOutputFormat();
         return this;
     }
 
     @Override
     public DefaultResult call() throws Exception {
+
+        if (Guard.isStringNullOrEmpty(this.directory) || directory.equals(".")) {
+            this.outputPath = FileSystems.getDefault().getPath(".");
+        } else {
+            final Path dirPath = FileSystems.getDefault().getPath(directory);
+            this.outputPath = FileSystems.getDefault().getPath(".").resolve(dirPath);
+        }
 
         final Ds3ClientHelpers.ObjectChannelBuilder getter;
         if (this.checksum) {
@@ -129,7 +133,7 @@ public class GetBulk extends CliCommand<DefaultResult> {
             return new DefaultResult(this.restoreSome(getter));
         }
 
-        if (this.prefix == null) {
+        if (Guard.isStringNullOrEmpty(this.prefix)) {
             LOG.info("Getting all objects from {}", this.bucketName);
             return new DefaultResult(this.restoreAll(getter));
         }
@@ -163,7 +167,7 @@ public class GetBulk extends CliCommand<DefaultResult> {
         job.transfer(loggingFileObjectGetter);
 
         if (this.sync) {
-            if (this.prefix != null) {
+            if (!Guard.isStringNullOrEmpty(this.prefix)) {
                 return "SUCCESS: Synced all the objects that start with '" + this.prefix + "' from " + this.bucketName + " to " + this.outputPath.toString();
             } else {
                 return "SUCCESS: Synced all the objects from " + this.bucketName + " to " + this.outputPath.toString();

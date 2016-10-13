@@ -15,6 +15,8 @@
 
 package com.spectralogic.ds3cli.command;
 
+import com.google.common.collect.ImmutableList;
+import static com.spectralogic.ds3cli.ArgumentFactory.*;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
@@ -25,10 +27,13 @@ import com.spectralogic.ds3client.commands.spectrads3.GetUserSpectraS3Response;
 import com.spectralogic.ds3client.networking.FailedRequestException;
 import com.spectralogic.ds3client.utils.Guard;
 import org.apache.commons.cli.MissingOptionException;
+import org.apache.commons.cli.Option;
 
 import java.io.IOException;
 
 public class GetUser extends CliCommand<GetUsersResult> {
+
+    private final static ImmutableList<Option> requiredArgs = ImmutableList.of(ID);
 
     // name or uuid
     private String userId;
@@ -38,11 +43,12 @@ public class GetUser extends CliCommand<GetUsersResult> {
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
+        addRequiredArguments(requiredArgs, args);
+        args.parseCommandLine();
+
         this.userId = args.getId();
-        if (Guard.isStringNullOrEmpty(this.userId)) {
-            throw new MissingOptionException("The get_user command requires '-i' to be set with the username or Id");
-        }
-        return this;
+        this.viewType = args.getOutputFormat();
+        return  this;
     }
 
     @Override
@@ -63,7 +69,7 @@ public class GetUser extends CliCommand<GetUsersResult> {
     }
 
     @Override
-    public View<GetUsersResult> getView(final ViewType viewType) {
+    public View<GetUsersResult> getView() {
         if (viewType == ViewType.JSON) {
             return new com.spectralogic.ds3cli.views.json.GetUsersView();
         }

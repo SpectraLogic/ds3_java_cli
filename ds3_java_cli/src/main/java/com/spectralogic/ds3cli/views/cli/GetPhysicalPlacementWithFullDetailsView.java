@@ -24,6 +24,7 @@ import com.spectralogic.ds3client.models.BulkObject;
 import com.spectralogic.ds3client.models.BulkObjectList;
 import com.spectralogic.ds3client.models.Pool;
 import com.spectralogic.ds3client.models.Tape;
+import com.spectralogic.ds3client.utils.Guard;
 
 import java.util.List;
 
@@ -34,7 +35,7 @@ public class GetPhysicalPlacementWithFullDetailsView  implements View<GetPhysica
     @Override
     public String render(final GetPhysicalPlacementWithFullDetailsResult obj) throws JsonProcessingException {
         final BulkObjectList result = obj.getPhysicalPlacementWithDetails();
-        if (result == null || null == result.getObjects()) {
+        if (result == null || Guard.isNullOrEmpty(result.getObjects())) {
             return "Object not found.";
         }
 

@@ -50,6 +50,7 @@ import java.nio.file.*;
 import java.util.Collections;
 import java.util.UUID;
 
+import static junit.framework.TestCase.assertFalse;
 import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.number.OrderingComparison.greaterThan;
 import static org.junit.Assert.assertThat;
@@ -548,4 +549,26 @@ public class FeatureIntegration_Test {
             Util.deleteBucket(client, bucketName);
         }
     }
+
+    @Test
+    public void getDetailedObjects() throws Exception {
+        final String bucketName = "test_detailed_objects";
+        try {
+            Util.createBucket(client, bucketName);
+            Util.loadBookTestData(client, bucketName);
+
+            final Arguments args = new Arguments(new String[]{"--http", "-c", "get_detailed_objects", "-b", bucketName, "--filter-params", "largerthan:400000,smallerthan:600000", "--output-format", "csv" });
+            final CommandResponse response = Util.command(client, args);
+            // too little
+            assertFalse(response.getMessage().contains("beowulf.txt"));
+            // too big
+            assertFalse(response.getMessage().contains("ulysses.txt"));
+            // just right
+            assertTrue(response.getMessage().contains("sherlock_holmes.txt"));
+
+        } finally {
+            Util.deleteBucket(client, bucketName);
+        }
+    }
+
 }

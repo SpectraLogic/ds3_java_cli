@@ -31,10 +31,6 @@ public class GetUsers extends CliCommand<GetUsersResult> {
     public GetUsers() {
     }
 
-    @Override
-    public CliCommand init(final Arguments args) throws Exception {
-        return this;
-    }
 
     @Override
     public GetUsersResult call() throws IOException, CommandException {
@@ -48,7 +44,7 @@ public class GetUsers extends CliCommand<GetUsersResult> {
     }
 
     @Override
-    public View<GetUsersResult> getView(final ViewType viewType) {
+    public View<GetUsersResult> getView() {
         if (viewType == ViewType.JSON) {
             return new com.spectralogic.ds3cli.views.json.GetUsersView();
         }
