@@ -33,6 +33,7 @@ import com.spectralogic.ds3client.networking.FailedRequestException;
 import com.spectralogic.ds3client.networking.Headers;
 import com.spectralogic.ds3client.networking.WebResponse;
 import com.spectralogic.ds3client.serializer.XmlOutput;
+import org.apache.commons.cli.MissingOptionException;
 import org.apache.commons.io.IOUtils;
 import org.hamcrest.core.StringEndsWith;
 import org.junit.Test;
@@ -2201,6 +2202,81 @@ public class Ds3Cli_Test {
         assertThat(result.getMessage(), is("Success: Forced Reclaim of Cache"));
         assertThat(result.getReturnCode(), is(0));
     }
+
+    @Test
+    public void ejectStorageDomain() throws Exception {
+        final String expected
+                = "Scheduled Eject of Storage Domain 9ffa7e9c-6939-4808-996e-e42fcf8bacb5\nBucket: buckety\nEject label: 1234\nEject location: 5678";
+        final Arguments args
+                = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a",
+                "access", "-c", "eject_storage_domain", "-i", "9ffa7e9c-6939-4808-996e-e42fcf8bacb5",
+                "--eject-label", "1234", "--eject-location", "5678", "-b", "buckety"});
+        final Ds3Client client = mock(Ds3Client.class);
+        final WebResponse webResponse = mock(WebResponse.class);
+        final Headers headers = mock(Headers.class);
+        when(webResponse.getStatusCode()).thenReturn(204);
+        when(webResponse.getHeaders()).thenReturn(headers);
+
+        final EjectStorageDomainSpectraS3Response ejectResponse = new EjectStorageDomainSpectraS3Response(webResponse);
+        when(client.ejectStorageDomainSpectraS3(any(EjectStorageDomainSpectraS3Request.class))).thenReturn(ejectResponse);
+
+        final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
+        final CommandResponse result = cli.call();
+        assertThat(result.getMessage(), is(expected));
+        assertThat(result.getReturnCode(), is(0));
+    }
+
+    @Test(expected = MissingOptionException.class)
+    public void ejectStorageDomainBadArgs() throws Exception {
+        final Arguments args
+                = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a",
+                "access", "-c", "eject_storage_domain", "-i", "9ffa7e9c-6939-4808-996e-e42fcf8bacb5",
+                "--eject-label", "1234", "--eject-location", "5678"});
+        final Ds3Client client = mock(Ds3Client.class);
+
+        final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
+        final CommandResponse result = cli.call();
+    }
+
+    @Test
+    public void getStorageDomains() throws Exception {
+
+        final String expected =
+            "+-----------------------+--------------------------------------+-------------+-------------------------+--------------------+\n" +
+            "|          Name         |                  ID                  | LTFS Naming |          Flags          | Write Optimization |\n" +
+            "+-----------------------+--------------------------------------+-------------+-------------------------+--------------------+\n" +
+            "| Db Backup Second Copy | a4420271-ab93-4446-8f03-7d2ba8f94529 | OBJECT_ID   | Secure Media Allocation | CAPACITY           |\n" +
+            "| Tape Second Copy      | 79bb4290-86c7-4aab-801d-392418591c7d | OBJECT_ID   |                         | CAPACITY           |\n" +
+            "| eject_test            | d7751014-e2eb-4cbc-9613-cabb7907f60f | OBJECT_ID   |                         | CAPACITY           |\n" +
+            "| smoke_test_sd         | f2903e2b-0f0d-430c-8176-b46076681823 | OBJECT_ID   |                         | CAPACITY           |\n" +
+            "+-----------------------+--------------------------------------+-------------+-------------------------+--------------------+\n";
+
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_storage_domains",
+                "--writeOptimization", "capacity"});
+        final String response = "<Data>" +
+                "<StorageDomain><AutoEjectMediaFullThreshold/><AutoEjectUponCron/><AutoEjectUponJobCancellation>false</AutoEjectUponJobCancellation><AutoEjectUponJobCompletion>false</AutoEjectUponJobCompletion><AutoEjectUponMediaFull>false</AutoEjectUponMediaFull><Id>a4420271-ab93-4446-8f03-7d2ba8f94529</Id><LtfsFileNaming>OBJECT_ID</LtfsFileNaming><MaxTapeFragmentationPercent>65</MaxTapeFragmentationPercent><MaximumAutoVerificationFrequencyInDays/><MediaEjectionAllowed>true</MediaEjectionAllowed><Name>Db Backup Second Copy</Name><SecureMediaAllocation>true</SecureMediaAllocation><VerifyPriorToAutoEject/><WriteOptimization>CAPACITY</WriteOptimization></StorageDomain>" +
+                "<StorageDomain><AutoEjectMediaFullThreshold/><AutoEjectUponCron/><AutoEjectUponJobCancellation>false</AutoEjectUponJobCancellation><AutoEjectUponJobCompletion>false</AutoEjectUponJobCompletion><AutoEjectUponMediaFull>false</AutoEjectUponMediaFull><Id>79bb4290-86c7-4aab-801d-392418591c7d</Id><LtfsFileNaming>OBJECT_ID</LtfsFileNaming><MaxTapeFragmentationPercent>65</MaxTapeFragmentationPercent><MaximumAutoVerificationFrequencyInDays/><MediaEjectionAllowed>true</MediaEjectionAllowed><Name>Tape Second Copy</Name><SecureMediaAllocation>false</SecureMediaAllocation><VerifyPriorToAutoEject/><WriteOptimization>CAPACITY</WriteOptimization></StorageDomain>" +
+                "<StorageDomain><AutoEjectMediaFullThreshold/><AutoEjectUponCron/><AutoEjectUponJobCancellation>false</AutoEjectUponJobCancellation><AutoEjectUponJobCompletion>false</AutoEjectUponJobCompletion><AutoEjectUponMediaFull>false</AutoEjectUponMediaFull><Id>d7751014-e2eb-4cbc-9613-cabb7907f60f</Id><LtfsFileNaming>OBJECT_ID</LtfsFileNaming><MaxTapeFragmentationPercent>65</MaxTapeFragmentationPercent><MaximumAutoVerificationFrequencyInDays/><MediaEjectionAllowed>false</MediaEjectionAllowed><Name>eject_test</Name><SecureMediaAllocation>false</SecureMediaAllocation><VerifyPriorToAutoEject/><WriteOptimization>CAPACITY</WriteOptimization></StorageDomain>" +
+                "<StorageDomain><AutoEjectMediaFullThreshold/><AutoEjectUponCron/><AutoEjectUponJobCancellation>false</AutoEjectUponJobCancellation><AutoEjectUponJobCompletion>false</AutoEjectUponJobCompletion><AutoEjectUponMediaFull>false</AutoEjectUponMediaFull><Id>f2903e2b-0f0d-430c-8176-b46076681823</Id><LtfsFileNaming>OBJECT_ID</LtfsFileNaming><MaxTapeFragmentationPercent>65</MaxTapeFragmentationPercent><MaximumAutoVerificationFrequencyInDays/><MediaEjectionAllowed>true</MediaEjectionAllowed><Name>smoke_test_sd</Name><SecureMediaAllocation>false</SecureMediaAllocation><VerifyPriorToAutoEject/><WriteOptimization>CAPACITY</WriteOptimization></StorageDomain>" +
+                "</Data>";
+
+        final Ds3Client client = mock(Ds3Client.class);
+
+        final WebResponse webResponse = mock(WebResponse.class);
+        final Headers headers = mock(Headers.class);
+        when(webResponse.getStatusCode()).thenReturn(200);
+        when(webResponse.getHeaders()).thenReturn(headers);
+        when(webResponse.getResponseStream()).thenReturn(IOUtils.toInputStream(response));
+
+        final GetStorageDomainsSpectraS3Response storageDomainResponse = new GetStorageDomainsSpectraS3Response(webResponse);
+        when(client.getStorageDomainsSpectraS3(any(GetStorageDomainsSpectraS3Request.class))).thenReturn(storageDomainResponse);
+
+        final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
+        final CommandResponse result = cli.call();
+        assertThat(result.getMessage(), is(expected));
+        assertThat(result.getReturnCode(), is(0));
+    }
+
 
     /* Pagination responses not corrcetly mocked in test
     @Test

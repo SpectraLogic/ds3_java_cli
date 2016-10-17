@@ -76,6 +76,9 @@ public class Arguments {
     private boolean ignoreNamingConflicts = false;
     private boolean inCache = false;
     private int verifyLastPercent = 20;
+    private String ejectLabel;
+    private String ejectLocation;
+
 
     // don't use Logger because the user's preferences are not yet set
     // collect log info that will be logged by Main
@@ -204,6 +207,11 @@ public class Arguments {
         verifyPercent.setLongOpt("verify-last-percent");
         verifyPercent.setArgName("percent");
 
+        final Option ejectLabel = Option.builder().longOpt("eject-label").hasArg()
+                .desc("Enter information to assist in the handling of the tapes.").build();
+        final Option ejectLocation = Option.builder().longOpt("eject-location").hasArg()
+                .desc("Enter information to describe where the ejected tapes can be located.").build();
+
         this.options.addOption(ds3Endpoint);
         this.options.addOption(bucket);
         this.options.addOption(directory);
@@ -247,6 +255,8 @@ public class Arguments {
         this.options.addOption(ignoreNamingConflicts);
         this.options.addOption(inCache);
         this.options.addOption(verifyPercent);
+        this.options.addOption(ejectLabel);
+        this.options.addOption(ejectLocation);
         this.processCommandLine();
     }
 
@@ -467,6 +477,10 @@ public class Arguments {
         if (cmd.hasOption("verify-last-percent")) {
             this.setVerifyLastPercent(Integer.parseInt(cmd.getOptionValue("verify-last-percent")));
         }
+
+        this.setEjectLabel(cmd.getOptionValue("eject-label"));
+        this.setEjectLocation(cmd.getOptionValue("eject-location"));
+
     }
 
     private WriteOptimization processWriteOptimization(final CommandLine cmd, final String writeOptimization) throws BadArgumentException {
@@ -800,5 +814,18 @@ public class Arguments {
     void setVerifyLastPercent(final int verifyLastPercent) {
         this.verifyLastPercent = verifyLastPercent;
     }
+
+    void setEjectLabel(final String label) {
+        this.ejectLabel = label;
+    }
+
+    void setEjectLocation(final String location) {
+        this.ejectLocation = location;
+    }
+
+    public String GetEjectLabel() {return this.ejectLabel; }
+
+    public String GetEjectLocation() {return this.ejectLocation; }
+
 }
 
