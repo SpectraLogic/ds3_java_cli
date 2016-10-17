@@ -33,6 +33,7 @@ import com.spectralogic.ds3client.networking.FailedRequestException;
 import com.spectralogic.ds3client.networking.Headers;
 import com.spectralogic.ds3client.networking.WebResponse;
 import com.spectralogic.ds3client.serializer.XmlOutput;
+import org.apache.commons.cli.MissingOptionException;
 import org.apache.commons.io.IOUtils;
 import org.hamcrest.core.StringEndsWith;
 import org.junit.Test;
@@ -2224,6 +2225,19 @@ public class Ds3Cli_Test {
         assertThat(result.getMessage(), is(expected));
         assertThat(result.getReturnCode(), is(0));
     }
+
+    @Test(expected = MissingOptionException.class)
+    public void ejectStorageDomainBadArgs() throws Exception {
+        final Arguments args
+                = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a",
+                "access", "-c", "eject_storage_domain", "-i", "9ffa7e9c-6939-4808-996e-e42fcf8bacb5",
+                "--eject-label", "1234", "--eject-location", "5678"});
+        final Ds3Client client = mock(Ds3Client.class);
+
+        final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
+        final CommandResponse result = cli.call();
+    }
+
     @Test
     public void getStorageDomains() throws Exception {
 
