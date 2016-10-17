@@ -19,6 +19,7 @@ import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.exceptions.CommandException;
+import com.spectralogic.ds3cli.exceptions.CommandExceptionFactory;
 import com.spectralogic.ds3cli.models.GetUsersResult;
 import com.spectralogic.ds3client.commands.spectrads3.GetUserSpectraS3Request;
 import com.spectralogic.ds3client.commands.spectrads3.GetUserSpectraS3Response;
@@ -51,13 +52,13 @@ public class GetUser extends CliCommand<GetUsersResult> {
             final GetUserSpectraS3Response response = getClient().getUserSpectraS3(new GetUserSpectraS3Request(this.userId));
 
             return new GetUsersResult(response.getSpectraUserResult());
-        } catch (final FailedRequestException e) {
-            if (e.getStatusCode() == 500) {
+        } catch (final IOException e) {
+            if (CommandExceptionFactory.hasStatusCode(e, 500)) {
                 throw new CommandException("Error: Cannot communicate with the remote DS3 appliance.", e);
-            } else if (e.getStatusCode() == 404) {
+            } else if (CommandExceptionFactory.hasStatusCode(e,404)) {
                 throw new CommandException("Unknown user: " + this.userId, e);
             } else {
-                throw new CommandException("Encountered an unknown error of (" + e.getStatusCode() + ") while accessing the remote DS3 appliance.", e);
+                throw CommandExceptionFactory.getResponseExcepion(this.getClass().getSimpleName(), e);
             }
         }
     }

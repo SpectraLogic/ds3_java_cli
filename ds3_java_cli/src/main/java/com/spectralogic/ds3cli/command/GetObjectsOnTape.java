@@ -19,6 +19,7 @@ import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.exceptions.CommandException;
+import com.spectralogic.ds3cli.exceptions.CommandExceptionFactory;
 import com.spectralogic.ds3cli.models.GetObjectsOnTapeResult;
 import com.spectralogic.ds3client.commands.spectrads3.*;
 import com.spectralogic.ds3client.networking.FailedRequestException;
@@ -53,16 +54,8 @@ public class GetObjectsOnTape extends CliCommand<GetObjectsOnTapeResult> {
                         = getClient().getBlobsOnTapeSpectraS3(new GetBlobsOnTapeSpectraS3Request(null, this.tapeId));
 
             return new GetObjectsOnTapeResult(this.tapeId, response.getBulkObjectListResult().getObjects().iterator());
-        } catch (final FailedRequestException e) {
-            if(e.getStatusCode() == 500) {
-                throw new CommandException("Error: Cannot communicate with the remote DS3 appliance.", e);
-            }
-            else if(e.getStatusCode() == 404) {
-                throw new CommandException("Unknown tape: " + this.tapeId, e);
-            }
-            else {
-                throw new CommandException("Encountered an unknown error of ("+ e.getStatusCode() +") while accessing the remote DS3 appliance.", e);
-            }
+        } catch (final IOException e) {
+            throw CommandExceptionFactory.getResponseExcepion(this.getClass().getSimpleName(), e);
         }
     }
 

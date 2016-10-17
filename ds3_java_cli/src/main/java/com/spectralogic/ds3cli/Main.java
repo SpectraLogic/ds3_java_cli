@@ -26,6 +26,7 @@ import ch.qos.logback.core.ConsoleAppender;
 import ch.qos.logback.core.rolling.*;
 import com.google.common.base.Joiner;
 import com.spectralogic.ds3cli.command.CliCommand;
+import com.spectralogic.ds3cli.exceptions.CommandExceptionFactory;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3cli.util.Utils;
@@ -161,7 +162,7 @@ public final class Main {
             System.out.println(response.getMessage());
             System.exit(response.getReturnCode());
         } catch (final FailedRequestException e) {
-            System.out.println("ERROR: " + e.getMessage());
+            System.out.println(CommandExceptionFactory.getExcepionDescription(e));
             LOG.info("Stack trace: ", e);
             LOG.info("Printing out the response from the server:");
             LOG.info(e.getResponseString());

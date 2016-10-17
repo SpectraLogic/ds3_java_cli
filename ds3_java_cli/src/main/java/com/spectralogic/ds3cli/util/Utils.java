@@ -19,6 +19,8 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.spectralogic.ds3cli.command.PutBulk;
+import com.spectralogic.ds3cli.exceptions.CommandException;
+import com.spectralogic.ds3cli.exceptions.CommandExceptionFactory;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.spectrads3.GetSystemInformationSpectraS3Request;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
@@ -49,27 +51,31 @@ public final class Utils {
     public final static boolean isWindows = System.getProperty("os.name").contains("Windows");
     public final static String MINIMUM_VERSION_SUPPORTED = "1.2";
 
-    public static boolean isVersionSupported(final Ds3Client client) throws IOException {
+    public static boolean isVersionSupported(final Ds3Client client) throws CommandException {
         return isVersionSupported(client, MINIMUM_VERSION_SUPPORTED);
     }
 
-    public static boolean isVersionSupported(final Ds3Client client, final String minVersion) throws IOException {
-        final String buildInfo = client.getSystemInformationSpectraS3(new GetSystemInformationSpectraS3Request()).getSystemInformationResult().getBuildInformation().getVersion();
-        final String[] buildInfoArr = buildInfo.split(QUOTE);
-        final String[] versionInfo = minVersion.split(QUOTE);
+    public static boolean isVersionSupported(final Ds3Client client, final String minVersion) throws CommandException {
+        try {
+            final String buildInfo = client.getSystemInformationSpectraS3(new GetSystemInformationSpectraS3Request()).getSystemInformationResult().getBuildInformation().getVersion();
+            final String[] buildInfoArr = buildInfo.split(QUOTE);
+            final String[] versionInfo = minVersion.split(QUOTE);
 
-        if (versionInfo.length > 3) {
-            throw new IllegalArgumentException("The version string can have 3 numbers");
+            if (versionInfo.length > 3) {
+                throw new IllegalArgumentException("The version string can have 3 numbers");
+            }
+
+            for (int i = 0; i < versionInfo.length && i < buildInfoArr.length; i++) {
+                final int i1 = Integer.parseInt(buildInfoArr[i]);
+                final int i2 = Integer.parseInt(versionInfo[i]);
+                if (i1 > i2) return true;
+                if (i1 < i2) return false;
+            }
+
+            return true;
+        } catch (IOException e) {
+            throw CommandExceptionFactory.getResponseExcepion("GetSystemInformation", e);
         }
-
-        for (int i = 0; i < versionInfo.length && i < buildInfoArr.length; i++) {
-            final int i1 = Integer.parseInt(buildInfoArr[i]);
-            final int i2 = Integer.parseInt(versionInfo[i]);
-            if (i1 > i2) return true;
-            if (i1 < i2) return false;
-        }
-
-        return true;
     }
 
     public static ImmutableList<Path> listObjectsForDirectory(final Path directory) throws IOException {

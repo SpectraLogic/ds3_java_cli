@@ -17,6 +17,7 @@ package com.spectralogic.ds3cli.command;
 
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.exceptions.CommandException;
+import com.spectralogic.ds3cli.exceptions.CommandExceptionFactory;
 import com.spectralogic.ds3cli.models.DefaultResult;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.DeleteBucketRequest;
@@ -69,7 +70,7 @@ public class DeleteBucket extends CliCommand<DefaultResult> {
             if (e.getStatusCode() == 409) { //BUCKET_NOT_EMPTY
                 throw new CommandException("Error: Tried to delete a non-empty bucket without the force delete objects flag.\nUse --force to delete all objects in the bucket");
             }
-            throw new CommandException("Error: Request failed with the following error: " + e.getMessage(), e);
+            throw CommandExceptionFactory.getResponseExcepion(this.getClass().getSimpleName(), e);
         }
 
         return "Success: Deleted bucket '" + bucketName + "'.";
@@ -90,7 +91,7 @@ public class DeleteBucket extends CliCommand<DefaultResult> {
             getClient().deleteBucket(new DeleteBucketRequest(bucketName));
 
         } catch (final IOException e) {
-            throw new CommandException("Error: Request failed with the following error: " + e.getMessage(), e);
+            throw CommandExceptionFactory.getResponseExcepion(this.getClass().getSimpleName(), e);
         }
 
         return "Success: Deleted " + bucketName + " and all the objects contained in it.";
