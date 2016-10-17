@@ -45,6 +45,9 @@ public class EjectStorageDomain extends CliCommand<DefaultResult> {
             throw new MissingOptionException("The eject storage domain command requires '-i' to be set.");
         }
         this.bucket = args.getBucket();
+        if (Guard.isStringNullOrEmpty(this.bucket)) {
+            throw new MissingOptionException("The eject storage domain command requires '-b' to be set.");
+        }
         this.ejectLabel = args.GetEjectLabel();
         this.ejectLocation = args.GetEjectLocation();
         return this;

@@ -68,5 +68,4 @@ com.spectralogic.ds3cli.command.VerifyAllPools
 com.spectralogic.ds3cli.command.GetDetailedObjects
 com.spectralogic.ds3cli.command.GetDetailedObjectsPhysical
 com.spectralogic.ds3cli.command.EjectStorageDomain
-com.spectralogic.ds3cli.command.EjectStorageDomainObjects
 com.spectralogic.ds3cli.command.GetStorageDomains
