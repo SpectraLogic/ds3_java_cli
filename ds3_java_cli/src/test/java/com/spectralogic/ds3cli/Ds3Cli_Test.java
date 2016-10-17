@@ -18,6 +18,7 @@ package com.spectralogic.ds3cli;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.spectralogic.ds3cli.exceptions.BadArgumentException;
+import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.exceptions.SyncNotSupportedException;
 import com.spectralogic.ds3cli.util.*;
 import com.spectralogic.ds3client.Ds3Client;
@@ -1174,7 +1175,7 @@ public class Ds3Cli_Test {
     }
 
     @Test
-    public void isVersionSupported() throws IOException {
+    public void isVersionSupported() throws CommandException, IOException {
         final Ds3Client client = mock(Ds3Client.class);
         final GetSystemInformationSpectraS3Response systemInformationResponse = mock(GetSystemInformationSpectraS3Response.class);
         final SystemInformation systemInformation = mock(SystemInformation.class);
@@ -1195,7 +1196,7 @@ public class Ds3Cli_Test {
     }
 
     @Test
-    public void isCustomVersionSupported() throws IOException {
+    public void isCustomVersionSupported() throws CommandException, IOException {
         final Ds3Client client = mock(Ds3Client.class);
         final GetSystemInformationSpectraS3Response systemInformationResponse = mock(GetSystemInformationSpectraS3Response.class);
         final SystemInformation systemInformation = mock(SystemInformation.class);
