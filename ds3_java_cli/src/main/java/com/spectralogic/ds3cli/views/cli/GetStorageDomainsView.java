@@ -18,16 +18,11 @@ package com.spectralogic.ds3cli.views.cli;
 import com.bethecoder.ascii_table.ASCIITable;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
-import com.spectralogic.ds3cli.models.GetServiceResult;
 import com.spectralogic.ds3cli.models.GetStorageDomainsResult;
-import com.spectralogic.ds3client.models.BucketDetails;
-import com.spectralogic.ds3client.models.ListAllMyBucketsResult;
 import com.spectralogic.ds3client.models.StorageDomain;
-import com.spectralogic.ds3client.models.StorageDomainList;
 import com.spectralogic.ds3client.utils.Guard;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import static com.spectralogic.ds3cli.util.Constants.DATE_FORMAT;

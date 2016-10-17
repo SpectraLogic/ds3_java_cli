@@ -19,10 +19,7 @@ import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.exceptions.CommandException;
-import com.spectralogic.ds3cli.models.GetServiceResult;
 import com.spectralogic.ds3cli.models.GetStorageDomainsResult;
-import com.spectralogic.ds3client.commands.GetServiceRequest;
-import com.spectralogic.ds3client.commands.GetServiceResponse;
 import com.spectralogic.ds3client.commands.spectrads3.GetStorageDomainSpectraS3Request;
 import com.spectralogic.ds3client.commands.spectrads3.GetStorageDomainSpectraS3Response;
 import com.spectralogic.ds3client.commands.spectrads3.GetStorageDomainsSpectraS3Request;
@@ -32,7 +29,6 @@ import com.spectralogic.ds3client.networking.FailedRequestException;
 import com.spectralogic.ds3client.utils.Guard;
 
 import java.io.IOException;
-import java.util.UUID;
 
 public class GetStorageDomains extends CliCommand<GetStorageDomainsResult> {
 

@@ -17,10 +17,8 @@ package com.spectralogic.ds3cli.views.json;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.spectralogic.ds3cli.View;
-import com.spectralogic.ds3cli.models.GetServiceResult;
 import com.spectralogic.ds3cli.models.GetStorageDomainsResult;
 import com.spectralogic.ds3cli.util.JsonMapper;
-import com.spectralogic.ds3client.models.ListAllMyBucketsResult;
 import com.spectralogic.ds3client.models.StorageDomainList;
 import com.spectralogic.ds3client.utils.Guard;
 

@@ -15,16 +15,11 @@
 
 package com.spectralogic.ds3cli.command;
 
-import com.google.common.base.CaseFormat;
-import com.google.common.base.Function;
-import com.google.common.collect.FluentIterable;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.DefaultResult;
 import com.spectralogic.ds3cli.util.Utils;
-import com.spectralogic.ds3client.commands.spectrads3.DeletePermanentlyLostTapeSpectraS3Request;
 import com.spectralogic.ds3client.commands.spectrads3.EjectStorageDomainBlobsSpectraS3Request;
-import com.spectralogic.ds3client.commands.spectrads3.EjectStorageDomainSpectraS3Request;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.utils.Guard;
