@@ -40,10 +40,11 @@ public class EjectStorageDomain extends CliCommand<DefaultResult> {
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
-        this.id = UUID.fromString(args.getId());
-        if (this.id == null) {
+        if (args.getId() == null) {
             throw new MissingOptionException("The eject storage domain command requires '-i' to be set.");
         }
+        this.id = UUID.fromString(args.getId());
+
         this.bucket = args.getBucket();
         if (Guard.isStringNullOrEmpty(this.bucket)) {
             throw new MissingOptionException("The eject storage domain command requires '-b' to be set.");
