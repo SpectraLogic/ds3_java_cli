@@ -23,10 +23,6 @@ public class FailedRequestExceptionHandler  implements Ds3ExceptionHandler<Faile
 
     private final static Logger LOG = LoggerFactory.getLogger(FailedRequestExceptionHandler.class);
 
-    public static void register() {
-        CommandExceptionFactory.getInstance().addHandler(FailedRequestException.class, new FailedRequestExceptionHandler());
-    }
-
     public void handle(final String locationDescription, final FailedRequestException e, final boolean throwRuntimeException) {
         final int statusCode = e.getStatusCode();
         final StringBuilder description = new StringBuilder(locationDescription);

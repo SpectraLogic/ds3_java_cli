@@ -35,8 +35,11 @@ import com.spectralogic.ds3client.Ds3ClientBuilder;
 import com.spectralogic.ds3client.models.common.Credentials;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.networking.FailedRequestException;
+import org.apache.commons.cli.MissingOptionException;
+import org.apache.commons.cli.UnrecognizedOptionException;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 
@@ -51,9 +54,11 @@ public final class Main {
     // register exception handlers
     private final static CommandExceptionFactory EXCEPTION = CommandExceptionFactory.getInstance();
     static {
-        IOExceptionHandler.register();
-        FailedRequestExceptionHandler.register();
-        ArgumentExceptionHandler.register();
+        EXCEPTION.addHandler(IOException.class, new IOExceptionHandler());
+        EXCEPTION.addHandler(FailedRequestException.class, new FailedRequestExceptionHandler());
+        EXCEPTION.addHandler(BadArgumentException.class, new ArgumentExceptionHandler());
+        EXCEPTION.addHandler(MissingOptionException.class, new ArgumentExceptionHandler());
+        EXCEPTION.addHandler(UnrecognizedOptionException.class, new ArgumentExceptionHandler());
     }
 
     private static void configureLogging(final Level consoleLevel, final Level fileLevel) {

@@ -17,6 +17,6 @@ package com.spectralogic.ds3cli.exceptions;
 
 public interface Ds3ExceptionHandler<Throwable> {
 
-    public void handle(String locationDescription, Throwable e, boolean throwCliException);
+    public void handle(String locationDescription, Throwable e, boolean throwRuntimeException);
 
 }

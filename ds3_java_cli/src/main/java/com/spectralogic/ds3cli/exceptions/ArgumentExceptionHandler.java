@@ -26,12 +26,6 @@ public class ArgumentExceptionHandler implements Ds3ExceptionHandler<Exception> 
 
     private final static Logger LOG = LoggerFactory.getLogger(ArgumentExceptionHandler.class);
 
-    public static void register() {
-        CommandExceptionFactory.getInstance().addHandler(BadArgumentException.class, new ArgumentExceptionHandler());
-        CommandExceptionFactory.getInstance().addHandler(MissingOptionException.class, new ArgumentExceptionHandler());
-        CommandExceptionFactory.getInstance().addHandler(UnrecognizedOptionException.class, new ArgumentExceptionHandler());
-    }
-
     public void handle(final String locationDescription, final Exception e, final boolean throwRuntimeException) {
         final StringBuilder description = new StringBuilder(locationDescription);
         description.append(" failed (");

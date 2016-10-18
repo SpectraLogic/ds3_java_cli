@@ -23,10 +23,6 @@ public class IOExceptionHandler  implements Ds3ExceptionHandler<IOException> {
 
     private final static Logger LOG = LoggerFactory.getLogger(IOExceptionHandler.class);
 
-    public static void register() {
-        CommandExceptionFactory.getInstance().addHandler(IOException.class, new IOExceptionHandler());
-    }
-
     public void handle(final String locationDescription, final IOException e, final boolean throwRuntimeException) {
         final StringBuilder description = new StringBuilder(locationDescription);
         description.append(" failed (");
