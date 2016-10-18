@@ -38,7 +38,7 @@ public class CommandExceptionFactory {
      * @param exceptionClass (extends Throwable)
      * @param handler (implements Ds3ExceptionHandler)
      */
-    public void addHandler(Class<? extends Throwable> exceptionClass, Ds3ExceptionHandler handler) {
+    public void addHandler(final Class<? extends Throwable> exceptionClass, final Ds3ExceptionHandler handler) {
         handlers.put(exceptionClass,  handler);
     }
 
