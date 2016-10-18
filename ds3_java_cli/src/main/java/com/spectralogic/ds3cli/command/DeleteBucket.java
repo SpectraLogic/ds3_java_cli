@@ -53,7 +53,6 @@ public class DeleteBucket extends CliCommand<DefaultResult> {
     }
 
 
-
     @Override
     public DefaultResult call() throws Exception {
 
@@ -68,8 +67,10 @@ public class DeleteBucket extends CliCommand<DefaultResult> {
         try {
             getClient().deleteBucket(new DeleteBucketRequest(bucketName));
         } catch (final FailedRequestException e) {
-            if (e.getStatusCode() == 409) { //BUCKET_NOT _EMPTY
-                throw new CommandException("Error: Tried to delete a non-empty bucket without the force delete objects flag.\nUse --force to delete all objects in the bucket");
+            if (CommandExceptionFactory.hasStatusCode(e, 409)) { // BUCKET_NOT_EMPTY
+                CommandExceptionFactory.getInstance().handleException(this.getClass().getSimpleName(),
+                    new CommandException("Error: Tried to delete a non-empty bucket.\nUse --force to delete all objects in the bucket."),
+                    true);
             }
             CommandExceptionFactory.getInstance().handleException(this.getClass().getSimpleName(), e, true);
         }
