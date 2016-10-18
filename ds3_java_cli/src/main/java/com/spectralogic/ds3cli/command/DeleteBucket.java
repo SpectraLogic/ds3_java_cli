@@ -45,7 +45,8 @@ public class DeleteBucket extends CliCommand<DefaultResult> {
     public CliCommand init(final Arguments args) throws Exception {
         bucketName = args.getBucket();
         if (bucketName == null) {
-            throw new MissingOptionException("The delete bucket command requires '-b' to be set.");
+            CommandExceptionFactory.getInstance().handleException(this.getClass(). getSimpleName(),
+                    new MissingOptionException("The delete bucket command requires '-b' to be set."), true);
         }
         force = args.isForce();
         return this;
@@ -67,12 +68,11 @@ public class DeleteBucket extends CliCommand<DefaultResult> {
         try {
             getClient().deleteBucket(new DeleteBucketRequest(bucketName));
         } catch (final FailedRequestException e) {
-            if (e.getStatusCode() == 409) { //BUCKET_NOT_EMPTY
+            if (e.getStatusCode() == 409) { //BUCKET_NOT _EMPTY
                 throw new CommandException("Error: Tried to delete a non-empty bucket without the force delete objects flag.\nUse --force to delete all objects in the bucket");
             }
-            throw CommandExceptionFactory.getResponseExcepion(this.getClass().getSimpleName(), e);
+            CommandExceptionFactory.getInstance().handleException(this.getClass().getSimpleName(), e, true);
         }
-
         return "Success: Deleted bucket '" + bucketName + "'.";
     }
 
@@ -90,10 +90,10 @@ public class DeleteBucket extends CliCommand<DefaultResult> {
             LOG.debug("Deleting bucket");
             getClient().deleteBucket(new DeleteBucketRequest(bucketName));
 
-        } catch (final IOException e) {
-            throw CommandExceptionFactory.getResponseExcepion(this.getClass().getSimpleName(), e);
+        } catch (final Exception e) {
+            CommandExceptionFactory.getInstance().handleException(this.getClass().getSimpleName(), e, true);
+            return null;
         }
-
         return "Success: Deleted " + bucketName + " and all the objects contained in it.";
     }
 }

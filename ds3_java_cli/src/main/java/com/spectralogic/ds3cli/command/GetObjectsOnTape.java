@@ -47,7 +47,7 @@ public class GetObjectsOnTape extends CliCommand<GetObjectsOnTapeResult> {
     }
 
     @Override
-    public GetObjectsOnTapeResult call() throws IOException, CommandException {
+    public GetObjectsOnTapeResult call() {
         try {
 
             final GetBlobsOnTapeSpectraS3Response response
@@ -55,7 +55,13 @@ public class GetObjectsOnTape extends CliCommand<GetObjectsOnTapeResult> {
 
             return new GetObjectsOnTapeResult(this.tapeId, response.getBulkObjectListResult().getObjects().iterator());
         } catch (final IOException e) {
-            throw CommandExceptionFactory.getResponseExcepion(this.getClass().getSimpleName(), e);
+            if (CommandExceptionFactory.hasStatusCode(e, 404)) {
+                CommandExceptionFactory.getInstance().handleException(this.getClass().getSimpleName(),
+                        new CommandException("Unknown tape '" + this.tapeId +"'", e), true);
+            } else {
+                CommandExceptionFactory.getInstance().handleException(this.getClass().getSimpleName(), e, true);
+            }
+            return null;
         }
     }
 

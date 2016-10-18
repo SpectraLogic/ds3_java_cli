@@ -53,13 +53,13 @@ public class GetUser extends CliCommand<GetUsersResult> {
 
             return new GetUsersResult(response.getSpectraUserResult());
         } catch (final IOException e) {
-            if (CommandExceptionFactory.hasStatusCode(e, 500)) {
-                throw new CommandException("Error: Cannot communicate with the remote DS3 appliance.", e);
-            } else if (CommandExceptionFactory.hasStatusCode(e,404)) {
-                throw new CommandException("Unknown user: " + this.userId, e);
+            if (CommandExceptionFactory.hasStatusCode(e,404)) {
+                CommandExceptionFactory.getInstance().handleException(this.getClass().getSimpleName(),
+                        new CommandException("Unknown user '" + this.userId +"'", e), true);
             } else {
-                throw CommandExceptionFactory.getResponseExcepion(this.getClass().getSimpleName(), e);
+                CommandExceptionFactory.getInstance().handleException(this.getClass().getSimpleName(), e, true);
             }
+            return null;
         }
     }
 

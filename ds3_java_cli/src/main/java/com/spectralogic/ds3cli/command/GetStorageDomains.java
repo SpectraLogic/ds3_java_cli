@@ -63,8 +63,9 @@ public class GetStorageDomains extends CliCommand<GetStorageDomainsResult> {
 
                 return new GetStorageDomainsResult(response.getStorageDomainResult());
             }
-        } catch (final FailedRequestException e) {
-            throw CommandExceptionFactory.getResponseExcepion(this.getClass().getSimpleName(),  e);
+        } catch (final Exception e) {
+            CommandExceptionFactory.getInstance().handleException(this.getClass().getSimpleName(),  e, true);
+            return null;
         }
     }
 

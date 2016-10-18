@@ -74,7 +74,8 @@ public final class Utils {
 
             return true;
         } catch (IOException e) {
-            throw CommandExceptionFactory.getResponseExcepion("GetSystemInformation", e);
+            CommandExceptionFactory.getInstance().handleException("GetSystemInformation", e, true);
+            return false;
         }
     }
 
@@ -141,7 +142,9 @@ public final class Utils {
                         Utils.getFileName(inputDirectory, path),
                         Utils.getFileSize(path)));
             } catch (final IOException ex) {
-                if (!ignoreErrors) throw ex;
+                if (!ignoreErrors) {
+                    CommandExceptionFactory.getInstance().handleException("Utils.getObjectsToPut()", ex, true);
+                }
                 LOG.warn(String.format("WARN: file '%s' has an error and will be ignored", path.getFileName()));
                 ignoredBuilder.add(new PutBulk.IgnoreFile(path, ex.toString()));
             }

@@ -16,49 +16,57 @@
 package com.spectralogic.ds3cli.exceptions;
 
 import com.spectralogic.ds3client.networking.FailedRequestException;
-import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class CommandExceptionFactory {
 
-    /**
-     * Provide an exception with a common message "[Command class] failed: reason, then exception
-     *
-     * @param commandName pass in simple name of command class or string describing module
-     * @param e the caught exception
-     * @return a new Command Exception with regularized message.
-     */
+    private static CommandExceptionFactory factoryInstance;
+    private final Map<Class<? extends Throwable>, Ds3ExceptionHandler> handlers = new HashMap();
+    private final Ds3ExceptionHandler defaultHandler = new DefaultExceptionHandler();
 
-    public static CommandException getResponseExcepion(final String commandName, final IOException e) {
-        return new CommandException(commandName + " failed: " + getExcepionDescription(e), e);
-    }
-
-    /**
-     * Test for common return types and create description
-     * @param e
-     * @return String describing general cause
-     */
-    public static String getExcepionDescription(final IOException e) {
-        if (e instanceof FailedRequestException) {
-            final int statusCode = ((FailedRequestException) e).getStatusCode();
-            if (statusCode == 500 || statusCode == 502) {
-                return "cannot communicate with the remote DS3 appliance.";
-            } else if (statusCode == 403) {
-                if (e.getMessage().contains("Client clock")) {
-                    return "clock Synchronization error";
-                }
-                return "permissions / authorization error.";
-            } else if (statusCode == 404) {
-                return "target entity not found.";
-            } else if (statusCode == 409) {
-                return "target entity already exixts.";
-            }
-            return "unknown error of (" + statusCode + ") while accessing the remote DS3 appliance.";
+    // single instance
+    public static CommandExceptionFactory getInstance() {
+        if (factoryInstance == null) {
+            factoryInstance = new CommandExceptionFactory();
         }
-        return "IO Error " + e.getMessage();
+        return factoryInstance;
     }
 
     /**
-     * Checks exception type and status code
+     * Register an exception handler
+     * @param exceptionClass (extends Throwable)
+     * @param handler (implements Ds3ExceptionHandler)
+     */
+    public void addHandler(Class<? extends Throwable> exceptionClass, Ds3ExceptionHandler handler) {
+        handlers.put(exceptionClass,  handler);
+    }
+
+    private Ds3ExceptionHandler getHandler(final Class<? extends Throwable> e) {
+        final Ds3ExceptionHandler handler = handlers.get(e);
+        if (handler == null) {
+            return defaultHandler;
+        }
+        return handler;
+    }
+
+    /**
+     * Locate the appropriate Ds3ExceptionHandler (match if registered, else Default)
+     * then call handle(), passing in location, exception, and flag to throw RuntimeException
+     *
+     * @param location -- any string identifier, for COmmands use this.getClass.getSimpleName()
+     * @param e -- the original exception (or create new)
+     * @param throwRuntimeException -- true to construct a descriptive message and throw new RuntimeException,
+     *                              -- false to write description to console and LOG.info()
+     */
+    public void handleException (final String location, final Throwable e, final boolean throwRuntimeException) {
+        final Ds3ExceptionHandler handler = getHandler(e.getClass());
+        handler.handle(location, e, throwRuntimeException);
+
+    }
+
+    /**
+     * Checks exception type == FailedRequestException and status code
      * @param e caught exception
      * @param code code to test
      * @return true if exception is type of FailedRequestException and has status code == code

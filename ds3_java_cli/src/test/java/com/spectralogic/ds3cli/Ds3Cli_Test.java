@@ -832,10 +832,10 @@ public class Ds3Cli_Test {
         assertThat(result.getReturnCode(), is(0));
     }
 
-    @Test
+    @Test(expected = RuntimeException.class)
     public void getBulkWithBadArgs() throws Exception {
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_bulk", "-b", "bucketName", "-d", "targetdir", "--discard"});
-        final String expected = "Cannot set both directory and --discard\n";
+        final String expected = "GetBulk failed (CommandException): Cannot set both directory and --discard\n";
 
         final Ds3ClientHelpers helpers = mock(Ds3ClientHelpers.class);
         final Ds3ClientHelpers.Job mockedGetJob = mock(Ds3ClientHelpers.Job.class);

@@ -26,7 +26,7 @@ import ch.qos.logback.core.ConsoleAppender;
 import ch.qos.logback.core.rolling.*;
 import com.google.common.base.Joiner;
 import com.spectralogic.ds3cli.command.CliCommand;
-import com.spectralogic.ds3cli.exceptions.CommandExceptionFactory;
+import com.spectralogic.ds3cli.exceptions.*;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3cli.util.Utils;
@@ -48,6 +48,13 @@ public final class Main {
     private final static String LOG_DIR = "./ds3logs/";
     private final static String LOG_FILE_NAME = "spectra.log";
 
+    // register exception handlers
+    private final static CommandExceptionFactory EXCEPTION = CommandExceptionFactory.getInstance();
+    static {
+        IOExceptionHandler.register();
+        FailedRequestExceptionHandler.register();
+        ArgumentExceptionHandler.register();
+    }
 
     private static void configureLogging(final Level consoleLevel, final Level fileLevel) {
 
@@ -161,15 +168,13 @@ public final class Main {
             final CommandResponse response = runner.call();
             System.out.println(response.getMessage());
             System.exit(response.getReturnCode());
-        } catch (final FailedRequestException e) {
-            System.out.println(CommandExceptionFactory.getExcepionDescription(e));
-            LOG.info("Stack trace: ", e);
-            LOG.info("Printing out the response from the server:");
-            LOG.info(e.getResponseString());
+        } catch (final RuntimeException e) {
+            // already processed by exception factory, print and exit
+            System.out.println(e.getMessage());
             System.exit(2);
         } catch (final Exception e) {
-            System.out.println("ERROR: " + e.getMessage());
-            LOG.info("Stack trace: ", e);
+            // run through handler
+            EXCEPTION.handleException(Main.class.getSimpleName(), e, false);
             System.exit(2);
         }
     }

@@ -50,8 +50,9 @@ public class DeleteFolder extends CliCommand<DefaultResult> {
         try {
             getClient().deleteFolderRecursivelySpectraS3(new DeleteFolderRecursivelySpectraS3Request(bucketName, folderName));
         }
-        catch (final IOException e) {
-            throw CommandExceptionFactory.getResponseExcepion(this.getClass().getSimpleName(), e);
+        catch (final Exception e) {
+            CommandExceptionFactory.getInstance().handleException(this.getClass().getSimpleName(), e, true);
+            return null;
         }
         return new DefaultResult("Success: Deleted folder '" + folderName + "'.");
     }
