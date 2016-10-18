@@ -71,9 +71,8 @@ public final class Utils {
                 if (i1 > i2) return true;
                 if (i1 < i2) return false;
             }
-
             return true;
-        } catch (IOException e) {
+        } catch (final IOException e) {
             CommandExceptionFactory.getInstance().handleException("GetSystemInformation", e, true);
             return false;
         }
