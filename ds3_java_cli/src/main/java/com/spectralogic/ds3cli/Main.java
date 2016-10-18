@@ -59,6 +59,7 @@ public final class Main {
         EXCEPTION.addHandler(BadArgumentException.class, new ArgumentExceptionHandler());
         EXCEPTION.addHandler(MissingOptionException.class, new ArgumentExceptionHandler());
         EXCEPTION.addHandler(UnrecognizedOptionException.class, new ArgumentExceptionHandler());
+        EXCEPTION.addHandler(RuntimeException.class, new RuntimeExceptionHandler());
     }
 
     private static void configureLogging(final Level consoleLevel, final Level fileLevel) {
@@ -173,12 +174,7 @@ public final class Main {
             final CommandResponse response = runner.call();
             System.out.println(response.getMessage());
             System.exit(response.getReturnCode());
-        } catch (final RuntimeException e) {
-            // already processed by exception factory, print and exit
-            System.out.println(e.getMessage());
-            System.exit(2);
         } catch (final Exception e) {
-            // run through handler
             EXCEPTION.handleException(Main.class.getSimpleName(), e, false);
             System.exit(2);
         }
