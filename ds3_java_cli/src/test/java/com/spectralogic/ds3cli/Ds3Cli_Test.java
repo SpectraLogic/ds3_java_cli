@@ -187,7 +187,7 @@ public class Ds3Cli_Test {
         assertThat(result.getReturnCode(), is(0));
     }
 
-    @Test(expected = CommandException.class)
+    @Test(expected = FailedRequestException.class)
     public void error() throws Exception {
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_service"});
         final Ds3Client client = mock(Ds3Client.class);
@@ -198,7 +198,7 @@ public class Ds3Cli_Test {
         final CommandResponse result = cli.call();
     }
 
-    @Test(expected = CommandException.class)
+    @Test(expected = FailedRequestException.class)
     public void errorJson() throws Exception {
         final String expected =
                 "  \"Data\" : {\n" +
