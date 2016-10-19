@@ -39,14 +39,10 @@ public class GetCacheState extends CliCommand<GetCacheStateResult> {
 
     @Override
     public GetCacheStateResult call() throws IOException, CommandException {
-        try {
-            final GetCacheStateSpectraS3Response cacheStateResponse
-                    = getClient().getCacheStateSpectraS3(new GetCacheStateSpectraS3Request());
-            final CacheInformation response = cacheStateResponse.getCacheInformationResult();
-            return new GetCacheStateResult(response.getFilesystems());
-        } catch (final FailedRequestException e) {
-            throw new CommandException("Failed Get Data Policies", e);
-        }
+        final GetCacheStateSpectraS3Response cacheStateResponse
+                = getClient().getCacheStateSpectraS3(new GetCacheStateSpectraS3Request());
+        final CacheInformation response = cacheStateResponse.getCacheInformationResult();
+        return new GetCacheStateResult(response.getFilesystems());
     }
 
     @Override

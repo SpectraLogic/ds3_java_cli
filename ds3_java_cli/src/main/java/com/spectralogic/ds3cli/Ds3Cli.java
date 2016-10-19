@@ -47,20 +47,8 @@ public class Ds3Cli implements Callable<CommandResponse> {
 
         final View view = command.getView(this.args.getOutputFormat());
 
-        try {
-            final String message = view.render(command.init(this.args).call());
-            return new CommandResponse(message, 0);
-        }
-        catch(final CommandException e) {
-            final String message;
-            if (this.args.getOutputFormat() == ViewType.JSON) {
-                message = new CommandExceptionJsonView().render(e);
-            }
-            else {
-                message = new CommandExceptionCliView().render(e);
-            }
-            return new CommandResponse(message, 1);
-        }
+        final String message = view.render(command.init(this.args).call());
+        return new CommandResponse(message, 0);
     }
 
     public CommandResponse getCommandHelp() throws Exception {

@@ -45,14 +45,7 @@ public class DeleteTape extends CliCommand<DefaultResult> {
 
     @Override
     public DefaultResult call() throws Exception {
-
-        try {
-            this.getClient().deletePermanentlyLostTapeSpectraS3(new DeletePermanentlyLostTapeSpectraS3Request(id));
-        }
-        catch (final IOException e) {
-            throw new CommandException("Error: Request failed with the following error: " + e.getMessage(), e);
-        }
-
+        this.getClient().deletePermanentlyLostTapeSpectraS3(new DeletePermanentlyLostTapeSpectraS3Request(id));
         return new DefaultResult("Success: Deleted tape " + id.toString());
     }
 }

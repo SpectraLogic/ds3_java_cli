@@ -57,15 +57,11 @@ public class EjectStorageDomain extends CliCommand<DefaultResult> {
     @Override
     public DefaultResult call() throws Exception {
 
-        try {
-            final EjectStorageDomainSpectraS3Request request
-                    = new EjectStorageDomainSpectraS3Request(id)
-                    .withBucketId(bucket).withEjectLabel(ejectLabel).withEjectLocation(ejectLocation);
-            this.getClient().ejectStorageDomainSpectraS3(request);
-        }
-        catch (final IOException e) {
-            throw new CommandException("Error: Request failed with the following error: " + e.getMessage(), e);
-        }
+        final EjectStorageDomainSpectraS3Request request
+                = new EjectStorageDomainSpectraS3Request(id)
+                .withBucketId(bucket).withEjectLabel(ejectLabel).withEjectLocation(ejectLocation);
+
+        this.getClient().ejectStorageDomainSpectraS3(request);
 
         final StringBuilder message = new StringBuilder("Scheduled Eject of Storage Domain ");
         message.append(id.toString());

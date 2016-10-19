@@ -37,22 +37,10 @@ public class GetSystemFailure extends CliCommand<GetSystemFailureResult> {
 
     @Override
     public GetSystemFailureResult call() throws Exception {
-
-        try {
-            final GetSystemFailuresSpectraS3Response sysFailuresResponse
-                    = getClient().getSystemFailuresSpectraS3(new GetSystemFailuresSpectraS3Request());
-            final SystemFailureList sysFailures = sysFailuresResponse.getSystemFailureListResult();
-
-            return new GetSystemFailureResult( sysFailures );
-        }
-        catch(final FailedRequestException e) {
-            if(e.getStatusCode() == 500) {
-                throw new CommandException("Error: Cannot communicate with the remote DS3 appliance.", e);
-            }
-            else {
-                throw new CommandException("Error: Encountered an unknown error of ("+ e.getStatusCode() +") while accessing the remote DS3 appliance.", e);
-            }
-        }
+        final GetSystemFailuresSpectraS3Response sysFailuresResponse
+                = getClient().getSystemFailuresSpectraS3(new GetSystemFailuresSpectraS3Request());
+        final SystemFailureList sysFailures = sysFailuresResponse.getSystemFailureListResult();
+        return new GetSystemFailureResult( sysFailures );
     }
 
     @Override

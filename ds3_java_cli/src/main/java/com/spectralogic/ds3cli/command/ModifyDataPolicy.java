@@ -76,62 +76,56 @@ public class ModifyDataPolicy extends CliCommand<GetDataPoliciesResult> {
 
     @Override
     public GetDataPoliciesResult call() throws IOException, CommandException {
-        try {
-            // get the target policy
-            final GetDataPolicySpectraS3Response response = getClient().getDataPolicySpectraS3(new GetDataPolicySpectraS3Request(this.policyId));
-            response.checkStatusCode(200);
-            final DataPolicy policy = response.getDataPolicyResult();
+        // get the target policy
+        final GetDataPolicySpectraS3Response response = getClient().getDataPolicySpectraS3(new GetDataPolicySpectraS3Request(this.policyId));
+        response.checkStatusCode(200);
+        final DataPolicy policy = response.getDataPolicyResult();
 
-            // update this.policyId to the UUID in case we used name to select it and change the name
-            this.policyId = policy.getId().toString();
+        // update this.policyId to the UUID in case we used name to select it and change the name
+        this.policyId = policy.getId().toString();
 
-            // apply changes from metadata
-            final ModifyDataPolicySpectraS3Request modifyRequest = new ModifyDataPolicySpectraS3Request(this.policyId);
-            for (final String paramChange : this.metadata.keySet() ) {
-                final String paramNewValue = this.metadata.get(paramChange);
-                if("blobbing_enabled".equalsIgnoreCase(paramChange)) {
-                    modifyRequest.withBlobbingEnabled(Boolean.parseBoolean(paramNewValue));
-                }
-                else if("name".equalsIgnoreCase(paramChange)) {
-                    modifyRequest.withName(paramNewValue);
-                }
-                else if("checksum_type".equalsIgnoreCase(paramChange)) {
-                    modifyRequest.withChecksumType(ChecksumType.Type.valueOf(paramNewValue));
-                }
-                else if("default_blob_size".equalsIgnoreCase(paramChange)) {
-                    modifyRequest.withDefaultBlobSize(Long.getLong(paramNewValue));
-                }
-                else if("default_get_job_priority".equalsIgnoreCase(paramChange)) {
-                    modifyRequest.withDefaultGetJobPriority(Priority.valueOf(paramNewValue));
-                }
-                else if("default_put_job_priority".equalsIgnoreCase(paramChange)) {
-                    modifyRequest.withDefaultPutJobPriority(Priority.valueOf(paramNewValue));
-                }
-                else if("default_verify_job_priority".equalsIgnoreCase(paramChange)) {
-                    modifyRequest.withDefaultVerifyJobPriority(Priority.valueOf(paramNewValue));
-                }
-                else if("rebuild_priority".equalsIgnoreCase(paramChange)) {
-                    modifyRequest.withRebuildPriority(Priority.valueOf(paramNewValue));
-                }
-                else if("end_to_end_crc_required".equalsIgnoreCase(paramChange)) {
-                    modifyRequest.withEndToEndCrcRequired(Boolean.parseBoolean(paramNewValue));
-                }
-                else if("versioning".equalsIgnoreCase(paramChange)) {
-                    modifyRequest.withVersioning(VersioningLevel.valueOf(paramNewValue));
-                }
-                else {
-                    throw new CommandException("Unrecognized Data Policy parameter: " + paramChange);
-                }
-            } // for
+        // apply changes from metadata
+        final ModifyDataPolicySpectraS3Request modifyRequest = new ModifyDataPolicySpectraS3Request(this.policyId);
+        for (final String paramChange : this.metadata.keySet() ) {
+            final String paramNewValue = this.metadata.get(paramChange);
+            if("blobbing_enabled".equalsIgnoreCase(paramChange)) {
+                modifyRequest.withBlobbingEnabled(Boolean.parseBoolean(paramNewValue));
+            }
+            else if("name".equalsIgnoreCase(paramChange)) {
+                modifyRequest.withName(paramNewValue);
+            }
+            else if("checksum_type".equalsIgnoreCase(paramChange)) {
+                modifyRequest.withChecksumType(ChecksumType.Type.valueOf(paramNewValue));
+            }
+            else if("default_blob_size".equalsIgnoreCase(paramChange)) {
+                modifyRequest.withDefaultBlobSize(Long.getLong(paramNewValue));
+            }
+            else if("default_get_job_priority".equalsIgnoreCase(paramChange)) {
+                modifyRequest.withDefaultGetJobPriority(Priority.valueOf(paramNewValue));
+            }
+            else if("default_put_job_priority".equalsIgnoreCase(paramChange)) {
+                modifyRequest.withDefaultPutJobPriority(Priority.valueOf(paramNewValue));
+            }
+            else if("default_verify_job_priority".equalsIgnoreCase(paramChange)) {
+                modifyRequest.withDefaultVerifyJobPriority(Priority.valueOf(paramNewValue));
+            }
+            else if("rebuild_priority".equalsIgnoreCase(paramChange)) {
+                modifyRequest.withRebuildPriority(Priority.valueOf(paramNewValue));
+            }
+            else if("end_to_end_crc_required".equalsIgnoreCase(paramChange)) {
+                modifyRequest.withEndToEndCrcRequired(Boolean.parseBoolean(paramNewValue));
+            }
+            else if("versioning".equalsIgnoreCase(paramChange)) {
+                modifyRequest.withVersioning(VersioningLevel.valueOf(paramNewValue));
+            }
+            else {
+                throw new CommandException("Unrecognized Data Policy parameter: " + paramChange);
+            }
+        } // for
 
-            // Apply changes
-            final ModifyDataPolicySpectraS3Response modifyResponse = getClient().modifyDataPolicySpectraS3(modifyRequest);
-
-            return new GetDataPoliciesResult(modifyResponse.getDataPolicyResult());
-
-        } catch (final FailedRequestException e) {
-            throw new CommandException("Failed Modify Data Policies: " + e.getMessage(), e);
-        }
+        // Apply changes
+        final ModifyDataPolicySpectraS3Response modifyResponse = getClient().modifyDataPolicySpectraS3(modifyRequest);
+        return new GetDataPoliciesResult(modifyResponse.getDataPolicyResult());
     }
 
     @Override

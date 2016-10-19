@@ -84,33 +84,22 @@ public class GetObject extends CliCommand<DefaultResult> {
 
     @Override
     public DefaultResult call() throws Exception {
-        try {
-            final Ds3ClientHelpers helpers = getClientHelpers();
-            final Path filePath = Paths.get(this.prefix, this.objectName);
-            LOG.info("Output path: {}", filePath.toString());
+        final Ds3ClientHelpers helpers = getClientHelpers();
+        final Path filePath = Paths.get(this.prefix, this.objectName);
+        LOG.info("Output path: {}", filePath.toString());
 
-            final Ds3Object ds3Obj = new Ds3Object(this.objectName.replace("\\", "/"));
-            if (this.sync && Utils.fileExists(filePath)) {
-                if (SyncUtils.needToSync(helpers, this.bucketName, filePath, ds3Obj.getName(), false)) {
-                    this.Transfer(helpers, ds3Obj);
-                    return new DefaultResult("SUCCESS: Finished syncing object.");
-                } else {
-                    return new DefaultResult("SUCCESS: No need to sync " + this.objectName);
-                }
-            }
-
-            this.Transfer(helpers, ds3Obj);
-            return new DefaultResult("SUCCESS: Finished downloading object.  The object was written to: " + filePath);
-        } catch (final FailedRequestException e) {
-            switch (e.getStatusCode()) {
-                case 500:
-                    throw new CommandException("Error: Cannot communicate with the remote DS3 appliance.", e);
-                case 404:
-                    throw new CommandException("Error: " + e.getMessage(), e);
-                default:
-                    throw new CommandException("Error: Encountered an unknown error of (" + e.getStatusCode() + ") while accessing the remote DS3 appliance.", e);
+        final Ds3Object ds3Obj = new Ds3Object(this.objectName.replace("\\", "/"));
+        if (this.sync && Utils.fileExists(filePath)) {
+            if (SyncUtils.needToSync(helpers, this.bucketName, filePath, ds3Obj.getName(), false)) {
+                this.Transfer(helpers, ds3Obj);
+                return new DefaultResult("SUCCESS: Finished syncing object.");
+            } else {
+                return new DefaultResult("SUCCESS: No need to sync " + this.objectName);
             }
         }
+
+        this.Transfer(helpers, ds3Obj);
+        return new DefaultResult("SUCCESS: Finished downloading object.  The object was written to: " + filePath);
     }
 
     private void Transfer(final Ds3ClientHelpers helpers, final Ds3Object ds3Obj) throws IOException, XmlProcessingException {

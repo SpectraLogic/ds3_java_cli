@@ -19,7 +19,7 @@ import com.google.common.collect.Iterables;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.exceptions.BadArgumentException;
 import com.spectralogic.ds3cli.exceptions.CommandException;
-import com.spectralogic.ds3cli.exceptions.CommandExceptionFactory;
+import com.spectralogic.ds3cli.exceptions.Ds3ExceptionHandlerFactory;
 import com.spectralogic.ds3cli.models.DefaultResult;
 import com.spectralogic.ds3cli.util.*;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
@@ -70,13 +70,11 @@ public class GetBulk extends CliCommand<DefaultResult> {
     public CliCommand init(final Arguments args) throws Exception {
         this.bucketName = args.getBucket();
         if (this.bucketName == null) {
-            CommandExceptionFactory.getInstance().handleException(this.getClass().getSimpleName(),
-                    new MissingOptionException("The bulk get command requires '-b' to be set."), true);
+            throw new MissingOptionException("The bulk get command requires '-b' to be set.");
         }
 
         if (args.getObjectName() != null) {
-            CommandExceptionFactory.getInstance().handleException(this.getClass().getSimpleName(),
-                    new BadArgumentException("'-o' is not used with bulk get."), false);
+            throw new BadArgumentException("'-o' is not used with bulk get.");
         }
 
         final String directory = args.getDirectory();
@@ -90,8 +88,7 @@ public class GetBulk extends CliCommand<DefaultResult> {
         this.discard = args.isDiscard();
         if (this.discard) {
             if (directory != null) {
-                CommandExceptionFactory.getInstance().handleException(this.getClass().getSimpleName(),
-                    new BadArgumentException("Cannot set both directory and --discard"), true);
+                throw new BadArgumentException("Cannot set both directory and --discard");
             }
         }
 
@@ -115,9 +112,7 @@ public class GetBulk extends CliCommand<DefaultResult> {
 
         final Ds3ClientHelpers.ObjectChannelBuilder getter;
         if (this.checksum) {
-            CommandExceptionFactory.getInstance().handleException(this.getClass().getSimpleName(),
-                new CommandException("Checksumming is currently not implemented."), true);
-            getter = null;
+           throw new CommandException("Checksumming is currently not implemented.");
 
 //          TOD):  Logging.log("Performing get_bulk with checksum verification");
 //            getter = new VerifyingFileObjectGetter(this.outputPath);

@@ -52,10 +52,7 @@ public class PutBucket extends CliCommand<DefaultResult> {
             if (e.getStatusCode() == 409) {
                 throw new CommandException("Bucket " + bucketName + " already exists", e);
             }
-            throw new CommandException("Encountered a DS3 Error", e);
-        }
-        catch (final IOException e) {
-            throw new CommandException("Encountered an error when communicating with ds3 endpoint", e);
+            throw e;
         }
     }
 }

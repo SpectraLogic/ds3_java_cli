@@ -19,7 +19,7 @@ import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.exceptions.CommandException;
-import com.spectralogic.ds3cli.exceptions.CommandExceptionFactory;
+import com.spectralogic.ds3cli.exceptions.Ds3ExceptionHandlerFactory;
 import com.spectralogic.ds3cli.models.GetUsersResult;
 import com.spectralogic.ds3client.commands.spectrads3.GetUserSpectraS3Request;
 import com.spectralogic.ds3client.commands.spectrads3.GetUserSpectraS3Response;
@@ -47,19 +47,16 @@ public class GetUser extends CliCommand<GetUsersResult> {
     }
 
     @Override
-    public GetUsersResult call() throws IOException, CommandException {
+    public GetUsersResult call() throws CommandException, IOException {
         try {
             final GetUserSpectraS3Response response = getClient().getUserSpectraS3(new GetUserSpectraS3Request(this.userId));
 
             return new GetUsersResult(response.getSpectraUserResult());
-        } catch (final IOException e) {
-            if (CommandExceptionFactory.hasStatusCode(e,404)) {
-                CommandExceptionFactory.getInstance().handleException(this.getClass().getSimpleName(),
-                        new CommandException("Unknown user '" + this.userId +"'", e), true);
-            } else {
-                CommandExceptionFactory.getInstance().handleException(this.getClass().getSimpleName(), e, true);
+        } catch (final FailedRequestException e) {
+            if (e.getStatusCode() == 404) {
+                throw new CommandException("Unknown user '" + this.userId +"'", e);
             }
-            return null;
+            throw e;
         }
     }
 

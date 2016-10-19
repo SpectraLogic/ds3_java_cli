@@ -23,17 +23,24 @@ public class FailedRequestExceptionHandler  implements Ds3ExceptionHandler<Faile
 
     private final static Logger LOG = LoggerFactory.getLogger(FailedRequestExceptionHandler.class);
 
-    public void handle(final String locationDescription, final FailedRequestException e, final boolean throwRuntimeException) {
+    public void handle(final FailedRequestException e) {
+        final String message = format(e);
+        LOG.info(message.toString(), e);
+        System.out.println(message.toString());
+    }
+
+    // provide more descriptive message based on status code (Jira JAVACLI-125)
+    public String format(final FailedRequestException e) {
         final int statusCode = e.getStatusCode();
-        final StringBuilder description = new StringBuilder(locationDescription);
-        description.append(" failed (FailedRequestException): ");
+        final StringBuilder description = new StringBuilder("Error (FailedRequestException): ");
         if (statusCode == 500 || statusCode == 502) {
             description.append("cannot communicate with the remote DS3 appliance.");
         } else if (statusCode == 403) {
             if ( e.getMessage().contains("Client clock")) {
                 description.append("clock Synchronization error");
+            } else {
+                description.append("permissions / authorization error.");
             }
-            description.append("permissions / authorization error.");
         } else if (statusCode == 404) {
             description.append("target entity not found.");
         } else if (statusCode == 409) {
@@ -41,12 +48,7 @@ public class FailedRequestExceptionHandler  implements Ds3ExceptionHandler<Faile
         } else {
             description.append("unknown error of (" + statusCode + ") while accessing the remote DS3 appliance.");
         }
-        LOG.info(description.toString(), e);
-        if (throwRuntimeException) {
-            throw new RuntimeException(description.toString(), e);
-        } else {
-            System.out.println(description.toString());
-        }
+        return description.toString();
     }
 
 }

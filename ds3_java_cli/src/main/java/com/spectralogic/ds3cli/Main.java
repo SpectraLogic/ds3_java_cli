@@ -52,13 +52,9 @@ public final class Main {
     private final static String LOG_FILE_NAME = "spectra.log";
 
     // register exception handlers
-    private final static CommandExceptionFactory EXCEPTION = CommandExceptionFactory.getInstance();
+    private final static Ds3ExceptionHandlerFactory EXCEPTION = Ds3ExceptionHandlerFactory.getInstance();
     static {
-        EXCEPTION.addHandler(IOException.class, new IOExceptionHandler());
         EXCEPTION.addHandler(FailedRequestException.class, new FailedRequestExceptionHandler());
-        EXCEPTION.addHandler(BadArgumentException.class, new ArgumentExceptionHandler());
-        EXCEPTION.addHandler(MissingOptionException.class, new ArgumentExceptionHandler());
-        EXCEPTION.addHandler(UnrecognizedOptionException.class, new ArgumentExceptionHandler());
         EXCEPTION.addHandler(RuntimeException.class, new RuntimeExceptionHandler());
     }
 
@@ -175,7 +171,7 @@ public final class Main {
             System.out.println(response.getMessage());
             System.exit(response.getReturnCode());
         } catch (final Exception e) {
-            EXCEPTION.handleException(Main.class.getSimpleName(), e, false);
+            EXCEPTION.handleException(e);
             System.exit(2);
         }
     }

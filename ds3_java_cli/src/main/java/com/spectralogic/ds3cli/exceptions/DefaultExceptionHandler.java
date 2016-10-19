@@ -22,18 +22,18 @@ public class DefaultExceptionHandler<T extends Throwable>  implements Ds3Excepti
 
     private final static Logger LOG = LoggerFactory.getLogger(DefaultExceptionHandler.class);
 
-    public void handle(final String locationDescription, final T e, final boolean throwRuntimeException) {
-        final StringBuilder message = new StringBuilder(locationDescription);
-        message.append(" failed (");
+    public void handle(final T e) {
+        final String message = format(e);
+        LOG.info(message.toString(), e);
+        System.out.println(message.toString());
+    }
+
+    public String format(final T e) {
+        final StringBuilder message = new StringBuilder("Error (");
         message.append(e.getClass().getSimpleName());
         message.append("): ");
         message.append(e.getMessage());
-        LOG.info(message.toString(), e);
-        if (throwRuntimeException) {
-            throw new RuntimeException(message.toString(), e);
-        } else {
-            System.out.println(message.toString());
-        }
+        return message.toString();
     }
 
 }

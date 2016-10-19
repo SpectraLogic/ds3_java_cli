@@ -45,14 +45,7 @@ public class DeleteTapeFailure extends CliCommand<DefaultResult> {
 
     @Override
     public DefaultResult call() throws Exception {
-
-        try {
-            this.getClient().deleteTapeFailureSpectraS3(new DeleteTapeFailureSpectraS3Request(id.toString()));
-        }
-        catch (final IOException e) {
-            throw new CommandException("Error: Request failed with the following error: " + e.getMessage(), e);
-        }
-
+        this.getClient().deleteTapeFailureSpectraS3(new DeleteTapeFailureSpectraS3Request(id.toString()));
         return new DefaultResult("Success: Deleted tape failure Id: " + id.toString());
     }
 }

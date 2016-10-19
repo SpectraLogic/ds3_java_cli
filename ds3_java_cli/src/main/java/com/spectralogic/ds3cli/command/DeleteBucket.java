@@ -17,7 +17,6 @@ package com.spectralogic.ds3cli.command;
 
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.exceptions.CommandException;
-import com.spectralogic.ds3cli.exceptions.CommandExceptionFactory;
 import com.spectralogic.ds3cli.models.DefaultResult;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.DeleteBucketRequest;
@@ -45,8 +44,7 @@ public class DeleteBucket extends CliCommand<DefaultResult> {
     public CliCommand init(final Arguments args) throws Exception {
         bucketName = args.getBucket();
         if (bucketName == null) {
-            CommandExceptionFactory.getInstance().handleException(this.getClass(). getSimpleName(),
-                    new MissingOptionException("The delete bucket command requires '-b' to be set."), true);
+            throw new MissingOptionException("The delete bucket command requires '-b' to be set.");
         }
         force = args.isForce();
         return this;
@@ -67,34 +65,27 @@ public class DeleteBucket extends CliCommand<DefaultResult> {
         try {
             getClient().deleteBucket(new DeleteBucketRequest(bucketName));
         } catch (final FailedRequestException e) {
-            if (CommandExceptionFactory.hasStatusCode(e, 409)) { // BUCKET_NOT_EMPTY
-                CommandExceptionFactory.getInstance().handleException(this.getClass().getSimpleName(),
-                    new CommandException("Error: Tried to delete a non-empty bucket.\nUse --force to delete all objects in the bucket."),
-                    true);
+            if (e.getStatusCode() == 409) { // BUCKET_NOT_EMPTY
+                throw new CommandException("Error: Tried to delete a non-empty bucket.\nUse --force to delete all objects in the bucket.");
             }
-            CommandExceptionFactory.getInstance().handleException(this.getClass().getSimpleName(), e, true);
+            throw e;
         }
         return "Success: Deleted bucket '" + bucketName + "'.";
     }
 
-    private String clearObjects() throws CommandException {
+    private String clearObjects() throws CommandException, IOException {
         // TODO when the multi object delete command has been added to DS3
         // Get the list of objects from the bucket
         LOG.debug("Deleting objects in bucket first");
         final Ds3Client client = getClient();
         final Ds3ClientHelpers helper = Ds3ClientHelpers.wrap(client);
 
-        try {
-            final Iterable<Contents> fileList = helper.listObjects(bucketName);
-            client.deleteObjects(new DeleteObjectsRequest(bucketName, fileList));
+        final Iterable<Contents> fileList = helper.listObjects(bucketName);
+        client.deleteObjects(new DeleteObjectsRequest(bucketName, fileList));
 
-            LOG.debug("Deleting bucket");
-            getClient().deleteBucket(new DeleteBucketRequest(bucketName));
+        LOG.debug("Deleting bucket");
+        getClient().deleteBucket(new DeleteBucketRequest(bucketName));
 
-        } catch (final Exception e) {
-            CommandExceptionFactory.getInstance().handleException(this.getClass().getSimpleName(), e, true);
-            return null;
-        }
         return "Success: Deleted " + bucketName + " and all the objects contained in it.";
     }
 }

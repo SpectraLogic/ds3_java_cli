@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.spectralogic.ds3cli.command.PutBulk;
 import com.spectralogic.ds3cli.exceptions.CommandException;
-import com.spectralogic.ds3cli.exceptions.CommandExceptionFactory;
+import com.spectralogic.ds3cli.exceptions.Ds3ExceptionHandlerFactory;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.spectrads3.GetSystemInformationSpectraS3Request;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
@@ -51,31 +51,26 @@ public final class Utils {
     public final static boolean isWindows = System.getProperty("os.name").contains("Windows");
     public final static String MINIMUM_VERSION_SUPPORTED = "1.2";
 
-    public static boolean isVersionSupported(final Ds3Client client) throws CommandException {
+    public static boolean isVersionSupported(final Ds3Client client) throws IOException {
         return isVersionSupported(client, MINIMUM_VERSION_SUPPORTED);
     }
 
-    public static boolean isVersionSupported(final Ds3Client client, final String minVersion) throws CommandException {
-        try {
-            final String buildInfo = client.getSystemInformationSpectraS3(new GetSystemInformationSpectraS3Request()).getSystemInformationResult().getBuildInformation().getVersion();
-            final String[] buildInfoArr = buildInfo.split(QUOTE);
-            final String[] versionInfo = minVersion.split(QUOTE);
+    public static boolean isVersionSupported(final Ds3Client client, final String minVersion) throws IOException {
+        final String buildInfo = client.getSystemInformationSpectraS3(new GetSystemInformationSpectraS3Request()).getSystemInformationResult().getBuildInformation().getVersion();
+        final String[] buildInfoArr = buildInfo.split(QUOTE);
+        final String[] versionInfo = minVersion.split(QUOTE);
 
-            if (versionInfo.length > 3) {
-                throw new IllegalArgumentException("The version string can have 3 numbers");
-            }
-
-            for (int i = 0; i < versionInfo.length && i < buildInfoArr.length; i++) {
-                final int i1 = Integer.parseInt(buildInfoArr[i]);
-                final int i2 = Integer.parseInt(versionInfo[i]);
-                if (i1 > i2) return true;
-                if (i1 < i2) return false;
-            }
-            return true;
-        } catch (final IOException e) {
-            CommandExceptionFactory.getInstance().handleException("GetSystemInformation", e, true);
-            return false;
+        if (versionInfo.length > 3) {
+            throw new IllegalArgumentException("The version string can have 3 numbers");
         }
+
+        for (int i = 0; i < versionInfo.length && i < buildInfoArr.length; i++) {
+            final int i1 = Integer.parseInt(buildInfoArr[i]);
+            final int i2 = Integer.parseInt(versionInfo[i]);
+            if (i1 > i2) return true;
+            if (i1 < i2) return false;
+        }
+        return true;
     }
 
     public static ImmutableList<Path> listObjectsForDirectory(final Path directory) throws IOException {
@@ -142,7 +137,7 @@ public final class Utils {
                         Utils.getFileSize(path)));
             } catch (final IOException ex) {
                 if (!ignoreErrors) {
-                    CommandExceptionFactory.getInstance().handleException("Utils.getObjectsToPut()", ex, true);
+                    throw ex;
                 }
                 LOG.warn(String.format("WARN: file '%s' has an error and will be ignored", path.getFileName()));
                 ignoredBuilder.add(new PutBulk.IgnoreFile(path, ex.toString()));

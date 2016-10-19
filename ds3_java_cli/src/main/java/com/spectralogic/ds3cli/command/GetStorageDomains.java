@@ -19,14 +19,13 @@ import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.exceptions.CommandException;
-import com.spectralogic.ds3cli.exceptions.CommandExceptionFactory;
+import com.spectralogic.ds3cli.exceptions.Ds3ExceptionHandlerFactory;
 import com.spectralogic.ds3cli.models.GetStorageDomainsResult;
 import com.spectralogic.ds3client.commands.spectrads3.GetStorageDomainSpectraS3Request;
 import com.spectralogic.ds3client.commands.spectrads3.GetStorageDomainSpectraS3Response;
 import com.spectralogic.ds3client.commands.spectrads3.GetStorageDomainsSpectraS3Request;
 import com.spectralogic.ds3client.commands.spectrads3.GetStorageDomainsSpectraS3Response;
 import com.spectralogic.ds3client.models.WriteOptimization;
-import com.spectralogic.ds3client.networking.FailedRequestException;
 import com.spectralogic.ds3client.utils.Guard;
 
 import java.io.IOException;
@@ -48,24 +47,19 @@ public class GetStorageDomains extends CliCommand<GetStorageDomainsResult> {
 
     @Override
     public GetStorageDomainsResult call() throws IOException, CommandException {
-        try {
-            if (Guard.isStringNullOrEmpty(this.id)) {
-                final GetStorageDomainsSpectraS3Response response
-                        = getClient().getStorageDomainsSpectraS3(
-                        new GetStorageDomainsSpectraS3Request().withWriteOptimization(writeOptimization));
+        if (Guard.isStringNullOrEmpty(this.id)) {
+            final GetStorageDomainsSpectraS3Response response
+                    = getClient().getStorageDomainsSpectraS3(
+                    new GetStorageDomainsSpectraS3Request().withWriteOptimization(writeOptimization));
 
-                return new GetStorageDomainsResult(response.getStorageDomainListResult());
-            } else {
-                // if -i is specified, call get single domain
-                final GetStorageDomainSpectraS3Response response
-                        = getClient().getStorageDomainSpectraS3(
-                        new GetStorageDomainSpectraS3Request(id));
+            return new GetStorageDomainsResult(response.getStorageDomainListResult());
+        } else {
+            // if -i is specified, call get single domain
+            final GetStorageDomainSpectraS3Response response
+                    = getClient().getStorageDomainSpectraS3(
+                    new GetStorageDomainSpectraS3Request(id));
 
-                return new GetStorageDomainsResult(response.getStorageDomainResult());
-            }
-        } catch (final Exception e) {
-            CommandExceptionFactory.getInstance().handleException(this.getClass().getSimpleName(),  e, true);
-            return null;
+            return new GetStorageDomainsResult(response.getStorageDomainResult());
         }
     }
 

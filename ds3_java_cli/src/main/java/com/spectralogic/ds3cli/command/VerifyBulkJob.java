@@ -76,7 +76,6 @@ public class VerifyBulkJob extends CliCommand<VerifyBulkJobResult> {
 
             // Make verify call to API
             final VerifyBulkJobSpectraS3Request request = new VerifyBulkJobSpectraS3Request(this.bucketName, objectList);
-
             if (this.priority != null) {
                 request.withPriority(priority);
             }
@@ -86,15 +85,10 @@ public class VerifyBulkJob extends CliCommand<VerifyBulkJobResult> {
 
             return new VerifyBulkJobResult(this.bucketName, verifyResponse.getMasterObjectListResult().getObjects().iterator());
         } catch (final FailedRequestException e) {
-            if (e.getStatusCode() == 500) {
-                throw new CommandException("Error: Cannot communicate with the remote DS3 appliance.", e);
-            }
-            else if (e.getStatusCode() == 404) {
+            if  (e.getStatusCode() == 404) {
                 throw new CommandException("Cannot locate bucket: " + this.bucketName, e);
             }
-            else {
-                throw new CommandException("Encountered an unknown error of ("+ e.getStatusCode() +") while accessing the remote DS3 appliance.", e);
-            }
+            throw e;
         }
     }
 
@@ -106,4 +100,3 @@ public class VerifyBulkJob extends CliCommand<VerifyBulkJobResult> {
         return new com.spectralogic.ds3cli.views.cli.VerifyBulkJobView();
     }
 }
-    

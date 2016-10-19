@@ -15,21 +15,17 @@
 
 package com.spectralogic.ds3cli.exceptions;
 
-import com.spectralogic.ds3client.networking.FailedRequestException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class CommandExceptionFactory {
+public class Ds3ExceptionHandlerFactory {
 
-    private static CommandExceptionFactory factoryInstance;
+    private static Ds3ExceptionHandlerFactory factoryInstance = new Ds3ExceptionHandlerFactory();
     private final Map<Class<? extends Throwable>, Ds3ExceptionHandler> handlers = new HashMap();
     private final Ds3ExceptionHandler defaultHandler = new DefaultExceptionHandler();
 
-    // single instance
-    public static CommandExceptionFactory getInstance() {
-        if (factoryInstance == null) {
-            factoryInstance = new CommandExceptionFactory();
-        }
+
+    public static Ds3ExceptionHandlerFactory getInstance() {
         return factoryInstance;
     }
 
@@ -52,27 +48,24 @@ public class CommandExceptionFactory {
 
     /**
      * Locate the appropriate Ds3ExceptionHandler (match if registered, else Default)
-     * then call handle(), passing in location, exception, and flag to throw RuntimeException
+     * then call handle()
      *
-     * @param location -- any string identifier, for COmmands use this.getClass.getSimpleName()
-     * @param e -- the original exception (or create new)
-     * @param throwRuntimeException -- true to construct a descriptive message and throw new RuntimeException,
-     *                              -- false to write description to console and LOG.info()
+     * @param e
      */
-    public void handleException (final String location, final Throwable e, final boolean throwRuntimeException) {
+    public void handleException (final Throwable e) {
         final Ds3ExceptionHandler handler = getHandler(e.getClass());
-        handler.handle(location, e, throwRuntimeException);
-
+        handler.handle(e);
     }
 
     /**
-     * Checks exception type == FailedRequestException and status code
-     * @param e caught exception
-     * @param code code to test
-     * @return true if exception is type of FailedRequestException and has status code == code
+     * Locate the appropriate Ds3ExceptionHandler (match if registered, else Default)
+     * then call format()
+     *
+     * @param e
      */
-    public static boolean hasStatusCode(final Exception e, final int code) {
-        return e instanceof FailedRequestException && ((FailedRequestException) e).getStatusCode() == code;
+    public String formatException (final Throwable e) {
+        final Ds3ExceptionHandler handler = getHandler(e.getClass());
+        return handler.format(e);
     }
 
 }

@@ -46,13 +46,7 @@ public class DeleteObject extends CliCommand<DefaultResult> {
 
     @Override
     public DefaultResult call() throws Exception {
-        try {
-            getClient().deleteObject(new DeleteObjectRequest(bucketName, objectName));
-        }
-        catch (final IOException e) {
-            throw new CommandException("Error: Request failed with the following error: " + e.getMessage(), e);
-        }
-
+        getClient().deleteObject(new DeleteObjectRequest(bucketName, objectName));
         return new DefaultResult("Success: Deleted object '" + this.objectName + "' from bucket '" + this.bucketName + "'.");
     }
 }
