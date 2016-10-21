@@ -39,14 +39,10 @@ public class GetDataPathBackend extends CliCommand<GetDataPathBackendResult> {
 
     @Override
     public GetDataPathBackendResult call() throws IOException, CommandException {
-        try {
-            final GetDataPathBackendSpectraS3Response response
-                    = getClient().getDataPathBackendSpectraS3(new GetDataPathBackendSpectraS3Request());
-            final DataPathBackend dataPathBackend = response.getDataPathBackendResult();
-            return new GetDataPathBackendResult(dataPathBackend);
-        } catch (final FailedRequestException e) {
-            throw new CommandException("Failed Get Data Policies", e);
-        }
+        final GetDataPathBackendSpectraS3Response response
+                = getClient().getDataPathBackendSpectraS3(new GetDataPathBackendSpectraS3Request());
+        final DataPathBackend dataPathBackend = response.getDataPathBackendResult();
+        return new GetDataPathBackendResult(dataPathBackend);
     }
 
     @Override

@@ -41,13 +41,7 @@ public class DeleteTapePartition extends CliCommand<DefaultResult> {
 
     @Override
     public DefaultResult call() throws Exception {
-        try {
-            getClient().deleteTapePartitionSpectraS3(new DeleteTapePartitionSpectraS3Request(this.id));
-        }
-        catch (final IOException e) {
-            throw new CommandException("Error: Request failed with the following error: " + e.getMessage(), e);
-        }
-
+        getClient().deleteTapePartitionSpectraS3(new DeleteTapePartitionSpectraS3Request(this.id));
         return new DefaultResult("Success: Deleted tape partition '" + this.id+ "'.");
     }
 }

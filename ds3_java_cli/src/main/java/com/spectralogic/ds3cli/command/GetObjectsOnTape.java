@@ -46,7 +46,7 @@ public class GetObjectsOnTape extends CliCommand<GetObjectsOnTapeResult> {
     }
 
     @Override
-    public GetObjectsOnTapeResult call() throws IOException, CommandException {
+    public GetObjectsOnTapeResult call() throws CommandException, IOException {
         try {
 
             final GetBlobsOnTapeSpectraS3Response response
@@ -54,15 +54,10 @@ public class GetObjectsOnTape extends CliCommand<GetObjectsOnTapeResult> {
 
             return new GetObjectsOnTapeResult(this.tapeId, response.getBulkObjectListResult().getObjects().iterator());
         } catch (final FailedRequestException e) {
-            if(e.getStatusCode() == 500) {
-                throw new CommandException("Error: Cannot communicate with the remote DS3 appliance.", e);
+            if (e.getStatusCode() == 404) {
+                throw new CommandException("Unknown tape '" + this.tapeId +"'", e);
             }
-            else if(e.getStatusCode() == 404) {
-                throw new CommandException("Unknown tape: " + this.tapeId, e);
-            }
-            else {
-                throw new CommandException("Encountered an unknown error of ("+ e.getStatusCode() +") while accessing the remote DS3 appliance.", e);
-            }
+            throw e;
         }
     }
 

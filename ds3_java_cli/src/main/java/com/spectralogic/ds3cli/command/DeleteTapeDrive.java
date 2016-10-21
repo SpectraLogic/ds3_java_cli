@@ -42,13 +42,7 @@ public class DeleteTapeDrive extends CliCommand<DefaultResult> {
 
     @Override
     public DefaultResult call() throws Exception {
-        try {
-            getClient().deleteTapeDriveSpectraS3(new DeleteTapeDriveSpectraS3Request(UUID.fromString(this.id)));
-        }
-        catch (final IOException e) {
-            throw new CommandException("Error: Request failed with the following error: " + e.getMessage(), e);
-        }
-
+        getClient().deleteTapeDriveSpectraS3(new DeleteTapeDriveSpectraS3Request(UUID.fromString(this.id)));
         return new DefaultResult("Success: Deleted tape drive '" + this.id+ "'.");
     }
 }

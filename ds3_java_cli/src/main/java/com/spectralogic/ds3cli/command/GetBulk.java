@@ -17,6 +17,7 @@ package com.spectralogic.ds3cli.command;
 
 import com.google.common.collect.Iterables;
 import com.spectralogic.ds3cli.Arguments;
+import com.spectralogic.ds3cli.exceptions.BadArgumentException;
 import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.DefaultResult;
 import com.spectralogic.ds3cli.util.*;
@@ -72,7 +73,7 @@ public class GetBulk extends CliCommand<DefaultResult> {
         }
 
         if (args.getObjectName() != null) {
-            System.out.println("Warning: '-o' is not used with bulk get and is ignored.");
+            throw new BadArgumentException("'-o' is not used with bulk get.");
         }
 
         final String directory = args.getDirectory();
@@ -86,7 +87,7 @@ public class GetBulk extends CliCommand<DefaultResult> {
         this.discard = args.isDiscard();
         if (this.discard) {
             if (directory != null) {
-                throw new CommandException("Cannot set both directory and --discard");
+                throw new BadArgumentException("Cannot set both directory and --discard");
             }
         }
 
@@ -110,8 +111,9 @@ public class GetBulk extends CliCommand<DefaultResult> {
 
         final Ds3ClientHelpers.ObjectChannelBuilder getter;
         if (this.checksum) {
-            throw new RuntimeException("Checksumming is currently not implemented.");//TODO
-//            Logging.log("Performing get_bulk with checksum verification");
+           throw new CommandException("Checksumming is currently not implemented.");
+
+//          TOD):  Logging.log("Performing get_bulk with checksum verification");
 //            getter = new VerifyingFileObjectGetter(this.outputPath);
         } else if (this.discard) {
             LOG.warn("Using /dev/null getter -- all incoming data will be discarded");

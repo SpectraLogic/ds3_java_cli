@@ -61,15 +61,10 @@ public class GetBucket extends CliCommand<GetBucketResult> {
             return new GetBucketResult(bucketName, objects);
         }
         catch(final FailedRequestException e) {
-            if(e.getStatusCode() == 500) {
-                throw new CommandException("Error: Cannot communicate with the remote DS3 appliance.", e);
-            }
-            else if(e.getStatusCode() == 404) {
+            if(e.getStatusCode() == 404) {
                 throw new CommandException("Error: Unknown bucket.", e);
             }
-            else {
-                throw new CommandException("Error: Encountered an unknown error of ("+ e.getStatusCode() +") while accessing the remote DS3 appliance.", e);
-            }
+            throw e;
         }
     }
 

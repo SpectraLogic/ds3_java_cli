@@ -13,27 +13,27 @@
  * ***************************************************************************
  */
 
-package com.spectralogic.ds3cli.command;
+package com.spectralogic.ds3cli.exceptions;
 
-import com.spectralogic.ds3cli.Arguments;
-import com.spectralogic.ds3cli.exceptions.CommandException;
-import com.spectralogic.ds3cli.models.DefaultResult;
-import com.spectralogic.ds3client.commands.spectrads3.ForceFullCacheReclaimSpectraS3Request;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
+public class DefaultExceptionHandler<T extends Throwable>  implements Ds3ExceptionHandler<T> {
 
-public class ReclaimCache extends CliCommand<DefaultResult> {
-    public ReclaimCache() {
+    private final static Logger LOG = LoggerFactory.getLogger(DefaultExceptionHandler.class);
+
+    public void handle(final T e) {
+        final String message = format(e);
+        LOG.info(message.toString(), e);
+        System.out.println(message.toString());
     }
 
-    @Override
-    public CliCommand init(final Arguments args) throws Exception {
-        return this;
+    public String format(final T e) {
+        final StringBuilder message = new StringBuilder("Error (");
+        message.append(e.getClass().getSimpleName());
+        message.append("): ");
+        message.append(e.getMessage());
+        return message.toString();
     }
 
-    @Override
-    public DefaultResult call() throws Exception {
-        this.getClient().forceFullCacheReclaimSpectraS3(new ForceFullCacheReclaimSpectraS3Request());
-        return new DefaultResult("Success: Forced Reclaim of Cache");
-    }
 }

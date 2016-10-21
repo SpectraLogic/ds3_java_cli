@@ -46,19 +46,16 @@ public class GetUser extends CliCommand<GetUsersResult> {
     }
 
     @Override
-    public GetUsersResult call() throws IOException, CommandException {
+    public GetUsersResult call() throws CommandException, IOException {
         try {
             final GetUserSpectraS3Response response = getClient().getUserSpectraS3(new GetUserSpectraS3Request(this.userId));
 
             return new GetUsersResult(response.getSpectraUserResult());
         } catch (final FailedRequestException e) {
-            if (e.getStatusCode() == 500) {
-                throw new CommandException("Error: Cannot communicate with the remote DS3 appliance.", e);
-            } else if (e.getStatusCode() == 404) {
-                throw new CommandException("Unknown user: " + this.userId, e);
-            } else {
-                throw new CommandException("Encountered an unknown error of (" + e.getStatusCode() + ") while accessing the remote DS3 appliance.", e);
+            if (e.getStatusCode() == 404) {
+                throw new CommandException("Unknown user '" + this.userId +"'", e);
             }
+            throw e;
         }
     }
 

@@ -60,17 +60,13 @@ public class GetPhysicalPlacement extends CliCommand<GetPhysicalPlacementWithFul
 
     @Override
     public GetPhysicalPlacementWithFullDetailsResult call() throws Exception {
-        try {
-            final List<Ds3Object> objectsList = Collections.singletonList(new Ds3Object(objectName));
+        final List<Ds3Object> objectsList = Collections.singletonList(new Ds3Object(objectName));
 
-            final GetPhysicalPlacementForObjectsWithFullDetailsSpectraS3Response response = getClient().
-                    getPhysicalPlacementForObjectsWithFullDetailsSpectraS3(
-                            new GetPhysicalPlacementForObjectsWithFullDetailsSpectraS3Request(bucketName, objectsList));
+        final GetPhysicalPlacementForObjectsWithFullDetailsSpectraS3Response response = getClient().
+                getPhysicalPlacementForObjectsWithFullDetailsSpectraS3(
+                        new GetPhysicalPlacementForObjectsWithFullDetailsSpectraS3Request(bucketName, objectsList));
 
-            return new GetPhysicalPlacementWithFullDetailsResult(response.getBulkObjectListResult());
-        } catch (final FailedRequestException e) {
-            throw new CommandException("Failed Get Physical Placement", e);
-        }
+        return new GetPhysicalPlacementWithFullDetailsResult(response.getBulkObjectListResult());
     }
 
     @Override

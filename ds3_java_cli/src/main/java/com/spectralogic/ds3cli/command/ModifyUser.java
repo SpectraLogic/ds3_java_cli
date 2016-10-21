@@ -53,32 +53,26 @@ public class ModifyUser extends CliCommand<GetUsersResult> {
 
     @Override
     public GetUsersResult call() throws IOException, CommandException {
-        try {
-            // apply changes from metadata
-            final ModifyUserSpectraS3Request modifyRequest = new ModifyUserSpectraS3Request(this.userId);
-            for (final String paramChange : this.modifyParams.keySet()) {
-                final String paramNewValue = this.modifyParams.get(paramChange);
-                if("default_data_policy_id".equalsIgnoreCase(paramChange)) {
-                    modifyRequest.withDefaultDataPolicyId(paramNewValue);
-                }
-                // currently internal only
-                else if("name".equalsIgnoreCase(paramChange)) {
-                    throw new CommandException("Modify user name currently not supported." );
+        // apply changes from metadata
+        final ModifyUserSpectraS3Request modifyRequest = new ModifyUserSpectraS3Request(this.userId);
+        for (final String paramChange : this.modifyParams.keySet()) {
+            final String paramNewValue = this.modifyParams.get(paramChange);
+            if("default_data_policy_id".equalsIgnoreCase(paramChange)) {
+                modifyRequest.withDefaultDataPolicyId(paramNewValue);
+            }
+            // currently internal only
+            else if("name".equalsIgnoreCase(paramChange)) {
+                throw new CommandException("Modify user name currently not supported." );
 
-                }
-                else {
-                    throw new CommandException("Unrecognized user parameter: " + paramChange);
-                }
-            } // for
+            }
+            else {
+                throw new CommandException("Unrecognized user parameter: " + paramChange);
+            }
+        } // for
 
-            // Apply changes
-            final ModifyUserSpectraS3Response modifyResponse = getClient().modifyUserSpectraS3(modifyRequest);
-
-            return new GetUsersResult(modifyResponse.getSpectraUserResult());
-
-        } catch (final FailedRequestException e) {
-            throw new CommandException("Failed Modify User: " + e.getMessage(), e);
-        }
+        // Apply changes
+        final ModifyUserSpectraS3Response modifyResponse = getClient().modifyUserSpectraS3(modifyRequest);
+        return new GetUsersResult(modifyResponse.getSpectraUserResult());
     }
 
     @Override

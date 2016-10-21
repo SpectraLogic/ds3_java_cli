@@ -25,7 +25,6 @@ import com.spectralogic.ds3client.commands.spectrads3.GetStorageDomainSpectraS3R
 import com.spectralogic.ds3client.commands.spectrads3.GetStorageDomainsSpectraS3Request;
 import com.spectralogic.ds3client.commands.spectrads3.GetStorageDomainsSpectraS3Response;
 import com.spectralogic.ds3client.models.WriteOptimization;
-import com.spectralogic.ds3client.networking.FailedRequestException;
 import com.spectralogic.ds3client.utils.Guard;
 
 import java.io.IOException;
@@ -47,23 +46,19 @@ public class GetStorageDomains extends CliCommand<GetStorageDomainsResult> {
 
     @Override
     public GetStorageDomainsResult call() throws IOException, CommandException {
-        try {
-            if (Guard.isStringNullOrEmpty(this.id)) {
-                final GetStorageDomainsSpectraS3Response response
-                        = getClient().getStorageDomainsSpectraS3(
-                        new GetStorageDomainsSpectraS3Request().withWriteOptimization(writeOptimization));
+        if (Guard.isStringNullOrEmpty(this.id)) {
+            final GetStorageDomainsSpectraS3Response response
+                    = getClient().getStorageDomainsSpectraS3(
+                    new GetStorageDomainsSpectraS3Request().withWriteOptimization(writeOptimization));
 
-                return new GetStorageDomainsResult(response.getStorageDomainListResult());
-            } else {
-                // if -i is specified, call get single domain
-                final GetStorageDomainSpectraS3Response response
-                        = getClient().getStorageDomainSpectraS3(
-                        new GetStorageDomainSpectraS3Request(id));
+            return new GetStorageDomainsResult(response.getStorageDomainListResult());
+        } else {
+            // if -i is specified, call get single domain
+            final GetStorageDomainSpectraS3Response response
+                    = getClient().getStorageDomainSpectraS3(
+                    new GetStorageDomainSpectraS3Request(id));
 
-                return new GetStorageDomainsResult(response.getStorageDomainResult());
-            }
-        } catch (final FailedRequestException e) {
-            throw new CommandException("Failed Get Storage Domains", e);
+            return new GetStorageDomainsResult(response.getStorageDomainResult());
         }
     }
 

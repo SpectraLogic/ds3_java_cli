@@ -38,13 +38,8 @@ public class GetDataPolicies extends CliCommand<GetDataPoliciesResult> {
 
     @Override
     public GetDataPoliciesResult call() throws IOException, CommandException {
-        try {
-            final GetDataPoliciesSpectraS3Response response = getClient().getDataPoliciesSpectraS3(new GetDataPoliciesSpectraS3Request());
-
-            return new GetDataPoliciesResult(response.getDataPolicyListResult());
-        } catch (final FailedRequestException e) {
-            throw new CommandException("Failed Get Data Policies", e);
-        }
+        final GetDataPoliciesSpectraS3Response response = getClient().getDataPoliciesSpectraS3(new GetDataPoliciesSpectraS3Request());
+        return new GetDataPoliciesResult(response.getDataPolicyListResult());
     }
 
     @Override

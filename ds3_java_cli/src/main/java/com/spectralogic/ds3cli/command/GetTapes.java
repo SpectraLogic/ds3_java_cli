@@ -36,13 +36,10 @@ public class GetTapes extends CliCommand<GetTapesResult> {
     }
 
     @Override
-    public GetTapesResult call() throws Exception {try {
+    public GetTapesResult call() throws Exception {
             final GetTapesSpectraS3Response response = getClient().getTapesSpectraS3(new GetTapesSpectraS3Request());
 
             return new GetTapesResult(response.getTapeListResult());
-        } catch (final FailedRequestException e) {
-            throw new CommandException("Failed Get Tapes", e);
-        }
     }
 
     @Override

@@ -45,16 +45,12 @@ public class PutJob extends CliCommand<DefaultResult> {
 
     @Override
     public DefaultResult call() throws Exception {
-        try {
-            final ModifyJobSpectraS3Request request = new ModifyJobSpectraS3Request(jobId);
-            if (priority != null) {
-                request.withPriority(priority);
-            }
-            getClient().modifyJobSpectraS3(request);
+        final ModifyJobSpectraS3Request request = new ModifyJobSpectraS3Request(jobId);
+        if (priority != null) {
+            request.withPriority(priority);
         }
-        catch (final IOException e) {
-            throw new CommandException("Error: Request failed with the following error: " + e.getMessage(), e);
-        }
+        getClient().modifyJobSpectraS3(request);
+
         String result = "Success: Modified job with job id '" + jobId.toString() + "'";
         if (priority != null) {
             result = result.concat(" with priority " + priority.toString());

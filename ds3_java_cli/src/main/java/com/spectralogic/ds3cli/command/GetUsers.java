@@ -38,13 +38,8 @@ public class GetUsers extends CliCommand<GetUsersResult> {
 
     @Override
     public GetUsersResult call() throws IOException, CommandException {
-        try {
-            final GetUsersSpectraS3Response response = getClient().getUsersSpectraS3(new GetUsersSpectraS3Request());
-
-            return new GetUsersResult(response.getSpectraUserListResult());
-        } catch (final FailedRequestException e) {
-            throw new CommandException("Failed to Get Users", e);
-        }
+        final GetUsersSpectraS3Response response = getClient().getUsersSpectraS3(new GetUsersSpectraS3Request());
+        return new GetUsersResult(response.getSpectraUserListResult());
     }
 
     @Override

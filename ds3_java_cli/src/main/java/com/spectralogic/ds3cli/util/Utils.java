@@ -68,7 +68,6 @@ public final class Utils {
             if (i1 > i2) return true;
             if (i1 < i2) return false;
         }
-
         return true;
     }
 
@@ -135,7 +134,9 @@ public final class Utils {
                         Utils.getFileName(inputDirectory, path),
                         Utils.getFileSize(path)));
             } catch (final IOException ex) {
-                if (!ignoreErrors) throw ex;
+                if (!ignoreErrors) {
+                    throw ex;
+                }
                 LOG.warn(String.format("WARN: file '%s' has an error and will be ignored", path.getFileName()));
                 ignoredBuilder.add(new PutBulk.IgnoreFile(path, ex.toString()));
             }

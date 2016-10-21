@@ -37,20 +37,9 @@ public class GetTapeFailure extends CliCommand<GetTapeFailureResult> {
 
     @Override
     public GetTapeFailureResult call() throws Exception {
-
-        try {
-            final GetTapeFailuresSpectraS3Response response = getClient().getTapeFailuresSpectraS3(new GetTapeFailuresSpectraS3Request());
-
-            return new GetTapeFailureResult( response.getDetailedTapeFailureListResult() );
-        }
-        catch(final FailedRequestException e) {
-            if(e.getStatusCode() == 500) {
-                throw new CommandException("Error: Cannot communicate with the remote DS3 appliance.", e);
-            }
-            else {
-                throw new CommandException("Error: Encountered an unknown error of ("+ e.getStatusCode() +") while accessing the remote DS3 appliance.", e);
-            }
-        }
+        final GetTapeFailuresSpectraS3Response response
+                = getClient().getTapeFailuresSpectraS3(new GetTapeFailuresSpectraS3Request());
+        return new GetTapeFailureResult( response.getDetailedTapeFailureListResult() );
     }
 
     @Override

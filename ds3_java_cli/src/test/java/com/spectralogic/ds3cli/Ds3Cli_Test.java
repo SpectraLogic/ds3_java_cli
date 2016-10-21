@@ -17,8 +17,7 @@ package com.spectralogic.ds3cli;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.spectralogic.ds3cli.exceptions.BadArgumentException;
-import com.spectralogic.ds3cli.exceptions.SyncNotSupportedException;
+import com.spectralogic.ds3cli.exceptions.*;
 import com.spectralogic.ds3cli.util.*;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.*;
@@ -185,7 +184,7 @@ public class Ds3Cli_Test {
         assertThat(result.getReturnCode(), is(0));
     }
 
-    @Test
+    @Test(expected = FailedRequestException.class)
     public void error() throws Exception {
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_service"});
         final Ds3Client client = mock(Ds3Client.class);
@@ -194,11 +193,9 @@ public class Ds3Cli_Test {
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
         final CommandResponse result = cli.call();
-        assertThat(result.getMessage(), is("Failed Get Service\n"));
-        assertThat(result.getReturnCode(), is(1));
     }
 
-    @Test
+    @Test(expected = FailedRequestException.class)
     public void errorJson() throws Exception {
         final String expected =
                 "  \"Data\" : {\n" +
@@ -216,8 +213,6 @@ public class Ds3Cli_Test {
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
         final CommandResponse result = cli.call();
-        assertTrue(SterilizeString.toUnix(result.getMessage()).endsWith(expected));
-        assertThat(result.getReturnCode(), is(1));
     }
 
     @Test
@@ -834,7 +829,7 @@ public class Ds3Cli_Test {
     @Test
     public void getBulkWithBadArgs() throws Exception {
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_bulk", "-b", "bucketName", "-d", "targetdir", "--discard"});
-        final String expected = "Cannot set both directory and --discard\n";
+        final String expected = "Error (BadArgumentException): Cannot set both directory and --discard";
 
         final Ds3ClientHelpers helpers = mock(Ds3ClientHelpers.class);
         final Ds3ClientHelpers.Job mockedGetJob = mock(Ds3ClientHelpers.Job.class);
@@ -843,9 +838,16 @@ public class Ds3Cli_Test {
         when(helpers.startReadAllJob(eq("bucketName"), any(ReadJobOptions.class))).thenReturn(mockedGetJob);
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(null, helpers), args, mockedFileUtils);
-        final CommandResponse result = cli.call();
-        assertThat(result.getMessage(), is(expected));
-        assertThat(result.getReturnCode(), is(1));
+        try {
+            final CommandResponse result = cli.call();
+
+        } catch (final Exception e) {
+            // exception is expected -- test handler / formatter
+            final Ds3ExceptionHandlerMapper exception = Ds3ExceptionHandlerMapper.getInstance();
+            final DefaultExceptionHandler handler = new DefaultExceptionHandler();
+            final String formattedException = handler.format(e);
+            assertThat(formattedException, is(expected));
+        }
     }
 
 
@@ -1174,7 +1176,7 @@ public class Ds3Cli_Test {
     }
 
     @Test
-    public void isVersionSupported() throws IOException {
+    public void isVersionSupported() throws CommandException, IOException {
         final Ds3Client client = mock(Ds3Client.class);
         final GetSystemInformationSpectraS3Response systemInformationResponse = mock(GetSystemInformationSpectraS3Response.class);
         final SystemInformation systemInformation = mock(SystemInformation.class);
@@ -1195,7 +1197,7 @@ public class Ds3Cli_Test {
     }
 
     @Test
-    public void isCustomVersionSupported() throws IOException {
+    public void isCustomVersionSupported() throws CommandException, IOException {
         final Ds3Client client = mock(Ds3Client.class);
         final GetSystemInformationSpectraS3Response systemInformationResponse = mock(GetSystemInformationSpectraS3Response.class);
         final SystemInformation systemInformation = mock(SystemInformation.class);
@@ -1739,7 +1741,7 @@ public class Ds3Cli_Test {
     @Test
     public void modifyDataPolicyWithBadParam() throws Exception {
 
-        final String expected = "Unrecognized Data Policy parameter: cat\n";
+        final String expected = "Error (CommandException): Unrecognized Data Policy parameter: cat";
 
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "modify_data_policy", "-i", "fake",
                 "--modify-params",  "name:fred,blobbing_enabled:false,default_blob_size:1073741824,default_get_job_priority:HIGH,end_to_end_crc_required:false,rebuild_priority:LOW,versioning:NONE,cat:dog"});
@@ -1783,8 +1785,16 @@ public class Ds3Cli_Test {
         when(client.getDataPolicySpectraS3(any(GetDataPolicySpectraS3Request.class))).thenReturn(GetDataPolicyResponse);
 
         final Ds3Cli cli = new Ds3Cli(new Ds3ProviderImpl(client, null), args, null);
-        final CommandResponse result = cli.call();
-        assertThat(result.getMessage(), is(expected));
+        try {
+            final CommandResponse result = cli.call();
+
+        } catch (final CommandException e) {
+            // exception is expected -- test handler / formatter
+            final Ds3ExceptionHandlerMapper exception = Ds3ExceptionHandlerMapper.getInstance();
+            final DefaultExceptionHandler handler = new DefaultExceptionHandler();
+            final String formattedException = handler.format(e);
+            assertThat(formattedException, is(expected));
+        }
     }
 
     @Test

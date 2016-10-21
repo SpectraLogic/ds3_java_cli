@@ -51,7 +51,6 @@ public class DeleteBucket extends CliCommand<DefaultResult> {
     }
 
 
-
     @Override
     public DefaultResult call() throws Exception {
 
@@ -66,32 +65,26 @@ public class DeleteBucket extends CliCommand<DefaultResult> {
         try {
             getClient().deleteBucket(new DeleteBucketRequest(bucketName));
         } catch (final FailedRequestException e) {
-            if (e.getStatusCode() == 409) { //BUCKET_NOT_EMPTY
-                throw new CommandException("Error: Tried to delete a non-empty bucket without the force delete objects flag.\nUse --force to delete all objects in the bucket");
+            if (e.getStatusCode() == 409) { // BUCKET_NOT_EMPTY
+                throw new CommandException("Error: Tried to delete a non-empty bucket.\nUse --force to delete all objects in the bucket.");
             }
-            throw new CommandException("Error: Request failed with the following error: " + e.getMessage(), e);
+            throw e;
         }
-
         return "Success: Deleted bucket '" + bucketName + "'.";
     }
 
-    private String clearObjects() throws CommandException {
+    private String clearObjects() throws CommandException, IOException {
         // TODO when the multi object delete command has been added to DS3
         // Get the list of objects from the bucket
         LOG.debug("Deleting objects in bucket first");
         final Ds3Client client = getClient();
         final Ds3ClientHelpers helper = Ds3ClientHelpers.wrap(client);
 
-        try {
-            final Iterable<Contents> fileList = helper.listObjects(bucketName);
-            client.deleteObjects(new DeleteObjectsRequest(bucketName, fileList));
+        final Iterable<Contents> fileList = helper.listObjects(bucketName);
+        client.deleteObjects(new DeleteObjectsRequest(bucketName, fileList));
 
-            LOG.debug("Deleting bucket");
-            getClient().deleteBucket(new DeleteBucketRequest(bucketName));
-
-        } catch (final IOException e) {
-            throw new CommandException("Error: Request failed with the following error: " + e.getMessage(), e);
-        }
+        LOG.debug("Deleting bucket");
+        getClient().deleteBucket(new DeleteBucketRequest(bucketName));
 
         return "Success: Deleted " + bucketName + " and all the objects contained in it.";
     }

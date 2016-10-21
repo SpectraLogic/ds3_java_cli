@@ -39,15 +39,11 @@ public class GetCapacitySummary extends CliCommand<GetCapacitySummaryResult> {
 
     @Override
     public GetCapacitySummaryResult call() throws IOException, CommandException {
-        try {
-            final GetSystemCapacitySummarySpectraS3Response systemCapacitySummaryResponse =
-                    getClient().getSystemCapacitySummarySpectraS3(new GetSystemCapacitySummarySpectraS3Request());
-            final CapacitySummaryContainer capacitySummaryContainer =
-                    systemCapacitySummaryResponse.getCapacitySummaryContainerResult();
-            return new GetCapacitySummaryResult(capacitySummaryContainer);
-        } catch (final FailedRequestException e) {
-            throw new CommandException("Failed Get Data Policies", e);
-        }
+        final GetSystemCapacitySummarySpectraS3Response systemCapacitySummaryResponse =
+                getClient().getSystemCapacitySummarySpectraS3(new GetSystemCapacitySummarySpectraS3Request());
+        final CapacitySummaryContainer capacitySummaryContainer =
+                systemCapacitySummaryResponse.getCapacitySummaryContainerResult();
+        return new GetCapacitySummaryResult(capacitySummaryContainer);
     }
 
     @Override
