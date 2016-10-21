@@ -22,7 +22,6 @@ import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.GetDataPoliciesResult;
 import com.spectralogic.ds3client.commands.spectrads3.GetDataPolicySpectraS3Request;
 import com.spectralogic.ds3client.commands.spectrads3.GetDataPolicySpectraS3Response;
-import com.spectralogic.ds3client.networking.FailedRequestException;
 import org.apache.commons.cli.MissingOptionException;
 
 import java.io.IOException;

@@ -23,7 +23,6 @@ import com.spectralogic.ds3cli.models.GetCapacitySummaryResult;
 import com.spectralogic.ds3client.commands.spectrads3.GetSystemCapacitySummarySpectraS3Request;
 import com.spectralogic.ds3client.commands.spectrads3.GetSystemCapacitySummarySpectraS3Response;
 import com.spectralogic.ds3client.models.CapacitySummaryContainer;
-import com.spectralogic.ds3client.networking.FailedRequestException;
 
 import java.io.IOException;
 

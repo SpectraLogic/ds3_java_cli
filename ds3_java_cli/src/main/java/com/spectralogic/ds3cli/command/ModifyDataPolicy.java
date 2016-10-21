@@ -26,7 +26,6 @@ import com.spectralogic.ds3client.models.ChecksumType;
 import com.spectralogic.ds3client.models.DataPolicy;
 import com.spectralogic.ds3client.models.Priority;
 import com.spectralogic.ds3client.models.VersioningLevel;
-import com.spectralogic.ds3client.networking.FailedRequestException;
 import com.spectralogic.ds3client.utils.Guard;
 import org.apache.commons.cli.MissingOptionException;
 

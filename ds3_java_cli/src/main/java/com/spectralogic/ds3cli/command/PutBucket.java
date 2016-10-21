@@ -22,8 +22,6 @@ import com.spectralogic.ds3client.commands.PutBucketRequest;
 import com.spectralogic.ds3client.networking.FailedRequestException;
 import org.apache.commons.cli.MissingOptionException;
 
-import java.io.IOException;
-
 public class PutBucket extends CliCommand<DefaultResult> {
 
     private String bucketName;

@@ -24,16 +24,15 @@ public class DefaultExceptionHandler<T extends Throwable>  implements Ds3Excepti
 
     public void handle(final T e) {
         final String message = format(e);
-        LOG.info(message.toString(), e);
-        System.out.println(message.toString());
+        LOG.info(message, e);
+        System.out.println(message);
     }
 
     public String format(final T e) {
-        final StringBuilder message = new StringBuilder("Error (");
-        message.append(e.getClass().getSimpleName());
-        message.append("): ");
-        message.append(e.getMessage());
-        return message.toString();
+        final String message = "Error (" + e.getClass().getSimpleName() +
+                "): " +
+                e.getMessage();
+        return message;
     }
 
 }

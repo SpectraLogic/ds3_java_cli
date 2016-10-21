@@ -21,9 +21,6 @@ import com.google.common.collect.Iterables;
 import com.spectralogic.ds3cli.models.GetDataPoliciesResult;
 import com.spectralogic.ds3client.models.DataPolicy;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import static com.spectralogic.ds3cli.util.Constants.DATE_FORMAT;
 import static com.spectralogic.ds3cli.util.Utils.nullGuardToString;
 import static com.spectralogic.ds3cli.util.Utils.nullGuardToDate;

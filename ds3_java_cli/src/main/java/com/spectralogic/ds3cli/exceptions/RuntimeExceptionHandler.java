@@ -25,8 +25,8 @@ public class RuntimeExceptionHandler  implements Ds3ExceptionHandler<RuntimeExce
 
     public void handle(final RuntimeException e) {
         final String message = format(e);
-        LOG.info(message.toString(), e);
-        System.out.println(message.toString());
+        LOG.info(message, e);
+        System.out.println(message);
     }
 
     public String format(final RuntimeException e) {

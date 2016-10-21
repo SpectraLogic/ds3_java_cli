@@ -25,7 +25,6 @@ import com.spectralogic.ds3client.utils.Guard;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.spectralogic.ds3cli.util.Constants.DATE_FORMAT;
 import static com.spectralogic.ds3cli.util.Utils.*;
 
 public class GetStorageDomainsView extends TableView<GetStorageDomainsResult> {
@@ -74,7 +73,7 @@ public class GetStorageDomainsView extends TableView<GetStorageDomainsResult> {
         if(domain.getSecureMediaAllocation()) {
             flagsSet.add("Secure Media Allocation");
         }
-        return Joiner.on(",").join(flagsSet).toString();
+        return Joiner.on(",").join(flagsSet);
     }
 
 }

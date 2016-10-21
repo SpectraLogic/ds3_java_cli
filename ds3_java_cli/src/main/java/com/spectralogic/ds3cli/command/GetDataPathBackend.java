@@ -23,7 +23,6 @@ import com.spectralogic.ds3cli.models.GetDataPathBackendResult;
 import com.spectralogic.ds3client.commands.spectrads3.GetDataPathBackendSpectraS3Request;
 import com.spectralogic.ds3client.commands.spectrads3.GetDataPathBackendSpectraS3Response;
 import com.spectralogic.ds3client.models.DataPathBackend;
-import com.spectralogic.ds3client.networking.FailedRequestException;
 
 import java.io.IOException;
 

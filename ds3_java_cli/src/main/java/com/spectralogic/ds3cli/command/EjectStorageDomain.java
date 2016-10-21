@@ -15,17 +15,12 @@
 
 package com.spectralogic.ds3cli.command;
 
-import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3cli.Arguments;
-import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.DefaultResult;
-import com.spectralogic.ds3client.commands.spectrads3.DeletePermanentlyLostTapeSpectraS3Request;
 import com.spectralogic.ds3client.commands.spectrads3.EjectStorageDomainSpectraS3Request;
 import com.spectralogic.ds3client.utils.Guard;
 import org.apache.commons.cli.MissingOptionException;
-import org.apache.commons.cli.Option;
 
-import java.io.IOException;
 import java.util.UUID;
 
 public class EjectStorageDomain extends CliCommand<DefaultResult> {

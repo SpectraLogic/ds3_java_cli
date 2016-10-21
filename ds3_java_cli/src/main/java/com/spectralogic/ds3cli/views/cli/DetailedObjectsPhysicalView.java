@@ -49,7 +49,7 @@ public class DetailedObjectsPhysicalView extends TableView<GetDetailedObjectsRes
         int lineCount = 0;
         for (final DetailedS3Object detailedObject : this.objects) {
             // one line for each instance on tape -- mine down to get Physical Placement
-            if((detailedObject.getBlobs() != null) && !Guard.isNullOrEmpty(detailedObject.getBlobs().getObjects())) {
+            if(detailedObject.getBlobs() != null && !Guard.isNullOrEmpty(detailedObject.getBlobs().getObjects())) {
                 for (final BulkObject object : detailedObject.getBlobs().getObjects()) {
                     if (object.getPhysicalPlacement() != null) {
                         if (!Guard.isNullOrEmpty(object.getPhysicalPlacement().getTapes())) {

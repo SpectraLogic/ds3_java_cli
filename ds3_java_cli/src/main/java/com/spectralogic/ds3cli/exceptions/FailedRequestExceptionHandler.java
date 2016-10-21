@@ -25,8 +25,8 @@ public class FailedRequestExceptionHandler  implements Ds3ExceptionHandler<Faile
 
     public void handle(final FailedRequestException e) {
         final String message = format(e);
-        LOG.info(message.toString(), e);
-        System.out.println(message.toString());
+        LOG.info(message, e);
+        System.out.println(message);
     }
 
     // provide more descriptive message based on status code (Jira JAVACLI-125)
@@ -44,9 +44,9 @@ public class FailedRequestExceptionHandler  implements Ds3ExceptionHandler<Faile
         } else if (statusCode == 404) {
             description.append("target entity not found.");
         } else if (statusCode == 409) {
-            description.append("target entity already exixts.");
+            description.append("target entity already exists.");
         } else {
-            description.append("unknown error of (" + statusCode + ") while accessing the remote DS3 appliance.");
+            description.append("unknown error of (").append(statusCode).append(") while accessing the remote DS3 appliance.");
         }
         return description.toString();
     }
