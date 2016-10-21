@@ -58,7 +58,6 @@ public class GetBulk extends CliCommand<DefaultResult> {
     private boolean checksum;
     private Priority priority;
     private boolean sync;
-    private boolean force;
     private boolean discard;
     private int numberOfThreads;
 
@@ -100,7 +99,6 @@ public class GetBulk extends CliCommand<DefaultResult> {
             this.sync = true;
         }
 
-        this.force = args.isForce();
         this.numberOfThreads = Integer.valueOf(args.getNumberOfThreads());
 
         return this;

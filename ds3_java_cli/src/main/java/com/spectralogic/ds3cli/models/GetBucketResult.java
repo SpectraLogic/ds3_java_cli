@@ -19,8 +19,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.spectralogic.ds3client.models.Contents;
 
-import java.util.Iterator;
-
 public class GetBucketResult implements Result {
     @JsonProperty("BucketName")
     final private String bucketName;

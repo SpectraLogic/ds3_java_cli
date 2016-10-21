@@ -23,7 +23,6 @@ import com.spectralogic.ds3cli.models.GetCacheStateResult;
 import com.spectralogic.ds3client.commands.spectrads3.GetCacheStateSpectraS3Request;
 import com.spectralogic.ds3client.commands.spectrads3.GetCacheStateSpectraS3Response;
 import com.spectralogic.ds3client.models.CacheInformation;
-import com.spectralogic.ds3client.networking.FailedRequestException;
 
 import java.io.IOException;
 

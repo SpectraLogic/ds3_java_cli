@@ -16,12 +16,9 @@
 package com.spectralogic.ds3cli.command;
 
 import com.spectralogic.ds3cli.Arguments;
-import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.DefaultResult;
 import com.spectralogic.ds3client.commands.DeleteObjectRequest;
 import org.apache.commons.cli.MissingOptionException;
-
-import java.io.IOException;
 
 public class DeleteObject extends CliCommand<DefaultResult> {
     

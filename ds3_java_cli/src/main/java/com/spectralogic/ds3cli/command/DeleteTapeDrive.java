@@ -16,12 +16,10 @@
 package com.spectralogic.ds3cli.command;
 
 import com.spectralogic.ds3cli.Arguments;
-import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.DefaultResult;
 import com.spectralogic.ds3client.commands.spectrads3.DeleteTapeDriveSpectraS3Request;
 import org.apache.commons.cli.MissingOptionException;
 
-import java.io.IOException;
 import java.util.UUID;
 
 public class DeleteTapeDrive extends CliCommand<DefaultResult> {

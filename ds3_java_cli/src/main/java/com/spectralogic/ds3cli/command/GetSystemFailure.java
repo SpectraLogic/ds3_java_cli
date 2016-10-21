@@ -18,12 +18,10 @@ package com.spectralogic.ds3cli.command;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
-import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.GetSystemFailureResult;
 import com.spectralogic.ds3client.commands.spectrads3.GetSystemFailuresSpectraS3Request;
 import com.spectralogic.ds3client.commands.spectrads3.GetSystemFailuresSpectraS3Response;
 import com.spectralogic.ds3client.models.SystemFailureList;
-import com.spectralogic.ds3client.networking.FailedRequestException;
 
 public class GetSystemFailure extends CliCommand<GetSystemFailureResult> {
 

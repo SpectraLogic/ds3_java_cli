@@ -19,11 +19,6 @@ import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3client.models.DataPolicy;
 import com.spectralogic.ds3client.models.DataPolicyList;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-
 public class GetDataPoliciesResult implements Result {
 
     private final DataPolicyList dataPolicyListResult;

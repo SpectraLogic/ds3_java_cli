@@ -22,7 +22,6 @@ import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.GetUsersResult;
 import com.spectralogic.ds3client.commands.spectrads3.GetUsersSpectraS3Request;
 import com.spectralogic.ds3client.commands.spectrads3.GetUsersSpectraS3Response;
-import com.spectralogic.ds3client.networking.FailedRequestException;
 
 import java.io.IOException;
 

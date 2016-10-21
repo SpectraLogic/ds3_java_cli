@@ -129,6 +129,7 @@ public class PutObject extends CliCommand<DefaultResult> {
 
     private void transfer(final Ds3ClientHelpers helpers, final Ds3Object ds3Obj) throws IOException, XmlProcessingException {
         final WriteJobOptions writeJobOptions = WriteJobOptions.create();
+        writeJobOptions.setForce(force);
         if (priority != null) {
             writeJobOptions.withPriority(priority);
         }

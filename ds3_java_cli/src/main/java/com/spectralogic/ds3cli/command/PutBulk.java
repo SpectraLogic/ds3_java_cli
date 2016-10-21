@@ -159,11 +159,13 @@ public class PutBulk extends CliCommand<PutBulkResult> {
     }
 
     private PutBulkResult transfer(final Ds3ClientHelpers helpers, final Iterable<Ds3Object> ds3Objects, final ImmutableList<IgnoreFile> ds3IgnoredObjects) throws IOException, XmlProcessingException {
+        final WriteJobOptions writeJobOptions = WriteJobOptions.create()
+                .withPriority(this.priority)
+                .withWriteOptimization(this.writeOptimization)
+                .withIgnoreNamingConflicts(this.ignoreNamingConflicts);
+        writeJobOptions.setForce(force);
         final Ds3ClientHelpers.Job job = helpers.startWriteJob(this.bucketName, ds3Objects,
-                WriteJobOptions.create()
-                        .withPriority(this.priority)
-                        .withWriteOptimization(this.writeOptimization)
-                        .withIgnoreNamingConflicts(this.ignoreNamingConflicts));
+                writeJobOptions);
                 job.withMaxParallelRequests(this.numberOfThreads);
 
         if (this.checksum) {

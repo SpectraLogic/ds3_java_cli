@@ -16,13 +16,11 @@
 package com.spectralogic.ds3cli.command;
 
 import com.spectralogic.ds3cli.Arguments;
-import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.DefaultResult;
 import com.spectralogic.ds3client.commands.spectrads3.ModifyJobSpectraS3Request;
 import com.spectralogic.ds3client.models.Priority;
 import org.apache.commons.cli.MissingOptionException;
 
-import java.io.IOException;
 import java.util.UUID;
 
 public class PutJob extends CliCommand<DefaultResult> {
