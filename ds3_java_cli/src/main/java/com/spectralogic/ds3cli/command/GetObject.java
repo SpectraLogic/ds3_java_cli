@@ -17,7 +17,6 @@ package com.spectralogic.ds3cli.command;
 
 import com.google.common.collect.Lists;
 import com.spectralogic.ds3cli.Arguments;
-import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.DefaultResult;
 import com.spectralogic.ds3cli.util.*;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
@@ -46,7 +45,6 @@ public class GetObject extends CliCommand<DefaultResult> {
     private String objectName;
     private String prefix;
     private boolean sync;
-    private boolean force;
     private int numberOfThreads;
     private Priority priority;
 
@@ -76,7 +74,6 @@ public class GetObject extends CliCommand<DefaultResult> {
             this.sync = true;
         }
 
-        this.force = args.isForce();
         this.numberOfThreads = Integer.valueOf(args.getNumberOfThreads());
 
         return this;

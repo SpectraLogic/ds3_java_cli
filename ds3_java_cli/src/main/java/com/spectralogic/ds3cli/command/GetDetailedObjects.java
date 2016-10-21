@@ -30,7 +30,6 @@ import com.spectralogic.ds3client.helpers.pagination.GetObjectsFullDetailsLoader
 import com.spectralogic.ds3client.models.DetailedS3Object;
 import com.spectralogic.ds3client.utils.Guard;
 import com.spectralogic.ds3client.utils.collections.LazyIterable;
-import org.apache.commons.cli.MissingOptionException;
 import org.slf4j.LoggerFactory;
 
 
