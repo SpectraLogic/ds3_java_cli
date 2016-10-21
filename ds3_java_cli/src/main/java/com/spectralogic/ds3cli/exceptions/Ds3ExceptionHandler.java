@@ -19,8 +19,4 @@ public interface Ds3ExceptionHandler<Throwable> {
 
     public void handle(final Throwable e);
 
-    // implemeters are encouraged to use format() as the message
-    // to facilitate testing
-    public String format(final Throwable e);
-
 }

@@ -19,7 +19,6 @@ import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.exceptions.CommandException;
-import com.spectralogic.ds3cli.exceptions.Ds3ExceptionHandlerFactory;
 import com.spectralogic.ds3cli.models.GetUsersResult;
 import com.spectralogic.ds3client.commands.spectrads3.GetUserSpectraS3Request;
 import com.spectralogic.ds3client.commands.spectrads3.GetUserSpectraS3Response;

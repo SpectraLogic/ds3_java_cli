@@ -16,7 +16,6 @@
 package com.spectralogic.ds3cli.command;
 
 import com.spectralogic.ds3cli.Arguments;
-import com.spectralogic.ds3cli.exceptions.Ds3ExceptionHandlerFactory;
 import com.spectralogic.ds3cli.models.DefaultResult;
 import com.spectralogic.ds3client.commands.spectrads3.DeleteFolderRecursivelySpectraS3Request;
 import org.apache.commons.cli.MissingOptionException;

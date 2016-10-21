@@ -17,10 +17,7 @@ package com.spectralogic.ds3cli;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.spectralogic.ds3cli.exceptions.BadArgumentException;
-import com.spectralogic.ds3cli.exceptions.CommandException;
-import com.spectralogic.ds3cli.exceptions.Ds3ExceptionHandlerFactory;
-import com.spectralogic.ds3cli.exceptions.SyncNotSupportedException;
+import com.spectralogic.ds3cli.exceptions.*;
 import com.spectralogic.ds3cli.util.*;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.*;
@@ -846,8 +843,9 @@ public class Ds3Cli_Test {
 
         } catch (Exception e) {
             // exception is expected -- test handler / formatter
-            final Ds3ExceptionHandlerFactory exception = com.spectralogic.ds3cli.exceptions.Ds3ExceptionHandlerFactory.getInstance();
-            final String formattedException = exception.formatException(e);
+            final Ds3ExceptionHandlerMapper exception = Ds3ExceptionHandlerMapper.getInstance();
+            final DefaultExceptionHandler handler = new DefaultExceptionHandler();
+            final String formattedException = handler.format(e);
             assertThat(formattedException, is(expected));
         }
     }
@@ -1792,8 +1790,9 @@ public class Ds3Cli_Test {
 
         } catch (CommandException e) {
             // exception is expected -- test handler / formatter
-            final Ds3ExceptionHandlerFactory exception = com.spectralogic.ds3cli.exceptions.Ds3ExceptionHandlerFactory.getInstance();
-            final String formattedException = exception.formatException(e);
+            final Ds3ExceptionHandlerMapper exception = Ds3ExceptionHandlerMapper.getInstance();
+            final DefaultExceptionHandler handler = new DefaultExceptionHandler();
+            final String formattedException = handler.format(e);
             assertThat(formattedException, is(expected));
         }
     }

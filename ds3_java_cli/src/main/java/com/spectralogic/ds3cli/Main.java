@@ -35,11 +35,8 @@ import com.spectralogic.ds3client.Ds3ClientBuilder;
 import com.spectralogic.ds3client.models.common.Credentials;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.networking.FailedRequestException;
-import org.apache.commons.cli.MissingOptionException;
-import org.apache.commons.cli.UnrecognizedOptionException;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 
@@ -52,7 +49,7 @@ public final class Main {
     private final static String LOG_FILE_NAME = "spectra.log";
 
     // register exception handlers
-    private final static Ds3ExceptionHandlerFactory EXCEPTION = Ds3ExceptionHandlerFactory.getInstance();
+    private final static Ds3ExceptionHandlerMapper EXCEPTION = Ds3ExceptionHandlerMapper.getInstance();
     static {
         EXCEPTION.addHandler(FailedRequestException.class, new FailedRequestExceptionHandler());
         EXCEPTION.addHandler(RuntimeException.class, new RuntimeExceptionHandler());

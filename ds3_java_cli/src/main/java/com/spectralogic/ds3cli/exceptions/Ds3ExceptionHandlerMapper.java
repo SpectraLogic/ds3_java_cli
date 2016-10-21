@@ -18,14 +18,14 @@ package com.spectralogic.ds3cli.exceptions;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Ds3ExceptionHandlerFactory {
+public class Ds3ExceptionHandlerMapper {
 
-    private static Ds3ExceptionHandlerFactory factoryInstance = new Ds3ExceptionHandlerFactory();
+    private final static Ds3ExceptionHandlerMapper factoryInstance = new Ds3ExceptionHandlerMapper();
     private final Map<Class<? extends Throwable>, Ds3ExceptionHandler> handlers = new HashMap();
     private final Ds3ExceptionHandler defaultHandler = new DefaultExceptionHandler();
 
 
-    public static Ds3ExceptionHandlerFactory getInstance() {
+    public static Ds3ExceptionHandlerMapper getInstance() {
         return factoryInstance;
     }
 
@@ -55,17 +55,6 @@ public class Ds3ExceptionHandlerFactory {
     public void handleException (final Throwable e) {
         final Ds3ExceptionHandler handler = getHandler(e.getClass());
         handler.handle(e);
-    }
-
-    /**
-     * Locate the appropriate Ds3ExceptionHandler (match if registered, else Default)
-     * then call format()
-     *
-     * @param e
-     */
-    public String formatException (final Throwable e) {
-        final Ds3ExceptionHandler handler = getHandler(e.getClass());
-        return handler.format(e);
     }
 
 }
