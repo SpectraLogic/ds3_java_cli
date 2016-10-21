@@ -841,7 +841,7 @@ public class Ds3Cli_Test {
         try {
             final CommandResponse result = cli.call();
 
-        } catch (Exception e) {
+        } catch (final Exception e) {
             // exception is expected -- test handler / formatter
             final Ds3ExceptionHandlerMapper exception = Ds3ExceptionHandlerMapper.getInstance();
             final DefaultExceptionHandler handler = new DefaultExceptionHandler();
@@ -1788,7 +1788,7 @@ public class Ds3Cli_Test {
         try {
             final CommandResponse result = cli.call();
 
-        } catch (CommandException e) {
+        } catch (final CommandException e) {
             // exception is expected -- test handler / formatter
             final Ds3ExceptionHandlerMapper exception = Ds3ExceptionHandlerMapper.getInstance();
             final DefaultExceptionHandler handler = new DefaultExceptionHandler();
