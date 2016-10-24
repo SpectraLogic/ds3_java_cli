@@ -29,11 +29,6 @@ public class GetTapes extends CliCommand<GetTapesResult> {
     }
 
     @Override
-    public CliCommand init(final Arguments args) throws Exception {
-        return this;
-    }
-
-    @Override
     public GetTapesResult call() throws Exception {
             final GetTapesSpectraS3Response response = getClient().getTapesSpectraS3(new GetTapesSpectraS3Request());
 
@@ -41,7 +36,7 @@ public class GetTapes extends CliCommand<GetTapesResult> {
     }
 
     @Override
-    public View<GetTapesResult> getView(final ViewType viewType) {
+    public View<GetTapesResult> getView() {
         if (viewType == ViewType.JSON) {
             return new com.spectralogic.ds3cli.views.json.GetTapesView();
         }

@@ -24,11 +24,6 @@ public class ReclaimCache extends CliCommand<DefaultResult> {
     }
 
     @Override
-    public CliCommand init(final Arguments args) throws Exception {
-        return this;
-    }
-
-    @Override
     public DefaultResult call() throws Exception {
         this.getClient().forceFullCacheReclaimSpectraS3(new ForceFullCacheReclaimSpectraS3Request());
         return new DefaultResult("Success: Forced Reclaim of Cache");

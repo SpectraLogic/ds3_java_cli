@@ -31,18 +31,13 @@ public class GetDataPolicies extends CliCommand<GetDataPoliciesResult> {
     }
 
     @Override
-    public CliCommand init(final Arguments args) throws Exception {
-        return this;
-    }
-
-    @Override
     public GetDataPoliciesResult call() throws IOException, CommandException {
         final GetDataPoliciesSpectraS3Response response = getClient().getDataPoliciesSpectraS3(new GetDataPoliciesSpectraS3Request());
         return new GetDataPoliciesResult(response.getDataPolicyListResult());
     }
 
     @Override
-    public View<GetDataPoliciesResult> getView(final ViewType viewType) {
+    public View<GetDataPoliciesResult> getView() {
         if (viewType == ViewType.JSON) {
             return new com.spectralogic.ds3cli.views.json.GetDataPoliciesView();
         }

@@ -26,11 +26,6 @@ public class VerifySystemHealth extends CliCommand<DefaultResult> {
     }
 
     @Override
-    public CliCommand init(final Arguments args) throws Exception {
-        return this;
-    }
-
-    @Override
     public DefaultResult call() throws Exception {
         final VerifySystemHealthSpectraS3Response response = getClient().verifySystemHealthSpectraS3(new VerifySystemHealthSpectraS3Request());
 

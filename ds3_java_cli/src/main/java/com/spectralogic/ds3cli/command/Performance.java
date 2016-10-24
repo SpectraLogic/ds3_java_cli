@@ -15,6 +15,7 @@
 
 package com.spectralogic.ds3cli.command;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.ViewType;
@@ -33,12 +34,20 @@ import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.networking.FailedRequestException;
 import com.spectralogic.ds3client.serializer.XmlProcessingException;
 import org.apache.commons.cli.MissingOptionException;
+import org.apache.commons.cli.Option;
 
 import java.io.IOException;
 import java.util.List;
 
+import static com.spectralogic.ds3cli.ArgumentFactory.BUCKET;
+import static com.spectralogic.ds3cli.ArgumentFactory.NUMBER_OF_FILES;
+import static com.spectralogic.ds3cli.ArgumentFactory.SIZE_OF_FILES;
+
 
 public class Performance extends CliCommand<DefaultResult> {
+
+    private final static ImmutableList<Option> requiredArgs
+            = ImmutableList.of(BUCKET, NUMBER_OF_FILES, SIZE_OF_FILES);
 
     private String bucketName;
     private String numberOfFiles;
@@ -52,28 +61,14 @@ public class Performance extends CliCommand<DefaultResult> {
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
-        if (args.getOutputFormat() == ViewType.JSON) {
-            throw new CommandException("Json output is not supported with the performance command");
-        }
+        processCommandOptions(requiredArgs, EMPTY_LIST, args);
 
+        this.viewType = ViewType.CLI;
         bucketName = args.getBucket();
-        if (bucketName == null) {
-            throw new MissingOptionException("The performance command requires '-b' to be set.");
-        }
-
         numberOfFiles = args.getNumberOfFiles();
-        if (numberOfFiles == null) {
-            throw new MissingOptionException("The performance command requires '-n' to be set.");
-        }
-
         sizeOfFiles = args.getSizeOfFiles();
-        if (sizeOfFiles == null) {
-            throw new MissingOptionException("The performance command requires '-s' to be set.");
-        }
-
         bufferSize = Integer.valueOf(args.getBufferSize());
         this.numberOfThreads = Integer.valueOf(args.getNumberOfThreads());
-
         return this;
     }
 

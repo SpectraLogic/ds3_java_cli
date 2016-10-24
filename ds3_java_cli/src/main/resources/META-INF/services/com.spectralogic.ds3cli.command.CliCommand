@@ -14,7 +14,7 @@
 #
 
 # CLI Command implementations in this jar
-# This file needs to be included in the jar in META-INF/sevices
+# This file needs to be included in the jar in META-INF/services
 # To add a command, put a new jar in the Classpath
 # with the same file (named after abstract class)
 # with the name of all implementations

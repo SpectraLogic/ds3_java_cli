@@ -15,6 +15,7 @@
 
 package com.spectralogic.ds3cli.command;
 
+import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.DefaultResult;
@@ -25,10 +26,14 @@ import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.models.Contents;
 import com.spectralogic.ds3client.networking.FailedRequestException;
 import org.apache.commons.cli.MissingOptionException;
+import org.apache.commons.cli.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+
+import static com.spectralogic.ds3cli.ArgumentFactory.BUCKET;
+import static com.spectralogic.ds3cli.ArgumentFactory.FORCE;
 
 public class DeleteBucket extends CliCommand<DefaultResult> {
 
@@ -37,16 +42,18 @@ public class DeleteBucket extends CliCommand<DefaultResult> {
     private String bucketName;
     private boolean force;
 
+    private final static ImmutableList<Option> requiredArgs = ImmutableList.of(BUCKET);
+    private final static ImmutableList<Option> optionalArgs = ImmutableList.of(FORCE);
+
     public DeleteBucket() {
     }
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
-        bucketName = args.getBucket();
-        if (bucketName == null) {
-            throw new MissingOptionException("The delete bucket command requires '-b' to be set.");
-        }
-        force = args.isForce();
+        processCommandOptions(requiredArgs, optionalArgs, args);
+
+        this.bucketName = args.getBucket();
+        this.force = args.isForce();
         return this;
     }
 

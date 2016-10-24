@@ -32,11 +32,6 @@ public class GetDataPathBackend extends CliCommand<GetDataPathBackendResult> {
     }
 
     @Override
-    public CliCommand init(final Arguments args) throws Exception {
-        return this;
-    }
-
-    @Override
     public GetDataPathBackendResult call() throws IOException, CommandException {
         final GetDataPathBackendSpectraS3Response response
                 = getClient().getDataPathBackendSpectraS3(new GetDataPathBackendSpectraS3Request());
@@ -45,7 +40,7 @@ public class GetDataPathBackend extends CliCommand<GetDataPathBackendResult> {
     }
 
     @Override
-    public View<GetDataPathBackendResult> getView(final ViewType viewType) {
+    public View<GetDataPathBackendResult> getView() {
         if (viewType == ViewType.JSON) {
             return new com.spectralogic.ds3cli.views.json.GetDataPathBackendView();
         }

@@ -15,6 +15,7 @@
 
 package com.spectralogic.ds3cli.command;
 
+import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
@@ -25,20 +26,26 @@ import com.spectralogic.ds3client.models.Priority;
 import com.spectralogic.ds3client.models.Tape;
 import com.spectralogic.ds3client.utils.Guard;
 import org.apache.commons.cli.MissingArgumentException;
+import org.apache.commons.cli.Option;
+
+import static com.spectralogic.ds3cli.ArgumentFactory.ID;
+import static com.spectralogic.ds3cli.ArgumentFactory.PRIORITY;
 
 
 public class VerifyTape extends CliCommand<VerifyTapeResult> {
+
+    private final static ImmutableList<Option> requiredArgs = ImmutableList.of(ID);
+    private final static ImmutableList<Option> optionalArgs = ImmutableList.of(PRIORITY);
 
     private String id;
     private Priority priority;
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
+        processCommandOptions(requiredArgs, optionalArgs, args);
+
         this.priority = args.getPriority();
         this.id = args.getId();
-        if (Guard.isStringNullOrEmpty(this.id)) {
-            throw new MissingArgumentException("The '-i' option is a required argument");
-        }
         return this;
     }
 
@@ -58,7 +65,7 @@ public class VerifyTape extends CliCommand<VerifyTapeResult> {
     }
 
     @Override
-    public View<VerifyTapeResult> getView(final ViewType viewType) {
+    public View<VerifyTapeResult> getView() {
         if (viewType == ViewType.JSON) {
             return new com.spectralogic.ds3cli.views.json.VerifyTapeView();
         } else {

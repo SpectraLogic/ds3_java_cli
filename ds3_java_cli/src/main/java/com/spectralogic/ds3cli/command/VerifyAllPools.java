@@ -22,11 +22,6 @@ import com.spectralogic.ds3client.models.Priority;
 
 public class VerifyAllPools extends CliCommand<DefaultResult> {
     private Priority priority;
-    @Override
-    public CliCommand init(final Arguments args) throws Exception {
-        this.priority = args.getPriority();
-        return this;
-    }
 
     @Override
     public DefaultResult call() throws Exception {

@@ -15,6 +15,7 @@
 
 package com.spectralogic.ds3cli.command;
 
+import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
@@ -26,10 +27,16 @@ import com.spectralogic.ds3client.commands.spectrads3.GetStorageDomainsSpectraS3
 import com.spectralogic.ds3client.commands.spectrads3.GetStorageDomainsSpectraS3Response;
 import com.spectralogic.ds3client.models.WriteOptimization;
 import com.spectralogic.ds3client.utils.Guard;
+import org.apache.commons.cli.Option;
 
 import java.io.IOException;
 
+import static com.spectralogic.ds3cli.ArgumentFactory.ID;
+import static com.spectralogic.ds3cli.ArgumentFactory.WRITE_OPTIMIZATION;
+
 public class GetStorageDomains extends CliCommand<GetStorageDomainsResult> {
+
+    private final static ImmutableList<Option> optionalArgs = ImmutableList.of(ID, WRITE_OPTIMIZATION);
 
     private String id;
     private WriteOptimization writeOptimization;
@@ -39,6 +46,8 @@ public class GetStorageDomains extends CliCommand<GetStorageDomainsResult> {
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
+        processCommandOptions(EMPTY_LIST, optionalArgs, args);
+
         this.id = args.getId();
         this.writeOptimization = args.getWriteOptimization();
         return this;
@@ -63,7 +72,7 @@ public class GetStorageDomains extends CliCommand<GetStorageDomainsResult> {
     }
 
     @Override
-    public View<GetStorageDomainsResult> getView(final ViewType viewType) {
+    public View<GetStorageDomainsResult> getView() {
         if (viewType == ViewType.JSON) {
             return new com.spectralogic.ds3cli.views.json.GetStorageDomainsView();
         }

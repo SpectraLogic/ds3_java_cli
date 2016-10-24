@@ -15,17 +15,25 @@
 
 package com.spectralogic.ds3cli.command;
 
+import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.models.DefaultResult;
 import com.spectralogic.ds3cli.util.Utils;
 import com.spectralogic.ds3client.commands.spectrads3.ModifyDataPathBackendSpectraS3Request;
+import org.apache.commons.cli.Option;
+
+import static com.spectralogic.ds3cli.ArgumentFactory.VERIFY_PERCENT;
 
 public class ModifyDataPath extends CliCommand<DefaultResult> {
+
+    private final static ImmutableList<Option> requiredArgs = ImmutableList.of(VERIFY_PERCENT);
 
     private int verifyLastPercent;
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
+        processCommandOptions(requiredArgs, EMPTY_LIST, args);
+
         this.verifyLastPercent = args.getVerifyLastPercent();
         if (this.verifyLastPercent > 100 || this.verifyLastPercent < 0) {
             throw new IllegalArgumentException("'verifyLastPercent' must be between 0 and 100");

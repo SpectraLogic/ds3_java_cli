@@ -19,9 +19,12 @@ import ch.qos.logback.classic.Level;
 import com.google.common.collect.ImmutableMap;
 import com.spectralogic.ds3cli.exceptions.BadArgumentException;
 import com.spectralogic.ds3cli.util.Metadata;
-import com.spectralogic.ds3cli.util.Utils;
+import com.spectralogic.ds3client.Ds3Client;
+import com.spectralogic.ds3client.Ds3ClientBuilder;
 import com.spectralogic.ds3client.models.Priority;
 import com.spectralogic.ds3client.models.WriteOptimization;
+import com.spectralogic.ds3client.models.common.Credentials;
+import com.spectralogic.ds3client.utils.Guard;
 import org.apache.commons.cli.*;
 
 import java.io.IOException;
@@ -30,474 +33,405 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import static com.spectralogic.ds3cli.ArgumentFactory.*;
+
 public class Arguments {
 
     private final static String PROPERTY_FILE = "ds3_cli.properties";
 
-    private final Options options;
-
-    private String bucket;
-    private String directory;
-    private String endpoint;
-    private String accessKey;
-    private String secretKey;
-    private String prefix;
-    private String id = null;
-    private String command;
-    private boolean help;
+    // variables required by Arguments class
     private final String[] args;
-    private String objectName;
-    private String proxy;
-    private int retries = 20;
-    private Priority priority;
-    private WriteOptimization writeOptimization;
-    private boolean force = false;
-    private boolean checksum = false;
-    private boolean certificateVerification = true;
-    private boolean https = true;
-    private boolean completed = false;
-    private boolean sync = false;
-    private String numberOfFiles;
-    private String sizeOfFiles;
-    private boolean discard = false;
-    private ViewType outputFormat = ViewType.CLI;
+    private final Options options;
+    private CommandLine cmd;
+    private final List<String> missingArgs = new ArrayList<>();
 
-    private String version = "N/a";
-    private String buildDate = "N/a";
-    private String bufferSize;
-    private String numberOfThreads;
-    private boolean ignoreErrors = false;
-    private boolean followSymlinks = false;
-    private ImmutableMap<String, String> metadata = null;
-    private ImmutableMap<String, String> modifyParams = null;
-    private ImmutableMap<String, String> filterParams = null;
+    // locally stored properties processed in initial parsing
+    // useful to provide defaults and handle parsing exceptions
+    // most simple values are queried as needed
+    private boolean help;
     private Level consoleLogLevel;
     private Level fileLogLevel;
-    private boolean ignoreNamingConflicts = false;
-    private boolean inCache = false;
-    private int verifyLastPercent = 20;
-    private String ejectLabel;
-    private String ejectLocation;
-
+    private String version = "N/a";
+    private String buildDate = "N/a";
+    private static final String DEFAULT_RETRIES = "20";
+    private static final String DEFAULT_BUFFERSIZE = "1048576";
+    private static final String DEFAULT_NUMBEROFTHREADS = "10";
+    private static final String DEFAULT_VERIFY_PERCENT = "20";
 
     // don't use Logger because the user's preferences are not yet set
     // collect log info that will be logged by Main
-    private final static StringBuilder argumentLog = new StringBuilder("Argument processing");
-    private void addToLog(final String logItem) { argumentLog.append(" | ").append(logItem); }
+    private static final StringBuilder argumentLog = new StringBuilder("Argument processing");
+    private void addToLog(final String logItem) { argumentLog.append(" | ").append(logItem) ; }
     public String getArgumentLog() { return argumentLog.toString(); }
 
-    public Arguments(final String[] args) throws BadArgumentException, ParseException {
+    /**
+     * add an argument option
+     * @param opt Option to add to Arguments Options
+     */
+    public void addOption(final Option opt) {
+        this.options.addOption(opt);
+    }
+    /**
+     * add an argument option and set its argument name
+     * @param opt Option to add to Arguments Options
+     * @param argName argument name in help display
+     */
+    public void addOption(final Option opt, final String argName) {
+        opt.setArgName(argName);
+        this.options.addOption(opt);
+    }
 
+    /**
+     * retrieve an option value by option name
+     * (Note: public static Option in Arguments have convenience getters
+     *  this would be used for dynamically added options)
+     * @param optionName Option to query
+     * @return a string representation of the option value
+     */
+    public String getOptionValue(final String optionName) {
+        final Object val = this.cmd.getOptionValue(optionName);
+        if (val == null) {
+            return null;
+        }
+        return val.toString();
+    }
+
+    /**
+     * retrieve multiple option values by option name
+     * (Note: public static Option in Arguments have convenience getters
+     *  this would be used for dynamically added options)
+     * @param optionName Option to query
+     */
+    public String[] getOptionValues(final String optionName) {
+        final String[] values = this.cmd.getOptionValues(optionName);
+        if (values == null || values.length == 0) {
+            return null;
+        }
+        return values;
+    }
+
+    /**
+     * see if an option has been set by option name
+     * (Note: public static Option in Arguments have convenience getters
+     *  this would be used for dynamically added options)
+     * @param optionName Option to query
+     * @return true if option was set
+     */
+    public boolean optionExists(final String optionName) {
+        return this.cmd.hasOption(optionName);
+    }
+
+    /**
+     * retrieve an option value by option name or default value if not set
+     * (Note: public static Option in Arguments have convenience getters
+     *  this would be used for dynamically added options)
+     * @param optionName Option to query
+     * @param defaultValue Object to return if not specified
+     * @return option value as Object if specified on COMMAND, else defaultValue
+     */
+    public Object getOptionValueWithDefault(final String optionName, final Object defaultValue) {
+        final Object returnValue = this.getOptionValue(optionName);
+        if (returnValue != null) {
+            return returnValue;
+        }
+        return defaultValue;
+    }
+
+    public static boolean matchesOption(final Option opt, final String token) {
+        return token.equals('-' + opt.getOpt()) || token.equals("--" + opt.getLongOpt());
+    }
+
+    /**
+     * instantiate object, set args array, complete initial parsing
+     * @param args String array of COMMAND line tokens
+     */
+    public Arguments(final String[] args) throws BadArgumentException, ParseException {
         this.loadProperties();
         this.args = args;
         this.options = new Options();
 
-        final Option ds3Endpoint = new Option("e", true, "The ds3 endpoint to connect to or have \"DS3_ENDPOINT\" set as an environment variable.");
-        ds3Endpoint.setArgName("endpoint");
-        final Option bucket = new Option("b", true, "The ds3 bucket to copy to");
-        bucket.setArgName("bucket");
-        final Option accessKey = new Option("a", true, "Access Key ID or have \"DS3_ACCESS_KEY\" set as an environment variable");
-        accessKey.setArgName("accessKeyId");
-        final Option secretKey = new Option("k", true, "Secret access key or have \"DS3_SECRET_KEY\" set as an environment variable");
-        secretKey.setArgName("secretKey");
-        final Option command = new Option("c", true, "The Command to execute.  For Possible values, use '--help list_commands.'" );
-        command.setArgName("command");
-        final Option directory = new Option("d", true, "Specify a directory to interact with if required");
-        directory.setArgName("directory");
-        final Option objectName = new Option("o", true, "The name of the object to be retrieved or stored");
-        objectName.setArgName("objectFileName");
-        final Option prefix = new Option("p", true, "Used with 'get_bulk' to restore only objects who's names start with prefix.  Also used with 'bulk_put' and 'put_object' to add a prefix to object name(s)");
-        prefix.setArgName("prefix");
-        final Option proxy = new Option("x", true, "The URL of the proxy server to use or have \"http_proxy\" set as an environment variable");
-        proxy.setArgName("proxy");
-        final Option id = new Option("i", true, "ID for identifying ds3 api resources");
-        id.setArgName("id");
-        final Option force = new Option(null, false, "Used to force an operation even if there is an error");
-        force.setLongOpt("force");
-        final Option retries = new Option("r", true, "Specifies how many times puts and gets will be attempted before failing the request.  The default is 5");
-        retries.setArgName("retries");
-        final Option checksum = new Option(null, "Validate checksum values");
-        checksum.setLongOpt("checksum");
-        final Option priority = new Option(null, true, "Set the bulk job priority.  Possible values: [" + Utils.printEnumOptions(Priority.values()) + "]");
-        priority.setLongOpt("priority");
-        priority.setArgName("priority");
+        // parse all values required to select help, query version, or specify COMMAND, set up the client, and configure logging.
+        addOption(ENDPOINT, "endpoint");
+        addOption(ACCESS_KEY, "accessKeyId");
+        addOption(SECRET_KEY, "secret_key");
+        addOption(COMMAND, "command");
+        addOption(PROXY, "proxy");
+        addOption(HTTP, "http");
+        addOption(INSECURE, "insecure");
+        addOption(PRINT_HELP, "help");
+        addOption(COMMAND_HELP, "command_help");
+        addOption(VERBOSE, "verbose");
+        addOption(DEBUG, "debug");
+        addOption(TRACE, "trace");
+        addOption(LOG_VERBOSE, "log-verbose");
+        addOption(LOG_DEBUG, "log-debug");
+        addOption(LOG_TRACE, "log-trace");
+        addOption(PRINT_VERSION, "version");
+        addOption(VIEW_TYPE, "view_type");
+        addOption(RETRIES, "retries");
+        addOption(BUFFER_SIZE, "buffer_size");
 
-        final Option writeOptimization = new Option(null, true, "Set the job write optimization.  Possible values: [" + Utils.printEnumOptions(WriteOptimization.values()) + "]");
-        writeOptimization.setLongOpt("writeOptimization");
-        writeOptimization.setArgName("writeOptimization");
-        final Option help = new Option("h", "Help Menu");
-
-        final Option commandHelp = Option.builder()
-                .longOpt("help")
-                .desc("Command Help (provide command name from -c)")
-                .optionalArg(true)
-                .numberOfArgs(1)
-                .build();
-
-        final Option http = new Option(null, "Send all requests over standard http");
-        http.setLongOpt("http");
-        final Option insecure = new Option(null, "Ignore ssl certificate verification");
-        insecure.setLongOpt("insecure");
-        final Option version = new Option(null, "Print version information");
-        version.setLongOpt("version");
-        final Option viewType = new Option(null, true, "Configure how the output should be displayed.  Possible values: [" + ViewType.valuesString() + "]");
-        viewType.setLongOpt("output-format");
-        // console log level
-        final Option verbose = new Option(null, "Log output to console.");
-        verbose.setLongOpt("verbose");
-        final Option debug = new Option(null, "Debug (more verbose) output to console.");
-        debug.setLongOpt("debug");
-        final Option trace = new Option(null, "Trace (most verbose) output to console.");
-        trace.setLongOpt("trace");
-        // log file log level
-        final Option logVerbose = new Option(null, "Log output to log file.");
-        logVerbose.setLongOpt("log-verbose");
-        final Option logDebug = new Option(null, "Debug (more verbose) output to log file.");
-        logDebug.setLongOpt("log-debug");
-        final Option logTrace = new Option(null, "Trace (most verbose) output to log file.");
-        logTrace.setLongOpt("log-trace");
-
-        final Option completed = new Option(null, false, "Used with the command get_jobs to include the display of completed jobs");
-        completed.setLongOpt("completed");
-        final Option sync = new Option(null, false, "Copy only the newest files");
-        sync.setLongOpt("sync");
-        final Option numberOfFiles = new Option("n", true, "The number of files for the performance test");
-        numberOfFiles.setArgName("numberOfFiles");
-        final Option sizeOfFiles = new Option("s", true, "The size (in MB) for each file in the performance test");
-        sizeOfFiles.setArgName("sizeOfFiles");
-        final Option bufferSize = new Option("bs", true, "Set the buffer size in bytes");
-        bufferSize.setArgName("bufferSize");
-        final Option numberOfThreads = new Option("nt", true, "Set the number of threads");
-        numberOfThreads.setArgName("numberOfThreads");
-        final Option ignoreErrors = new Option(null, false, "Ignore files that cause errors");
-        ignoreErrors.setLongOpt("ignore-errors");
-        final Option noFollowSymlinks = new Option(null, false, "Set to not follow symlinks, this is the default behavior");
-        noFollowSymlinks.setLongOpt("no-follow-symlinks");
-        final Option followSymLinks = new Option(null, false, "Set to follow symlinks");
-        followSymLinks.setLongOpt("follow-symlinks");
-        final Option ignoreNamingConflicts = new Option(null, false, "Set true to ignore existing files of the same name and size during a bulk put");
-        ignoreNamingConflicts.setLongOpt("ignore-naming-conflicts");
-        final Option inCache = new Option(null, false, "Set to filter out items that are only in cache.  Used with get_suspect_objects");
-        inCache.setLongOpt("in-cache");
-
-        final Option metadata = Option.builder()
-                .longOpt("metadata")
-                .desc("Metadata for when putting a single object.  Using the format: key:value,key2:value2")
-                .hasArgs()
-                .valueSeparator(',')
-                .build();
-
-        final Option modifyParams = Option.builder()
-                .longOpt("modify-params")
-                .desc("Parameters for modifying features using the format key:value,key2:value2. For modify_user: default_data_policy_id")
-                .hasArgs()
-                .valueSeparator(',')
-                .build();
-
-        final Option filterParams = Option.builder()
-                .longOpt("filter-params")
-                .desc("Filter returned objects using the format key:value,key2:value2. Supports newerthan:d2.h3.m4.s5,largerthan:100")
-                .hasArgs()
-                .valueSeparator(',')
-                .build();
-
-        final Option discard = new Option(null, false, "Discard restoration data (/dev/null) in get_bulk");
-        discard.setLongOpt("discard");
-        final Option verifyPercent = new Option(null,true, "Set verify last percent as an integer.  Used with modify_data_path");
-        verifyPercent.setLongOpt("verify-last-percent");
-        verifyPercent.setArgName("percent");
-
-        final Option ejectLabel = Option.builder().longOpt("eject-label").hasArg()
-                .desc("Enter information to assist in the handling of the tapes.").build();
-        final Option ejectLocation = Option.builder().longOpt("eject-location").hasArg()
-                .desc("Enter information to describe where the ejected tapes can be located.").build();
-
-        this.options.addOption(ds3Endpoint);
-        this.options.addOption(bucket);
-        this.options.addOption(directory);
-        this.options.addOption(accessKey);
-        this.options.addOption(secretKey);
-        this.options.addOption(command);
-        this.options.addOption(objectName);
-        this.options.addOption(prefix);
-        this.options.addOption(proxy);
-        this.options.addOption(id);
-        this.options.addOption(force);
-        this.options.addOption(retries);
-        this.options.addOption(checksum);
-        this.options.addOption(priority);
-        this.options.addOption(writeOptimization);
-        this.options.addOption(help);
-        this.options.addOption(commandHelp);
-        this.options.addOption(insecure);
-        this.options.addOption(http);
-        this.options.addOption(version);
-        this.options.addOption(verbose);
-        this.options.addOption(debug);
-        this.options.addOption(trace);
-        this.options.addOption(logVerbose);
-        this.options.addOption(logDebug);
-        this.options.addOption(logTrace);
-        this.options.addOption(viewType);
-        this.options.addOption(completed);
-        this.options.addOption(sync);
-        this.options.addOption(numberOfFiles);
-        this.options.addOption(sizeOfFiles);
-        this.options.addOption(bufferSize);
-        this.options.addOption(numberOfThreads);
-        this.options.addOption(ignoreErrors);
-        this.options.addOption(noFollowSymlinks);
-        this.options.addOption(followSymLinks);
-        this.options.addOption(metadata);
-        this.options.addOption(modifyParams);
-        this.options.addOption(filterParams);
-        this.options.addOption(discard);
-        this.options.addOption(ignoreNamingConflicts);
-        this.options.addOption(inCache);
-        this.options.addOption(verifyPercent);
-        this.options.addOption(ejectLabel);
-        this.options.addOption(ejectLocation);
         this.processCommandLine();
     }
 
-    private void processCommandLine() throws ParseException, BadArgumentException {
+    private String[] rootArgumentsOnly() throws BadArgumentException {
+        // Present only COMMAND, help and version arguments to parser, After the COMMAND
+        // is instantiated, the full parse will be run against the complete Options list.
+        final List<String> rootArguments = new ArrayList<String>();
+
+        for (int i = 0; i < this.args.length; i++) {
+            final String token = this.args[i];
+            // allow get COMMAND (-c) and subsequent argument
+            // or --output-format and subsequent argument
+            if (matchesOption(COMMAND, token) || matchesOption(VIEW_TYPE,  token) ||
+                    matchesOption(ACCESS_KEY, token) || matchesOption(SECRET_KEY,  token) ||
+                    matchesOption(ENDPOINT, token) || matchesOption(PROXY,  token) ||
+                    matchesOption(RETRIES, token)) {
+                rootArguments.add(token);
+                if (i < this.args.length) {
+                    rootArguments.add(this.args[++i]);
+                } else {
+                    throw new BadArgumentException("No argument supplied for option: " + token);
+                }
+            }
+            // allow get COMMAND help and subsequent argument (unless it is followed by an option (- or --)
+            if (matchesOption(COMMAND_HELP, token)) {
+                rootArguments.add(token);
+                // might or might not have arg
+                if ((i < this.args.length) && (!this.args[i + 1].startsWith("-"))) {
+                    rootArguments.add(this.args[++i]);
+                }
+            }
+            // allow version in root parse
+            if ((matchesOption(VERBOSE, token)) || (matchesOption(PRINT_HELP, token))
+                    || (matchesOption(TRACE, token)) || (matchesOption(DEBUG, token)) || (matchesOption(VERBOSE, token))
+                    || (matchesOption(LOG_TRACE, token)) || (matchesOption(LOG_DEBUG, token))
+                    || (matchesOption(LOG_VERBOSE, token))) {
+                rootArguments.add(token);
+            }
+        }
+
+        // create a String[] of only valid root parse args.
+        return rootArguments.toArray(new String[rootArguments.size()]);
+    }
+
+    /**
+     * call after adding all options to reparse
+     */
+    public void parseCommandLine() throws ParseException, BadArgumentException  {
+        parseCommandLine(false);
+    }
+
+    // parse command line. Set isRootParse true to first filter for only first parse options
+    private void parseCommandLine(final boolean isRootParse) throws ParseException, BadArgumentException {
         final CommandLineParser parser = new DefaultParser();
-        final CommandLine cmd = parser.parse(this.options, this.args);
+        if (isRootParse) {
+            final String[] roots =  rootArgumentsOnly();
+            this.cmd = parser.parse(this.options, roots);
+        } else {
+            this.cmd = parser.parse(this.options, this.args);
+        }
+    }
 
-        final List<String> missingArgs = new ArrayList<>();
+    // first parse
+    private void processCommandLine() throws ParseException, BadArgumentException {
+        parseCommandLine(true);
 
-        if (cmd.hasOption("trace")) {
+        // set the level for console and log file logging
+        if (cmd.hasOption(TRACE.getLongOpt())) {
             setConsoleLogLevel(Level.TRACE);
-        } else if (cmd.hasOption("debug")) {
+        } else if (cmd.hasOption(DEBUG.getLongOpt())) {
             setConsoleLogLevel(Level.DEBUG);
-        } else if (cmd.hasOption("verbose")) {
+        } else if (cmd.hasOption(VERBOSE.getLongOpt())) {
             setConsoleLogLevel(Level.INFO);
         } else {
             setConsoleLogLevel(Level.OFF);
         }
 
-        if (cmd.hasOption("log-trace")) {
+        if (cmd.hasOption(LOG_TRACE.getLongOpt())) {
             setFileLogLevel(Level.TRACE);
-        } else if (cmd.hasOption("log-debug")) {
+        } else if (cmd.hasOption(LOG_DEBUG.getLongOpt())) {
             setFileLogLevel(Level.DEBUG);
-        } else if (cmd.hasOption("log-verbose")) {
+        } else if (cmd.hasOption(LOG_VERBOSE.getLongOpt())) {
             setFileLogLevel(Level.INFO);
         } else {
             setFileLogLevel(Level.OFF);
         }
 
-        if (cmd.hasOption('h')) {
+        if (cmd.hasOption(PRINT_HELP.getOpt())) {
             this.printHelp();
             System.exit(0);
         }
 
-        if (cmd.hasOption("help")) {
+        if (cmd.hasOption(COMMAND_HELP.getLongOpt())) {
             setHelp(true);
-            final String commandString = cmd.getOptionValue("help");
             try {
-                if (commandString == null) {
+                if (getHelp() == null) {
                     // if no arg on --help, print -h help
                     this.printHelp();
                     System.exit(0);
-                } else {
-                    this.setCommand(commandString.toUpperCase());
                 }
                 // no other options count
                 return;
             } catch (final IllegalArgumentException e) {
-                throw new BadArgumentException("Unknown command: " + commandString + "; use --help list_commands to get available commands.", e);
+                throw new BadArgumentException("Unknown command: " + getHelp() + "; use --help list_commands to get available commands.", e);
             }
         }
 
-        if (cmd.hasOption("version")) {
+        if (cmd.hasOption(PRINT_VERSION.getLongOpt())) {
             this.printVersion();
             System.exit(0);
         }
 
-        if (cmd.hasOption("output-format")) {
-            try {
-                final String commandString = cmd.getOptionValue("output-format");
-                this.setOutputFormat(ViewType.valueOf(commandString.toUpperCase()));
-            } catch (final IllegalArgumentException e) {
-                throw new BadArgumentException("Unknown command", e);
-            }
-
-        }
-
-        if (cmd.hasOption("insecure")) {
-            this.setCertificateVerification(false);
-        }
-
-        if (cmd.hasOption("http")) {
-            this.setHttps(false);
-        }
-
-        final String retryString = cmd.getOptionValue("r");
         try {
-            if (retryString != null) {
-                this.setRetries(Integer.parseInt(retryString));
-            }
-
-        } catch (final NumberFormatException e) {
-            System.err.printf("Error: Argument (%s) to '-r' was not a number\n", retryString);
-            System.exit(1);
-        }
-
-        try {
-            final String commandString = cmd.getOptionValue("c");
-            if (commandString == null) {
-                this.setCommand(null);
+            if (getCommand() == null) {
                 // must have -c or --help
                 if (!isHelp()) {
-                    missingArgs.add("c");
+                    throw new MissingOptionException(COMMAND.getOpt());
                 }
-            } else {
-                this.setCommand(commandString.toUpperCase());
             }
         } catch (final IllegalArgumentException e) {
             throw new BadArgumentException("Unknown command", e);
         }
-
-        this.setPriority(this.processPriorityType(cmd, "priority"));
-
-        this.setWriteOptimization(this.processWriteOptimization(cmd, "writeOptimization"));
-
-        if (cmd.hasOption("force")) {
-            this.setForce(true);
-        }
-
-        if (cmd.hasOption("checksum")) {
-            this.setChecksum(true);
-        }
-
-        if (cmd.hasOption("completed")) {
-            this.setCompleted(true);
-        }
-
-        this.setBucket(cmd.getOptionValue("b"));
-        this.setEndpoint(cmd.getOptionValue("e"));
-        this.setAccessKey(cmd.getOptionValue("a"));
-        this.setSecretKey(cmd.getOptionValue("k"));
-        this.setObjectName(cmd.getOptionValue("o"));
-        this.setProxy(cmd.getOptionValue("x"));
-        this.setDirectory(cmd.getOptionValue("d"));
-        this.setPrefix(cmd.getOptionValue("p"));
-        this.setId(cmd.getOptionValue("i"));
-
-        if (this.getEndpoint() == null) {
-            final String endpoint = System.getenv("DS3_ENDPOINT");
-            if (endpoint == null) {
-                missingArgs.add("e");
-            } else {
-                this.setEndpoint(endpoint);
-            }
-        }
-
-        if (this.getSecretKey() == null) {
-            final String key = System.getenv("DS3_SECRET_KEY");
-            if (key == null) {
-                missingArgs.add("k");
-            } else {
-                this.setSecretKey(key);
-            }
-        }
-
-        if (this.getAccessKey() == null) {
-            final String key = System.getenv("DS3_ACCESS_KEY");
-            if (key == null) {
-                missingArgs.add("a");
-            } else {
-                this.setAccessKey(key);
-            }
-        }
-
-        // check for the http_proxy env var
-        final String proxy = System.getenv("http_proxy");
-        if (proxy != null) {
-            this.setProxy(proxy);
-            addToLog("Proxy: " + this.getProxy());
-        }
-
-        if (!missingArgs.isEmpty()) {
-            throw new MissingOptionException(missingArgs);
-        }
-        addToLog("Access Key: " + this.getAccessKey() + " | Endpoint: " + this.getEndpoint());
-
-        if (cmd.hasOption("sync")) {
-            this.setSync(true);
-        }
-
-        this.setNumberOfFiles(cmd.getOptionValue("n"));
-        this.setSizeOfFiles(cmd.getOptionValue("s"));
-
-        this.setBufferSize(cmd.getOptionValue("bs"));
-        if (this.getBufferSize() == null) {
-            this.bufferSize = "1048576"; //default to 1MB
-        }
-
-        this.setNumberOfThreads(cmd.getOptionValue("nt"));
-        if (this.getNumberOfThreads() == null) {
-            this.numberOfThreads = "10"; //default to 10 threads
-        }
-
-        if (cmd.hasOption("ignore-errors")) {
-            this.setIgnoreErrors(true);
-        }
-
-        if (cmd.hasOption("follow-symlinks")) {
-            this.setFollowSymlinks(true);
-        }
-
-        if (cmd.hasOption("no-follow-symlinks")) {
-            this.setFollowSymlinks(false);
-        }
-
-        if (cmd.hasOption("metadata")) {
-            this.setMetadata(Metadata.parse(cmd.getOptionValues("metadata")));
-        }
-        if (cmd.hasOption("modify-params")) {
-            this.setModifyParams(Metadata.parse(cmd.getOptionValues("modify-params")));
-        }
-        if (cmd.hasOption("filter-params")) {
-            this.setFilterParams(Metadata.parse(cmd.getOptionValues("filter-params")));
-        }
-
-        if (cmd.hasOption("discard")) {
-            this.setDiscard(true);
-        }
-
-        if (cmd.hasOption("ignore-naming-conflicts")) {
-            this.setIgnoreNamingConflicts(true);
-        }
-
-        if (cmd.hasOption("in-cache")) {
-            this.setInCache(true);
-        }
-
-        if (cmd.hasOption("verify-last-percent")) {
-            this.setVerifyLastPercent(Integer.parseInt(cmd.getOptionValue("verify-last-percent")));
-        }
-
-        this.setEjectLabel(cmd.getOptionValue("eject-label"));
-        this.setEjectLocation(cmd.getOptionValue("eject-location"));
-
     }
 
-    private WriteOptimization processWriteOptimization(final CommandLine cmd, final String writeOptimization) throws BadArgumentException {
-        final String writeOptimizationString = cmd.getOptionValue(writeOptimization);
+    private void loadProperties() {
+        final Properties props = new Properties();
+        final InputStream input = Arguments.class.getClassLoader().getResourceAsStream(PROPERTY_FILE);
+        if (input == null) {
+            System.err.println("Could not find property file.");
+        } else {
+            try {
+                props.load(input);
+                this.version = props.get("version").toString();
+                this.buildDate = props.get("build.date").toString();
+            } catch (final IOException e) {
+                System.err.println("Failed to load version property file.");
+                if (this.getConsoleLogLevel() != Level.OFF) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    private void printVersion() {
+        System.out.println("Version: " + this.version);
+        System.out.println("Build Date: " + this.buildDate);
+    }
+
+    public void printHelp() {
+        // default help menu
+        final HelpFormatter helpFormatter = new HelpFormatter();
+        helpFormatter.printHelp("ds3_java_cli", this.options);
+    }
+
+    // build client from Arguments
+    public Ds3Client createClient() throws MissingOptionException, BadArgumentException {
+        final Ds3ClientBuilder builder = Ds3ClientBuilder.create(
+                getEndpoint(),
+                new Credentials(getAccessKey(), getSecretKey())
+        )
+                .withHttps(isHttps())
+                .withCertificateVerification(isCertificateVerification())
+                .withBufferSize(Integer.valueOf(getBufferSize()))
+                .withRedirectRetries(getRetries());
+
+        if (getProxy() != null) {
+            builder.withProxy(getProxy());
+        }
+        return builder.build();
+    }
+
+    private String getEndpoint() {
+        String endpointValue =  this.getOptionValue(ENDPOINT.getOpt());
+        if (Guard.isStringNullOrEmpty(endpointValue)) {
+            endpointValue = System.getenv("DS3_ENDPOINT");
+        }
+        if (ENDPOINT == null) {
+            missingArgs.add(ENDPOINT.getOpt());
+            return "";
+        }
+        return endpointValue;
+    }
+
+    private String getAccessKey() {
+        String accessKeyValue =  this.getOptionValue(ACCESS_KEY.getOpt());
+        if (Guard.isStringNullOrEmpty(accessKeyValue)) {
+            accessKeyValue = System.getenv("DS3_ACCESS_KEY");
+            if (accessKeyValue == null) {
+                missingArgs.add(ACCESS_KEY.getOpt());
+                return "";
+            }
+        }
+        return accessKeyValue;
+    }
+
+    private String getSecretKey() {
+        String secretKeyValue = this.getOptionValue(SECRET_KEY.getOpt());
+        if (Guard.isStringNullOrEmpty(secretKeyValue)) {
+            secretKeyValue = System.getenv("DS3_SECRET_KEY");
+            if (secretKeyValue == null) {
+                missingArgs.add(SECRET_KEY.getOpt());
+            }
+        }
+        return secretKeyValue;
+    }
+
+    private String getProxy() {
+        // can be arg, environment var or null;
+        String proxyValue = cmd.getOptionValue(PROXY.getOpt());
+        if (Guard.isStringNullOrEmpty(proxyValue)) {
+            proxyValue = System.getenv("http_proxy");
+        }
+        addToLog("Proxy: " + proxyValue);
+        return proxyValue;
+    }
+
+    // convenience getters for private options
+    public String getVersion() {
+        return this.version;
+    }
+    public String getBuildDate() {
+        return this.buildDate;
+    }
+    public String getCommand() {
+        return cmd.getOptionValue(COMMAND.getOpt());
+    }
+    public String getHelp() {
+        return cmd.getOptionValue(COMMAND_HELP.getLongOpt());
+    }
+    public ViewType getOutputFormat() {
+        return ViewType.valueOf(this.getOptionValueWithDefault(VIEW_TYPE.getLongOpt(), ViewType.CLI).toString().toUpperCase());
+    }
+
+    public boolean isCertificateVerification() { return !this.optionExists(INSECURE.getLongOpt()); }
+    public boolean isHttps() {  return !this.optionExists(HTTP.getLongOpt()); }
+    public boolean isHelp() { return this.help; }
+    void setHelp(final boolean help) { this.help = help; }
+    public Level getConsoleLogLevel() { return this.consoleLogLevel; }
+    void setConsoleLogLevel(final Level console) {this.consoleLogLevel = console; }
+    public Level getFileLogLevel() { return this.fileLogLevel; }
+    void setFileLogLevel(final Level file) {this.fileLogLevel = file; }
+
+    public int getRetries() throws BadArgumentException {
+        final String retryString = this.getOptionValueWithDefault(RETRIES.getOpt(), DEFAULT_RETRIES).toString();
         try {
-            if (writeOptimizationString == null) {
-                return null;
-            } else {
-                return WriteOptimization.valueOf(writeOptimizationString.toUpperCase());
-            }
-        } catch (final IllegalArgumentException e) {
-            throw new BadArgumentException("Unknown writeOptimization: " + writeOptimizationString, e);
+            return Integer.parseInt(retryString);
+        } catch (final NumberFormatException e) {
+            throw new BadArgumentException("Argument to '-r' was not a number", e);
         }
     }
 
-    private Priority processPriorityType(final CommandLine cmd, final String priority) throws BadArgumentException {
-        final String priorityString = cmd.getOptionValue(priority);
+    // convenience getters for public options
+    public String getBucket() { return this.getOptionValue(BUCKET.getOpt()); }
+    public String getDirectory() { return this.getOptionValue(DIRECTORY.getOpt()); }
+    public String getObjectName()  { return this.getOptionValue(OBJECT_NAME.getOpt()); }
+    public boolean isForce() { return this.optionExists(FORCE.getLongOpt()); }
+    public String getPrefix()  { return this.getOptionValueWithDefault(PREFIX.getOpt(), "").toString(); }
+    public boolean isChecksum() { return this.optionExists(CHECKSUM.getLongOpt()); }
+
+    public Priority getPriority() throws BadArgumentException {
+        final String priorityString = this.getOptionValue(PRIORITY.getLongOpt());
         try {
             if (priorityString == null) {
                 return null;
@@ -509,323 +443,67 @@ public class Arguments {
         }
     }
 
-    public String getVersion() {
-        return this.version;
-    }
-
-    public String getBuildDate() {
-        return this.buildDate;
-    }
-
-    private void loadProperties() {
-        final Properties props = new Properties();
-        final InputStream input = Arguments.class.getClassLoader().getResourceAsStream(PROPERTY_FILE);
-        if (input == null) {
-            System.err.println("Could not find property file.");
-        } else {
-            try {
-                props.load(input);
-                this.version = (String) props.get("version");
-                this.buildDate = (String) props.get("build.date");
-            } catch (final IOException e) {
-                System.err.println("Failed to load version property file.");
-                if (this.getConsoleLogLevel() != Level.OFF) {
-                    e.printStackTrace();
-                }
+    public WriteOptimization getWriteOptimization() throws BadArgumentException{
+        final String writeOptimizationString = this.getOptionValue(WRITE_OPTIMIZATION.getLongOpt());
+        try {
+            if (writeOptimizationString == null) {
+                return null;
+            } else {
+                return WriteOptimization.valueOf(writeOptimizationString.toUpperCase());
             }
+        } catch (final IllegalArgumentException e) {
+            throw new BadArgumentException("Error: Unknown write_optimization:" + writeOptimizationString, e);
         }
     }
 
-    private void printVersion() {
-        System.out.println("Version: " + this.getVersion());
-        System.out.println("Build Date: " + this.getBuildDate());
+    public String getId() { return this.getOptionValue(ID.getOpt()); }
+    public boolean isCompleted() { return this.optionExists(COMPLETED.getLongOpt()); }
+    public boolean isSync() { return this.optionExists(SYNC.getLongOpt()); }
+    public String getNumberOfFiles() { return this.getOptionValue(NUMBER_OF_FILES.getOpt()); }
+    public String getSizeOfFiles() { return this.getOptionValue(SIZE_OF_FILES.getOpt()); }
+    public String getBufferSize()  { return this.getOptionValueWithDefault(BUFFER_SIZE.getOpt(), DEFAULT_BUFFERSIZE).toString(); }
+    public String getNumberOfThreads()  { return this.getOptionValueWithDefault(NUMBER_OF_THREADS.getOpt(), DEFAULT_NUMBEROFTHREADS).toString(); }
+    public boolean isIgnoreErrors() { return this.optionExists(IGNORE_ERRORS.getLongOpt()); }
+    public boolean isFollowSymlinks()  {
+        return (this.optionExists(FOLLOW_SYMLINKS.getLongOpt())  && !this.optionExists(NO_FOLLOW_SYMLINKS.getLongOpt()));
     }
-
-    public void printHelp() {
-        // default help menu
-        final HelpFormatter helpFormatter = new HelpFormatter();
-        helpFormatter.printHelp("ds3", this.options);
-    }
-
-    public String getBucket() {
-        return this.bucket;
-    }
-
-    void setBucket(final String bucket) {
-        this.bucket = bucket;
-    }
-
-    public String getDirectory() {
-        return this.directory;
-    }
-
-    void setDirectory(final String directory) {
-        this.directory = directory;
-    }
-
-    public String getEndpoint() {
-        return this.endpoint;
-    }
-
-    void setEndpoint(final String endpoint) {
-        this.endpoint = endpoint;
-    }
-
-    public String getAccessKey() {
-        return this.accessKey;
-    }
-
-    void setAccessKey(final String accessKey) {
-        this.accessKey = accessKey;
-    }
-
-    public String getSecretKey() {
-        return this.secretKey;
-    }
-
-    void setSecretKey(final String secretKey) {
-        this.secretKey = secretKey;
-    }
-
-    public String getCommand() {
-        return this.command;
-    }
-
-    void setCommand(final String command) {
-        this.command = command;
-    }
-
-    void setObjectName(final String objectName) {
-        this.objectName = objectName;
-    }
-
-    public String getObjectName() {
-        return this.objectName;
-    }
-
-    void setProxy(final String proxy) {
-        this.proxy = proxy;
-    }
-
-    public String getProxy() {
-        return this.proxy;
-    }
-
-    void setForce(final boolean force) {
-        this.force = force;
-    }
-
-    public boolean isForce() {
-        return this.force;
-    }
-
-    void setRetries(final int retries) {
-        this.retries = retries;
-    }
-
-    public int getRetries() {
-        return this.retries;
-    }
-
-    public String getPrefix() {
-        return this.prefix;
-    }
-
-    void setPrefix(final String prefix) {
-        this.prefix = prefix;
-    }
-
-    public boolean isChecksum() {
-        return this.checksum;
-    }
-
-    void setChecksum(final boolean checksum) {
-        this.checksum = checksum;
-    }
-
-    public Priority getPriority() {
-        return this.priority;
-    }
-
-    void setPriority(final Priority priority) {
-        this.priority = priority;
-    }
-
-    public WriteOptimization getWriteOptimization() {
-        return this.writeOptimization;
-    }
-
-    void setWriteOptimization(final WriteOptimization writeOptimization) {
-        this.writeOptimization = writeOptimization;
-    }
-
-    public boolean isCertificateVerification() {
-        return this.certificateVerification;
-    }
-
-    void setCertificateVerification(final boolean certificateVerification) {
-        this.certificateVerification = certificateVerification;
-    }
-
-    public boolean isHttps() {
-        return this.https;
-    }
-
-    void setHttps(final boolean https) {
-        this.https = https;
-    }
-
-    public ViewType getOutputFormat() {
-        return this.outputFormat;
-    }
-
-    void setOutputFormat(final ViewType outputFormat) {
-        this.outputFormat = outputFormat;
-    }
-
-    public String getId() {
-        return this.id;
-    }
-
-    void setId(final String id) {
-        this.id = id;
-    }
-
-    public boolean isCompleted() {
-        return this.completed;
-    }
-
-    void setCompleted(final boolean completed) {
-        this.completed = completed;
-    }
-
-    void setSync(final boolean sync) {
-        this.sync = sync;
-    }
-
-    public boolean isSync() {
-        return this.sync;
-    }
-
-    void setNumberOfFiles(final String numberOfFiles) {
-        this.numberOfFiles = numberOfFiles;
-    }
-
-    public String getNumberOfFiles() {
-        return this.numberOfFiles;
-    }
-
-    void setSizeOfFiles(final String sizeOfFiles) {
-        this.sizeOfFiles = sizeOfFiles;
-    }
-
-    public String getSizeOfFiles() {
-        return this.sizeOfFiles;
-    }
-
-    void setBufferSize(final String bufferSize) {
-        this.bufferSize = bufferSize;
-    }
-
-    public String getBufferSize() {
-        return this.bufferSize;
-    }
-
-    void setNumberOfThreads(final String numberOfThreads) {
-        this.numberOfThreads = numberOfThreads;
-    }
-
-    public String getNumberOfThreads() {
-        return this.numberOfThreads;
-    }
-
-    public boolean isIgnoreErrors() {
-        return this.ignoreErrors;
-    }
-
-    void setIgnoreErrors(final boolean ignoreErrors) {
-        this.ignoreErrors = ignoreErrors;
-    }
-
-    public boolean isFollowSymlinks() {
-        return followSymlinks;
-    }
-
-    void setFollowSymlinks(final boolean followSymlinks) {
-        this.followSymlinks = followSymlinks;
-    }
-
     public ImmutableMap<String, String> getMetadata() {
-        return metadata;
+        final String[] meta = this.getOptionValues(METADATA.getLongOpt());
+        if (meta == null) {
+            return null;
+        }
+        return Metadata.parse(meta);
     }
-
     public ImmutableMap<String, String> getModifyParams() {
-        return modifyParams;
+        final String[] meta = this.getOptionValues(MODIFY_PARAMS.getLongOpt());
+        if (meta == null) {
+            return null;
+        }
+        return Metadata.parse(meta);
     }
-
     public ImmutableMap<String, String> getFilterParams() {
-        return filterParams;
+        final String[] meta = this.getOptionValues(FILTER_PARAMS.getLongOpt());
+        if (meta == null) {
+            return null;
+        }
+        return Metadata.parse(meta);
     }
 
-    void setMetadata(final ImmutableMap<String, String> metadata) {
-        this.metadata = metadata;
-    }
-
-    void setModifyParams(final ImmutableMap<String, String> modifyParams) { this.modifyParams = modifyParams; }
-
-    void setFilterParams(final ImmutableMap<String, String> filterParams) { this.filterParams = filterParams; }
-
-    public boolean isDiscard() {
-        return discard;
-    }
-
-    void setDiscard(final boolean discard) {
-        this.discard = discard;
-    }
-
-    public boolean isHelp() { return this.help; }
-
-    void setHelp(final boolean help) { this.help = help; }
-
-    public Level getConsoleLogLevel() { return this.consoleLogLevel; }
-
-    void setConsoleLogLevel(final Level console) {this.consoleLogLevel = console; }
-
-    public Level getFileLogLevel() { return this.fileLogLevel; }
-
-    void setFileLogLevel(final Level file) {this.fileLogLevel = file; }
-
-    public boolean doIgnoreNamingConflicts() { return this.ignoreNamingConflicts; }
-
-    void setIgnoreNamingConflicts(final boolean ignore) { this.ignoreNamingConflicts = ignore; }
-
-    public boolean isInCache() {
-        return inCache;
-    }
-
-    void setInCache(final boolean inCache) {
-        this.inCache = inCache;
-    }
+    public boolean isDiscard() { return this.optionExists(DISCARD.getLongOpt()); }
 
     public int getVerifyLastPercent() {
-        return verifyLastPercent;
+        return Integer.parseInt(getOptionValueWithDefault(VERIFY_PERCENT.getLongOpt(), DEFAULT_VERIFY_PERCENT).toString());
     }
 
-    void setVerifyLastPercent(final int verifyLastPercent) {
-        this.verifyLastPercent = verifyLastPercent;
-    }
+    public boolean doIgnoreNamingConflicts() { return this.optionExists(IGNORE_NAMING_CONFLICTS.getLongOpt()); }
 
-    void setEjectLabel(final String label) {
-        this.ejectLabel = label;
-    }
+    public boolean isInCache() { return this.optionExists(IN_CACHE.getLongOpt()); }
 
-    void setEjectLocation(final String location) {
-        this.ejectLocation = location;
-    }
+    public String GetEjectLabel() {return this.getOptionValue(EJECT_LABEL.getLongOpt()); }
 
-    public String GetEjectLabel() {return this.ejectLabel; }
-
-    public String GetEjectLocation() {return this.ejectLocation; }
+    public String GetEjectLocation() {return this.getOptionValue(EJECT_LOCATION.getLongOpt()); }
 
 }
+
+
 

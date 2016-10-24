@@ -26,6 +26,7 @@ import ch.qos.logback.core.ConsoleAppender;
 import ch.qos.logback.core.rolling.*;
 import com.google.common.base.Joiner;
 import com.spectralogic.ds3cli.command.CliCommand;
+import com.spectralogic.ds3cli.command.CliCommandFactory;
 import com.spectralogic.ds3cli.exceptions.*;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
@@ -134,27 +135,29 @@ public final class Main {
     public static void main(final String[] args) {
 
         try {
+            // constructor parses for command, help, version, and logging settings
             final Arguments arguments = new Arguments(args);
 
-            // turn root log wide open, filters will be set to argument levels
             configureLogging(arguments.getConsoleLogLevel(), arguments.getFileLogLevel());
-
             LOG.info("Version: {}", arguments.getVersion());
             LOG.info("Command line args: {}", Joiner.on(", ").join(args));
-            LOG.info("Console log level: {}", arguments.getConsoleLogLevel().toString());
-            LOG.info("Log file log level: {}", arguments.getFileLogLevel().toString());
             LOG.info(CliCommand.getPlatformInformation());
             LOG.info(arguments.getArgumentLog());
 
+            // command help
             if (arguments.isHelp()) {
-                // no need to connect to vend help
-                final Ds3Cli runner = new Ds3Cli(null, arguments, null);
-                final CommandResponse response = runner.getCommandHelp();
-                System.out.println(response.getMessage());
-                System.exit(response.getReturnCode());
+                if (arguments.getHelp().equalsIgnoreCase("LIST_COMMANDS")) {
+                    System.out.println(CliCommandFactory.listAllCommands());
+                } else {
+                    System.out.println(CliCommand.getLongHelp(arguments.getHelp()));
+                    final CliCommand helpCommand = CliCommandFactory.getCommandExecutor(arguments.getHelp());
+                    helpCommand.printArgumentHelp(arguments);
+                }
+                System.exit(0);
             }
 
-            final Ds3Client client = createClient(arguments);
+
+            final Ds3Client client = arguments.createClient();
             if (!Utils.isVersionSupported(client)) {
                 System.out.println(String.format("ERROR: Minimum Black Pearl supported is %s", Utils.MINIMUM_VERSION_SUPPORTED));
                 System.exit(2);
@@ -163,8 +166,11 @@ public final class Main {
             final Ds3Provider provider = new Ds3ProviderImpl(client, Ds3ClientHelpers.wrap(client));
             final FileUtils fileUtils = new FileUtilsImpl();
 
-            final Ds3Cli runner = new Ds3Cli(provider, arguments, fileUtils);
-            final CommandResponse response = runner.call();
+            // get command, parse args
+            final CliCommand command = CliCommandFactory.getCommandExecutor(arguments.getCommand()).withProvider(provider,  fileUtils);
+            command.init(arguments);
+
+            final CommandResponse response = command.render();
             System.out.println(response.getMessage());
             System.exit(response.getReturnCode());
         } catch (final Exception e) {
@@ -173,19 +179,4 @@ public final class Main {
         }
     }
 
-    public static Ds3Client createClient(final Arguments arguments) {
-        final Ds3ClientBuilder builder = Ds3ClientBuilder.create(
-                arguments.getEndpoint(),
-                new Credentials(arguments.getAccessKey(), arguments.getSecretKey())
-        )
-                .withHttps(arguments.isHttps())
-                .withCertificateVerification(arguments.isCertificateVerification())
-                .withBufferSize(Integer.valueOf(arguments.getBufferSize()))
-                .withRedirectRetries(arguments.getRetries());
-
-        if (arguments.getProxy() != null) {
-            builder.withProxy(arguments.getProxy());
-        }
-        return builder.build();
-    }
 }
