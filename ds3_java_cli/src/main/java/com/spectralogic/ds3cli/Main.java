@@ -138,9 +138,13 @@ public final class Main {
             // constructor parses for command, help, version, and logging settings
             final Arguments arguments = new Arguments(args);
 
+            // turn root log wide open, filters will be set to argument levels
             configureLogging(arguments.getConsoleLogLevel(), arguments.getFileLogLevel());
+
             LOG.info("Version: {}", arguments.getVersion());
             LOG.info("Command line args: {}", Joiner.on(", ").join(args));
+            LOG.info("Console log level: {}", arguments.getConsoleLogLevel().toString());
+            LOG.info("Log file log level: {}", arguments.getFileLogLevel().toString());
             LOG.info(CliCommand.getPlatformInformation());
             LOG.info(arguments.getArgumentLog());
 
@@ -167,7 +171,7 @@ public final class Main {
             final FileUtils fileUtils = new FileUtilsImpl();
 
             // get command, parse args
-            final CliCommand command = CliCommandFactory.getCommandExecutor(arguments.getCommand()).withProvider(provider,  fileUtils);
+            final CliCommand command = CliCommandFactory.getCommandExecutor(arguments.getCommand()).withProvider(provider, fileUtils);
             command.init(arguments);
 
             final CommandResponse response = command.render();

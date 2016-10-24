@@ -176,22 +176,8 @@ public abstract class CliCommand<T extends Result> implements Callable<T> {
      * @throws Exception
      */
     public CommandResponse render() throws Exception {
-        final View view = getView();
-
-        try {
-            final String message = view.render(call());
-            return new CommandResponse(message, 0);
-        }
-        catch (final CommandException e) {
-            final String message;
-            if (this.getOutputFormat() == ViewType.JSON) {
-                message = new CommandExceptionJsonView().render(e);
-            }
-            else {
-                message = new CommandExceptionCliView().render(e);
-            }
-            return new CommandResponse(message, 1);
-        }
+        final String message = getView().render(call());
+        return new CommandResponse(message, 0);
     }
 
     public ViewType getOutputFormat() {
@@ -200,12 +186,12 @@ public abstract class CliCommand<T extends Result> implements Callable<T> {
 
     public static String getPlatformInformation() {
         return String.format("Java Version: {%s}\n", System.getProperty("java.version"))
-                + String.format("Java Vendor: {%s}\n", System.getProperty("java.vendor"))
-                + String.format("JVM Version: {%s}\n", System.getProperty("java.vm.version"))
-                + String.format("JVM Name: {%s}\n", System.getProperty("java.vm.name"))
-                + String.format("OS: {%s}\n", System.getProperty("os.name"))
-                + String.format("OS Arch: {%s}\n", System.getProperty("os.arch"))
-                + String.format("OS Version: {%s}\n", System.getProperty("os.version"));
+            + String.format("Java Vendor: {%s}\n", System.getProperty("java.vendor"))
+            + String.format("JVM Version: {%s}\n", System.getProperty("java.vm.version"))
+            + String.format("JVM Name: {%s}\n", System.getProperty("java.vm.name"))
+            + String.format("OS: {%s}\n", System.getProperty("os.name"))
+            + String.format("OS Arch: {%s}\n", System.getProperty("os.arch"))
+            + String.format("OS Version: {%s}\n", System.getProperty("os.version"));
     }
 
 }
