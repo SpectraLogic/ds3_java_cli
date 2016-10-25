@@ -75,7 +75,8 @@ public class PutObject extends CliCommand<DefaultResult> {
         this.prefix = args.getPrefix();
         this.force = args.isForce();
 
-        if (this.sync = args.isSync()) {
+        this.sync = args.isSync();
+        if (this.sync) {
             LOG.info("Using sync command");
         }
         this.numberOfThreads = Integer.valueOf(args.getNumberOfThreads());

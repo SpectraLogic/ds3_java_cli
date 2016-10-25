@@ -128,9 +128,10 @@ public abstract class CliCommand<T extends Result> implements Callable<T> {
         try {
             // init to install options
             init(arguments);
-        } catch (final Exception e) {}
+        } catch (final Exception e) {
+            // does not have to parse to print help
+        }
         finally {
-            // does not have to parse
             arguments.printHelp();
         }
     }
