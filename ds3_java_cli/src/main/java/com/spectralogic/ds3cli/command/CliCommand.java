@@ -21,13 +21,10 @@ import com.spectralogic.ds3cli.CommandResponse;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.exceptions.BadArgumentException;
-import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.Result;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
-import com.spectralogic.ds3cli.views.cli.CommandExceptionCliView;
 import com.spectralogic.ds3cli.views.cli.DefaultView;
-import com.spectralogic.ds3cli.views.json.CommandExceptionJsonView;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 
@@ -98,7 +95,7 @@ public abstract class CliCommand<T extends Result> implements Callable<T> {
      * @param command
      * @return
      */
-    public static String getLongHelp(final String command) {
+    public static String getVerboseHelp(final String command) {
         return CommandHelpText.getHelpText(command.toUpperCase());
     }
 

@@ -16,53 +16,40 @@
 package com.spectralogic.ds3cli;
 
 import ch.qos.logback.classic.Level;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.spectralogic.ds3cli.exceptions.BadArgumentException;
 import com.spectralogic.ds3cli.util.Metadata;
-import com.spectralogic.ds3client.Ds3Client;
-import com.spectralogic.ds3client.Ds3ClientBuilder;
 import com.spectralogic.ds3client.models.Priority;
 import com.spectralogic.ds3client.models.WriteOptimization;
-import com.spectralogic.ds3client.models.common.Credentials;
 import com.spectralogic.ds3client.utils.Guard;
 import org.apache.commons.cli.*;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 
 import static com.spectralogic.ds3cli.ArgumentFactory.*;
 
 public class Arguments {
 
-    private final static String PROPERTY_FILE = "ds3_cli.properties";
+    // Root args are added before first parse. All are optional
+    private final static ImmutableList<Option> rootArgs
+            = ImmutableList.of(ENDPOINT, ACCESS_KEY, SECRET_KEY, COMMAND, PROXY, HTTP, INSECURE, PRINT_HELP, COMMAND_HELP,
+            VERBOSE, DEBUG, TRACE, LOG_VERBOSE, LOG_DEBUG, LOG_TRACE, PRINT_VERSION, VIEW_TYPE, RETRIES, BUFFER_SIZE);
 
-    // variables required by Arguments class
     private final String[] args;
     private final Options options;
     private CommandLine cmd;
-    private final List<String> missingArgs = new ArrayList<>();
 
     // locally stored properties processed in initial parsing
     // useful to provide defaults and handle parsing exceptions
     // most simple values are queried as needed
-    private boolean help;
     private Level consoleLogLevel;
     private Level fileLogLevel;
-    private String version = "N/a";
-    private String buildDate = "N/a";
-    private static final String DEFAULT_RETRIES = "20";
-    private static final String DEFAULT_BUFFERSIZE = "1048576";
-    private static final String DEFAULT_NUMBEROFTHREADS = "10";
     private static final String DEFAULT_VERIFY_PERCENT = "20";
-
-    // don't use Logger because the user's preferences are not yet set
-    // collect log info that will be logged by Main
-    private static final StringBuilder argumentLog = new StringBuilder("Argument processing");
-    private void addToLog(final String logItem) { argumentLog.append(" | ").append(logItem) ; }
-    public String getArgumentLog() { return argumentLog.toString(); }
+    private static final int DEFAULT_RETRIES = 20;
+    private static final int DEFAULT_BUFFERSIZE = 1024 * 1024;
+    private static final int DEFAULT_NUMBEROFTHREADS = 10;
 
     /**
      * add an argument option
@@ -146,71 +133,50 @@ public class Arguments {
      * @param args String array of COMMAND line tokens
      */
     public Arguments(final String[] args) throws BadArgumentException, ParseException {
-        this.loadProperties();
         this.args = args;
         this.options = new Options();
 
         // parse all values required to select help, query version, or specify COMMAND, set up the client, and configure logging.
-        addOption(ENDPOINT, "endpoint");
-        addOption(ACCESS_KEY, "accessKeyId");
-        addOption(SECRET_KEY, "secret_key");
-        addOption(COMMAND, "command");
-        addOption(PROXY, "proxy");
-        addOption(HTTP, "http");
-        addOption(INSECURE, "insecure");
-        addOption(PRINT_HELP, "help");
-        addOption(COMMAND_HELP, "command_help");
-        addOption(VERBOSE, "verbose");
-        addOption(DEBUG, "debug");
-        addOption(TRACE, "trace");
-        addOption(LOG_VERBOSE, "log-verbose");
-        addOption(LOG_DEBUG, "log-debug");
-        addOption(LOG_TRACE, "log-trace");
-        addOption(PRINT_VERSION, "version");
-        addOption(VIEW_TYPE, "view_type");
-        addOption(RETRIES, "retries");
-        addOption(BUFFER_SIZE, "buffer_size");
-
+        addRootArguments();
         this.processCommandLine();
     }
 
-    private String[] rootArgumentsOnly() throws BadArgumentException {
-        // Present only COMMAND, help and version arguments to parser, After the COMMAND
-        // is instantiated, the full parse will be run against the complete Options list.
+    protected void addRootArguments() {
+        for (final Option optionRoot : rootArgs) {
+            optionRoot.setRequired(false);
+            addOption(optionRoot, optionRoot.getArgName());
+        }
+    }
+
+    private String[] filterRootArguments() throws BadArgumentException {
+        // Returns only arfguments in rootArguments
+        // After the command is instantiated, the full parse will be run against the complete Options list.
         final List<String> rootArguments = new ArrayList<String>();
 
         for (int i = 0; i < this.args.length; i++) {
             final String token = this.args[i];
-            // allow get COMMAND (-c) and subsequent argument
-            // or --output-format and subsequent argument
-            if (matchesOption(COMMAND, token) || matchesOption(VIEW_TYPE,  token) ||
-                    matchesOption(ACCESS_KEY, token) || matchesOption(SECRET_KEY,  token) ||
-                    matchesOption(ENDPOINT, token) || matchesOption(PROXY,  token) ||
-                    matchesOption(RETRIES, token)) {
-                rootArguments.add(token);
-                if (i < this.args.length) {
-                    rootArguments.add(this.args[++i]);
-                } else {
-                    throw new BadArgumentException("No argument supplied for option: " + token);
-                }
-            }
-            // allow get COMMAND help and subsequent argument (unless it is followed by an option (- or --)
+
+            // special case: --help can have an arg or not
             if (matchesOption(COMMAND_HELP, token)) {
                 rootArguments.add(token);
                 // might or might not have arg
-                if ((i < this.args.length) && (!this.args[i + 1].startsWith("-"))) {
+                if ((i + 1 < this.args.length) && (!this.args[i + 1].startsWith("-"))) {
                     rootArguments.add(this.args[++i]);
                 }
+                break;
             }
-            // allow version in root parse
-            if ((matchesOption(VERBOSE, token)) || (matchesOption(PRINT_HELP, token))
-                    || (matchesOption(TRACE, token)) || (matchesOption(DEBUG, token)) || (matchesOption(VERBOSE, token))
-                    || (matchesOption(LOG_TRACE, token)) || (matchesOption(LOG_DEBUG, token))
-                    || (matchesOption(LOG_VERBOSE, token))) {
-                rootArguments.add(token);
+
+            for (final Option rootArg : rootArgs) {
+                if (matchesOption(rootArg, token)) {
+                    // add the option token
+                    rootArguments.add(token);
+                    if (rootArg.hasArg()) {
+                        // add its argument
+                        rootArguments.add(this.args[++i]);
+                    }
+                }
             }
         }
-
         // create a String[] of only valid root parse args.
         return rootArguments.toArray(new String[rootArguments.size()]);
     }
@@ -219,23 +185,25 @@ public class Arguments {
      * call after adding all options to reparse
      */
     public void parseCommandLine() throws ParseException, BadArgumentException  {
-        parseCommandLine(false);
+        parseAllCommands();
     }
 
     // parse command line. Set isRootParse true to first filter for only first parse options
-    private void parseCommandLine(final boolean isRootParse) throws ParseException, BadArgumentException {
+    private void parseRootCommands() throws ParseException, BadArgumentException {
         final CommandLineParser parser = new DefaultParser();
-        if (isRootParse) {
-            final String[] roots =  rootArgumentsOnly();
+            final String[] roots =  filterRootArguments();
             this.cmd = parser.parse(this.options, roots);
-        } else {
-            this.cmd = parser.parse(this.options, this.args);
-        }
     }
 
-    // first parse
+    // parse command line. Set isRootParse true to first filter for only first parse options
+    private void parseAllCommands() throws ParseException, BadArgumentException {
+        final CommandLineParser parser = new DefaultParser();
+        this.cmd = parser.parse(this.options, this.args);
+    }
+
+    // initial parse of root commands
     private void processCommandLine() throws ParseException, BadArgumentException {
-        parseCommandLine(true);
+        parseRootCommands();
 
         // set the level for console and log file logging
         if (cmd.hasOption(TRACE.getLongOpt())) {
@@ -257,66 +225,6 @@ public class Arguments {
         } else {
             setFileLogLevel(Level.OFF);
         }
-
-        if (cmd.hasOption(PRINT_HELP.getOpt())) {
-            this.printHelp();
-            System.exit(0);
-        }
-
-        if (cmd.hasOption(COMMAND_HELP.getLongOpt())) {
-            setHelp(true);
-            try {
-                if (getHelp() == null) {
-                    // if no arg on --help, print -h help
-                    this.printHelp();
-                    System.exit(0);
-                }
-                // no other options count
-                return;
-            } catch (final IllegalArgumentException e) {
-                throw new BadArgumentException("Unknown command: " + getHelp() + "; use --help list_commands to get available commands.", e);
-            }
-        }
-
-        if (cmd.hasOption(PRINT_VERSION.getLongOpt())) {
-            this.printVersion();
-            System.exit(0);
-        }
-
-        try {
-            if (getCommand() == null) {
-                // must have -c or --help
-                if (!isHelp()) {
-                    throw new MissingOptionException(COMMAND.getOpt());
-                }
-            }
-        } catch (final IllegalArgumentException e) {
-            throw new BadArgumentException("Unknown command", e);
-        }
-    }
-
-    private void loadProperties() {
-        final Properties props = new Properties();
-        final InputStream input = Arguments.class.getClassLoader().getResourceAsStream(PROPERTY_FILE);
-        if (input == null) {
-            System.err.println("Could not find property file.");
-        } else {
-            try {
-                props.load(input);
-                this.version = props.get("version").toString();
-                this.buildDate = props.get("build.date").toString();
-            } catch (final IOException e) {
-                System.err.println("Failed to load version property file.");
-                if (this.getConsoleLogLevel() != Level.OFF) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
-
-    private void printVersion() {
-        System.out.println("Version: " + this.version);
-        System.out.println("Build Date: " + this.buildDate);
     }
 
     public void printHelp() {
@@ -325,102 +233,77 @@ public class Arguments {
         helpFormatter.printHelp("ds3_java_cli", this.options);
     }
 
-    // build client from Arguments
-    public Ds3Client createClient() throws MissingOptionException, BadArgumentException {
-        final Ds3ClientBuilder builder = Ds3ClientBuilder.create(
-                getEndpoint(),
-                new Credentials(getAccessKey(), getSecretKey())
-        )
-                .withHttps(isHttps())
-                .withCertificateVerification(isCertificateVerification())
-                .withBufferSize(Integer.valueOf(getBufferSize()))
-                .withRedirectRetries(getRetries());
-
-        if (getProxy() != null) {
-            builder.withProxy(getProxy());
-        }
-        return builder.build();
-    }
-
     private String getEndpoint() {
-        String endpointValue =  this.getOptionValue(ENDPOINT.getOpt());
-        if (Guard.isStringNullOrEmpty(endpointValue)) {
-            endpointValue = System.getenv("DS3_ENDPOINT");
-        }
-        if (ENDPOINT == null) {
-            missingArgs.add(ENDPOINT.getOpt());
-            return "";
-        }
-        return endpointValue;
+        return this.getOptionValue(ENDPOINT.getOpt());
     }
 
     private String getAccessKey() {
-        String accessKeyValue =  this.getOptionValue(ACCESS_KEY.getOpt());
-        if (Guard.isStringNullOrEmpty(accessKeyValue)) {
-            accessKeyValue = System.getenv("DS3_ACCESS_KEY");
-            if (accessKeyValue == null) {
-                missingArgs.add(ACCESS_KEY.getOpt());
-                return "";
-            }
-        }
-        return accessKeyValue;
+        return this.getOptionValue(ACCESS_KEY.getOpt());
     }
 
     private String getSecretKey() {
-        String secretKeyValue = this.getOptionValue(SECRET_KEY.getOpt());
-        if (Guard.isStringNullOrEmpty(secretKeyValue)) {
-            secretKeyValue = System.getenv("DS3_SECRET_KEY");
-            if (secretKeyValue == null) {
-                missingArgs.add(SECRET_KEY.getOpt());
-            }
-        }
-        return secretKeyValue;
+        return this.getOptionValue(SECRET_KEY.getOpt());
     }
 
     private String getProxy() {
-        // can be arg, environment var or null;
-        String proxyValue = cmd.getOptionValue(PROXY.getOpt());
-        if (Guard.isStringNullOrEmpty(proxyValue)) {
-            proxyValue = System.getenv("http_proxy");
-        }
-        addToLog("Proxy: " + proxyValue);
-        return proxyValue;
+        return this.getOptionValue(PROXY.getOpt());
     }
 
     // convenience getters for private options
-    public String getVersion() {
-        return this.version;
-    }
-    public String getBuildDate() {
-        return this.buildDate;
-    }
+    public boolean isPrintVersion() { return this.optionExists(PRINT_VERSION.getLongOpt()); }
     public String getCommand() {
         return cmd.getOptionValue(COMMAND.getOpt());
     }
     public String getHelp() {
-        return cmd.getOptionValue(COMMAND_HELP.getLongOpt());
+        return this.getOptionValue(COMMAND_HELP.getLongOpt()) ;
     }
     public ViewType getOutputFormat() {
         return ViewType.valueOf(this.getOptionValueWithDefault(VIEW_TYPE.getLongOpt(), ViewType.CLI).toString().toUpperCase());
     }
+    public boolean isHelp() {
+        return (this.optionExists(COMMAND_HELP.getLongOpt()) || this.optionExists(PRINT_HELP.getOpt()));
+    }
 
-    public boolean isCertificateVerification() { return !this.optionExists(INSECURE.getLongOpt()); }
-    public boolean isHttps() {  return !this.optionExists(HTTP.getLongOpt()); }
-    public boolean isHelp() { return this.help; }
-    void setHelp(final boolean help) { this.help = help; }
-    public Level getConsoleLogLevel() { return this.consoleLogLevel; }
-    void setConsoleLogLevel(final Level console) {this.consoleLogLevel = console; }
-    public Level getFileLogLevel() { return this.fileLogLevel; }
-    void setFileLogLevel(final Level file) {this.fileLogLevel = file; }
+    public boolean isCertificateVerification() {
+        return !this.optionExists(INSECURE.getLongOpt());
+    }
+
+    public boolean isHttps() {
+        return !this.optionExists(HTTP.getLongOpt());
+    }
 
     public int getRetries() throws BadArgumentException {
         final String retryString = this.getOptionValueWithDefault(RETRIES.getOpt(), DEFAULT_RETRIES).toString();
         try {
             return Integer.parseInt(retryString);
         } catch (final NumberFormatException e) {
-            throw new BadArgumentException("Argument to '-r' was not a number", e);
+            throw new BadArgumentException("Argument to " +  RETRIES.getOpt() + "was not a number", e);
         }
     }
+
+    public int getNumberOfThreads()  throws BadArgumentException {
+        final String threadsString = this.getOptionValueWithDefault(NUMBER_OF_THREADS.getOpt(), DEFAULT_NUMBEROFTHREADS).toString();
+        try {
+            return Integer.parseInt(threadsString);
+        } catch (final NumberFormatException e) {
+            throw new BadArgumentException("Argument to " + NUMBER_OF_THREADS.getOpt() + "was not a number", e);
+        }
+    }
+
+    public int getBufferSize()  throws BadArgumentException {
+        final String bufferSizeString = this.getOptionValueWithDefault(BUFFER_SIZE.getOpt(), DEFAULT_BUFFERSIZE).toString();
+        try {
+            return Integer.parseInt(bufferSizeString);
+        } catch (final NumberFormatException e) {
+            throw new BadArgumentException("Argument to " + BUFFER_SIZE.getOpt() + "was not a number", e);
+        }
+    }
+
+    public Level getConsoleLogLevel() { return this.consoleLogLevel; }
+    void setConsoleLogLevel(final Level console) {this.consoleLogLevel = console; }
+    public Level getFileLogLevel() { return this.fileLogLevel; }
+    void setFileLogLevel(final Level file) {this.fileLogLevel = file; }
+
 
     // convenience getters for public options
     public String getBucket() { return this.getOptionValue(BUCKET.getOpt()); }
@@ -461,8 +344,6 @@ public class Arguments {
     public boolean isSync() { return this.optionExists(SYNC.getLongOpt()); }
     public String getNumberOfFiles() { return this.getOptionValue(NUMBER_OF_FILES.getOpt()); }
     public String getSizeOfFiles() { return this.getOptionValue(SIZE_OF_FILES.getOpt()); }
-    public String getBufferSize()  { return this.getOptionValueWithDefault(BUFFER_SIZE.getOpt(), DEFAULT_BUFFERSIZE).toString(); }
-    public String getNumberOfThreads()  { return this.getOptionValueWithDefault(NUMBER_OF_THREADS.getOpt(), DEFAULT_NUMBEROFTHREADS).toString(); }
     public boolean isIgnoreErrors() { return this.optionExists(IGNORE_ERRORS.getLongOpt()); }
     public boolean isFollowSymlinks()  {
         return (this.optionExists(FOLLOW_SYMLINKS.getLongOpt())  && !this.optionExists(NO_FOLLOW_SYMLINKS.getLongOpt()));

@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.spectralogic.ds3cli.Arguments;
+import com.spectralogic.ds3cli.ClientFactory;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.exceptions.BadArgumentException;
@@ -115,7 +116,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
             this.sync = true;
         }
 
-        this.numberOfThreads = Integer.valueOf(args.getNumberOfThreads());
+        this.numberOfThreads = args.getNumberOfThreads();
 
         if (args.isIgnoreErrors()) {
             LOG.info("Ignoring files that cause errors");

@@ -87,7 +87,7 @@ public class GetBulk extends CliCommand<DefaultResult> {
         this.checksum = args.isChecksum();
         this.prefix = args.getPrefix();
         this.force = args.isForce();
-        this.numberOfThreads = Integer.valueOf(args.getNumberOfThreads());
+        this.numberOfThreads = args.getNumberOfThreads();
 
         if (args.isSync()) {
             LOG.info("Using sync command");

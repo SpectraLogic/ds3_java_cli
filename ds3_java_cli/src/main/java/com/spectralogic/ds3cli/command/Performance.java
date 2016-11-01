@@ -18,6 +18,7 @@ package com.spectralogic.ds3cli.command;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.spectralogic.ds3cli.Arguments;
+import com.spectralogic.ds3cli.ClientFactory;
 import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.DefaultResult;
@@ -67,8 +68,8 @@ public class Performance extends CliCommand<DefaultResult> {
         bucketName = args.getBucket();
         numberOfFiles = args.getNumberOfFiles();
         sizeOfFiles = args.getSizeOfFiles();
-        bufferSize = Integer.valueOf(args.getBufferSize());
-        this.numberOfThreads = Integer.valueOf(args.getNumberOfThreads());
+        bufferSize = args.getBufferSize();
+        this.numberOfThreads = args.getNumberOfThreads();
         return this;
     }
 
