@@ -149,7 +149,7 @@ public class Arguments {
     }
 
     private String[] filterRootArguments() throws BadArgumentException {
-        // Returns only arfguments in rootArguments
+        // Returns only arguments in rootArguments
         // After the command is instantiated, the full parse will be run against the complete Options list.
         final List<String> rootArguments = new ArrayList<String>();
 

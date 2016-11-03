@@ -314,21 +314,17 @@ public final class Utils {
             props.load(input);
             return props;
         }
-        return null;
+        props.put("version", "N/a");
+        props.put("build.date", "N/a");
+        return props;
     }
 
     public static String getVersion(final Properties properties) {
-        if(properties == null) {
-            return "N/a";
-        }
         return properties.get("version").toString();
     }
 
     public static String getBuildDate(final Properties properties) {
-        if(properties == null) {
-            return "N/a";
-        }
-        return properties.get("build.date").toString();
+        return properties.get("").toString();
     }
 
 }

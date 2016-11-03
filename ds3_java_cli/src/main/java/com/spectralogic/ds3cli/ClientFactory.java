@@ -25,7 +25,7 @@ import org.apache.commons.cli.Option;
 
 import static com.spectralogic.ds3cli.ArgumentFactory.*;
 
-public class ClientFactory {
+public final class ClientFactory {
 
     // build client from Arguments
     public static Ds3Client createClient(final Arguments arguments) throws MissingOptionException, BadArgumentException {

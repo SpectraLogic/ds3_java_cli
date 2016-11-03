@@ -159,22 +159,7 @@ public final class Main {
             LOG.info(CliCommand.getPlatformInformation());
 
             if(arguments.isHelp()) {
-                if(arguments.getHelp() == null) {
-                    // --help with no arg or -h prints basic usage
-                    arguments.printHelp();
-                } else if (arguments.getHelp().equalsIgnoreCase("LIST_COMMANDS")) {
-                    System.out.println(CliCommandFactory.listAllCommands());
-                } else {
-                    try {
-                        final CliCommand helpCommand = CliCommandFactory.getCommandExecutor(arguments.getHelp());
-                        // command help from Resource
-                        System.out.println(CliCommand.getVerboseHelp(arguments.getHelp()));
-                        // usage for command args
-                        helpCommand.printArgumentHelp(arguments);
-                    } catch (final IllegalArgumentException e) {
-                        throw new BadArgumentException("Unknown command: " + arguments.getHelp() + "; use --help list_commands to get available commands.", e);
-                    }
-                }
+                printHelp(arguments);
                 System.exit(0);
             }
 
@@ -212,6 +197,26 @@ public final class Main {
         } catch (final Exception e) {
             EXCEPTION.handleException(e);
             System.exit(2);
+        }
+    }
+
+    public static void printHelp(final Arguments arguments) throws CommandException, BadArgumentException {
+        if(arguments.getHelp() == null) {
+            // --help with no arg or -h prints basic usage
+            arguments.printHelp();
+            return;
+        } else if (arguments.getHelp().equalsIgnoreCase("LIST_COMMANDS")) {
+            System.out.println(CliCommandFactory.listAllCommands());
+            return;
+        }
+        try {
+            final CliCommand helpCommand = CliCommandFactory.getCommandExecutor(arguments.getHelp());
+            // command help from Resource
+            System.out.println(CliCommand.getVerboseHelp(arguments.getHelp()));
+            // usage for command args
+            helpCommand.printArgumentHelp(arguments);
+        } catch (final IllegalArgumentException e) {
+            throw new BadArgumentException("Unknown command: " + arguments.getHelp() + "; use --help list_commands to get available commands.", e);
         }
     }
 
