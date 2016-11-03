@@ -200,7 +200,7 @@ public final class Main {
         }
     }
 
-    public static void printHelp(final Arguments arguments) throws CommandException, BadArgumentException {
+    private static void printHelp(final Arguments arguments) throws CommandException, BadArgumentException {
         if(arguments.getHelp() == null) {
             // --help with no arg or -h prints basic usage
             arguments.printHelp();
@@ -220,7 +220,7 @@ public final class Main {
         }
     }
 
-    public static void printVersion(final Properties props) throws IOException {
+    private static void printVersion(final Properties props) throws IOException {
         if (props == null) {
             System.err.println("Could not find property file.");
         } else {
