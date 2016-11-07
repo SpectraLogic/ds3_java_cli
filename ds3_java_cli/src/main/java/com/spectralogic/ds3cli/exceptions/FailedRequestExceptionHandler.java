@@ -16,6 +16,7 @@
 package com.spectralogic.ds3cli.exceptions;
 
 import com.spectralogic.ds3client.networking.FailedRequestException;
+import com.spectralogic.ds3client.utils.Guard;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,6 +48,14 @@ public class FailedRequestExceptionHandler  implements Ds3ExceptionHandler<Faile
             description.append("target entity already exists.");
         } else {
             description.append("unknown error of (").append(statusCode).append(") while accessing the remote DS3 appliance.");
+            if (!Guard.isStringNullOrEmpty(e.getMessage())) {
+                description.append("\nMessage: ");
+                description.append(e.getMessage());
+            }
+            if (e.getCause() != null && !Guard.isStringNullOrEmpty(e.getCause().getMessage())) {
+                description.append("\nCause: ");
+                description.append(e.getCause().getMessage());
+            }
         }
         return description.toString();
     }
