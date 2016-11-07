@@ -30,11 +30,14 @@ public class DefaultExceptionHandler<T extends Throwable>  implements Ds3Excepti
     }
 
     public String format(final T e) {
-        String message
-                = "Error (" + e.getClass().getSimpleName() + "): " + e.getMessage();
+        final StringBuilder message = new StringBuilder("Error (");
+        message.append(e.getClass().getSimpleName());
+        message.append("): ");
+        message.append(e.getMessage());
         if (e.getCause() != null && !Guard.isStringNullOrEmpty(e.getCause().getMessage())) {
-            message += "\nCause: " + e.getCause().getMessage();
+            message.append("\nCause: ");
+            message.append(e.getCause().getMessage());
         }
-        return message;
+        return message.toString();
     }
 }
