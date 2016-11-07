@@ -18,6 +18,7 @@ package com.spectralogic.ds3cli.command;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.View;
@@ -30,6 +31,7 @@ import com.spectralogic.ds3client.helpers.pagination.GetObjectsFullDetailsLoader
 import com.spectralogic.ds3client.models.DetailedS3Object;
 import com.spectralogic.ds3client.utils.Guard;
 import com.spectralogic.ds3client.utils.collections.LazyIterable;
+import org.apache.commons.cli.Option;
 import org.slf4j.LoggerFactory;
 
 
@@ -38,8 +40,13 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.Nullable;
 
+import static com.spectralogic.ds3cli.ArgumentFactory.BUCKET;
+import static com.spectralogic.ds3cli.ArgumentFactory.FILTER_PARAMS;
+
 public class GetDetailedObjects extends CliCommand<GetDetailedObjectsResult> {
     private final static org.slf4j.Logger LOG = LoggerFactory.getLogger(GetDetailedObjects.class);
+
+    private final static ImmutableList<Option> optionalArgs = ImmutableList.of(FILTER_PARAMS, BUCKET);
 
     private final static String NEWERTHAN = "newerthan";
     private final static String OLDERTHAN = "olderthan";
@@ -52,12 +59,12 @@ public class GetDetailedObjects extends CliCommand<GetDetailedObjectsResult> {
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
+        processCommandOptions(EMPTY_LIST, optionalArgs, args);
+
         this.filterParams = args.getFilterParams();
         this.bucketName = args.getBucket();
 
-        if (!Guard.isStringNullOrEmpty(args.getPrefix())) {
-            LOG.warn("'-p' prefix is not supported.");
-        }
+        // not supported in current version
         this.prefix = null;
         return this;
     }
@@ -105,7 +112,7 @@ public class GetDetailedObjects extends CliCommand<GetDetailedObjectsResult> {
     }
 
     @Override
-    public View<GetDetailedObjectsResult> getView(final ViewType viewType) {
+    public View<GetDetailedObjectsResult> getView() {
         if (viewType == ViewType.JSON) {
             return new com.spectralogic.ds3cli.views.json.DetailedObjectsView();
         } else if (viewType == ViewType.CSV) {

@@ -15,6 +15,7 @@
 
 package com.spectralogic.ds3cli.command;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.spectralogic.ds3cli.Arguments;
@@ -29,6 +30,7 @@ import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.serializer.XmlProcessingException;
 import com.spectralogic.ds3client.utils.Guard;
 import org.apache.commons.cli.MissingOptionException;
+import org.apache.commons.cli.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,9 +42,17 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.Map;
 
+import static com.spectralogic.ds3cli.ArgumentFactory.*;
+import static com.spectralogic.ds3cli.ArgumentFactory.FORCE;
+
 public class PutObject extends CliCommand<DefaultResult> {
 
     private final static Logger LOG = LoggerFactory.getLogger(PutObject.class);
+
+    private final static ImmutableList<Option> requiredArgs = ImmutableList.of(BUCKET, OBJECT_NAME);
+    private final static ImmutableList<Option> optionalArgs
+            = ImmutableList.of(PREFIX, SYNC, NUMBER_OF_THREADS,
+            METADATA, PRIORITY, FORCE);
 
     private String bucketName;
     private Path objectPath;
@@ -56,44 +66,21 @@ public class PutObject extends CliCommand<DefaultResult> {
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
+        processCommandOptions(requiredArgs, optionalArgs, args);
+
         this.priority = args.getPriority();
         this.bucketName = args.getBucket();
-        if (this.bucketName == null) {
-            throw new MissingOptionException("The put object command requires '-b' to be set.");
-        }
         this.objectName = args.getObjectName();
-        if (this.objectName == null) {
-            throw new MissingOptionException("The put object command requires '-o' to be set.");
-        }
-
-        if (args.getDirectory() != null) {
-            throw new BadArgumentException("'-d' should not be used with the command 'put_object'.  If you want to move an entire directory, use 'put_bulk' instead.");
-        }
-
-        this.objectPath = FileSystems.getDefault().getPath(args.getObjectName());
-        if (!getFileUtils().exists(this.objectPath)) {
-            throw new BadArgumentException("File '" + this.objectName + "' does not exist.");
-        }
-        if (!getFileUtils().isRegularFile(this.objectPath)) {
-            throw new BadArgumentException("The '-o' command must be a file and not a directory.");
-        }
-
+        this.objectPath = FileSystems.getDefault().getPath(this.objectName);
         this.prefix = args.getPrefix();
         this.force = args.isForce();
 
-        if (args.isSync()) {
-            if (!SyncUtils.isSyncSupported(getClient())) {
-                throw new SyncNotSupportedException("The sync command is not supported with your version of BlackPearl.");
-            }
-
+        this.sync = args.isSync();
+        if (this.sync) {
             LOG.info("Using sync command");
-            this.sync = true;
         }
-
-        this.numberOfThreads = Integer.valueOf(args.getNumberOfThreads());
-
+        this.numberOfThreads = args.getNumberOfThreads();
         this.metadata = args.getMetadata();
-
         return this;
     }
 

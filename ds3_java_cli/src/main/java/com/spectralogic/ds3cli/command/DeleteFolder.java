@@ -15,31 +15,34 @@
 
 package com.spectralogic.ds3cli.command;
 
+import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.models.DefaultResult;
 import com.spectralogic.ds3client.commands.spectrads3.DeleteFolderRecursivelySpectraS3Request;
 import org.apache.commons.cli.MissingOptionException;
+import org.apache.commons.cli.Option;
 
 import java.io.IOException;
+
+import static com.spectralogic.ds3cli.ArgumentFactory.BUCKET;
+import static com.spectralogic.ds3cli.ArgumentFactory.DIRECTORY;
 
 public class DeleteFolder extends CliCommand<DefaultResult> {
 
     private String bucketName;
     private String folderName;
 
+    private final static ImmutableList<Option> requiredArgs = ImmutableList.of(BUCKET, DIRECTORY);
+
     public DeleteFolder() {
     }
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
-        bucketName = args.getBucket();
+        processCommandOptions(requiredArgs, EMPTY_LIST, args);
+
+        this.bucketName = args.getBucket();
         folderName = args.getDirectory();
-        if (bucketName == null) {
-            throw new MissingOptionException("The delete folder command requires '-b' to be set.");
-        }
-        if (folderName == null) {
-            throw new MissingOptionException("The delete folder command requires '-d' to be set.");
-        }
         return this;
     }
 

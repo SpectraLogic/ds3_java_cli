@@ -15,29 +15,32 @@
 
 package com.spectralogic.ds3cli.command;
 
+import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.models.DefaultResult;
 import com.spectralogic.ds3client.commands.DeleteObjectRequest;
 import org.apache.commons.cli.MissingOptionException;
+import org.apache.commons.cli.Option;
+
+import static com.spectralogic.ds3cli.ArgumentFactory.BUCKET;
+import static com.spectralogic.ds3cli.ArgumentFactory.OBJECT_NAME;
 
 public class DeleteObject extends CliCommand<DefaultResult> {
     
     private String bucketName;
     private String objectName;
 
+    private final static ImmutableList<Option> requiredArgs = ImmutableList.of(BUCKET, OBJECT_NAME);
+
     public DeleteObject() {
     }
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
-        bucketName = args.getBucket();
-        if (bucketName == null) {
-            throw new MissingOptionException("The delete object command requires '-b' to be set.");
-        }
-        objectName = args.getObjectName();
-        if (objectName == null) {
-            throw new MissingOptionException("The delete object command requires '-o' to be set.");
-        }
+        processCommandOptions(requiredArgs, EMPTY_LIST, args);
+
+        this.bucketName = args.getBucket();
+        this.objectName = args.getObjectName();
         return this;
     }
 

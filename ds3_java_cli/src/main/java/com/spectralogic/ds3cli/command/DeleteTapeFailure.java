@@ -15,14 +15,20 @@
 
 package com.spectralogic.ds3cli.command;
 
+import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.models.DefaultResult;
 import com.spectralogic.ds3client.commands.spectrads3.DeleteTapeFailureSpectraS3Request;
 import org.apache.commons.cli.MissingArgumentException;
+import org.apache.commons.cli.Option;
 
 import java.util.UUID;
 
+import static com.spectralogic.ds3cli.ArgumentFactory.ID;
+
 public class DeleteTapeFailure extends CliCommand<DefaultResult> {
+
+    private final static ImmutableList<Option> requiredArgs = ImmutableList.of(ID);
 
     private UUID id;
 
@@ -31,13 +37,9 @@ public class DeleteTapeFailure extends CliCommand<DefaultResult> {
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
+        processCommandOptions(requiredArgs, EMPTY_LIST, args);
 
-        final String idString = args.getId();
-        if (idString == null) {
-            throw new MissingArgumentException("'-i' is required to delete a tape failure");
-        }
-
-        this.id = UUID.fromString(idString);
+        this.id = UUID.fromString(args.getId());
         return this;
     }
 

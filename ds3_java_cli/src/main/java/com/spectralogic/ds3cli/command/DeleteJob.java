@@ -15,27 +15,34 @@
 
 package com.spectralogic.ds3cli.command;
 
+import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.models.DefaultResult;
 import com.spectralogic.ds3client.commands.spectrads3.CancelJobSpectraS3Request;
 import com.spectralogic.ds3client.commands.spectrads3.TruncateActiveJobSpectraS3Request;
 import org.apache.commons.cli.MissingOptionException;
+import org.apache.commons.cli.Option;
 
 import java.util.UUID;
+
+import static com.spectralogic.ds3cli.ArgumentFactory.FORCE;
+import static com.spectralogic.ds3cli.ArgumentFactory.ID;
 
 public class DeleteJob extends CliCommand<DefaultResult> {
 
     private UUID id;
     private boolean force;
 
+    private final static ImmutableList<Option> requiredArgs = ImmutableList.of(ID);
+    private final static ImmutableList<Option> optionalArgs = ImmutableList.of(FORCE);
+
     public DeleteJob() {
     }
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
-        if (args.getId() == null) {
-            throw new MissingOptionException("The delete job command requires '-i' to be set.");
-        }
+        processCommandOptions(requiredArgs, optionalArgs, args);
+
         this.id = UUID.fromString(args.getId());
         this.force = args.isForce();
         return this;

@@ -27,15 +27,22 @@ import com.spectralogic.ds3client.commands.spectrads3.GetSuspectObjectsWithFullD
 import com.spectralogic.ds3client.commands.spectrads3.GetSuspectObjectsWithFullDetailsSpectraS3Response;
 import com.spectralogic.ds3client.models.BulkObject;
 import com.spectralogic.ds3client.models.BulkObjectList;
+import org.apache.commons.cli.Option;
 
 import javax.annotation.Nullable;
 
+import static com.spectralogic.ds3cli.ArgumentFactory.IN_CACHE;
+
 public class GetSuspectObjects extends CliCommand<SuspectedObjectResult> {
+
+    private final static ImmutableList<Option> optionalArgs = ImmutableList.of(IN_CACHE);
 
     private boolean inCache;
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
+        processCommandOptions(EMPTY_LIST, optionalArgs, args);
+
         this.inCache = args.isInCache();
         return this;
     }
@@ -71,7 +78,7 @@ public class GetSuspectObjects extends CliCommand<SuspectedObjectResult> {
     }
 
     @Override
-    public View<SuspectedObjectResult> getView(final ViewType viewType) {
+    public View<SuspectedObjectResult> getView() {
         if (viewType == ViewType.JSON) {
             return new com.spectralogic.ds3cli.views.json.SuspectedObjectsView();
         } else {

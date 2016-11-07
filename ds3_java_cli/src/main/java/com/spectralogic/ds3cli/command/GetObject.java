@@ -15,6 +15,7 @@
 
 package com.spectralogic.ds3cli.command;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.models.DefaultResult;
@@ -27,7 +28,7 @@ import com.spectralogic.ds3client.models.Priority;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.networking.Metadata;
 import com.spectralogic.ds3client.serializer.XmlProcessingException;
-import org.apache.commons.cli.MissingOptionException;
+import org.apache.commons.cli.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,14 +37,21 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
+import static com.spectralogic.ds3cli.ArgumentFactory.*;
+
 public class GetObject extends CliCommand<DefaultResult> {
 
     private final static Logger LOG = LoggerFactory.getLogger(GetObject.class);
+
+    private final static ImmutableList<Option> requiredArgs = ImmutableList.of(BUCKET, OBJECT_NAME);
+    private final static ImmutableList<Option> optionalArgs = ImmutableList.of(DIRECTORY, SYNC,
+            FORCE, NUMBER_OF_THREADS, PRIORITY);
 
     private String bucketName;
     private String objectName;
     private String prefix;
     private boolean sync;
+    private boolean force;
     private int numberOfThreads;
     private Priority priority;
 
@@ -52,29 +60,20 @@ public class GetObject extends CliCommand<DefaultResult> {
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
-        this.priority = args.getPriority();
+        processCommandOptions(requiredArgs, optionalArgs, args);
         this.bucketName = args.getBucket();
-        if (this.bucketName == null) {
-            throw new MissingOptionException("The get object command requires '-b' to be set.");
-        }
-
+        this.priority = args.getPriority();
         this.objectName = args.getObjectName();
-        if (this.objectName == null) {
-            throw new MissingOptionException("The get object command requires '-o' to be set.");
-        }
-
         this.prefix = args.getDirectory();
         if (this.prefix == null) {
             this.prefix = ".";
         }
-
         if (args.isSync()) {
             LOG.info("Using sync command");
             this.sync = true;
         }
-
+        this.force = args.isForce();
         this.numberOfThreads = Integer.valueOf(args.getNumberOfThreads());
-
         return this;
     }
 

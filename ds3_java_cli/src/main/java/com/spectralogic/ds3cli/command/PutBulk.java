@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.spectralogic.ds3cli.Arguments;
+import com.spectralogic.ds3cli.ClientFactory;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.exceptions.BadArgumentException;
@@ -36,6 +37,7 @@ import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.serializer.XmlProcessingException;
 import com.spectralogic.ds3client.utils.Guard;
 import org.apache.commons.cli.MissingOptionException;
+import org.apache.commons.cli.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,9 +47,18 @@ import java.nio.channels.SeekableByteChannel;
 import java.nio.file.*;
 import java.util.Map;
 
+import static com.spectralogic.ds3cli.ArgumentFactory.*;
+
 public class PutBulk extends CliCommand<PutBulkResult> {
 
     private final static Logger LOG = LoggerFactory.getLogger(PutBulk.class);
+
+    private final static ImmutableList<Option> requiredArgs = ImmutableList.of(BUCKET);
+    private final static ImmutableList<Option> optionalArgs
+            = ImmutableList.of(PREFIX, NUMBER_OF_THREADS, WRITE_OPTIMIZATION,
+            FOLLOW_SYMLINKS, PRIORITY, CHECKSUM,
+            SYNC, FORCE, NUMBER_OF_THREADS, IGNORE_ERRORS,
+            IGNORE_NAMING_CONFLICTS, DIRECTORY);
 
     private String bucketName;
     private Path inputDirectory;
@@ -70,11 +81,10 @@ public class PutBulk extends CliCommand<PutBulkResult> {
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
-        this.bucketName = args.getBucket();
-        if (this.bucketName == null) {
-            throw new MissingOptionException("The bulk put command requires '-b' to be set.");
-        }
+        // set up Options and parse
+        processCommandOptions(requiredArgs, optionalArgs, args);
 
+        this.bucketName = args.getBucket();
         this.pipe = Utils.isPipe();
         if (this.pipe) {
             if (this.isOtherArgs(args)) {
@@ -88,15 +98,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
             this.mapNormalizedObjectNameToObjectName = this.getNormalizedObjectNameToObjectName(this.pipedFiles);
         } else {
             final String srcDir = args.getDirectory();
-            if (srcDir == null) {
-                throw new MissingOptionException("The bulk put command required '-d' to be set.");
-            }
             this.inputDirectory = Paths.get(srcDir);
-
-            if (args.getObjectName() != null) {
-                System.err.println("Warning: '-o' is not used with bulk put and is ignored.");
-            }
-
             this.prefix = args.getPrefix();
         }
 
@@ -114,7 +116,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
             this.sync = true;
         }
 
-        this.numberOfThreads = Integer.valueOf(args.getNumberOfThreads());
+        this.numberOfThreads = args.getNumberOfThreads();
 
         if (args.isIgnoreErrors()) {
             LOG.info("Ignoring files that cause errors");
@@ -213,7 +215,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
     }
 
     @Override
-    public View<PutBulkResult> getView(final ViewType viewType) {
+    public View<PutBulkResult> getView() {
         if (viewType == ViewType.JSON) {
             return new com.spectralogic.ds3cli.views.json.PutBulkView();
         }
@@ -284,9 +286,9 @@ public class PutBulk extends CliCommand<PutBulkResult> {
     }
 
     public boolean isOtherArgs(final Arguments args) {
-        return  args.getDirectory()  != null || //-d
-                args.getObjectName() != null || //-o
-                args.getPrefix()     != null;   //-p
+        return  !Guard.isStringNullOrEmpty(args.getDirectory()) ||   //-d
+                !Guard.isStringNullOrEmpty(args.getObjectName()) || //-o
+                !Guard.isStringNullOrEmpty(args.getPrefix());   //-p
     }
 
     static class PrefixedFileObjectPutter implements Ds3ClientHelpers.ObjectChannelBuilder, Ds3ClientHelpers.MetadataAccess {

@@ -26,6 +26,7 @@ import ch.qos.logback.core.ConsoleAppender;
 import ch.qos.logback.core.rolling.*;
 import com.google.common.base.Joiner;
 import com.spectralogic.ds3cli.command.CliCommand;
+import com.spectralogic.ds3cli.command.CliCommandFactory;
 import com.spectralogic.ds3cli.exceptions.*;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
@@ -35,12 +36,20 @@ import com.spectralogic.ds3client.Ds3ClientBuilder;
 import com.spectralogic.ds3client.models.common.Credentials;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.networking.FailedRequestException;
+import org.apache.commons.cli.MissingOptionException;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
+import java.util.Properties;
+
+import static com.spectralogic.ds3cli.ArgumentFactory.*;
 
 public final class Main {
+
+    private final static String PROPERTY_FILE = "ds3_cli.properties";
+
     // initialize and add appenders to root logger
     private final static ch.qos.logback.classic.Logger LOG =  (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
     private final static String LOG_FORMAT_PATTERN = "%d{yyyy-MM-dd HH:mm:ss} +++ %msg%n";
@@ -134,27 +143,42 @@ public final class Main {
     public static void main(final String[] args) {
 
         try {
+            final Properties props = Utils.readProperties(PROPERTY_FILE);
+
+            // constructor parses for command, help, version, and logging settings
             final Arguments arguments = new Arguments(args);
 
             // turn root log wide open, filters will be set to argument levels
             configureLogging(arguments.getConsoleLogLevel(), arguments.getFileLogLevel());
 
-            LOG.info("Version: {}", arguments.getVersion());
+            LOG.info("Version: {}", Utils.getVersion(props));
+            LOG.info("Build Date: {}", Utils.getBuildDate(props));
             LOG.info("Command line args: {}", Joiner.on(", ").join(args));
             LOG.info("Console log level: {}", arguments.getConsoleLogLevel().toString());
             LOG.info("Log file log level: {}", arguments.getFileLogLevel().toString());
             LOG.info(CliCommand.getPlatformInformation());
-            LOG.info(arguments.getArgumentLog());
 
-            if (arguments.isHelp()) {
-                // no need to connect to vend help
-                final Ds3Cli runner = new Ds3Cli(null, arguments, null);
-                final CommandResponse response = runner.getCommandHelp();
-                System.out.println(response.getMessage());
-                System.exit(response.getReturnCode());
+            if(arguments.isHelp()) {
+                printHelp(arguments);
+                System.exit(0);
             }
 
-            final Ds3Client client = createClient(arguments);
+            if (arguments.isPrintVersion()) {
+                printVersion(props);
+                System.exit(0);
+            }
+
+            // then it had better be a command
+            try {
+                if (arguments.getCommand() == null) {
+                    throw new MissingOptionException(COMMAND.getOpt());
+                }
+            } catch (final IllegalArgumentException e) {
+                throw new BadArgumentException("Unknown command", e);
+            }
+
+
+            final Ds3Client client = ClientFactory.createClient(arguments);
             if (!Utils.isVersionSupported(client)) {
                 System.out.println(String.format("ERROR: Minimum Black Pearl supported is %s", Utils.MINIMUM_VERSION_SUPPORTED));
                 System.exit(2);
@@ -163,8 +187,11 @@ public final class Main {
             final Ds3Provider provider = new Ds3ProviderImpl(client, Ds3ClientHelpers.wrap(client));
             final FileUtils fileUtils = new FileUtilsImpl();
 
-            final Ds3Cli runner = new Ds3Cli(provider, arguments, fileUtils);
-            final CommandResponse response = runner.call();
+            // get command, parse args
+            final CliCommand command = CliCommandFactory.getCommandExecutor(arguments.getCommand()).withProvider(provider, fileUtils);
+            command.init(arguments);
+
+            final CommandResponse response = command.render();
             System.out.println(response.getMessage());
             System.exit(response.getReturnCode());
         } catch (final Exception e) {
@@ -173,19 +200,33 @@ public final class Main {
         }
     }
 
-    public static Ds3Client createClient(final Arguments arguments) {
-        final Ds3ClientBuilder builder = Ds3ClientBuilder.create(
-                arguments.getEndpoint(),
-                new Credentials(arguments.getAccessKey(), arguments.getSecretKey())
-        )
-                .withHttps(arguments.isHttps())
-                .withCertificateVerification(arguments.isCertificateVerification())
-                .withBufferSize(Integer.valueOf(arguments.getBufferSize()))
-                .withRedirectRetries(arguments.getRetries());
-
-        if (arguments.getProxy() != null) {
-            builder.withProxy(arguments.getProxy());
+    private static void printHelp(final Arguments arguments) throws CommandException, BadArgumentException {
+        if(arguments.getHelp() == null) {
+            // --help with no arg or -h prints basic usage
+            arguments.printHelp();
+            return;
+        } else if (arguments.getHelp().equalsIgnoreCase("LIST_COMMANDS")) {
+            System.out.println(CliCommandFactory.listAllCommands());
+            return;
         }
-        return builder.build();
+        try {
+            final CliCommand helpCommand = CliCommandFactory.getCommandExecutor(arguments.getHelp());
+            // command help from Resource
+            System.out.println(CliCommand.getVerboseHelp(arguments.getHelp()));
+            // usage for command args
+            helpCommand.printArgumentHelp(arguments);
+        } catch (final IllegalArgumentException e) {
+            throw new BadArgumentException("Unknown command: " + arguments.getHelp() + "; use --help list_commands to get available commands.", e);
+        }
     }
+
+    private static void printVersion(final Properties props) throws IOException {
+        if (props == null) {
+            System.err.println("Could not find property file.");
+        } else {
+            System.out.println("Version: " + Utils.getVersion(props));
+            System.out.println("Build Date: " + Utils.getBuildDate(props));
+        }
+    }
+
 }

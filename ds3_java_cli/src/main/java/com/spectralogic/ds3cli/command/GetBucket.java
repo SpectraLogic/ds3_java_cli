@@ -16,6 +16,7 @@
 package com.spectralogic.ds3cli.command;
 
 
+import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
@@ -25,8 +26,16 @@ import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.models.Contents;
 import com.spectralogic.ds3client.networking.FailedRequestException;
 import org.apache.commons.cli.MissingOptionException;
+import org.apache.commons.cli.Option;
+
+import static com.spectralogic.ds3cli.ArgumentFactory.BUCKET;
+import static com.spectralogic.ds3cli.ArgumentFactory.PREFIX;
 
 public class GetBucket extends CliCommand<GetBucketResult> {
+
+    private final static ImmutableList<Option> requiredArgs = ImmutableList.of(BUCKET);
+    private final static ImmutableList<Option> optionalArgs = ImmutableList.of(PREFIX);
+
     private String bucketName;
     private String prefix;
 
@@ -35,10 +44,9 @@ public class GetBucket extends CliCommand<GetBucketResult> {
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
+        processCommandOptions(requiredArgs, optionalArgs, args);
+
         this.bucketName = args.getBucket();
-        if (bucketName == null) {
-            throw new MissingOptionException("The get bucket command requires '-b' to be set.");
-        }
         this.prefix = args.getPrefix();
         return this;
     }
@@ -69,7 +77,7 @@ public class GetBucket extends CliCommand<GetBucketResult> {
     }
 
     @Override
-    public View<GetBucketResult> getView(final ViewType viewType) {
+    public View<GetBucketResult> getView() {
         if (viewType == ViewType.JSON) {
             return new com.spectralogic.ds3cli.views.json.GetBucketView();
         }

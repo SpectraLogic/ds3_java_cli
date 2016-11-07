@@ -29,12 +29,6 @@ public class VerifyAllTapes extends CliCommand<VerifyAllTapesResult> {
     private Priority priority;
 
     @Override
-    public CliCommand init(final Arguments args) throws Exception {
-        this.priority = args.getPriority();
-        return this;
-    }
-
-    @Override
     public VerifyAllTapesResult call() throws Exception {
         final Ds3Client client = getClient();
 
@@ -49,7 +43,7 @@ public class VerifyAllTapes extends CliCommand<VerifyAllTapesResult> {
     }
 
     @Override
-    public View<VerifyAllTapesResult> getView(final ViewType viewType) {
+    public View<VerifyAllTapesResult> getView() {
         if (viewType == ViewType.JSON) {
             return new com.spectralogic.ds3cli.views.json.VerifyAllTapesView();
         }

@@ -32,18 +32,13 @@ public class GetService extends CliCommand<GetServiceResult> {
     }
 
     @Override
-    public CliCommand init(final Arguments args) throws Exception {
-        return this;
-    }
-
-    @Override
     public GetServiceResult call() throws IOException, CommandException {
         final GetServiceResponse response = getClient().getService(new GetServiceRequest());
         return new GetServiceResult(response.getListAllMyBucketsResult());
     }
 
     @Override
-    public View<GetServiceResult> getView(final ViewType viewType) {
+    public View<GetServiceResult> getView() {
         if (viewType == ViewType.JSON) {
             return new com.spectralogic.ds3cli.views.json.GetServiceView();
         }

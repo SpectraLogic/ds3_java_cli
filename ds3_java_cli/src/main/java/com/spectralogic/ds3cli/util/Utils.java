@@ -15,9 +15,11 @@
 
 package com.spectralogic.ds3cli.util;
 
+import ch.qos.logback.classic.Level;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.command.PutBulk;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.spectrads3.GetSystemInformationSpectraS3Request;
@@ -36,6 +38,7 @@ import java.nio.file.attribute.FileTime;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
@@ -303,4 +306,25 @@ public final class Utils {
         }
         return secs;
     }
+
+    public static Properties readProperties(final String propertyFile) throws IOException {
+        final Properties props = new Properties();
+        final InputStream input = Arguments.class.getClassLoader().getResourceAsStream(propertyFile);
+        if (input != null) {
+            props.load(input);
+            return props;
+        }
+        props.put("version", "N/a");
+        props.put("build.date", "N/a");
+        return props;
+    }
+
+    public static String getVersion(final Properties properties) {
+        return properties.get("version").toString();
+    }
+
+    public static String getBuildDate(final Properties properties) {
+        return properties.get("").toString();
+    }
+
 }

@@ -15,14 +15,20 @@
 
 package com.spectralogic.ds3cli.command;
 
+import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.models.DefaultResult;
 import com.spectralogic.ds3client.commands.spectrads3.DeleteTapeDriveSpectraS3Request;
 import org.apache.commons.cli.MissingOptionException;
+import org.apache.commons.cli.Option;
 
 import java.util.UUID;
 
+import static com.spectralogic.ds3cli.ArgumentFactory.ID;
+
 public class DeleteTapeDrive extends CliCommand<DefaultResult> {
+
+    private final static ImmutableList<Option> requiredArgs = ImmutableList.of(ID);
 
     private String id;
 
@@ -31,10 +37,9 @@ public class DeleteTapeDrive extends CliCommand<DefaultResult> {
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
+        processCommandOptions(requiredArgs, EMPTY_LIST, args);
+
         this.id = args.getId();
-        if (this.id == null) {
-            throw new MissingOptionException("The delete tape drive command requires '-i' to be set.");
-        }
         return this;
     }
 

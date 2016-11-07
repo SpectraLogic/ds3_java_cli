@@ -23,7 +23,9 @@ import com.spectralogic.ds3client.models.JobList;
 
 import java.util.List;
 
+import static com.spectralogic.ds3cli.util.Constants.DATE_FORMAT;
 import static com.spectralogic.ds3cli.util.Utils.nullGuard;
+import static com.spectralogic.ds3cli.util.Utils.nullGuardToDate;
 import static com.spectralogic.ds3cli.util.Utils.nullGuardToString;
 
 public class GetJobsView extends TableView<GetJobsResult> {
@@ -51,7 +53,7 @@ public class GetJobsView extends TableView<GetJobsResult> {
             final String [] jobArray = new String[this.columnCount];
             jobArray[0] = nullGuard(job.getBucketName());
             jobArray[1] = nullGuardToString(job.getJobId());
-            jobArray[2] = nullGuardToString(job.getStartDate());
+            jobArray[2] = nullGuardToDate(job.getStartDate(), DATE_FORMAT);
             jobArray[3] = nullGuard(job.getUserName());
             jobArray[4] = nullGuardToString(job.getRequestType());
             jobArray[5] = nullGuardToString(job.getStatus());
