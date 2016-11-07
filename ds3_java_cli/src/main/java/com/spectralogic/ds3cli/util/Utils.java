@@ -324,7 +324,7 @@ public final class Utils {
     }
 
     public static String getBuildDate(final Properties properties) {
-        return properties.get("").toString();
+        return properties.get("build.date").toString();
     }
 
 }

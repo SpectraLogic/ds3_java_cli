@@ -15,6 +15,7 @@
 
 package com.spectralogic.ds3cli.exceptions;
 
+import com.spectralogic.ds3client.utils.Guard;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,10 +30,11 @@ public class DefaultExceptionHandler<T extends Throwable>  implements Ds3Excepti
     }
 
     public String format(final T e) {
-        final String message = "Error (" + e.getClass().getSimpleName() +
-                "): " +
-                e.getMessage();
+        String message
+                = "Error (" + e.getClass().getSimpleName() + "): " + e.getMessage();
+        if (e.getCause() != null && !Guard.isStringNullOrEmpty(e.getCause().getMessage())) {
+            message += "\nCause: " + e.getCause().getMessage();
+        }
         return message;
     }
-
 }
