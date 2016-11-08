@@ -91,7 +91,7 @@ public class GetBulk extends CliCommand<DefaultResult> {
             final Path dirPath = FileSystems.getDefault().getPath(directory);
             this.outputPath = FileSystems.getDefault().getPath(".").resolve(dirPath);
         }
-        LOG.info("Output Path = " + this.outputPath);
+        LOG.info("Output Path = {}", this.outputPath);
 
         this.discard = args.isDiscard();
         if (this.discard && !Guard.isStringNullOrEmpty(directory)) {
@@ -139,10 +139,18 @@ public class GetBulk extends CliCommand<DefaultResult> {
     private String restoreSome(final Ds3ClientHelpers.ObjectChannelBuilder getter) throws IOException, XmlProcessingException {
         final Ds3ClientHelpers helper = getClientHelpers();
 
-        // get list of objects on appliance and filter for all prefixes
-        final FluentIterable<Contents> prefixMatches = FluentIterable.from(new LazyIterable<>(
-                new GetBucketLoaderFactory(getClient(), this.bucketName, null, null, 100, 5)))
-                .filter(getPredicate());
+        Iterable<Contents> prefixMatches;
+        if (Guard.isNullOrEmpty(prefixes)) {
+            prefixMatches = new LazyIterable<>(
+                    new GetBucketLoaderFactory(getClient(), this.bucketName, null, null, 100, 5));
+        } else {
+            prefixMatches = new ArrayList<Contents>();
+            for (final String prefix : prefixes) {
+                Iterable<Contents> prefixMatch = new LazyIterable<>(
+                        new GetBucketLoaderFactory(getClient(), this.bucketName, prefix, null, 100, 5));
+                prefixMatches = Iterables.concat(prefixMatches, prefixMatch);
+             }
+        }
 
         if (Iterables.isEmpty(prefixMatches)) {
             return "No objects in bucket " + this.bucketName + " with prefixes '" + Joiner.on(PREFIX_SEPARATOR).join(this.prefixes) + "'";
@@ -237,24 +245,6 @@ public class GetBulk extends CliCommand<DefaultResult> {
             final Path path = outputPath.resolve(filename);
             Utils.restoreLastModified(filename, metadata, path);
         }
-    }
-
-    protected Predicate<Contents> getPredicate()  {
-
-        if (Guard.isNullOrEmpty(prefixes)) {
-            return Predicates.notNull();
-        }
-        return new Predicate<Contents>() {
-            @Override
-            public boolean apply(@Nullable final Contents input) {
-                for (final String prefix : prefixes ) {
-                    if(input.getKey().startsWith(prefix)) {
-                        return true;
-                    }
-                }
-                return false;
-            }
-        };
     }
 
 }
