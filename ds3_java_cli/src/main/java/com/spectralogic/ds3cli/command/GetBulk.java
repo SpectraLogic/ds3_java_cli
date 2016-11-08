@@ -139,19 +139,13 @@ public class GetBulk extends CliCommand<DefaultResult> {
     private String restoreSome(final Ds3ClientHelpers.ObjectChannelBuilder getter) throws IOException, XmlProcessingException {
         final Ds3ClientHelpers helper = getClientHelpers();
 
-        Iterable<Contents> prefixMatches;
+        final Iterable<Contents> prefixMatches;
         if (Guard.isNullOrEmpty(prefixes)) {
             prefixMatches = new LazyIterable<>(
                     new GetBucketLoaderFactory(getClient(), this.bucketName, null, null, 100, 5));
         } else {
-            prefixMatches = new ArrayList<Contents>();
-            for (final String prefix : prefixes) {
-                Iterable<Contents> prefixMatch = new LazyIterable<>(
-                        new GetBucketLoaderFactory(getClient(), this.bucketName, prefix, null, 100, 5));
-                prefixMatches = Iterables.concat(prefixMatches, prefixMatch);
-             }
+            prefixMatches = getObjectsByPrefix();
         }
-
         if (Iterables.isEmpty(prefixMatches)) {
             return "No objects in bucket " + this.bucketName + " with prefixes '" + Joiner.on(PREFIX_SEPARATOR).join(this.prefixes) + "'";
         }
@@ -245,6 +239,16 @@ public class GetBulk extends CliCommand<DefaultResult> {
             final Path path = outputPath.resolve(filename);
             Utils.restoreLastModified(filename, metadata, path);
         }
+    }
+
+    private Iterable<Contents> getObjectsByPrefix() {
+        Iterable allPrefixMatches = Collections.emptyList();
+        for (final String prefix : prefixes) {
+            Iterable<Contents> prefixMatch = new LazyIterable<>(
+                    new GetBucketLoaderFactory(getClient(), this.bucketName, prefix, null, 100, 5));
+            allPrefixMatches = Iterables.concat(allPrefixMatches, prefixMatch);
+        }
+        return allPrefixMatches;
     }
 
 }
