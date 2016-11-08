@@ -100,7 +100,7 @@ public class GetBulk extends CliCommand<DefaultResult> {
             LOG.warn("Using /dev/null getter -- all incoming data will be discarded");
         }
 
-        String[] prefix = args.getOptionValues(PREFIXES.getOpt());
+        final String[] prefix = args.getOptionValues(PREFIXES.getOpt());
         if(prefix != null && prefix.length > 0) {
             this.prefixes = ImmutableList.copyOf(prefix);
         }
