@@ -52,6 +52,7 @@ import java.util.UUID;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.number.OrderingComparison.greaterThan;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeThat;
@@ -315,6 +316,24 @@ public class FeatureIntegration_Test {
         } finally {
             Util.deleteBucket(client, bucketName);
             Util.deleteLocalFile(objectName);
+        }
+    }
+
+    @Test
+    public void getBulkObjectWithPrefixes() throws Exception {
+        final String bucketName = "test_get_bulk_with_prefixes";
+        try {
+            Util.createBucket(client, bucketName);
+            Util.loadBookTestData(client, bucketName);
+
+            final Arguments args = new Arguments(new String[]{"--http", "-c", "get_bulk", "-b", bucketName,
+                    "-d", Util.DOWNLOAD_BASE_NAME, "-p", "beo", "uly"});
+            final CommandResponse response = Util.command(client, args);
+            assertThat(response.getMessage(), is("SUCCESS: Wrote all the objects that start with 'beo uly' from " + bucketName + " to ." + File.separator + "." + File.separator + "output"));
+            assertEquals(Util.countLocalFiles(), 2);
+        } finally {
+            Util.deleteBucket(client, bucketName);
+            Util.deleteLocalFiles();
         }
     }
 

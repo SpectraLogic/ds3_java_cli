@@ -15,6 +15,7 @@
 
 package com.spectralogic.ds3cli.command;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.spectralogic.ds3cli.Arguments;
@@ -26,24 +27,24 @@ import com.spectralogic.ds3client.helpers.FileObjectGetter;
 import com.spectralogic.ds3client.helpers.FolderNameFilter;
 import com.spectralogic.ds3client.helpers.MetadataReceivedListener;
 import com.spectralogic.ds3client.helpers.options.ReadJobOptions;
+import com.spectralogic.ds3client.helpers.pagination.GetBucketLoaderFactory;
 import com.spectralogic.ds3client.models.Contents;
 import com.spectralogic.ds3client.models.Priority;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.networking.Metadata;
 import com.spectralogic.ds3client.serializer.XmlProcessingException;
 import com.spectralogic.ds3client.utils.Guard;
+import com.spectralogic.ds3client.utils.collections.LazyIterable;
 import org.apache.commons.cli.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.spectralogic.ds3cli.ArgumentFactory.*;
 
@@ -57,18 +58,20 @@ public class GetBulk extends CliCommand<DefaultResult> {
     private String bucketName;
     private String directory;
     private Path outputPath;
-    private String prefix;
-    private boolean checksum;
+    private ImmutableList<String> prefixes;
     private Priority priority;
     private boolean sync;
-    private boolean force;
     private boolean discard;
     private int numberOfThreads;
 
+    public static final Option PREFIXES = Option.builder("p").hasArgs().argName("prefixes")
+            .desc("get only objects whose names start with prefix  "
+                    + "separate multiple prefixes with spaces").build();
+
     private final static ImmutableList<Option> requiredArgs = ImmutableList.of(BUCKET);
     private final static ImmutableList<Option> optionalArgs
-            = ImmutableList.of(DIRECTORY, PREFIX, NUMBER_OF_THREADS,
-            DISCARD, PRIORITY, CHECKSUM, SYNC, FORCE);
+            = ImmutableList.of(DIRECTORY, PREFIXES, NUMBER_OF_THREADS,
+            DISCARD, PRIORITY, SYNC, FORCE);
 
     public GetBulk() {
     }
@@ -76,18 +79,31 @@ public class GetBulk extends CliCommand<DefaultResult> {
     @Override
     public CliCommand init(final Arguments args) throws Exception {
         processCommandOptions(requiredArgs, optionalArgs, args);
-        this.directory = args.getDirectory();
         this.bucketName = args.getBucket();
+        this.priority = args.getPriority();
+        this.numberOfThreads = args.getNumberOfThreads();
+
+        this.directory = args.getDirectory();
+        if (Guard.isStringNullOrEmpty(this.directory) || directory.equals(".")) {
+            this.outputPath = FileSystems.getDefault().getPath(".");
+        } else {
+            final Path dirPath = FileSystems.getDefault().getPath(directory);
+            this.outputPath = FileSystems.getDefault().getPath(".").resolve(dirPath);
+        }
+        LOG.info("Output Path = {}", this.outputPath);
+
         this.discard = args.isDiscard();
         if (this.discard && !Guard.isStringNullOrEmpty(directory)) {
             throw new CommandException("Cannot set both directory and --discard");
         }
+        if (this.discard) {
+            LOG.warn("Using /dev/null getter -- all incoming data will be discarded");
+        }
 
-        this.priority = args.getPriority();
-        this.checksum = args.isChecksum();
-        this.prefix = args.getPrefix();
-        this.force = args.isForce();
-        this.numberOfThreads = args.getNumberOfThreads();
+        final String[] prefix = args.getOptionValues(PREFIXES.getOpt());
+        if(prefix != null && prefix.length > 0) {
+            this.prefixes = ImmutableList.copyOf(prefix);
+        }
 
         if (args.isSync()) {
             LOG.info("Using sync command");
@@ -98,81 +114,70 @@ public class GetBulk extends CliCommand<DefaultResult> {
 
     @Override
     public DefaultResult call() throws Exception {
-        if (Guard.isStringNullOrEmpty(this.directory) || directory.equals(".")) {
-            this.outputPath = FileSystems.getDefault().getPath(".");
-        } else {
-            final Path dirPath = FileSystems.getDefault().getPath(directory);
-            this.outputPath = FileSystems.getDefault().getPath(".").resolve(dirPath);
-        }
-
-        final Ds3ClientHelpers.ObjectChannelBuilder getter;
-        if (this.checksum) {
-           throw new CommandException("Checksumming is currently not implemented.");
-
-//          TOD):  Logging.log("Performing get_bulk with checksum verification");
-//            getter = new VerifyingFileObjectGetter(this.outputPath);
-        } else if (this.discard) {
-            LOG.warn("Using /dev/null getter -- all incoming data will be discarded");
-            getter = new MemoryObjectChannelBuilder(DEFAULT_BUFFER_SIZE, DEFAULT_FILE_SIZE);
-        } else {
-            getter = new FileObjectGetter(this.outputPath);
-        }
+        final Ds3ClientHelpers.ObjectChannelBuilder getter
+                = this.discard ?  new MemoryObjectChannelBuilder(DEFAULT_BUFFER_SIZE, DEFAULT_FILE_SIZE)
+                : new FileObjectGetter(this.outputPath);
 
         if (this.sync) {
-            if (Guard.isStringNullOrEmpty(this.prefix)) {
+            if (Guard.isNullOrEmpty(this.prefixes)) {
                 LOG.info("Syncing all objects from {}", this.bucketName);
             } else {
-                LOG.info("Syncing only those objects that start with {}", this.prefix);
+                LOG.info("Syncing only those objects that start with {}", Joiner.on(" ").join(this.prefixes));
             }
             return new DefaultResult(this.restoreSome(getter));
         }
 
-        if (Guard.isStringNullOrEmpty(this.prefix)) {
+        if (!Guard.isNotNullAndNotEmpty(prefixes)) {
             LOG.info("Getting all objects from {}", this.bucketName);
             return new DefaultResult(this.restoreAll(getter));
         }
 
-        LOG.info("Getting only those objects that start with {}", this.prefix);
+        LOG.info("Getting only those objects that start with {}", Joiner.on(" ").join(this.prefixes));
         return new DefaultResult(this.restoreSome(getter));
     }
 
     private String restoreSome(final Ds3ClientHelpers.ObjectChannelBuilder getter) throws IOException, XmlProcessingException {
         final Ds3ClientHelpers helper = getClientHelpers();
-        final Iterable<Contents> contents = helper.listObjects(this.bucketName, this.prefix);
 
-        final Iterable<Contents> filteredContents;
+        final Iterable<Contents> prefixMatches;
+        if (Guard.isNullOrEmpty(prefixes)) {
+            prefixMatches = new LazyIterable<>(
+                    new GetBucketLoaderFactory(getClient(), this.bucketName, null, null, 100, 5));
+        } else {
+            prefixMatches = getObjectsByPrefix();
+        }
+        if (Iterables.isEmpty(prefixMatches)) {
+            return "No objects in bucket " + this.bucketName + " with prefixes '" + Joiner.on(" ").join(this.prefixes) + "'";
+        }
+
+        final Iterable<Ds3Object> objects;
         if (this.sync) {
-            filteredContents = this.filterContents(contents, this.outputPath);
+            final Iterable<Contents> filteredContents = this.filterContents(prefixMatches, this.outputPath);
             if (Iterables.isEmpty(filteredContents)) {
                 return "SUCCESS: All files are up to date";
             }
+            objects = helper.toDs3Iterable(filteredContents, FolderNameFilter.filter());
         } else {
-            filteredContents = null;
+            objects = helper.toDs3Iterable(prefixMatches, FolderNameFilter.filter());
         }
 
-        final Iterable<Ds3Object> objects = helper.toDs3Iterable(filteredContents == null ? contents : filteredContents, FolderNameFilter.filter());
-
         final Ds3ClientHelpers.Job job = helper.startReadJob(this.bucketName, objects,
-                ReadJobOptions.create()
-                        .withPriority(this.priority));
+                ReadJobOptions.create().withPriority(this.priority));
         job.withMaxParallelRequests(this.numberOfThreads);
         final LoggingFileObjectGetter loggingFileObjectGetter = new LoggingFileObjectGetter(getter, this.outputPath);
         job.attachMetadataReceivedListener(loggingFileObjectGetter);
         job.transfer(loggingFileObjectGetter);
 
-        if (this.sync) {
-            if (!Guard.isStringNullOrEmpty(this.prefix)) {
-                return "SUCCESS: Synced all the objects that start with '" + this.prefix + "' from " + this.bucketName + " to " + this.outputPath.toString();
-            } else {
-                return "SUCCESS: Synced all the objects from " + this.bucketName + " to " + this.outputPath.toString();
-            }
-        }
+        // Success -- build the response
+        final StringBuilder response = new StringBuilder("SUCCESS: ");
+        response.append(this.sync ? "Synced" : this.discard ? "Retrieved and discarded" : "Wrote");
+        response.append(Guard.isNullOrEmpty(this.prefixes) ? " all the objects"
+                : " all the objects that start with '" + Joiner.on(" ").join(this.prefixes) + "'");
+        response.append(" from ");
+        response.append(this.bucketName);
+        response.append(this.discard ? "" : " to " + this.outputPath.toString());
 
-        if (this.discard) {
-            return "SUCCESS: retrieved and discarded all the objects that start with '" + this.prefix + "' from " + this.bucketName;
-        } else {
-            return "SUCCESS: Wrote all the objects that start with '" + this.prefix + "' from " + this.bucketName + " to " + this.outputPath.toString();
-        }
+        return response.toString();
     }
 
     private String restoreAll(final Ds3ClientHelpers.ObjectChannelBuilder getter) throws XmlProcessingException, IOException {
@@ -185,7 +190,7 @@ public class GetBulk extends CliCommand<DefaultResult> {
         job.transfer(loggingFileObjectGetter);
 
         if (this.discard) {
-            return "SUCCESS: retrieved and discarded all objects from " + this.bucketName;
+            return "SUCCESS: Retrieved and discarded all objects from " + this.bucketName;
         } else {
             return "SUCCESS: Wrote all the objects from " + this.bucketName + " to directory " + this.outputPath.toString();
         }
@@ -210,7 +215,6 @@ public class GetBulk extends CliCommand<DefaultResult> {
                 LOG.info("No need to sync {}", filePath.toString());
             }
         }
-
         return filteredContents;
     }
 
@@ -236,4 +240,15 @@ public class GetBulk extends CliCommand<DefaultResult> {
             Utils.restoreLastModified(filename, metadata, path);
         }
     }
+
+    private Iterable<Contents> getObjectsByPrefix() {
+        Iterable allPrefixMatches = Collections.emptyList();
+        for (final String prefix : prefixes) {
+            final Iterable<Contents> prefixMatch = new LazyIterable<>(
+                    new GetBucketLoaderFactory(getClient(), this.bucketName, prefix, null, 100, 5));
+            allPrefixMatches = Iterables.concat(allPrefixMatches, prefixMatch);
+        }
+        return allPrefixMatches;
+    }
+
 }

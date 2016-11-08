@@ -15,6 +15,7 @@
 
 package com.spectralogic.ds3cli.integration;
 
+import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3cli.*;
 import com.spectralogic.ds3cli.command.CliCommand;
 import com.spectralogic.ds3cli.command.CliCommandFactory;
@@ -82,6 +83,11 @@ public class Util {
         for (final Path file : files) {
             Files.deleteIfExists(file);
         }
+    }
+
+    public static int countLocalFiles() throws IOException {
+        final ImmutableList<Path>  files = Utils.listObjectsForDirectory(Paths.get(DOWNLOAD_BASE_NAME));
+        return files.size();
     }
 
     public static double getBlackPearlVersion(final Ds3Client client) throws IOException {
