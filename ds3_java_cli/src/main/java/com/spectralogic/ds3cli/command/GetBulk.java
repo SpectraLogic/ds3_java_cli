@@ -244,7 +244,7 @@ public class GetBulk extends CliCommand<DefaultResult> {
     private Iterable<Contents> getObjectsByPrefix() {
         Iterable allPrefixMatches = Collections.emptyList();
         for (final String prefix : prefixes) {
-            Iterable<Contents> prefixMatch = new LazyIterable<>(
+            final Iterable<Contents> prefixMatch = new LazyIterable<>(
                     new GetBucketLoaderFactory(getClient(), this.bucketName, prefix, null, 100, 5));
             allPrefixMatches = Iterables.concat(allPrefixMatches, prefixMatch);
         }
