@@ -16,9 +16,6 @@
 package com.spectralogic.ds3cli.command;
 
 import com.google.common.base.Joiner;
-import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.spectralogic.ds3cli.Arguments;
@@ -67,11 +64,13 @@ public class GetBulk extends CliCommand<DefaultResult> {
     private boolean discard;
     private int numberOfThreads;
 
-    private final static String PREFIX_SEPARATOR = ",";
+    public static final Option PREFIXES = Option.builder("p").hasArgs().argName("prefixes")
+            .desc("get only objects whose names start with prefix  "
+                    + "separate multiple prefixes with spaces").build();
 
     private final static ImmutableList<Option> requiredArgs = ImmutableList.of(BUCKET);
     private final static ImmutableList<Option> optionalArgs
-            = ImmutableList.of(DIRECTORY, PREFIX, NUMBER_OF_THREADS,
+            = ImmutableList.of(DIRECTORY, PREFIXES, NUMBER_OF_THREADS,
             DISCARD, PRIORITY, SYNC, FORCE);
 
     public GetBulk() {
@@ -101,8 +100,9 @@ public class GetBulk extends CliCommand<DefaultResult> {
             LOG.warn("Using /dev/null getter -- all incoming data will be discarded");
         }
 
-        if(!Guard.isStringNullOrEmpty(args.getPrefix())) {
-            this.prefixes = ImmutableList.copyOf(args.getPrefix().split(PREFIX_SEPARATOR));
+        String[] prefix = args.getOptionValues(PREFIXES.getOpt());
+        if(prefix != null && prefix.length > 0) {
+            this.prefixes = ImmutableList.copyOf(prefix);
         }
 
         if (args.isSync()) {
@@ -122,7 +122,7 @@ public class GetBulk extends CliCommand<DefaultResult> {
             if (Guard.isNullOrEmpty(this.prefixes)) {
                 LOG.info("Syncing all objects from {}", this.bucketName);
             } else {
-                LOG.info("Syncing only those objects that start with {}", Joiner.on(PREFIX_SEPARATOR).join(this.prefixes));
+                LOG.info("Syncing only those objects that start with {}", Joiner.on(" ").join(this.prefixes));
             }
             return new DefaultResult(this.restoreSome(getter));
         }
@@ -132,7 +132,7 @@ public class GetBulk extends CliCommand<DefaultResult> {
             return new DefaultResult(this.restoreAll(getter));
         }
 
-        LOG.info("Getting only those objects that start with {}", Joiner.on(PREFIX_SEPARATOR).join(this.prefixes));
+        LOG.info("Getting only those objects that start with {}", Joiner.on(" ").join(this.prefixes));
         return new DefaultResult(this.restoreSome(getter));
     }
 
@@ -147,7 +147,7 @@ public class GetBulk extends CliCommand<DefaultResult> {
             prefixMatches = getObjectsByPrefix();
         }
         if (Iterables.isEmpty(prefixMatches)) {
-            return "No objects in bucket " + this.bucketName + " with prefixes '" + Joiner.on(PREFIX_SEPARATOR).join(this.prefixes) + "'";
+            return "No objects in bucket " + this.bucketName + " with prefixes '" + Joiner.on(" ").join(this.prefixes) + "'";
         }
 
         final Iterable<Ds3Object> objects;
@@ -172,7 +172,7 @@ public class GetBulk extends CliCommand<DefaultResult> {
         final StringBuilder response = new StringBuilder("SUCCESS: ");
         response.append(this.sync ? "Synced" : this.discard ? "Retrieved and discarded" : "Wrote");
         response.append(Guard.isNullOrEmpty(this.prefixes) ? " all the objects"
-                : " all the objects that start with '" + Joiner.on(PREFIX_SEPARATOR).join(this.prefixes) + "'");
+                : " all the objects that start with '" + Joiner.on(" ").join(this.prefixes) + "'");
         response.append(" from ");
         response.append(this.bucketName);
         response.append(this.discard ? "" : " to " + this.outputPath.toString());

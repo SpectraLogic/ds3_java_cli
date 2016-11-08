@@ -327,9 +327,9 @@ public class FeatureIntegration_Test {
             Util.loadBookTestData(client, bucketName);
 
             final Arguments args = new Arguments(new String[]{"--http", "-c", "get_bulk", "-b", bucketName,
-                    "-d", Util.DOWNLOAD_BASE_NAME, "-p", "beo,uly"});
+                    "-d", Util.DOWNLOAD_BASE_NAME, "-p", "beo", "uly"});
             final CommandResponse response = Util.command(client, args);
-            assertThat(response.getMessage(), is("SUCCESS: Wrote all the objects that start with 'beo,uly' from " + bucketName + " to ." + File.separator + "." + File.separator + "output"));
+            assertThat(response.getMessage(), is("SUCCESS: Wrote all the objects that start with 'beo uly' from " + bucketName + " to ." + File.separator + "." + File.separator + "output"));
             assertEquals(Util.countLocalFiles(), 2);
         } finally {
             Util.deleteBucket(client, bucketName);
