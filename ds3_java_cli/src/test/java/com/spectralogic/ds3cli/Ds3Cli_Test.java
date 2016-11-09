@@ -2934,6 +2934,14 @@ public class Ds3Cli_Test {
         assertThat(actual, is(expectedString));
     }
 
+    @Test(expected = BadArgumentException.class )
+    public void getDetailedObjectsBadParam() throws Exception {
+        final Arguments args = new Arguments( new String[] {"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_detailed_objects", "-b", "jktwocopies", "--filter-params", "largerthan:1000000,fred:wilma", "--output-format", "csv"});
+        final Ds3Client client = mock(Ds3Client.class);
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, null), null);
+        command.init(args);
+    }
+
     @Test
     public void getDetailedObjectsCsv() throws Exception {
         final String expectedString =
