@@ -33,13 +33,10 @@ import com.spectralogic.ds3client.models.DetailedS3Object;
 import com.spectralogic.ds3client.utils.Guard;
 import com.spectralogic.ds3client.utils.collections.LazyIterable;
 import org.apache.commons.cli.Option;
-import org.apache.http.cookie.SM;
 import org.slf4j.LoggerFactory;
 
 
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 import javax.annotation.Nullable;
 
 import static com.spectralogic.ds3cli.ArgumentFactory.BUCKET;
@@ -58,6 +55,7 @@ public class GetDetailedObjects extends CliCommand<GetDetailedObjectsResult> {
     private final static String OLDERTHAN = "olderthan";
     private final static String LARGERTHAN = "largerthan";
     private final static String SMALLERTHAN = "smallerthan";
+    private final static long MILLIS_PER_SECOND = 1000L;
 
     private ImmutableMap<String, String> filterParams;
     private String bucketName;
@@ -75,10 +73,10 @@ public class GetDetailedObjects extends CliCommand<GetDetailedObjectsResult> {
         return this;
     }
 
-    private boolean checkFilterParams() throws BadArgumentException {
+    private void checkFilterParams() throws BadArgumentException {
         // if filter-params are specified, ascertain that all are supported
         if (Guard.isMapNullOrEmpty(this.filterParams)) {
-            return true;
+            return;
         }
         final ImmutableList<String> legalParams
                 = ImmutableList.of(CONTAINS, OWNER, NEWERTHAN,  OLDERTHAN,  LARGERTHAN,  SMALLERTHAN);
@@ -87,7 +85,6 @@ public class GetDetailedObjects extends CliCommand<GetDetailedObjectsResult> {
                 throw new BadArgumentException("Unknown filter parameter: " + paramName);
             }
         }
-        return true;
     }
 
     @Override
@@ -100,13 +97,13 @@ public class GetDetailedObjects extends CliCommand<GetDetailedObjectsResult> {
         return new GetDetailedObjectsResult(detailedObjects);
     }
 
-    protected Predicate<DetailedS3Object> getSizePredicate() throws CommandException {
+    private Predicate<DetailedS3Object> getSizePredicate() throws CommandException {
         if (Guard.isMapNullOrEmpty(this.filterParams)) {
             return Predicates.notNull();
         }
 
-        String larger = this.filterParams.get(LARGERTHAN);
-        String smaller = this.filterParams.get(SMALLERTHAN);
+        final String larger = this.filterParams.get(LARGERTHAN);
+        final String smaller = this.filterParams.get(SMALLERTHAN);
         if (Guard.isStringNullOrEmpty(larger) && Guard.isStringNullOrEmpty(smaller)) {
             return Predicates.notNull();
         }
@@ -123,19 +120,19 @@ public class GetDetailedObjects extends CliCommand<GetDetailedObjectsResult> {
         };
     }
 
-    protected Predicate<DetailedS3Object> getDatePredicate() throws CommandException {
+    private Predicate<DetailedS3Object> getDatePredicate() throws CommandException {
         if (Guard.isMapNullOrEmpty(this.filterParams)) {
             return Predicates.notNull();
         }
 
-        String newer = this.filterParams.get(NEWERTHAN);
-        String older = this.filterParams.get(OLDERTHAN);
+        final String newer = this.filterParams.get(NEWERTHAN);
+        final String older = this.filterParams.get(OLDERTHAN);
         if (Guard.isStringNullOrEmpty(newer) && Guard.isStringNullOrEmpty(older)) {
             return Predicates.notNull();
         }
         // if one is specified, default the other
-        final long newerThan = Guard.isStringNullOrEmpty(newer) ? 0L : new Date().getTime() - Utils.dateDiffToSeconds(newer) * 1000;
-        final long olderThan = Guard.isStringNullOrEmpty(older) ? Long.MAX_VALUE : new Date().getTime() - Utils.dateDiffToSeconds(older) * 1000;
+        final long newerThan = Guard.isStringNullOrEmpty(newer) ? 0L : new Date().getTime() - Utils.dateDiffToSeconds(newer) * MILLIS_PER_SECOND;
+        final long olderThan = Guard.isStringNullOrEmpty(older) ? Long.MAX_VALUE : new Date().getTime() - Utils.dateDiffToSeconds(older) * MILLIS_PER_SECOND;
 
         return new Predicate<DetailedS3Object>() {
             @Override
@@ -146,11 +143,11 @@ public class GetDetailedObjects extends CliCommand<GetDetailedObjectsResult> {
         };
     }
 
-    protected Predicate<DetailedS3Object> getOwnerPredicate() throws CommandException {
+    private Predicate<DetailedS3Object> getOwnerPredicate() throws CommandException {
         if (Guard.isMapNullOrEmpty(this.filterParams)) {
             return Predicates.notNull();
         }
-        final String owner = metaLookup(OWNER);
+        final String owner = paramLookup(OWNER);
         if (Guard.isStringNullOrEmpty(owner)) {
             return Predicates.notNull();
         }
@@ -162,11 +159,11 @@ public class GetDetailedObjects extends CliCommand<GetDetailedObjectsResult> {
         };
     }
 
-    protected Predicate<DetailedS3Object> getNamePredicate() throws CommandException {
+    private Predicate<DetailedS3Object> getNamePredicate() throws CommandException {
         if (Guard.isMapNullOrEmpty(this.filterParams)) {
             return Predicates.notNull();
         }
-        final String contains = metaLookup(CONTAINS);
+        final String contains = paramLookup(CONTAINS);
         if (Guard.isStringNullOrEmpty(contains)) {
             return Predicates.notNull();
         }
@@ -178,7 +175,7 @@ public class GetDetailedObjects extends CliCommand<GetDetailedObjectsResult> {
         };
     }
 
-    private String metaLookup(final String key) throws CommandException {
+    private String paramLookup(final String key) throws CommandException {
         return this.filterParams.get(key);
     }
 
