@@ -23,6 +23,7 @@ import com.google.common.collect.ImmutableMap;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
+import com.spectralogic.ds3cli.exceptions.BadArgumentException;
 import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.GetDetailedObjectsResult;
 import com.spectralogic.ds3cli.util.Utils;
@@ -36,22 +37,25 @@ import org.slf4j.LoggerFactory;
 
 
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 import javax.annotation.Nullable;
 
 import static com.spectralogic.ds3cli.ArgumentFactory.BUCKET;
 import static com.spectralogic.ds3cli.ArgumentFactory.FILTER_PARAMS;
+import static com.spectralogic.ds3cli.ArgumentFactory.PREFIX;
 
 public class GetDetailedObjects extends CliCommand<GetDetailedObjectsResult> {
     private final static org.slf4j.Logger LOG = LoggerFactory.getLogger(GetDetailedObjects.class);
 
     private final static ImmutableList<Option> optionalArgs = ImmutableList.of(FILTER_PARAMS, BUCKET);
 
+    // valid filter params
+    private final static String CONTAINS = "contains";
+    private final static String OWNER = "owner";
     private final static String NEWERTHAN = "newerthan";
     private final static String OLDERTHAN = "olderthan";
     private final static String LARGERTHAN = "largerthan";
     private final static String SMALLERTHAN = "smallerthan";
+    private final static long MILLIS_PER_SECOND = 1000L;
 
     private ImmutableMap<String, String> filterParams;
     private String bucketName;
@@ -62,53 +66,117 @@ public class GetDetailedObjects extends CliCommand<GetDetailedObjectsResult> {
         processCommandOptions(EMPTY_LIST, optionalArgs, args);
 
         this.filterParams = args.getFilterParams();
+        checkFilterParams();
         this.bucketName = args.getBucket();
 
-        // not supported in current version
-        this.prefix = null;
+        this.prefix = null; // doesn't work
         return this;
+    }
+
+    private void checkFilterParams() throws BadArgumentException {
+        // if filter-params are specified, ascertain that all are supported
+        if (Guard.isMapNullOrEmpty(this.filterParams)) {
+            return;
+        }
+        final ImmutableList<String> legalParams
+                = ImmutableList.of(CONTAINS, OWNER, NEWERTHAN,  OLDERTHAN,  LARGERTHAN,  SMALLERTHAN);
+        for (final String paramName : this.filterParams.keySet()) {
+            if (!legalParams.contains(paramName)) {
+                throw new BadArgumentException("Unknown filter parameter: " + paramName);
+            }
+        }
     }
 
     @Override
     public GetDetailedObjectsResult call() throws Exception {
 
-        final FluentIterable<DetailedS3Object> suspectBulkObjects;
-        final Predicate<DetailedS3Object> filterPredicate = getPredicate();
-
-        // get filtered list using pagination
-        suspectBulkObjects = FluentIterable.from(new LazyIterable<>(
+        final FluentIterable<DetailedS3Object> detailedObjects = FluentIterable.from(new LazyIterable<>(
                         new GetObjectsFullDetailsLoaderFactory(getClient(), this.bucketName, this.prefix, 100, 5, true)))
-                .filter(Predicates.notNull());
+                .filter(Predicates.and(getDatePredicate(), getSizePredicate(), getNamePredicate(), getOwnerPredicate()));
 
-        if (filterPredicate != null) {
-            return new GetDetailedObjectsResult(suspectBulkObjects.filter(filterPredicate));
-        }
-
-        return new GetDetailedObjectsResult(suspectBulkObjects);
+        return new GetDetailedObjectsResult(detailedObjects);
     }
 
-    protected Predicate<DetailedS3Object> getPredicate() throws CommandException {
-
+    private Predicate<DetailedS3Object> getSizePredicate() throws CommandException {
         if (Guard.isMapNullOrEmpty(this.filterParams)) {
-            return null;
+            return Predicates.notNull();
         }
 
-        // else build a predicate from search-params
-        final Map<String, String> ranges = parseMeta();
-        final long largerthan = Long.parseLong(ranges.get(LARGERTHAN));
-        final long smallerthan = Long.parseLong(ranges.get(SMALLERTHAN));
-        final Date newerthan = new Date(Long.parseLong(ranges.get(NEWERTHAN)));
-        final Date olderthan = new Date(Long.parseLong(ranges.get(OLDERTHAN)));
+        final String larger = this.filterParams.get(LARGERTHAN);
+        final String smaller = this.filterParams.get(SMALLERTHAN);
+        if (Guard.isStringNullOrEmpty(larger) && Guard.isStringNullOrEmpty(smaller)) {
+            return Predicates.notNull();
+        }
+        // if one is specified, use default value for other
+        final long largerthan = Guard.isStringNullOrEmpty(larger) ? 0L : Long.parseLong(larger);
+        final long smallerthan = Guard.isStringNullOrEmpty(smaller) ? Long.MAX_VALUE : Long.parseLong(smaller);
 
         return new Predicate<DetailedS3Object>() {
             @Override
             public boolean apply(@Nullable final DetailedS3Object input) {
                 return input.getSize() > largerthan
-                        && input.getSize() < smallerthan
-                        && input.getCreationDate().after(newerthan)
-                        && input.getCreationDate().before(olderthan);
+                        && input.getSize() < smallerthan;
             }
         };
+    }
+
+    private Predicate<DetailedS3Object> getDatePredicate() throws CommandException {
+        if (Guard.isMapNullOrEmpty(this.filterParams)) {
+            return Predicates.notNull();
+        }
+
+        final String newer = this.filterParams.get(NEWERTHAN);
+        final String older = this.filterParams.get(OLDERTHAN);
+        if (Guard.isStringNullOrEmpty(newer) && Guard.isStringNullOrEmpty(older)) {
+            return Predicates.notNull();
+        }
+        // if one is specified, default the other
+        final long newerThan = Guard.isStringNullOrEmpty(newer) ? 0L : new Date().getTime() - Utils.dateDiffToSeconds(newer) * MILLIS_PER_SECOND;
+        final long olderThan = Guard.isStringNullOrEmpty(older) ? Long.MAX_VALUE : new Date().getTime() - Utils.dateDiffToSeconds(older) * MILLIS_PER_SECOND;
+
+        return new Predicate<DetailedS3Object>() {
+            @Override
+            public boolean apply(@Nullable final DetailedS3Object input) {
+                return input.getCreationDate().after(new Date(newerThan))
+                        && input.getCreationDate().before(new Date(olderThan));
+            }
+        };
+    }
+
+    private Predicate<DetailedS3Object> getOwnerPredicate() throws CommandException {
+        if (Guard.isMapNullOrEmpty(this.filterParams)) {
+            return Predicates.notNull();
+        }
+        final String owner = paramLookup(OWNER);
+        if (Guard.isStringNullOrEmpty(owner)) {
+            return Predicates.notNull();
+        }
+        return new Predicate<DetailedS3Object>() {
+            @Override
+            public boolean apply(@Nullable final DetailedS3Object input) {
+                return input.getOwner().equals(owner);
+            }
+        };
+    }
+
+    private Predicate<DetailedS3Object> getNamePredicate() throws CommandException {
+        if (Guard.isMapNullOrEmpty(this.filterParams)) {
+            return Predicates.notNull();
+        }
+        final String contains = paramLookup(CONTAINS);
+        if (Guard.isStringNullOrEmpty(contains)) {
+            return Predicates.notNull();
+        }
+        return new Predicate<DetailedS3Object>() {
+            @Override
+            public boolean apply(@Nullable final DetailedS3Object input) {
+                return input.getName().contains(contains);
+            }
+        };
+    }
+
+    private String paramLookup(final String key) throws CommandException {
+        return this.filterParams.get(key);
     }
 
     @Override
@@ -120,30 +188,6 @@ public class GetDetailedObjects extends CliCommand<GetDetailedObjectsResult> {
         } else {
             return new DetailedObjectsView();
         }
-    }
-
-    private Map<String, String> parseMeta() throws CommandException {
-        // load defaults and define legal values
-        final Map<String, String> ranges = new HashMap<>();
-        ranges.put(NEWERTHAN, "0");
-        ranges.put(OLDERTHAN, Long.toString(Long.MAX_VALUE));
-        ranges.put(LARGERTHAN, "0");
-        ranges.put(SMALLERTHAN, Long.toString(Long.MAX_VALUE));
-
-        for (final String paramChange : this.filterParams.keySet()) {
-            final String paramNewValue = this.filterParams.get(paramChange);
-            if (ranges.containsKey(paramChange)) {
-                if(paramChange.equals(NEWERTHAN) || paramChange.equals(OLDERTHAN)){
-                    final long relativeDate = new Date().getTime() - Utils.dateDiffToSeconds(paramNewValue) * 1000;
-                    ranges.put(paramChange, Long.toString(relativeDate));
-                } else {
-                    ranges.put(paramChange, paramNewValue);
-                }
-            } else {
-                throw new CommandException("Unrecognized filter parameter: " + paramChange);
-            }
-        } // for
-        return ranges;
     }
 
 }
