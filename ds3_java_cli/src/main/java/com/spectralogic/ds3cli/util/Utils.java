@@ -307,6 +307,74 @@ public final class Utils {
         return secs;
     }
 
+    /**
+     * parse a string to get absolute date
+     * @param diff format Yyear.Mmonth.Ddate.hhours.mminutes.sseconds e.g., "Y2016.M11.D10.h12"
+     * @return long time in ms
+     */
+    public static long parseParamDate(final String diff) throws java.text.ParseException {
+        // default is 0000-01-01 00:00:00
+        String secs = "00";
+        String mins = "00";
+        String hours = "00";
+        String date = "01";
+        String month = "01";
+        String year = "0000";
+
+        final String[] units = diff.split("[.]");
+        for (final String unit : units) {
+            if (unit.matches("[YMDhms][0-9]+")) {
+                final char unitdesc = unit.charAt(0);
+                switch (unitdesc) {
+                    case 's':
+                        // pad to two chars
+                        secs = unit.replace("s", "00");
+                        secs = secs.substring(secs.length()-2, secs.length());
+                        break;
+                    case 'm':
+                        // pad to two chars
+                        mins = unit.replace("m", "00");
+                        mins = mins.substring(mins.length()-2, mins.length());
+                        break;
+                    case 'h':
+                        // pad to two chars
+                        hours = unit.replace("h", "0");
+                        hours = hours.substring(hours.length()-2, hours.length());
+                        break;
+                    case 'D':
+                        // pad to two chars
+                        date = unit.replace("D", "00");
+                        date = date.substring(date.length()-2, date.length());
+                        break;
+                    case 'M':
+                        // pad to two chars
+                        month = unit.replace("M", "00");
+                        month = month.substring(month.length()-2, month.length());
+                        break;
+                    case 'Y':
+                        // pad to two chars
+                        year = unit.replace("Y", "0000");
+                        year = year.substring(year.length()-4, year.length());
+                        break;
+                }
+            }
+        }
+        // "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+        final StringBuilder dateString = new StringBuilder(year);
+        dateString.append("-");
+        dateString.append(month);
+        dateString.append("-");
+        dateString.append(date);
+        dateString.append("T");
+        dateString.append(hours);
+        dateString.append(":");
+        dateString.append(mins);
+        dateString.append(":");
+        dateString.append(secs);
+        dateString.append(".000Z");
+        return Constants.DATE_FORMAT.parse(dateString.toString()).getTime();
+    }
+
     public static Properties readProperties(final String propertyFile) throws IOException {
         final Properties props = new Properties();
         final InputStream input = Arguments.class.getClassLoader().getResourceAsStream(propertyFile);
