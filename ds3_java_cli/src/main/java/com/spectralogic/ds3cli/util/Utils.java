@@ -360,18 +360,18 @@ public final class Utils {
             }
         }
         // "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-        final StringBuilder dateString = new StringBuilder(year);
-        dateString.append("-");
-        dateString.append(month);
-        dateString.append("-");
-        dateString.append(date);
-        dateString.append("T");
-        dateString.append(hours);
-        dateString.append(":");
-        dateString.append(mins);
-        dateString.append(":");
-        dateString.append(secs);
-        dateString.append(".000Z");
+        final StringBuilder dateString = new StringBuilder(year)
+            .append("-")
+            .append(month)
+            .append("-")
+            .append(date)
+            .append("T")
+            .append(hours)
+            .append(":")
+            .append(mins)
+            .append(":")
+            .append(secs)
+            .append(".000Z");
         return Constants.DATE_FORMAT.parse(dateString.toString()).getTime();
     }
 
