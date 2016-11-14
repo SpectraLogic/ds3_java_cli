@@ -17,9 +17,7 @@ package com.spectralogic.ds3cli.util;
 
 import org.junit.Test;
 
-import static com.spectralogic.ds3cli.util.Utils.removePrefixRecursively;
-import static com.spectralogic.ds3cli.util.Utils.unixNormalizeObjectName;
-import static com.spectralogic.ds3cli.util.Utils.windowsNormalizeObjectName;
+import static com.spectralogic.ds3cli.util.Utils.*;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 

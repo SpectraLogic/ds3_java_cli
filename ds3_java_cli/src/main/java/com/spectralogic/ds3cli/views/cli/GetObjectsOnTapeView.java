@@ -38,8 +38,8 @@ public class GetObjectsOnTapeView extends TableView<GetObjectsOnTapeResult> {
         }
         this.objectIterator = blobsResult.getObjIterator();
 
-        initTable(ImmutableList.of("Name","Size", "Id"));
-        setTableDataAlignment(ImmutableList.of(ASCIITable.ALIGN_LEFT, ASCIITable.ALIGN_RIGHT, ASCIITable.ALIGN_RIGHT));
+        initTable(ImmutableList.of("Name", "Bucket", "Size", "Id"));
+        setTableDataAlignment(ImmutableList.of(ASCIITable.ALIGN_LEFT, ASCIITable.ALIGN_LEFT, ASCIITable.ALIGN_RIGHT, ASCIITable.ALIGN_RIGHT));
         return ASCIITable.getInstance().getTable(getHeaders(), formatTableContents());
     }
 
@@ -51,8 +51,9 @@ public class GetObjectsOnTapeView extends TableView<GetObjectsOnTapeResult> {
             final BulkObject content = objectIterator.next();
             final String[] arrayEntry = new String[this.columnCount];
             arrayEntry[0] = nullGuard(content.getName());
-            arrayEntry[1] = nullGuardToString(content.getLength());
-            arrayEntry[2] = nullGuardToString(content.getId());
+            arrayEntry[1] = nullGuard(content.getBucket());
+            arrayEntry[2] = nullGuardToString(content.getLength());
+            arrayEntry[3] = nullGuardToString(content.getId());
             contents.add(arrayEntry);
         }
 
