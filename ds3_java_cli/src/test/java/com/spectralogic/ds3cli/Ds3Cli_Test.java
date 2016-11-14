@@ -1960,35 +1960,35 @@ public class Ds3Cli_Test {
     @Test
     public void getBlobsOnTape() throws Exception {
 
-        final String expected = "+-------------------------------------------------+-----------+--------------------------------------+\n" +
-                "|                       Name                      |    Size   |                  Id                  |\n" +
-                "+-------------------------------------------------+-----------+--------------------------------------+\n" +
-                "| 123456789.txt                                   |         9 | 53452a07-699a-4c27-8de5-95aa0a431df1 |\n" +
-                "| Always_295x166.jpg                              |      9172 | 7989ad4a-47a5-41ac-8814-3746e4e20679 |\n" +
-                "| Chapter 9.docx                                  |     29895 | 6649c2cb-6e83-4c58-9fb8-9b4aec8b014b |\n" +
-                "| RedRiverValley_295x166.jpg                      |      9114 | f725ef08-7e6f-4fe0-a256-798e561d878f |\n" +
-                "| Softphone Install.docx                          |    774741 | dff0cbed-5b7f-480f-aa94-8adea7c59a3e |\n" +
-                "| ThinkingOutLoud_295x166.jpg                     |     11059 | ffd8266d-cdc5-4e49-81d4-d08314fcee5a |\n" +
-                "| UnforgetWonderful_295x166.jpg                   |     10724 | 897b7e5b-59d8-4645-bc7a-f5c4b8154a0f |\n" +
-                "| YouDontKnowMe_295x166.jpg                       |     10634 | 7bb970d3-113f-413b-87d5-00b072059451 |\n" +
-                "| beowulf.txt                                     |    294056 | 1e293dc9-3257-4277-9c40-b50a6e63b71e |\n" +
-                "| coffeehouse/im_in_the_mood.mp3                  |   3309717 | d759f10d-05c6-498c-b4ce-2475027fbeae |\n" +
-                "| coffeehouse/jk/ColumbinesGrow.m4a               |  45872985 | d9b342ae-311c-4cbc-a000-75686c174471 |\n" +
-                "| coffeehouse/jk/ColumbinesGrow.mp3               |   5050747 | c85fc175-116a-4bcf-a77a-5ea240a5de3a |\n" +
-                "| coffeehouse/jk/Columbines_295x166.jpg           |     10528 | b70bd4ab-90d2-41fd-83d2-572fb3d1c8ca |\n" +
-                "| coffeehouse/jk/Misty_2015.m4a                   |  10396369 | e4769cd2-3aa6-4628-887c-ad51768656c5 |\n" +
-                "| coffeehouse/jk/RedRiverValley.m4a               |  77080710 | 9ffa7e9c-6939-4808-996e-e42fcf8bacb5 |\n" +
-                "| coffeehouse/jk/RedRiverValley.mp3               |   6363965 | 564a1bc1-33a0-41f3-af28-fbf79f331d0e |\n" +
-                "| coffeehouse/jk/UnforgetWonderful_295x166.jpg    |     10724 | b2671db7-1a4a-4577-8419-f17ead63d321 |\n" +
-                "| coffeehouse/jk/Unforgettable-WonderfulWorld.m4a | 110054089 | 71807ee9-2db9-4145-b01d-3d2aaae37061 |\n" +
-                "| coffeehouse/jk/Unforgettable-WonderfulWorld.mp3 |   7520930 | e50d5fc8-8fbf-4206-b495-05bb8be539ec |\n" +
-                "| coffeehouse/jk/WhereOrWhen.m4a                  |  51272203 | 9156aab6-88fa-49b0-a0e1-c230d247957e |\n" +
-                "| coffeehouse/jk/WhereOrWhen.mp3                  |   5647581 | 0f5541b9-8c4d-4ed8-bd1d-9e62173bdf4a |\n" +
-                "| coffeehouse/jk/WhereOrWhen_295x166.jpg          |     11263 | 03b2e1c7-f80c-437a-912d-b09015dba484 |\n" +
-                "| coffeehouse/jk/im_in_the_mood.m4a               |  11207247 | 667d94f6-b341-45f7-bd91-706af52d8e77 |\n" +
-                "| coffeehouse/jk/im_in_the_mood_200.jpg           |      8621 | f7f65e20-4ea2-4629-9c22-ddf9cbc76b99 |\n" +
-                "| coffeehouse/witchcraft.mp3                      |   6409093 | 92a40cff-63a6-4520-81a9-80afa03a1973 |\n" +
-                "+-------------------------------------------------+-----------+--------------------------------------+\n";
+        final String expected = "+-------------------------------------------------+-------------+-----------+--------------------------------------+\n" +
+                "|                       Name                      |    Bucket   |    Size   |                  Id                  |\n" +
+                "+-------------------------------------------------+-------------+-----------+--------------------------------------+\n" +
+                "| 123456789.txt                                   | coffeehouse |         9 | 53452a07-699a-4c27-8de5-95aa0a431df1 |\n" +
+                "| Always_295x166.jpg                              | coffeehouse |      9172 | 7989ad4a-47a5-41ac-8814-3746e4e20679 |\n" +
+                "| Chapter 9.docx                                  | coffeehouse |     29895 | 6649c2cb-6e83-4c58-9fb8-9b4aec8b014b |\n" +
+                "| RedRiverValley_295x166.jpg                      | coffeehouse |      9114 | f725ef08-7e6f-4fe0-a256-798e561d878f |\n" +
+                "| Softphone Install.docx                          | coffeehouse |    774741 | dff0cbed-5b7f-480f-aa94-8adea7c59a3e |\n" +
+                "| ThinkingOutLoud_295x166.jpg                     | coffeehouse |     11059 | ffd8266d-cdc5-4e49-81d4-d08314fcee5a |\n" +
+                "| UnforgetWonderful_295x166.jpg                   | coffeehouse |     10724 | 897b7e5b-59d8-4645-bc7a-f5c4b8154a0f |\n" +
+                "| YouDontKnowMe_295x166.jpg                       | coffeehouse |     10634 | 7bb970d3-113f-413b-87d5-00b072059451 |\n" +
+                "| beowulf.txt                                     | coffeehouse |    294056 | 1e293dc9-3257-4277-9c40-b50a6e63b71e |\n" +
+                "| coffeehouse/im_in_the_mood.mp3                  | coffeehouse |   3309717 | d759f10d-05c6-498c-b4ce-2475027fbeae |\n" +
+                "| coffeehouse/jk/ColumbinesGrow.m4a               | coffeehouse |  45872985 | d9b342ae-311c-4cbc-a000-75686c174471 |\n" +
+                "| coffeehouse/jk/ColumbinesGrow.mp3               | coffeehouse |   5050747 | c85fc175-116a-4bcf-a77a-5ea240a5de3a |\n" +
+                "| coffeehouse/jk/Columbines_295x166.jpg           | coffeehouse |     10528 | b70bd4ab-90d2-41fd-83d2-572fb3d1c8ca |\n" +
+                "| coffeehouse/jk/Misty_2015.m4a                   | coffeehouse |  10396369 | e4769cd2-3aa6-4628-887c-ad51768656c5 |\n" +
+                "| coffeehouse/jk/RedRiverValley.m4a               | coffeehouse |  77080710 | 9ffa7e9c-6939-4808-996e-e42fcf8bacb5 |\n" +
+                "| coffeehouse/jk/RedRiverValley.mp3               | coffeehouse |   6363965 | 564a1bc1-33a0-41f3-af28-fbf79f331d0e |\n" +
+                "| coffeehouse/jk/UnforgetWonderful_295x166.jpg    | coffeehouse |     10724 | b2671db7-1a4a-4577-8419-f17ead63d321 |\n" +
+                "| coffeehouse/jk/Unforgettable-WonderfulWorld.m4a | coffeehouse | 110054089 | 71807ee9-2db9-4145-b01d-3d2aaae37061 |\n" +
+                "| coffeehouse/jk/Unforgettable-WonderfulWorld.mp3 | coffeehouse |   7520930 | e50d5fc8-8fbf-4206-b495-05bb8be539ec |\n" +
+                "| coffeehouse/jk/WhereOrWhen.m4a                  | coffeehouse |  51272203 | 9156aab6-88fa-49b0-a0e1-c230d247957e |\n" +
+                "| coffeehouse/jk/WhereOrWhen.mp3                  | coffeehouse |   5647581 | 0f5541b9-8c4d-4ed8-bd1d-9e62173bdf4a |\n" +
+                "| coffeehouse/jk/WhereOrWhen_295x166.jpg          | coffeehouse |     11263 | 03b2e1c7-f80c-437a-912d-b09015dba484 |\n" +
+                "| coffeehouse/jk/im_in_the_mood.m4a               | coffeehouse |  11207247 | 667d94f6-b341-45f7-bd91-706af52d8e77 |\n" +
+                "| coffeehouse/jk/im_in_the_mood_200.jpg           | coffeehouse |      8621 | f7f65e20-4ea2-4629-9c22-ddf9cbc76b99 |\n" +
+                "| coffeehouse/witchcraft.mp3                      | coffeehouse |   6409093 | 92a40cff-63a6-4520-81a9-80afa03a1973 |\n" +
+                "+-------------------------------------------------+-------------+-----------+--------------------------------------+\n";
 
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_objects_on_tape", "-i", "7badec16-d6f2-4912-a120-dcfe9a6b4c3c"});
         final String response = "<Data>" +
