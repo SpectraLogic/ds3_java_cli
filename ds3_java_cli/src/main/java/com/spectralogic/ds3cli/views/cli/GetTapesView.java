@@ -41,7 +41,7 @@ public class GetTapesView extends TableView<GetTapesResult> {
         }
         this.tapeList = result.getTapes();
 
-        initTable(ImmutableList.of("Bar Code", "ID", "State", "Last Modified", "Available Raw Capacity", "BucketID", "Assigned to Storage Domain" ));
+        initTable(ImmutableList.of("Bar Code", "ID", "State", "Last Modified", "Available Raw Capacity", "BucketID", "Assigned to Storage Domain", "Ejection Date", "Ejection Location", "Ejection Label"));
 
         return ASCIITable.getInstance().getTable(getHeaders(), formatTableContents());
     }
@@ -58,6 +58,10 @@ public class GetTapesView extends TableView<GetTapesResult> {
             bucketArray[4] = nullGuardToString(tape.getAvailableRawCapacity());
             bucketArray[5] = nullGuardToString(tape.getBucketId());
             bucketArray[6] = nullGuardToString(tape.getAssignedToStorageDomain());
+            bucketArray[6] = nullGuardToString(tape.getAssignedToStorageDomain());
+            bucketArray[7] = nullGuardToString(tape.getEjectDate());
+            bucketArray[8] = nullGuard(tape.getEjectLocation());
+            bucketArray[9] = nullGuard(tape.getEjectLabel());
             formatArray[i++] = bucketArray;
         }
         return formatArray;
