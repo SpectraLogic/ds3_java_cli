@@ -39,7 +39,7 @@ public class GetObjectsOnTapeView extends TableView<GetObjectsOnTapeResult> {
         this.objectIterator = blobsResult.getObjIterator();
 
         initTable(ImmutableList.of("Name", "Bucket", "Size", "Id"));
-        setTableDataAlignment(ImmutableList.of(ASCIITable.ALIGN_LEFT, ASCIITable.ALIGN_RIGHT, ASCIITable.ALIGN_RIGHT));
+        setTableDataAlignment(ImmutableList.of(ASCIITable.ALIGN_LEFT, ASCIITable.ALIGN_LEFT, ASCIITable.ALIGN_RIGHT, ASCIITable.ALIGN_RIGHT));
         return ASCIITable.getInstance().getTable(getHeaders(), formatTableContents());
     }
 
