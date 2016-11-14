@@ -23,10 +23,7 @@ import com.spectralogic.ds3cli.command.GetDetailedObjects;
 import com.spectralogic.ds3cli.command.GetDetailedObjectsPhysical;
 import com.spectralogic.ds3cli.exceptions.*;
 import com.spectralogic.ds3cli.models.GetDetailedObjectsResult;
-import com.spectralogic.ds3cli.util.FileUtils;
-import com.spectralogic.ds3cli.util.SterilizeString;
-import com.spectralogic.ds3cli.util.SyncUtils;
-import com.spectralogic.ds3cli.util.Utils;
+import com.spectralogic.ds3cli.util.*;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.*;
 import com.spectralogic.ds3client.commands.spectrads3.*;
@@ -3009,5 +3006,19 @@ public class Ds3Cli_Test {
         command.init(args);
     }
 
+    @Test
+    public void parseRelatveDate() throws Exception {
+        final String input = "d1.h2.m3.s4";
+        final long diff = Utils.dateDiffToSeconds(input);
+        assertEquals(diff, (24 * 60 * 60) + (2 * 60 * 60) + (3 * 60) + 4);
+    }
+
+    @Test
+    public void parseAbsoluteDate() throws Exception {
+        final String input = "Y1960.M5.D26";
+        final long parse = Utils.parseParamDate(input);
+        final long construct =  Constants.DATE_FORMAT.parse("1960-05-26T00:00:00.000Z").getTime();
+        assertEquals(parse, construct);
+    }
 
 }
