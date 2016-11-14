@@ -58,7 +58,6 @@ public class GetTapesView extends TableView<GetTapesResult> {
             bucketArray[4] = nullGuardToString(tape.getAvailableRawCapacity());
             bucketArray[5] = nullGuardToString(tape.getBucketId());
             bucketArray[6] = nullGuardToString(tape.getAssignedToStorageDomain());
-            bucketArray[6] = nullGuardToString(tape.getAssignedToStorageDomain());
             bucketArray[7] = nullGuardToString(tape.getEjectDate());
             bucketArray[8] = nullGuard(tape.getEjectLocation());
             bucketArray[9] = nullGuard(tape.getEjectLabel());
