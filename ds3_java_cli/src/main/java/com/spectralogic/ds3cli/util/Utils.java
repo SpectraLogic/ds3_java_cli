@@ -122,7 +122,7 @@ public final class Utils {
 
     public static String nullGuardToDate(final Object o, final SimpleDateFormat dateFormat) {
         if (o == null) {
-            return dateFormat.format(new Date(0L));
+            return "N/A";
         }
         return dateFormat.format(o);
     }
