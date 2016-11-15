@@ -35,6 +35,7 @@ import java.io.InputStreamReader;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
@@ -377,6 +378,8 @@ public final class Utils {
                         year = year.substring(year.length()-4, year.length());
                         break;
                 }
+            } else {
+                throw new ParseException("Cannot process date token: '" + unit + "'", diff.indexOf(unit));
             }
         }
         // "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");

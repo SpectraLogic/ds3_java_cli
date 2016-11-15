@@ -53,6 +53,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.ParseException;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -3019,6 +3021,12 @@ public class Ds3Cli_Test {
         final long parse = Utils.parseParamDate(input).getTime();
         final long construct =  Constants.DATE_FORMAT.parse("1960-05-26T00:00:00.000Z").getTime();
         assertEquals(parse, construct);
+    }
+
+    @Test(expected = ParseException.class)
+    public void parseAbsoluteDateBad() throws Exception {
+        final String input = "Y2016.M5.D26.Fred";
+        final Date parse = Utils.parseParamDate(input);
     }
 
 }
