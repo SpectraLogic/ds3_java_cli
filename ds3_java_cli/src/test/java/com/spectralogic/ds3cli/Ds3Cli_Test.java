@@ -3007,7 +3007,7 @@ public class Ds3Cli_Test {
     }
 
     @Test
-    public void parseRelatveDate() throws Exception {
+    public void parseRelativeDate() throws Exception {
         final String input = "d1.h2.m3.s4";
         final long diff = Utils.dateDiffToSeconds(input);
         assertEquals(diff, (24 * 60 * 60) + (2 * 60 * 60) + (3 * 60) + 4);
@@ -3016,7 +3016,7 @@ public class Ds3Cli_Test {
     @Test
     public void parseAbsoluteDate() throws Exception {
         final String input = "Y1960.M5.D26";
-        final long parse = Utils.parseParamDate(input);
+        final long parse = Utils.parseParamDate(input).getTime();
         final long construct =  Constants.DATE_FORMAT.parse("1960-05-26T00:00:00.000Z").getTime();
         assertEquals(parse, construct);
     }

@@ -141,14 +141,14 @@ public class GetDetailedObjects extends CliCommand<GetDetailedObjectsResult> {
             return Predicates.notNull();
         }
 
-        long newerThan = 0L;
-        long olderThan = Long.MAX_VALUE;
+        Date newerThan = new Date(0L);
+        Date olderThan = new Date(Long.MAX_VALUE);
 
         if (!Guard.isStringNullOrEmpty(newer)) {
-            newerThan = new Date().getTime() - Utils.dateDiffToSeconds(newer) * MILLIS_PER_SECOND;
+            newerThan = new Date(new Date().getTime() - Utils.dateDiffToSeconds(newer) * MILLIS_PER_SECOND);
         }
         if (!Guard.isStringNullOrEmpty(older)) {
-            olderThan = new Date().getTime() - Utils.dateDiffToSeconds(older) * MILLIS_PER_SECOND;
+            olderThan = new Date(new Date().getTime() - Utils.dateDiffToSeconds(older) * MILLIS_PER_SECOND);
         }
         if (!Guard.isStringNullOrEmpty(after)) {
             newerThan = Utils.parseParamDate(after);
@@ -156,8 +156,9 @@ public class GetDetailedObjects extends CliCommand<GetDetailedObjectsResult> {
         if (!Guard.isStringNullOrEmpty(before)) {
             olderThan = Utils.parseParamDate(before);
         }
-        final Date newerThanDate = new Date(newerThan);
-        final Date olderThanDate = new Date(olderThan);
+        // set final to pass iknto predicate
+        final Date newerThanDate = newerThan;
+        final Date olderThanDate = olderThan;
 
         return new Predicate<DetailedS3Object>() {
             @Override

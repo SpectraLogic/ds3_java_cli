@@ -332,7 +332,7 @@ public final class Utils {
      * @param diff format Yyear.Mmonth.Ddate.hhours.mminutes.sseconds e.g., "Y2016.M11.D10.h12"
      * @return long time in ms
      */
-    public static long parseParamDate(final String diff) throws java.text.ParseException {
+    public static Date parseParamDate(final String diff) throws java.text.ParseException {
         // default is 0000-01-01 00:00:00
         String secs = "00";
         String mins = "00";
@@ -392,7 +392,7 @@ public final class Utils {
                 .append(":")
                 .append(secs)
                 .append(".000Z");
-        return Constants.DATE_FORMAT.parse(dateString.toString()).getTime();
+        return Constants.DATE_FORMAT.parse(dateString.toString());
     }
 
 
