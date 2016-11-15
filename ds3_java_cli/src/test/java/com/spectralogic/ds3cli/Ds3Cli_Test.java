@@ -3029,4 +3029,13 @@ public class Ds3Cli_Test {
         final Date parse = Utils.parseParamDate(input);
     }
 
+    @Test(expected = ParseException.class)
+    public void parseAbsoluteDateBadArgs() throws Exception {
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_detailed_objects", "-b", "jktwocopies", "--filter-params", "after:Y2016.fred,before:Y2016.wilma"});
+        final Ds3Client client = mock(Ds3Client.class);
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, null), null);
+        command.init(args);
+        final CommandResponse result = command.render();
+    }
+
 }
