@@ -17,14 +17,15 @@ package com.spectralogic.ds3cli.models;
 
 import com.spectralogic.ds3client.models.Tape;
 
-public class VerifyTapeResult implements Result {
+public class VerifyTapeResult implements Result<Tape> {
     private final Tape tape;
 
     public VerifyTapeResult(final Tape tapeResult) {
         this.tape = tapeResult;
     }
 
-    public Tape getTape() {
+    @Override
+    public Tape getResult() {
         return tape;
     }
 }

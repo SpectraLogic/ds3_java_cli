@@ -15,13 +15,20 @@
 
 package com.spectralogic.ds3cli.command;
 
-import com.spectralogic.ds3cli.*;
+import com.spectralogic.ds3cli.Arguments;
+import com.spectralogic.ds3cli.View;
+import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.DefaultResult;
 import com.spectralogic.ds3cli.models.GetConfigSummaryResult;
 import com.spectralogic.ds3cli.models.Result;
+import com.spectralogic.ds3cli.views.cli.GetConfigSummaryView;
+import com.spectralogic.ds3cli.views.json.DataView;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.ServiceLoader;
 
 /***
  *  Run all the commands in this.commandList to collect a summary of status and configuration
@@ -29,7 +36,7 @@ import java.util.*;
 public class GetConfigSummary extends CliCommand<GetConfigSummaryResult> {
 
     private final StringBuilder completeResult = new StringBuilder("CONFIGURATION SUMMARY\n");
-    private final Map<String, Result> resultsMap = new HashMap<String, Result>();
+    private final Map<String, Result> resultsMap = new HashMap<>();
 
     private ViewType viewType;
     private Arguments mainArgs;
@@ -95,8 +102,8 @@ public class GetConfigSummary extends CliCommand<GetConfigSummaryResult> {
     @Override
     public View<GetConfigSummaryResult> getView() {
         if (viewType == ViewType.JSON) {
-            return new com.spectralogic.ds3cli.views.json.GetConfigSummaryView();
+            return new DataView<>();
         }
-        return new com.spectralogic.ds3cli.views.cli.GetConfigSummaryView();
+        return new GetConfigSummaryView();
     }
 }

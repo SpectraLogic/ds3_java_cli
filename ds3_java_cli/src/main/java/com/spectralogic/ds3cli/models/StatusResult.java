@@ -17,12 +17,13 @@ package com.spectralogic.ds3cli.models;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class StatusResult implements Result {
+public class StatusResult implements Result<String> {
     @JsonProperty("status_message")
     final private String    result;
     @JsonProperty("status_code")
     final private int       status;
 
+    @Override
     final public String getResult(){
         return this.result;
     }

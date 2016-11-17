@@ -19,7 +19,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.models.DefaultResult;
-import com.spectralogic.ds3cli.util.*;
+import com.spectralogic.ds3cli.util.SyncUtils;
+import com.spectralogic.ds3cli.util.Utils;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.helpers.FileObjectGetter;
 import com.spectralogic.ds3client.helpers.MetadataReceivedListener;
@@ -73,7 +74,7 @@ public class GetObject extends CliCommand<DefaultResult> {
             this.sync = true;
         }
         this.force = args.isForce();
-        this.numberOfThreads = Integer.valueOf(args.getNumberOfThreads());
+        this.numberOfThreads = args.getNumberOfThreads();
         return this;
     }
 

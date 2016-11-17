@@ -19,7 +19,7 @@ import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3client.models.DataPolicy;
 import com.spectralogic.ds3client.models.DataPolicyList;
 
-public class GetDataPoliciesResult implements Result {
+public class GetDataPoliciesResult implements Result<DataPolicyList> {
 
     private final DataPolicyList dataPolicyListResult;
 
@@ -35,7 +35,8 @@ public class GetDataPoliciesResult implements Result {
         this.dataPolicyListResult.setDataPolicies(ImmutableList.of(policy));
     }
 
-    public DataPolicyList getPolicyList() {
+    @Override
+    public DataPolicyList getResult() {
         return dataPolicyListResult;
     }
 

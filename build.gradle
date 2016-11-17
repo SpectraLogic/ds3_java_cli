@@ -15,7 +15,7 @@
 
 
 allprojects {
-    version = '3.2.5-SNAPSHOT'
+    version = '3.2.5-RC1'
     group = 'com.spectralogic'
 }
 

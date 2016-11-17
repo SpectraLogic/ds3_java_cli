@@ -18,7 +18,7 @@ package com.spectralogic.ds3cli.models;
 import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3client.models.BulkObject;
 
-public class SuspectedObjectResult implements Result {
+public class SuspectedObjectResult implements Result<ImmutableList<BulkObject>> {
 
     private final ImmutableList<BulkObject> suspectBlobTapes;
 
@@ -26,7 +26,8 @@ public class SuspectedObjectResult implements Result {
         this.suspectBlobTapes = suspectBlobTapes;
     }
 
-    public ImmutableList<BulkObject> getSuspectBlobTapes() {
+    @Override
+    public ImmutableList<BulkObject> getResult() {
         return suspectBlobTapes;
     }
 }

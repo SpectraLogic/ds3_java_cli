@@ -15,10 +15,11 @@
 
 package com.spectralogic.ds3cli.command;
 
-import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.models.GetSystemFailureResult;
+import com.spectralogic.ds3cli.views.cli.GetSystemFailureView;
+import com.spectralogic.ds3cli.views.json.DataView;
 import com.spectralogic.ds3client.commands.spectrads3.GetSystemFailuresSpectraS3Request;
 import com.spectralogic.ds3client.commands.spectrads3.GetSystemFailuresSpectraS3Response;
 import com.spectralogic.ds3client.models.SystemFailureList;
@@ -39,8 +40,8 @@ public class GetSystemFailure extends CliCommand<GetSystemFailureResult> {
     @Override
     public View<GetSystemFailureResult> getView() {
         if (viewType == ViewType.JSON) {
-            return new com.spectralogic.ds3cli.views.json.GetSystemFailureView();
+            return new DataView<>();
         }
-        return new com.spectralogic.ds3cli.views.cli.GetSystemFailureView();
+        return new GetSystemFailureView();
     }
 }

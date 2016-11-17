@@ -33,7 +33,7 @@ public class HeadObjectView extends TableView<HeadObjectResult> {
     @Override
     public String render(final HeadObjectResult obj) {
 
-        switch (obj.getStatus()) {
+        switch (obj.getResult()) {
             case DOESNTEXIST: return "The object does not exist";
             case UNKNOWN: return "Authentication failed";
             default: {

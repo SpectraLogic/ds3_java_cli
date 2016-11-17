@@ -17,7 +17,7 @@ package com.spectralogic.ds3cli.models;
 
 import com.spectralogic.ds3client.models.DetailedTapeFailureList;
 
-public class GetTapeFailureResult implements Result {
+public class GetTapeFailureResult implements Result<DetailedTapeFailureList> {
 
     private final DetailedTapeFailureList result;
 
@@ -25,6 +25,7 @@ public class GetTapeFailureResult implements Result {
         this.result = result;
     }
 
+    @Override
     public DetailedTapeFailureList getResult() {
         return this.result;
     }

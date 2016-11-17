@@ -37,13 +37,14 @@ public class DetailedObjectsView implements View<GetDetailedObjectsResult> {
 
     @Override
     public String render(final GetDetailedObjectsResult obj) {
-        if (obj == null || obj.getDetailedObjects() == null || Iterables.isEmpty(obj.getDetailedObjects())) {
+        final Iterable<DetailedS3Object> detailedS3Objects = obj.getResult();
+        if (detailedS3Objects == null || Iterables.isEmpty(detailedS3Objects)) {
             return "No objects returned";
         }
 
         final ImmutableList<String> headers = ImmutableList.of("Name", "Bucket", "Owner", "Size", "Type", "Creation Date", "Tapes", "Pools");
 
-        return new CsvOutput<>(headers, obj.getDetailedObjects(), new CsvOutput.ContentFormatter<DetailedS3Object>() {
+        return new CsvOutput<>(headers, detailedS3Objects, new CsvOutput.ContentFormatter<DetailedS3Object>() {
             @Override
             public Iterable<String> format(final DetailedS3Object content) {
 

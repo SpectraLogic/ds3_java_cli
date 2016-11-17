@@ -21,11 +21,11 @@ import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.GetUsersResult;
+import com.spectralogic.ds3cli.views.cli.GetUsersView;
+import com.spectralogic.ds3cli.views.json.DataView;
 import com.spectralogic.ds3client.commands.spectrads3.GetUserSpectraS3Request;
 import com.spectralogic.ds3client.commands.spectrads3.GetUserSpectraS3Response;
 import com.spectralogic.ds3client.networking.FailedRequestException;
-import com.spectralogic.ds3client.utils.Guard;
-import org.apache.commons.cli.MissingOptionException;
 import org.apache.commons.cli.Option;
 
 import java.io.IOException;
@@ -67,8 +67,8 @@ public class GetUser extends CliCommand<GetUsersResult> {
     @Override
     public View<GetUsersResult> getView() {
         if (viewType == ViewType.JSON) {
-            return new com.spectralogic.ds3cli.views.json.GetUsersView();
+            return new DataView<>();
         }
-        return new com.spectralogic.ds3cli.views.cli.GetUsersView();
+        return new GetUsersView();
     }
 }

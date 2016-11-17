@@ -18,6 +18,7 @@ package com.spectralogic.ds3cli.command;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.models.GetDetailedObjectsResult;
+import com.spectralogic.ds3cli.views.json.DataView;
 
 /**
  * Use the DetailedObjectsPhysicalView to format output
@@ -29,7 +30,7 @@ public class GetDetailedObjectsPhysical extends GetDetailedObjects {
     public View<GetDetailedObjectsResult> getView() {
         if (viewType == ViewType.JSON) {
             // sorting performed in view -- json would be no different
-            return new com.spectralogic.ds3cli.views.json.DetailedObjectsView();
+            return new DataView<>();
         } else if (viewType == ViewType.CSV) {
             return new com.spectralogic.ds3cli.views.csv.DetailedObjectsPhysicalView();
         } else {

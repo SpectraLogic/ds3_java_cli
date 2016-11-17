@@ -30,7 +30,7 @@ import static com.spectralogic.ds3cli.util.Utils.nullGuard;
 import static com.spectralogic.ds3cli.util.Utils.nullGuardToDate;
 
 public class GetServiceView extends TableView<GetServiceResult> {
-    protected Iterator<BucketDetails> objectIterator;
+    private Iterator<BucketDetails> objectIterator;
 
     @Override
     public String render(final GetServiceResult obj) {

@@ -30,15 +30,16 @@ import static com.spectralogic.ds3cli.util.Utils.nullGuardToString;
 
 public class VerifyBulkJobView extends TableView<VerifyBulkJobResult> {
 
-    protected Iterator<Objects> objectsIterator;
+    private Iterator<Objects> objectsIterator;
 
     @Override
     public String render(final VerifyBulkJobResult verifyResult) {
-        if (null == verifyResult.getObjIterator() || !verifyResult.getObjIterator().hasNext()) {
+        final Iterator<Objects> objectsIterator = verifyResult.getResult();
+        if (null == objectsIterator || !objectsIterator.hasNext()) {
             return "No objects were reported in tape '" + verifyResult.getBucketId() + "'";
         }
 
-        this.objectsIterator = verifyResult.getObjIterator();
+        this.objectsIterator = objectsIterator;
 
         initTable(ImmutableList.of("Chunk", "Name", "Size", "Version"));
         setTableDataAlignment(ImmutableList.of(ASCIITable.ALIGN_LEFT, ASCIITable.ALIGN_LEFT, ASCIITable.ALIGN_RIGHT, ASCIITable.ALIGN_RIGHT));

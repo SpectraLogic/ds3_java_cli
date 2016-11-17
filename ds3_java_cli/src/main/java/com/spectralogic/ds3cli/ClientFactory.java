@@ -56,7 +56,7 @@ public final class ClientFactory {
         return getOptionOrEnv(arguments,  SECRET_KEY, "DS3_SECRET_KEY");
     }
 
-    private static String getProxy(final Arguments arguments) throws MissingOptionException{
+    private static String getProxy(final Arguments arguments) {
         String proxyValue = arguments.getOptionValue(PROXY.getOpt());
         if (Guard.isStringNullOrEmpty(proxyValue)) {
             proxyValue = System.getenv("http_proxy");

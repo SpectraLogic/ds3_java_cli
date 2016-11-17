@@ -35,11 +35,12 @@ public class DetailedObjectsView extends TableView<GetDetailedObjectsResult> {
 
     @Override
     public String render(final GetDetailedObjectsResult obj) {
-        if (obj == null || obj.getDetailedObjects() == null || Iterables.isEmpty(obj.getDetailedObjects())) {
+        final Iterable<DetailedS3Object> detailedS3Objects = obj.getResult();
+        if (detailedS3Objects == null || Iterables.isEmpty(detailedS3Objects)) {
             return "No objects returned";
         }
 
-        objects = ImmutableList.copyOf(obj.getDetailedObjects());
+        objects = ImmutableList.copyOf(detailedS3Objects);
         initTable(ImmutableList.of("Name", "Bucket", "Owner", "Size", "Type", "Creation Date", "Tapes", "Pools"));
 
         return renderTable();

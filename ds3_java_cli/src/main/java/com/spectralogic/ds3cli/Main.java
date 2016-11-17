@@ -23,7 +23,10 @@ import ch.qos.logback.classic.filter.ThresholdFilter;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.Appender;
 import ch.qos.logback.core.ConsoleAppender;
-import ch.qos.logback.core.rolling.*;
+import ch.qos.logback.core.rolling.FixedWindowRollingPolicy;
+import ch.qos.logback.core.rolling.RollingFileAppender;
+import ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy;
+import ch.qos.logback.core.rolling.TriggeringPolicy;
 import com.google.common.base.Joiner;
 import com.spectralogic.ds3cli.command.CliCommand;
 import com.spectralogic.ds3cli.command.CliCommandFactory;
@@ -32,19 +35,16 @@ import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3cli.util.Utils;
 import com.spectralogic.ds3client.Ds3Client;
-import com.spectralogic.ds3client.Ds3ClientBuilder;
-import com.spectralogic.ds3client.models.common.Credentials;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.networking.FailedRequestException;
 import org.apache.commons.cli.MissingOptionException;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.util.Properties;
 
-import static com.spectralogic.ds3cli.ArgumentFactory.*;
+import static com.spectralogic.ds3cli.ArgumentFactory.COMMAND;
 
 public final class Main {
 
@@ -80,7 +80,7 @@ public final class Main {
             consoleEncoder.setPattern(LOG_FORMAT_PATTERN);
             consoleEncoder.start();
 
-            final ConsoleAppender<ILoggingEvent> consoleAppender = new ConsoleAppender<ILoggingEvent>();
+            final ConsoleAppender<ILoggingEvent> consoleAppender = new ConsoleAppender<>();
             consoleAppender.setContext(loggerContext);
             consoleAppender.setName("STDOUT");
             consoleAppender.setEncoder(consoleEncoder);
@@ -98,9 +98,9 @@ public final class Main {
         if (!fileLevel.equals(Level.OFF)) {
             // create file appender only if needed.
             // if done in the xml, it will create an empty file
-            final RollingFileAppender<ILoggingEvent> fileAppender = new RollingFileAppender<ILoggingEvent>();
+            final RollingFileAppender<ILoggingEvent> fileAppender = new RollingFileAppender<>();
             final FixedWindowRollingPolicy sizeBasedRollingPolicy = new FixedWindowRollingPolicy();
-            final SizeBasedTriggeringPolicy<Object> sizeBasedTriggeringPolicy = new SizeBasedTriggeringPolicy<Object>();
+            final SizeBasedTriggeringPolicy<Object> sizeBasedTriggeringPolicy = new SizeBasedTriggeringPolicy<>();
 
             fileAppender.setContext(loggerContext);
             sizeBasedTriggeringPolicy.setContext(loggerContext);
@@ -220,7 +220,7 @@ public final class Main {
         }
     }
 
-    private static void printVersion(final Properties props) throws IOException {
+    private static void printVersion(final Properties props) {
         if (props == null) {
             System.err.println("Could not find property file.");
         } else {

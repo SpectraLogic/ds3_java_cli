@@ -37,7 +37,7 @@ public class GetJobView extends TableView<GetJobResult> {
     @Override
     public String render(final GetJobResult obj) {
 
-        final MasterObjectList mol = obj.getJobDetails();
+        final MasterObjectList mol = obj.getResult();
 
         /// DATE_FORMAT is used before initTable() -- Set UTC
         final String returnString = String.format(

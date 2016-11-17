@@ -27,7 +27,7 @@ public class GetDataPathBackendView implements View<GetDataPathBackendResult> {
     public String render(final GetDataPathBackendResult obj) throws JsonProcessingException {
         final CommonJsonView view = CommonJsonView.newView(CommonJsonView.Status.OK);
 
-        final DataPathBackend dataPathBackend = obj.getBackend();
+        final DataPathBackend dataPathBackend = obj.getResult();
         if (dataPathBackend == null || null == dataPathBackend.getId()){
             return "No valid Data Path Backend on remote appliance";
         }

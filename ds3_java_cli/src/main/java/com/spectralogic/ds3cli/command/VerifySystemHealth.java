@@ -15,10 +15,10 @@
 
 package com.spectralogic.ds3cli.command;
 
-import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.models.DefaultResult;
 import com.spectralogic.ds3client.commands.spectrads3.VerifySystemHealthSpectraS3Request;
 import com.spectralogic.ds3client.commands.spectrads3.VerifySystemHealthSpectraS3Response;
+
 import static com.spectralogic.ds3cli.util.Utils.nullGuardToString;
 
 public class VerifySystemHealth extends CliCommand<DefaultResult> {

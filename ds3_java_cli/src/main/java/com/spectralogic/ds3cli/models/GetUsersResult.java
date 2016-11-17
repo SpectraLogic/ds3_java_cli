@@ -24,7 +24,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-public class GetUsersResult implements Result {
+public class GetUsersResult implements Result<SpectraUserList> {
 
     private final SpectraUserList spectraUserListResult;
 
@@ -41,14 +41,14 @@ public class GetUsersResult implements Result {
         this.spectraUserListResult.setSpectraUsers(listOfOne);
     }
 
-    public SpectraUserList getUserList() {
+    @Override
+    public SpectraUserList getResult() {
         return spectraUserListResult;
     }
 
     public Iterator<SpectraUser> getObjIterator() {
-        final SpectraUserList userList = getUserList();
-        if (userList != null) {
-            final List<SpectraUser> users = userList.getSpectraUsers();
+        if (spectraUserListResult != null) {
+            final List<SpectraUser> users = spectraUserListResult.getSpectraUsers();
             if (Guard.isNotNullAndNotEmpty(users)) {
                 return users.iterator();
             }

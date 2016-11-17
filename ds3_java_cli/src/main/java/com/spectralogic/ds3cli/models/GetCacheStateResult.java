@@ -19,7 +19,7 @@ import com.spectralogic.ds3client.models.CacheFilesystemInformation;
 
 import java.util.List;
 
-public class GetCacheStateResult implements Result {
+public class GetCacheStateResult implements Result<List<CacheFilesystemInformation>> {
 
     private final List<CacheFilesystemInformation> result;
 
@@ -27,6 +27,7 @@ public class GetCacheStateResult implements Result {
         this.result = result;
     }
 
+    @Override
     public List<CacheFilesystemInformation> getResult() {
         return this.result;
     }

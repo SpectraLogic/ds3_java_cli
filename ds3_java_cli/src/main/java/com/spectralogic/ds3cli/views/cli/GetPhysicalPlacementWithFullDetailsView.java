@@ -33,11 +33,10 @@ public class GetPhysicalPlacementWithFullDetailsView  implements View<GetPhysica
 
     @Override
     public String render(final GetPhysicalPlacementWithFullDetailsResult obj) throws JsonProcessingException {
-        final BulkObjectList result = obj.getPhysicalPlacementWithDetails();
+        final BulkObjectList result = obj.getResult();
         if (result == null || null == result.getObjects()) {
             return "Object not found.";
         }
-
 
         return renderBulkObjectList(result);
     }

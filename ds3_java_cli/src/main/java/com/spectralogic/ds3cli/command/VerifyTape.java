@@ -20,12 +20,12 @@ import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.models.VerifyTapeResult;
+import com.spectralogic.ds3cli.views.cli.VerifyTapeView;
+import com.spectralogic.ds3cli.views.json.DataView;
 import com.spectralogic.ds3client.commands.spectrads3.VerifyTapeSpectraS3Request;
 import com.spectralogic.ds3client.commands.spectrads3.VerifyTapeSpectraS3Response;
 import com.spectralogic.ds3client.models.Priority;
 import com.spectralogic.ds3client.models.Tape;
-import com.spectralogic.ds3client.utils.Guard;
-import org.apache.commons.cli.MissingArgumentException;
 import org.apache.commons.cli.Option;
 
 import static com.spectralogic.ds3cli.ArgumentFactory.ID;
@@ -67,9 +67,9 @@ public class VerifyTape extends CliCommand<VerifyTapeResult> {
     @Override
     public View<VerifyTapeResult> getView() {
         if (viewType == ViewType.JSON) {
-            return new com.spectralogic.ds3cli.views.json.VerifyTapeView();
+            return new DataView<>();
         } else {
-            return new com.spectralogic.ds3cli.views.cli.VerifyTapeView();
+            return new VerifyTapeView();
         }
     }
 }

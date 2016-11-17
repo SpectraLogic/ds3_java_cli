@@ -33,7 +33,7 @@ public class GetDataPathBackendView extends TableView<GetDataPathBackendResult> 
 
     @Override
     public String render(final GetDataPathBackendResult obj) {
-        dataPathBackend = obj.getBackend();
+        dataPathBackend = obj.getResult();
         if (dataPathBackend == null || null == dataPathBackend.getId()){
             return "No valid Data Path Backend on remote appliance";
         }

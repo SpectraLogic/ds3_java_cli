@@ -17,7 +17,7 @@ package com.spectralogic.ds3cli.models;
 
 import com.spectralogic.ds3client.models.CapacitySummaryContainer;
 
-public class GetCapacitySummaryResult implements Result {
+public class GetCapacitySummaryResult implements Result<CapacitySummaryContainer> {
 
     private final CapacitySummaryContainer result;
 
@@ -25,6 +25,7 @@ public class GetCapacitySummaryResult implements Result {
         this.result = result;
     }
 
+    @Override
     public CapacitySummaryContainer getResult() {
         return this.result;
     }

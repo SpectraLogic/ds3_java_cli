@@ -19,7 +19,7 @@ import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3client.models.StorageDomain;
 import com.spectralogic.ds3client.models.StorageDomainList;
 
-public class GetStorageDomainsResult implements Result {
+public class GetStorageDomainsResult implements Result<StorageDomainList> {
 
     private final StorageDomainList result;
 
@@ -34,7 +34,8 @@ public class GetStorageDomainsResult implements Result {
         this.result = result;
     }
 
-    public StorageDomainList getDomainList() {
+    @Override
+    public StorageDomainList getResult() {
         return this.result;
     }
 }

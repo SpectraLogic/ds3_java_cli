@@ -31,10 +31,11 @@ public class GetSuspectBlobTapesView extends TableView<SuspectBlobTapesResult> {
 
     @Override
     public String render(final SuspectBlobTapesResult obj) {
-        if (Guard.isNullOrEmpty(obj.getSuspectBlobTapes())) {
+        final List<SuspectBlobTape> suspectBlobTapes = obj.getResult();
+        if (Guard.isNullOrEmpty(suspectBlobTapes)) {
             return "No Suspect Blob Tapes reported";
         }
-        suspectBlobTapeList = obj.getSuspectBlobTapes();
+        suspectBlobTapeList = suspectBlobTapes;
         initTable(ImmutableList.of("ID", "Blob ID", "Tape ID", "Order Index"));
 
         return ASCIITable.getInstance().getTable(getHeaders(), formatTableContents());

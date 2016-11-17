@@ -29,7 +29,7 @@ import static com.spectralogic.ds3cli.util.Utils.*;
 
 public class GetSystemFailureView extends TableView<GetSystemFailureResult> {
 
-    protected List<SystemFailure> failures;
+    private List<SystemFailure> failures;
 
     @Override
     public String render(final GetSystemFailureResult obj) {

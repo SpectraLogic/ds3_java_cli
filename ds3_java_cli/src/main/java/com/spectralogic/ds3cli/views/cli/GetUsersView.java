@@ -28,7 +28,7 @@ import static com.spectralogic.ds3cli.util.Utils.nullGuardToString;
 
 public class GetUsersView extends TableView<GetUsersResult> {
 
-    protected Iterator<SpectraUser> objectIterator;
+    private Iterator<SpectraUser> objectIterator;
 
     @Override
     public String render(final GetUsersResult usersResult) {

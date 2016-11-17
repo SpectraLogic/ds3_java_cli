@@ -33,11 +33,12 @@ public class DetailedObjectsPhysicalView extends TableView<GetDetailedObjectsRes
 
     @Override
     public String render(final GetDetailedObjectsResult obj) {
-        if (obj == null || obj.getDetailedObjects() == null || Iterables.isEmpty(obj.getDetailedObjects())) {
+        final Iterable<DetailedS3Object> detailedS3Objects = obj.getResult();
+        if (detailedS3Objects == null || Iterables.isEmpty(detailedS3Objects)) {
             return "No objects returned";
         }
 
-        objects = obj.getDetailedObjects();
+        objects = detailedS3Objects;
         initTable(ImmutableList.of("Name", "Bucket", "Owner", "Size", "Type", "Creation Date", "Barcode", "State"));
 
         return renderTable();

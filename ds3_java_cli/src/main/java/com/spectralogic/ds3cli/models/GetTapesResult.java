@@ -17,7 +17,7 @@ package com.spectralogic.ds3cli.models;
 
 import com.spectralogic.ds3client.models.TapeList;
 
-public class GetTapesResult implements Result {
+public class GetTapesResult implements Result<TapeList> {
 
     private final TapeList tapeListResult;
 
@@ -25,7 +25,8 @@ public class GetTapesResult implements Result {
         this.tapeListResult = tapes;
     }
 
-    public TapeList getTapes() {
+    @Override
+    public TapeList getResult() {
         return tapeListResult;
     }
 }

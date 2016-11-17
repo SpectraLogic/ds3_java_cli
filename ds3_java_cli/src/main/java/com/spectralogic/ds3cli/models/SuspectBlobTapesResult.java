@@ -19,7 +19,7 @@ import com.spectralogic.ds3client.models.SuspectBlobTape;
 
 import java.util.List;
 
-public class SuspectBlobTapesResult implements Result {
+public class SuspectBlobTapesResult implements Result<List<SuspectBlobTape>> {
     private final List<SuspectBlobTape> suspectBlobTapes;
 
     public SuspectBlobTapesResult(final List<SuspectBlobTape> suspectBlobTapes) {
@@ -27,7 +27,8 @@ public class SuspectBlobTapesResult implements Result {
         this.suspectBlobTapes = suspectBlobTapes;
     }
 
-    public List<SuspectBlobTape> getSuspectBlobTapes() {
+    @Override
+    public List<SuspectBlobTape> getResult() {
         return suspectBlobTapes;
     }
 }

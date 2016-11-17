@@ -22,10 +22,11 @@ import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.GetBucketResult;
+import com.spectralogic.ds3cli.views.cli.GetBucketView;
+import com.spectralogic.ds3cli.views.json.DataView;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.models.Contents;
 import com.spectralogic.ds3client.networking.FailedRequestException;
-import org.apache.commons.cli.MissingOptionException;
 import org.apache.commons.cli.Option;
 
 import static com.spectralogic.ds3cli.ArgumentFactory.BUCKET;
@@ -79,8 +80,8 @@ public class GetBucket extends CliCommand<GetBucketResult> {
     @Override
     public View<GetBucketResult> getView() {
         if (viewType == ViewType.JSON) {
-            return new com.spectralogic.ds3cli.views.json.GetBucketView();
+            return new DataView<>();
         }
-        return new com.spectralogic.ds3cli.views.cli.GetBucketView();
+        return new GetBucketView();
     }
 }

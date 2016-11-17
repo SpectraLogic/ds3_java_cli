@@ -22,6 +22,6 @@ import com.spectralogic.ds3cli.models.VerifyTapeResult;
 public class VerifyTapeView implements View<VerifyTapeResult> {
     @Override
     public String render(final VerifyTapeResult obj) throws JsonProcessingException {
-        return "Verify task for tape " + obj.getTape().getBarCode() + " has been scheduled";
+        return "Verify task for tape " + obj.getResult().getBarCode() + " has been scheduled";
     }
 }

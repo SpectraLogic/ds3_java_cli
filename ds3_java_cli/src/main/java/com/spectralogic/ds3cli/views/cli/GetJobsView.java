@@ -35,7 +35,7 @@ public class GetJobsView extends TableView<GetJobsResult> {
     @Override
     public String render(final GetJobsResult result) {
 
-        final JobList jobsInfo = result.getJobs();
+        final JobList jobsInfo = result.getResult();
         if (jobsInfo == null || jobsInfo.getJobs().isEmpty()) {
             return "There are no jobs currently running.";
         }

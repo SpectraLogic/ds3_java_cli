@@ -21,10 +21,11 @@ import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.GetObjectsOnTapeResult;
-import com.spectralogic.ds3client.commands.spectrads3.*;
+import com.spectralogic.ds3cli.views.cli.GetObjectsOnTapeView;
+import com.spectralogic.ds3cli.views.json.DataView;
+import com.spectralogic.ds3client.commands.spectrads3.GetBlobsOnTapeSpectraS3Request;
+import com.spectralogic.ds3client.commands.spectrads3.GetBlobsOnTapeSpectraS3Response;
 import com.spectralogic.ds3client.networking.FailedRequestException;
-import com.spectralogic.ds3client.utils.Guard;
-import org.apache.commons.cli.MissingOptionException;
 import org.apache.commons.cli.Option;
 
 import java.io.IOException;
@@ -57,7 +58,7 @@ public class GetObjectsOnTape extends CliCommand<GetObjectsOnTapeResult> {
             final GetBlobsOnTapeSpectraS3Response response
                         = getClient().getBlobsOnTapeSpectraS3(new GetBlobsOnTapeSpectraS3Request(null, this.tapeId));
 
-            return new GetObjectsOnTapeResult(this.tapeId, response.getBulkObjectListResult().getObjects().iterator());
+            return new GetObjectsOnTapeResult(this.tapeId, response.getBulkObjectListResult().getObjects());
         } catch (final FailedRequestException e) {
             if (e.getStatusCode() == 404) {
                 throw new CommandException("Unknown tape '" + this.tapeId +"'", e);
@@ -69,9 +70,9 @@ public class GetObjectsOnTape extends CliCommand<GetObjectsOnTapeResult> {
     @Override
     public View<GetObjectsOnTapeResult> getView() {
         if (viewType == ViewType.JSON) {
-            return new com.spectralogic.ds3cli.views.json.GetObjectsOnTapeView();
+            return new DataView<>();
         }
-        return new com.spectralogic.ds3cli.views.cli.GetObjectsOnTapeView();
+        return new GetObjectsOnTapeView();
     }
 }
     

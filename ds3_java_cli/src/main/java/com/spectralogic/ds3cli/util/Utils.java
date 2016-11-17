@@ -15,7 +15,6 @@
 
 package com.spectralogic.ds3cli.util;
 
-import ch.qos.logback.classic.Level;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -36,7 +35,6 @@ import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;

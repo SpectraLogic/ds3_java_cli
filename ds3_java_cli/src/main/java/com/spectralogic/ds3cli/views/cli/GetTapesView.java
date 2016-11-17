@@ -31,11 +31,11 @@ import static com.spectralogic.ds3cli.util.Utils.nullGuardToString;
 
 public class GetTapesView extends TableView<GetTapesResult> {
 
-    protected List<Tape> tapeList;
+    private List<Tape> tapeList;
 
     @Override
     public String render(final GetTapesResult obj) {
-        final TapeList result = obj.getTapes();
+        final TapeList result = obj.getResult();
         if (result == null || Guard.isNullOrEmpty(result.getTapes())) {
             return "You do not have any tapes";
         }

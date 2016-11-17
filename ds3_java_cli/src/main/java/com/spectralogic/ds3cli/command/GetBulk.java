@@ -21,7 +21,9 @@ import com.google.common.collect.Iterables;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.DefaultResult;
-import com.spectralogic.ds3cli.util.*;
+import com.spectralogic.ds3cli.util.MemoryObjectChannelBuilder;
+import com.spectralogic.ds3cli.util.SyncUtils;
+import com.spectralogic.ds3cli.util.Utils;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.helpers.FileObjectGetter;
 import com.spectralogic.ds3client.helpers.FolderNameFilter;
@@ -39,7 +41,6 @@ import org.apache.commons.cli.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.FileSystems;
@@ -242,7 +243,7 @@ public class GetBulk extends CliCommand<DefaultResult> {
     }
 
     private Iterable<Contents> getObjectsByPrefix() {
-        Iterable allPrefixMatches = Collections.emptyList();
+        Iterable<Contents> allPrefixMatches = Collections.emptyList();
         for (final String prefix : prefixes) {
             final Iterable<Contents> prefixMatch = new LazyIterable<>(
                     new GetBucketLoaderFactory(getClient(), this.bucketName, prefix, null, 100, 5));

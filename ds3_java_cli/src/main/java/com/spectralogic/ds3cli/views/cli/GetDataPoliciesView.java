@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.spectralogic.ds3cli.models.GetDataPoliciesResult;
 import com.spectralogic.ds3client.models.DataPolicy;
+import com.spectralogic.ds3client.models.DataPolicyList;
 
 import static com.spectralogic.ds3cli.util.Constants.DATE_FORMAT;
 import static com.spectralogic.ds3cli.util.Utils.nullGuardToString;
@@ -27,14 +28,15 @@ import static com.spectralogic.ds3cli.util.Utils.nullGuardToDate;
 
 public class GetDataPoliciesView extends TableView<GetDataPoliciesResult> {
 
-    protected Iterable<DataPolicy> dataPolicies;
+    private Iterable<DataPolicy> dataPolicies;
 
     @Override
     public String render(final GetDataPoliciesResult br) {
-        if (null == br.getPolicyList() || br.getPolicyList().getDataPolicies() == null || Iterables.isEmpty(br.getPolicyList().getDataPolicies())) {
+        final DataPolicyList dataPolicyList = br.getResult();
+        if (null == dataPolicyList || dataPolicyList.getDataPolicies() == null || Iterables.isEmpty(dataPolicyList.getDataPolicies())) {
             return "No Data Policies returned." ;
         }
-        this.dataPolicies = br.getPolicyList().getDataPolicies();
+        this.dataPolicies = dataPolicyList.getDataPolicies();
 
         initTable(ImmutableList.of("Name", "Created", "Versioning", "Checksum Type", "End-to-End CRC Required",
                 "Blobbing Enabled", "Default Blob Size", "Default Get Job Priority","Default Put Job Priority",

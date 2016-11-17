@@ -22,7 +22,6 @@ import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.models.HeadObjectResult;
 import com.spectralogic.ds3client.commands.HeadObjectRequest;
 import com.spectralogic.ds3client.commands.HeadObjectResponse;
-import org.apache.commons.cli.MissingOptionException;
 import org.apache.commons.cli.Option;
 
 import static com.spectralogic.ds3cli.ArgumentFactory.BUCKET;

@@ -34,11 +34,12 @@ public class SuspectedObjectsView extends TableView<SuspectedObjectResult> {
 
     @Override
     public String render(final SuspectedObjectResult obj) {
-        if (obj == null || obj.getSuspectBlobTapes() == null || Iterables.isEmpty(obj.getSuspectBlobTapes())) {
+        final ImmutableList<BulkObject> bulkObjects = obj.getResult();
+        if (bulkObjects == null || Iterables.isEmpty(bulkObjects)) {
             return "No suspected blobs returned";
         }
 
-        suspectBlobTapes = obj.getSuspectBlobTapes();
+        suspectBlobTapes = bulkObjects;
         initTable(ImmutableList.of("Name", "Bucket", "In Cache", "Offset", "Length"));
 
         return ASCIITable.getInstance().getTable(getHeaders(), formatTableContents());

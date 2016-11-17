@@ -21,8 +21,6 @@ import com.spectralogic.ds3cli.models.DefaultResult;
 import com.spectralogic.ds3client.commands.spectrads3.VerifyPoolSpectraS3Request;
 import com.spectralogic.ds3client.commands.spectrads3.VerifyPoolSpectraS3Response;
 import com.spectralogic.ds3client.models.Priority;
-import com.spectralogic.ds3client.utils.Guard;
-import org.apache.commons.cli.MissingArgumentException;
 import org.apache.commons.cli.Option;
 
 import static com.spectralogic.ds3cli.ArgumentFactory.ID;

@@ -31,7 +31,7 @@ public class HeadObjectView implements View<HeadObjectResult> {
     public String render(final HeadObjectResult obj) throws JsonProcessingException {
         final CommonJsonView view = CommonJsonView.newView(CommonJsonView.Status.OK);
 
-        final HeaderModel model = new HeaderModel(obj.getStatus(), obj.getMetadata());
+        final HeaderModel model = new HeaderModel(obj.getResult(), obj.getMetadata());
         return JsonMapper.toJson(view.data(model));
     }
 

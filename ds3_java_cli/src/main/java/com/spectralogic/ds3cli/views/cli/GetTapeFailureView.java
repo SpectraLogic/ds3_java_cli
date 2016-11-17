@@ -31,7 +31,7 @@ import static com.spectralogic.ds3cli.util.Utils.nullGuardToDate;
 
 public class GetTapeFailureView extends TableView<GetTapeFailureResult> {
 
-    protected List<DetailedTapeFailure> failures;
+    private List<DetailedTapeFailure> failures;
 
     @Override
     public String render(final GetTapeFailureResult obj) {

@@ -33,7 +33,7 @@ public class VerifyAllTapesView extends TableView<VerifyAllTapesResult> {
     @Override
     public String render(final VerifyAllTapesResult result) {
 
-        final TapeFailureList tapeFailureList = result.getTapeFailureList();
+        final TapeFailureList tapeFailureList = result.getResult();
 
         if (tapeFailureList == null || Guard.isNullOrEmpty(tapeFailureList.getFailures())) {
             return "Verify tasks for all of the tapes have been scheduled.";

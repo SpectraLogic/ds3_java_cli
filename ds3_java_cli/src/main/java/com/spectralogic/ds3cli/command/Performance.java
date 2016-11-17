@@ -18,7 +18,6 @@ package com.spectralogic.ds3cli.command;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.spectralogic.ds3cli.Arguments;
-import com.spectralogic.ds3cli.ClientFactory;
 import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.DefaultResult;
@@ -34,15 +33,12 @@ import com.spectralogic.ds3client.models.Contents;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.networking.FailedRequestException;
 import com.spectralogic.ds3client.serializer.XmlProcessingException;
-import org.apache.commons.cli.MissingOptionException;
 import org.apache.commons.cli.Option;
 
 import java.io.IOException;
 import java.util.List;
 
-import static com.spectralogic.ds3cli.ArgumentFactory.BUCKET;
-import static com.spectralogic.ds3cli.ArgumentFactory.NUMBER_OF_FILES;
-import static com.spectralogic.ds3cli.ArgumentFactory.SIZE_OF_FILES;
+import static com.spectralogic.ds3cli.ArgumentFactory.*;
 
 
 public class Performance extends CliCommand<DefaultResult> {

@@ -417,35 +417,57 @@ public class Ds3Cli_Test {
     @Test
     public void getBucketJson() throws Exception {
 
-        final String expected =
-                "  \"Data\" : {\n" +
-                        "    \"BucketName\" : \"bucketName\",\n" +
-                        "    \"Objects\" : [ {\n" +
-                        "      \"etag\" : \"\\\"fba9dede5f27731c9771645a39863328\\\"\",\n" + // TODO investigate double printing of etag
-                        "      \"ETag\" : \"\\\"fba9dede5f27731c9771645a39863328\\\"\",\n" +
-                        "      \"Key\" : \"my-image.jpg\",\n" +
-                        "      \"LastModified\" : \"2009-10-12T17:50:30.000Z\",\n" +
-                        "      \"Owner\" : {\n" +
-                        "        \"DisplayName\" : \"mtd@amazon.com\",\n" +
-                        "        \"ID\" : \"5df00f88-d5b2-11e5-ab30-625662870761\"\n" +
-                        "      },\n" +
-                        "      \"Size\" : 434234,\n" +
-                        "      \"StorageClass\" : \"STANDARD\"\n" +
-                        "    }, {\n" +
-                        "      \"etag\" : \"\\\"1b2cf535f27731c974343645a3985328\\\"\",\n" + // TODO investigate double printing of etag
-                        "      \"ETag\" : \"\\\"1b2cf535f27731c974343645a3985328\\\"\",\n" +
-                        "      \"Key\" : \"my-third-image.jpg\",\n" +
-                        "      \"LastModified\" : \"2009-10-12T17:50:30.000Z\",\n" +
-                        "      \"Owner\" : {\n" +
-                        "        \"DisplayName\" : \"mtd@amazon.com\",\n" +
-                        "        \"ID\" : \"5df00f88-d5b2-11e5-ab30-625662870761\"\n" +
-                        "      },\n" +
-                        "      \"Size\" : 64994,\n" +
-                        "      \"StorageClass\" : \"STANDARD\"\n" +
-                        "    } ]\n" +
-                        "  },\n" +
-                        "  \"Status\" : \"OK\"\n" +
-                        "}";
+        final String expected = "\"Data\" : {\n" +
+                "    \"result\" : [ {\n" +
+                "      \"etag\" : \"\\\"fba9dede5f27731c9771645a39863328\\\"\",\n" +
+                "      \"ETag\" : \"\\\"fba9dede5f27731c9771645a39863328\\\"\",\n" +
+                "      \"Key\" : \"my-image.jpg\",\n" +
+                "      \"LastModified\" : \"2009-10-12T17:50:30.000Z\",\n" +
+                "      \"Owner\" : {\n" +
+                "        \"DisplayName\" : \"mtd@amazon.com\",\n" +
+                "        \"ID\" : \"5df00f88-d5b2-11e5-ab30-625662870761\"\n" +
+                "      },\n" +
+                "      \"Size\" : 434234,\n" +
+                "      \"StorageClass\" : \"STANDARD\"\n" +
+                "    }, {\n" +
+                "      \"etag\" : \"\\\"1b2cf535f27731c974343645a3985328\\\"\",\n" +
+                "      \"ETag\" : \"\\\"1b2cf535f27731c974343645a3985328\\\"\",\n" +
+                "      \"Key\" : \"my-third-image.jpg\",\n" +
+                "      \"LastModified\" : \"2009-10-12T17:50:30.000Z\",\n" +
+                "      \"Owner\" : {\n" +
+                "        \"DisplayName\" : \"mtd@amazon.com\",\n" +
+                "        \"ID\" : \"5df00f88-d5b2-11e5-ab30-625662870761\"\n" +
+                "      },\n" +
+                "      \"Size\" : 64994,\n" +
+                "      \"StorageClass\" : \"STANDARD\"\n" +
+                "    } ],\n" +
+                "    \"BucketName\" : \"bucketName\",\n" +
+                "    \"Objects\" : [ {\n" +
+                "      \"etag\" : \"\\\"fba9dede5f27731c9771645a39863328\\\"\",\n" +
+                "      \"ETag\" : \"\\\"fba9dede5f27731c9771645a39863328\\\"\",\n" +
+                "      \"Key\" : \"my-image.jpg\",\n" +
+                "      \"LastModified\" : \"2009-10-12T17:50:30.000Z\",\n" +
+                "      \"Owner\" : {\n" +
+                "        \"DisplayName\" : \"mtd@amazon.com\",\n" +
+                "        \"ID\" : \"5df00f88-d5b2-11e5-ab30-625662870761\"\n" +
+                "      },\n" +
+                "      \"Size\" : 434234,\n" +
+                "      \"StorageClass\" : \"STANDARD\"\n" +
+                "    }, {\n" +
+                "      \"etag\" : \"\\\"1b2cf535f27731c974343645a3985328\\\"\",\n" +
+                "      \"ETag\" : \"\\\"1b2cf535f27731c974343645a3985328\\\"\",\n" +
+                "      \"Key\" : \"my-third-image.jpg\",\n" +
+                "      \"LastModified\" : \"2009-10-12T17:50:30.000Z\",\n" +
+                "      \"Owner\" : {\n" +
+                "        \"DisplayName\" : \"mtd@amazon.com\",\n" +
+                "        \"ID\" : \"5df00f88-d5b2-11e5-ab30-625662870761\"\n" +
+                "      },\n" +
+                "      \"Size\" : 64994,\n" +
+                "      \"StorageClass\" : \"STANDARD\"\n" +
+                "    } ]\n" +
+                "  },\n" +
+                "  \"Status\" : \"OK\"\n" +
+                "}";
 
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_bucket", "-b", "bucketName", "--output-format", "json"});
         final String response = "<ListBucketResult>\n" +
@@ -800,29 +822,30 @@ public class Ds3Cli_Test {
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!",
                 "-a", "access", "-c", "get_job", "-i", jobId, "--output-format", "json"});
 
-        final String expected = "\"Data\" : {\n"
-                + "    \"jobDetails\" : {\n"
-                + "      \"aggregating\" : false,\n"
-                + "      \"bucketName\" : \"bucket\",\n"
-                + "      \"cachedSizeInBytes\" : 0,\n"
-                + "      \"chunkClientProcessingOrderGuarantee\" : \"NONE\",\n"
-                + "      \"completedSizeInBytes\" : 0,\n"
-                + "      \"entirelyInCache\" : false,\n"
-                + "      \"jobId\" : \"aa5df0cc-b03a-4cb9-b69d-56e7367e917f\",\n"
-                + "      \"naked\" : false,\n"
-                + "      \"name\" : null,\n"
-                + "      \"originalSizeInBytes\" : 32,\n"
-                + "      \"priority\" : \"HIGH\",\n"
-                + "      \"requestType\" : \"GET\",\n"
-                + "      \"startDate\" : \"2015-09-28T17:30:43.000Z\",\n"
-                + "      \"status\" : \"COMPLETED\",\n"
-                + "      \"userId\" : \"c2581493-058c-40d7-a3a1-9a50b20d6d3b\",\n"
-                + "      \"userName\" : \"spectra\",\n"
-                + "      \"Nodes\" : [ ],\n"
-                + "      \"Objects\" : [ ]\n"
-                + "    }\n"
-                + "  },\n  \"Status\" : \"OK\"\n"
-                + "}";
+        final String expected = "\"Data\" : {\n" +
+                "    \"result\" : {\n" +
+                "      \"aggregating\" : false,\n" +
+                "      \"bucketName\" : \"bucket\",\n" +
+                "      \"cachedSizeInBytes\" : 0,\n" +
+                "      \"chunkClientProcessingOrderGuarantee\" : \"NONE\",\n" +
+                "      \"completedSizeInBytes\" : 0,\n" +
+                "      \"entirelyInCache\" : false,\n" +
+                "      \"jobId\" : \"aa5df0cc-b03a-4cb9-b69d-56e7367e917f\",\n" +
+                "      \"naked\" : false,\n" +
+                "      \"name\" : null,\n" +
+                "      \"originalSizeInBytes\" : 32,\n" +
+                "      \"priority\" : \"HIGH\",\n" +
+                "      \"requestType\" : \"GET\",\n" +
+                "      \"startDate\" : \"2015-09-28T17:30:43.000Z\",\n" +
+                "      \"status\" : \"COMPLETED\",\n" +
+                "      \"userId\" : \"c2581493-058c-40d7-a3a1-9a50b20d6d3b\",\n" +
+                "      \"userName\" : \"spectra\",\n" +
+                "      \"Nodes\" : [ ],\n" +
+                "      \"Objects\" : [ ]\n" +
+                "    }\n" +
+                "  },\n" +
+                "  \"Status\" : \"OK\"\n" +
+                "}";
 
         final String response = "<MasterObjectList BucketName=\"bucket\" CachedSizeInBytes=\"0\" ChunkClientProcessingOrderGuarantee=\"NONE\" CompletedSizeInBytes=\"0\" JobId=\"aa5df0cc-b03a-4cb9-b69d-56e7367e917f\" OriginalSizeInBytes=\"32\" Priority=\"HIGH\" RequestType=\"GET\" StartDate=\"2015-09-28T17:30:43.000Z\" Status=\"COMPLETED\" UserId=\"c2581493-058c-40d7-a3a1-9a50b20d6d3b\" UserName=\"spectra\" WriteOptimization=\"CAPACITY\"></MasterObjectList>";
 
@@ -2818,30 +2841,32 @@ public class Ds3Cli_Test {
 
     @Test
     public void getJobsJson() throws Exception {
-        final String expectedString =
-                "  \"Data\" : {\n" +
-                        "    \"Job\" : [ {\n" +
-                        "      \"aggregating\" : false,\n" +
-                        "      \"bucketName\" : \"coffeehouse\",\n" +
-                        "      \"cachedSizeInBytes\" : 343479386,\n" +
-                        "      \"chunkClientProcessingOrderGuarantee\" : \"IN_ORDER\",\n" +
-                        "      \"completedSizeInBytes\" : 0,\n" +
-                        "      \"entirelyInCache\" : false,\n" +
-                        "      \"jobId\" : \"52dc72a9-7876-4024-9034-d2f6e886f7e7\",\n" +
-                        "      \"naked\" : false,\n" +
-                        "      \"name\" : \"PUT by 192.168.1.12\",\n" +
-                        "      \"originalSizeInBytes\" : 343479386,\n" +
-                        "      \"priority\" : \"NORMAL\",\n" +
-                        "      \"requestType\" : \"PUT\",\n" +
-                        "      \"startDate\" : \"2016-08-30T22:14:49.000Z\",\n" +
-                        "      \"status\" : \"IN_PROGRESS\",\n" +
-                        "      \"userId\" : \"5079e312-bcff-43c7-bd54-d8148af0a515\",\n" +
-                        "      \"userName\" : \"jk\",\n" +
-                        "      \"Nodes\" : null\n" +
-                        "    } ]\n" +
-                        "  },\n" +
-                        "  \"Status\" : \"OK\"\n" +
-                        "}";
+
+        final String expectedString = "\"Data\" : {\n" +
+                "    \"result\" : {\n" +
+                "      \"Job\" : [ {\n" +
+                "        \"aggregating\" : false,\n" +
+                "        \"bucketName\" : \"coffeehouse\",\n" +
+                "        \"cachedSizeInBytes\" : 343479386,\n" +
+                "        \"chunkClientProcessingOrderGuarantee\" : \"IN_ORDER\",\n" +
+                "        \"completedSizeInBytes\" : 0,\n" +
+                "        \"entirelyInCache\" : false,\n" +
+                "        \"jobId\" : \"52dc72a9-7876-4024-9034-d2f6e886f7e7\",\n" +
+                "        \"naked\" : false,\n" +
+                "        \"name\" : \"PUT by 192.168.1.12\",\n" +
+                "        \"originalSizeInBytes\" : 343479386,\n" +
+                "        \"priority\" : \"NORMAL\",\n" +
+                "        \"requestType\" : \"PUT\",\n" +
+                "        \"startDate\" : \"2016-08-30T22:14:49.000Z\",\n" +
+                "        \"status\" : \"IN_PROGRESS\",\n" +
+                "        \"userId\" : \"5079e312-bcff-43c7-bd54-d8148af0a515\",\n" +
+                "        \"userName\" : \"jk\",\n" +
+                "        \"Nodes\" : null\n" +
+                "      } ]\n" +
+                "    }\n" +
+                "  },\n" +
+                "  \"Status\" : \"OK\"\n" +
+                "}";
 
         final Arguments args = new Arguments( new String[] {"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_jobs", "--output-format", "json"});
         final Ds3Client client = mock(Ds3Client.class);

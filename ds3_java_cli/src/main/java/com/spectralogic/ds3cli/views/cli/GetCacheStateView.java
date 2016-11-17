@@ -28,7 +28,7 @@ import static com.spectralogic.ds3cli.util.Utils.*;
 
 public class GetCacheStateView extends TableView<GetCacheStateResult> {
 
-    protected List<CacheFilesystemInformation> filesystemList;
+    private List<CacheFilesystemInformation> filesystemList;
 
     @Override
     public String render(final GetCacheStateResult obj) {

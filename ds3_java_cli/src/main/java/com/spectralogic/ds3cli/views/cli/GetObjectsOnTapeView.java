@@ -17,11 +17,11 @@ package com.spectralogic.ds3cli.views.cli;
 
 import com.bethecoder.ascii_table.ASCIITable;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.spectralogic.ds3cli.models.GetObjectsOnTapeResult;
 import com.spectralogic.ds3client.models.BulkObject;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import static com.spectralogic.ds3cli.util.Utils.nullGuard;
@@ -29,14 +29,15 @@ import static com.spectralogic.ds3cli.util.Utils.nullGuardToString;
 
 public class GetObjectsOnTapeView extends TableView<GetObjectsOnTapeResult> {
 
-    protected Iterator<BulkObject> objectIterator;
+    private Iterable<BulkObject> objectIterable;
 
     @Override
     public String render(final GetObjectsOnTapeResult blobsResult) {
-        if (null == blobsResult.getObjIterator() || !blobsResult.getObjIterator().hasNext()) {
+        final Iterable<BulkObject> bulkObjects = blobsResult.getResult();
+        if (null == bulkObjects || Iterables.isEmpty(bulkObjects)) {
             return "No objects were reported in tape '" + blobsResult.getTapeId() + "'";
         }
-        this.objectIterator = blobsResult.getObjIterator();
+        this.objectIterable = bulkObjects;
 
         initTable(ImmutableList.of("Name", "Bucket", "Size", "Id"));
         setTableDataAlignment(ImmutableList.of(ASCIITable.ALIGN_LEFT, ASCIITable.ALIGN_LEFT, ASCIITable.ALIGN_RIGHT, ASCIITable.ALIGN_RIGHT));
@@ -46,9 +47,7 @@ public class GetObjectsOnTapeView extends TableView<GetObjectsOnTapeResult> {
     protected String[][] formatTableContents() {
         final List<String[]> contents = new ArrayList<>();
 
-        while(objectIterator.hasNext()) {
-
-            final BulkObject content = objectIterator.next();
+        for (final BulkObject content : objectIterable) {
             final String[] arrayEntry = new String[this.columnCount];
             arrayEntry[0] = nullGuard(content.getName());
             arrayEntry[1] = nullGuard(content.getBucket());

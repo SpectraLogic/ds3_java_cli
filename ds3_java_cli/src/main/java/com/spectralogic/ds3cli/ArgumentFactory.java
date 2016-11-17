@@ -20,7 +20,7 @@ import com.spectralogic.ds3client.models.Priority;
 import com.spectralogic.ds3client.models.WriteOptimization;
 import org.apache.commons.cli.Option;
 
-public class ArgumentFactory {
+public final class ArgumentFactory {
 
     // added by base Arguments class and available in first parsing
     // These options are added in the Arguments class and read in first parsing

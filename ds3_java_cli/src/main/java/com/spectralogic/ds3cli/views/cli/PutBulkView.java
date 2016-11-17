@@ -25,7 +25,7 @@ import static com.spectralogic.ds3cli.util.Utils.nullGuard;
 
 public class PutBulkView extends TableView<PutBulkResult> {
 
-    protected ImmutableList<PutBulk.IgnoreFile> ignoreFileList;
+    private ImmutableList<PutBulk.IgnoreFile> ignoreFileList;
 
     @Override
     public String render(final PutBulkResult result) {

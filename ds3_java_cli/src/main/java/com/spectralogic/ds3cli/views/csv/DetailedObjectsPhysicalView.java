@@ -22,7 +22,9 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.models.GetDetailedObjectsResult;
-import com.spectralogic.ds3client.models.*;
+import com.spectralogic.ds3client.models.BulkObject;
+import com.spectralogic.ds3client.models.DetailedS3Object;
+import com.spectralogic.ds3client.models.Tape;
 import com.spectralogic.ds3client.utils.Guard;
 
 import javax.annotation.Nullable;
@@ -34,13 +36,14 @@ public class DetailedObjectsPhysicalView implements View<GetDetailedObjectsResul
 
     @Override
     public String render(final GetDetailedObjectsResult obj) {
-        if (obj == null || obj.getDetailedObjects() == null || Iterables.isEmpty(obj.getDetailedObjects())) {
+        final Iterable<DetailedS3Object> detailedS3Objects = obj.getResult();
+        if (detailedS3Objects == null || Iterables.isEmpty(detailedS3Objects)) {
             return "No objects returned";
         }
 
         final ImmutableList<String> headers = ImmutableList.of("Name", "Bucket", "Owner", "Size", "Type", "Creation Date", "Barcode", "State");
 
-        final FluentIterable<DetailedTapeInfo> objects = FluentIterable.from(obj.getDetailedObjects())
+        final FluentIterable<DetailedTapeInfo> objects = FluentIterable.from(detailedS3Objects)
                 .filter(new Predicate<DetailedS3Object>() {
                     @Override
                     public boolean apply(@Nullable final DetailedS3Object input) {
