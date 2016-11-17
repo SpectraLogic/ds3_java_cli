@@ -1826,9 +1826,7 @@ public class Ds3Cli_Test {
             final CommandResponse result = command.render();
         } catch (final CommandException e) {
             // exception is expected -- test handler / formatter
-            final Ds3ExceptionHandlerMapper exception = Ds3ExceptionHandlerMapper.getInstance();
-            final DefaultExceptionHandler handler = new DefaultExceptionHandler();
-            final String formattedException = handler.format(e);
+            final String formattedException = ExceptionFormatter.format(e);
             assertThat(formattedException, is(expected));
         }
     }
@@ -2183,7 +2181,6 @@ public class Ds3Cli_Test {
             "</MasterObjectList>";
 
         final Ds3ClientHelpers helpers = mock(Ds3ClientHelpers.class);
-        final FileUtils mockedFileUtils = mock(FileUtils.class);
 
         // just have helpers return something
         final Contents cont1 = new Contents();

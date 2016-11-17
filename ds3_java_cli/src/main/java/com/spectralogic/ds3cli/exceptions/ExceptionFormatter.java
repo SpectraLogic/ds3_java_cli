@@ -13,16 +13,21 @@
  * ***************************************************************************
  */
 
-package com.spectralogic.ds3cli.views.cli;
+package com.spectralogic.ds3cli.exceptions;
 
+import com.spectralogic.ds3client.utils.Guard;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.spectralogic.ds3cli.View;
-import com.spectralogic.ds3cli.models.Result;
+public final class ExceptionFormatter {
 
-public class DefaultView<T extends Result> implements View<T> {
-    @Override
-    public String render(final T result) throws JsonProcessingException {
-        return result.getResult().toString();
+    public static String format(final Throwable e) {
+        final StringBuilder message = new StringBuilder("Error (");
+        message.append(e.getClass().getSimpleName());
+        message.append("): ");
+        message.append(e.getMessage());
+        if (e.getCause() != null && !Guard.isStringNullOrEmpty(e.getCause().getMessage())) {
+            message.append("\nCause: ");
+            message.append(e.getCause().getMessage());
+        }
+        return message.toString();
     }
 }

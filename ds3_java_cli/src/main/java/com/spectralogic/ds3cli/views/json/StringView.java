@@ -20,10 +20,10 @@ import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.models.Result;
 import com.spectralogic.ds3cli.util.JsonMapper;
 
-public class StringView implements View<Result<String>> {
+public class StringView<T extends Result> implements View<T> {
     @Override
-    public String render(final Result<String> obj) throws JsonProcessingException {
+    public String render(final T obj) throws JsonProcessingException {
         final CommonJsonView view = CommonJsonView.newView(CommonJsonView.Status.OK);
-        return JsonMapper.toJson(view.message(obj.getResult()));
+        return JsonMapper.toJson(view.message(obj.getResult().toString()));
     }
 }

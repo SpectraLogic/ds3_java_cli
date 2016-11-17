@@ -76,15 +76,15 @@ public abstract class CliCommand<T extends Result> implements Callable<T> {
         return this.ds3Provider.getClient();
     }
 
-    protected Ds3ClientHelpers getClientHelpers() {
+    Ds3ClientHelpers getClientHelpers() {
         return this.ds3Provider.getClientHelpers();
     }
 
-    protected Ds3Provider getProvider() {
+    Ds3Provider getProvider() {
         return this.ds3Provider;
     }
 
-    protected FileUtils getFileUtils() {
+    FileUtils getFileUtils() {
         return this.fileUtils;
     }
 
@@ -137,7 +137,7 @@ public abstract class CliCommand<T extends Result> implements Callable<T> {
      * @param reqArgs List<Option> of required args
      * @param args Arguments object
      */
-    protected void addRequiredArguments(final List<Option> reqArgs, final Arguments args) {
+    void addRequiredArguments(final List<Option> reqArgs, final Arguments args) {
         for (final Option oReq : reqArgs ) {
             oReq.setRequired(true);
             args.addOption(oReq, oReq.getArgName());
@@ -149,7 +149,7 @@ public abstract class CliCommand<T extends Result> implements Callable<T> {
      * @param reqArgs List<Option> of optional args
      * @param args Arguments object
      */
-    protected void addOptionalArguments(final List<Option> reqArgs, final Arguments args) {
+    private void addOptionalArguments(final List<Option> reqArgs, final Arguments args) {
         for (final Option oOpt : reqArgs ) {
             oOpt.setRequired(false);
             args.addOption(oOpt, oOpt.getArgName());
@@ -162,9 +162,9 @@ public abstract class CliCommand<T extends Result> implements Callable<T> {
      */
     public View<T> getView() {
         if (this.viewType == ViewType.JSON) {
-            return (View<T>) new StringView();
+            return new StringView<>();
         }
-        return (View<T>) new DefaultView();
+        return new DefaultView<>();
     }
 
     /**

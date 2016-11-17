@@ -15,7 +15,6 @@
 
 package com.spectralogic.ds3cli.exceptions;
 
-import com.spectralogic.ds3client.utils.Guard;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,21 +23,8 @@ public class RuntimeExceptionHandler  implements Ds3ExceptionHandler<RuntimeExce
     private final static Logger LOG = LoggerFactory.getLogger(RuntimeExceptionHandler.class);
 
     public void handle(final RuntimeException e) {
-        final String message = format(e);
+        final String message = ExceptionFormatter.format(e);
         LOG.info(message, e);
         System.out.println(message);
     }
-
-    public String format(final RuntimeException e) {
-        final StringBuilder message = new StringBuilder("Error (");
-        message.append(e.getClass().getSimpleName());
-        message.append("): ");
-        message.append(e.getMessage());
-        if (e.getCause() != null && !Guard.isStringNullOrEmpty(e.getCause().getMessage())) {
-            message.append("\nCause: ");
-            message.append(e.getCause().getMessage());
-        }
-        return message.toString();
-    }
-
 }
