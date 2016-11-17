@@ -35,11 +35,13 @@ import java.io.InputStreamReader;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
 import java.util.Properties;
+import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
@@ -331,72 +333,56 @@ public final class Utils {
     /**
      * parse a string to get absolute date
      * @param diff format Yyear.Mmonth.Ddate.hhours.mminutes.sseconds e.g., "Y2016.M11.D10.h12"
-     * @return Date 
+     * @return Date
      */
     public static Date parseParamDate(final String diff) throws java.text.ParseException {
-        // default is 0000-01-01 00:00:00
-        String secs = "00";
-        String mins = "00";
-        String hours = "00";
-        String date = "01";
-        String month = "01";
-        String year = "0000";
+        final String dateString =  "0000-01-01T00:00:00.000UTC";
+        final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZZZ");
+        final char[] dateChars =  dateString.toCharArray();
 
+        String timeZone = "UTC";
+        TimeZone.getDefault();
         final String[] units = diff.split("[.]");
         for (final String unit : units) {
-            if (unit.matches("[YMDhms][0-9]+")) {
+            if (unit.matches("[YMDhms][0-9]+") || unit.matches("[Z]...")) {
                 final char unitdesc = unit.charAt(0);
                 switch (unitdesc) {
                     case 's':
-                        // pad to two chars
-                        secs = unit.replace("s", "00");
-                        secs = secs.substring(secs.length()-2, secs.length());
+                        // pad to at least two chars and replace two chars at dateChars[19] and left
+                        updateDateArray(dateChars, unit.replace("s", "00"), 19, 2);
                         break;
                     case 'm':
-                        // pad to two chars
-                        mins = unit.replace("m", "00");
-                        mins = mins.substring(mins.length()-2, mins.length());
+                        updateDateArray(dateChars, unit.replace("m", "00"), 16, 2);
                         break;
                     case 'h':
-                        // pad to two chars
-                        hours = unit.replace("h", "0");
-                        hours = hours.substring(hours.length()-2, hours.length());
+                        updateDateArray(dateChars, unit.replace("h", "00"), 13, 2);
                         break;
                     case 'D':
-                        // pad to two chars
-                        date = unit.replace("D", "00");
-                        date = date.substring(date.length()-2, date.length());
+                        updateDateArray(dateChars, unit.replace("D", "00"), 10, 2);
                         break;
                     case 'M':
-                        // pad to two chars
-                        month = unit.replace("M", "00");
-                        month = month.substring(month.length()-2, month.length());
+                        updateDateArray(dateChars, unit.replace("M", "00"), 7, 2);
                         break;
                     case 'Y':
-                        // pad to two chars
-                        year = unit.replace("Y", "0000");
-                        year = year.substring(year.length()-4, year.length());
+                        updateDateArray(dateChars, unit.replace("Y", "0000"), 4, 4);
+                        break;
+                    case 'Z':
+                        updateDateArray(dateChars, unit.replace("Z", ""), 26, 3);
+                        timeZone = unit.replace("Z", "");
                         break;
                 }
             } else {
                 throw new ParseException("Cannot process date token: '" + unit + "'", diff.indexOf(unit));
             }
         }
-        // "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-        final StringBuilder dateString = new StringBuilder(year)
-                .append("-")
-                .append(month)
-                .append("-")
-                .append(date)
-                .append("T")
-                .append(hours)
-                .append(":")
-                .append(mins)
-                .append(":")
-                .append(secs)
-                .append(".000Z");
-        return Constants.DATE_FORMAT.parse(dateString.toString());
+        dateFormat.setTimeZone(TimeZone.getTimeZone(timeZone));
+        return dateFormat.parse(new String(dateChars));
     }
 
-
+    private static void updateDateArray(char[] chars, final String value, int rightPos, final int fieldWidth) {
+        // value is a padded string copy the chars we need from the right
+        for (int i = 1; i <= fieldWidth; i++ ) {
+            chars[rightPos - i] = value.charAt(value.length() - i);
+        }
+    }
 }

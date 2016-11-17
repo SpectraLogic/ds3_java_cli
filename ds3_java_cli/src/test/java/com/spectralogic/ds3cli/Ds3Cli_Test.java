@@ -3023,6 +3023,16 @@ public class Ds3Cli_Test {
         assertEquals(parse, construct);
     }
 
+    @Test
+    public void parseAbsoluteDateTimeZoneShift() throws Exception {
+        final String input1 = "Y1960.M5.D26.ZMST";
+        final long parse1 = Utils.parseParamDate(input1).getTime();
+        final String input2 = "Y1960.M5.D26.ZCST";
+        final long parse2 = Utils.parseParamDate(input2).getTime();
+        // one hour off
+        assertEquals(parse1 - 60 * 60 * 1000, parse2);
+    }
+
     @Test(expected = ParseException.class)
     public void parseAbsoluteDateBad() throws Exception {
         final String input = "Y2016.M5.D26.Fred";
