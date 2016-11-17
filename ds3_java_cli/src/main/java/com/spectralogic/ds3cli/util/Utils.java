@@ -331,7 +331,7 @@ public final class Utils {
     /**
      * parse a string to get absolute date
      * @param diff format Yyear.Mmonth.Ddate.hhours.mminutes.sseconds e.g., "Y2016.M11.D10.h12"
-     * @return long time in ms
+     * @return Date 
      */
     public static Date parseParamDate(final String diff) throws java.text.ParseException {
         // default is 0000-01-01 00:00:00
