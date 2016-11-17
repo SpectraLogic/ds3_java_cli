@@ -341,7 +341,6 @@ public final class Utils {
         final char[] dateChars =  dateString.toCharArray();
 
         String timeZone = "UTC";
-        TimeZone.getDefault();
         final String[] units = diff.split("[.]");
         for (final String unit : units) {
             if (unit.matches("[YMDhms][0-9]+") || unit.matches("[Z]...")) {
@@ -379,7 +378,7 @@ public final class Utils {
         return dateFormat.parse(new String(dateChars));
     }
 
-    private static void updateDateArray(char[] chars, final String value, int rightPos, final int fieldWidth) {
+    private static void updateDateArray(final char[] chars, final String value, final int rightPos, final int fieldWidth) {
         // value is a padded string copy the chars we need from the right
         for (int i = 1; i <= fieldWidth; i++ ) {
             chars[rightPos - i] = value.charAt(value.length() - i);
