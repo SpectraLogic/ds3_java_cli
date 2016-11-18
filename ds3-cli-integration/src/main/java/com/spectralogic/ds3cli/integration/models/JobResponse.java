@@ -54,7 +54,7 @@ public class JobResponse {
     }
 
     public static class Data {
-        @JsonProperty("jobDetails")
+        @JsonProperty("result")
         private JobDetails jobDetails;
 
         public JobDetails getJobDetails() {
