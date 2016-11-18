@@ -25,7 +25,7 @@ import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.exceptions.BadArgumentException;
 import com.spectralogic.ds3cli.models.GetDetailedObjectsResult;
-import com.spectralogic.ds3cli.util.FileUtils;
+import com.spectralogic.ds3cli.util.DateUtils;
 import com.spectralogic.ds3cli.views.cli.DetailedObjectsView;
 import com.spectralogic.ds3cli.views.json.DataView;
 import com.spectralogic.ds3client.helpers.pagination.GetObjectsFullDetailsLoaderFactory;
@@ -141,16 +141,16 @@ public class GetDetailedObjects extends CliCommand<GetDetailedObjectsResult> {
         Date olderThan = new Date(Long.MAX_VALUE);
 
         if (!Guard.isStringNullOrEmpty(newer)) {
-            newerThan = new Date(new Date().getTime() - FileUtils.dateDiffToSeconds(newer) * MILLIS_PER_SECOND);
+            newerThan = new Date(new Date().getTime() - DateUtils.dateDiffToSeconds(newer) * MILLIS_PER_SECOND);
         }
         if (!Guard.isStringNullOrEmpty(older)) {
-            olderThan = new Date(new Date().getTime() - FileUtils.dateDiffToSeconds(older) * MILLIS_PER_SECOND);
+            olderThan = new Date(new Date().getTime() - DateUtils.dateDiffToSeconds(older) * MILLIS_PER_SECOND);
         }
         if (!Guard.isStringNullOrEmpty(after)) {
-            newerThan = FileUtils.parseParamDate(after);
+            newerThan = DateUtils.parseParamDate(after);
         }
         if (!Guard.isStringNullOrEmpty(before)) {
-            olderThan = FileUtils.parseParamDate(before);
+            olderThan = DateUtils.parseParamDate(before);
         }
         // set final to pass iknto predicate
         final Date newerThanDate = newerThan;

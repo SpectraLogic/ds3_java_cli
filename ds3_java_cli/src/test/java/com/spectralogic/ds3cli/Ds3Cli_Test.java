@@ -3033,14 +3033,14 @@ public class Ds3Cli_Test {
     @Test
     public void parseRelativeDate() throws Exception {
         final String input = "d1.h2.m3.s4";
-        final long diff = FileUtils.dateDiffToSeconds(input);
+        final long diff = DateUtils.dateDiffToSeconds(input);
         assertEquals(diff, (24 * 60 * 60) + (2 * 60 * 60) + (3 * 60) + 4);
     }
 
     @Test
     public void parseAbsoluteDate() throws Exception {
         final String input = "Y1960.M5.D26";
-        final long parse = FileUtils.parseParamDate(input).getTime();
+        final long parse = DateUtils.parseParamDate(input).getTime();
         final long construct =  Constants.DATE_FORMAT.parse("1960-05-26T00:00:00.000Z").getTime();
         assertEquals(parse, construct);
     }
@@ -3048,9 +3048,9 @@ public class Ds3Cli_Test {
     @Test
     public void parseAbsoluteDateTimeZoneShift() throws Exception {
         final String input1 = "Y1960.M5.D26.ZMST";
-        final long parse1 = FileUtils.parseParamDate(input1).getTime();
+        final long parse1 = DateUtils.parseParamDate(input1).getTime();
         final String input2 = "Y1960.M5.D26.ZCST";
-        final long parse2 = FileUtils.parseParamDate(input2).getTime();
+        final long parse2 = DateUtils.parseParamDate(input2).getTime();
         // one hour off
         assertEquals(parse1 - 60 * 60 * 1000, parse2);
     }
@@ -3058,7 +3058,7 @@ public class Ds3Cli_Test {
     @Test(expected = ParseException.class)
     public void parseAbsoluteDateBad() throws Exception {
         final String input = "Y2016.M5.D26.Fred";
-        final Date parse = FileUtils.parseParamDate(input);
+        final Date parse = DateUtils.parseParamDate(input);
     }
 
     @Test(expected = ParseException.class)
