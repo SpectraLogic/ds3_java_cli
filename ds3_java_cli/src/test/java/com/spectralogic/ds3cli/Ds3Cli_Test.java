@@ -23,10 +23,7 @@ import com.spectralogic.ds3cli.command.GetDetailedObjects;
 import com.spectralogic.ds3cli.command.GetDetailedObjectsPhysical;
 import com.spectralogic.ds3cli.exceptions.*;
 import com.spectralogic.ds3cli.models.GetDetailedObjectsResult;
-import com.spectralogic.ds3cli.util.FileUtils;
-import com.spectralogic.ds3cli.util.SterilizeString;
-import com.spectralogic.ds3cli.util.SyncUtils;
-import com.spectralogic.ds3cli.util.Utils;
+import com.spectralogic.ds3cli.util.*;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.*;
 import com.spectralogic.ds3client.commands.spectrads3.*;
@@ -56,6 +53,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.ParseException;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -3031,5 +3030,44 @@ public class Ds3Cli_Test {
         command.init(args);
     }
 
+    @Test
+    public void parseRelativeDate() throws Exception {
+        final String input = "d1.h2.m3.s4";
+        final long diff = Utils.dateDiffToSeconds(input);
+        assertEquals(diff, (24 * 60 * 60) + (2 * 60 * 60) + (3 * 60) + 4);
+    }
+
+    @Test
+    public void parseAbsoluteDate() throws Exception {
+        final String input = "Y1960.M5.D26";
+        final long parse = Utils.parseParamDate(input).getTime();
+        final long construct =  Constants.DATE_FORMAT.parse("1960-05-26T00:00:00.000Z").getTime();
+        assertEquals(parse, construct);
+    }
+
+    @Test
+    public void parseAbsoluteDateTimeZoneShift() throws Exception {
+        final String input1 = "Y1960.M5.D26.ZMST";
+        final long parse1 = Utils.parseParamDate(input1).getTime();
+        final String input2 = "Y1960.M5.D26.ZCST";
+        final long parse2 = Utils.parseParamDate(input2).getTime();
+        // one hour off
+        assertEquals(parse1 - 60 * 60 * 1000, parse2);
+    }
+
+    @Test(expected = ParseException.class)
+    public void parseAbsoluteDateBad() throws Exception {
+        final String input = "Y2016.M5.D26.Fred";
+        final Date parse = Utils.parseParamDate(input);
+    }
+
+    @Test(expected = ParseException.class)
+    public void parseAbsoluteDateBadArgs() throws Exception {
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_detailed_objects", "-b", "jktwocopies", "--filter-params", "after:Y2016.fred,before:Y2016.wilma"});
+        final Ds3Client client = mock(Ds3Client.class);
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, null), null);
+        command.init(args);
+        final CommandResponse result = command.render();
+    }
 
 }

@@ -52,7 +52,6 @@ public class GetObject extends CliCommand<DefaultResult> {
     private String objectName;
     private String prefix;
     private boolean sync;
-    private boolean force;
     private int numberOfThreads;
     private Priority priority;
 
@@ -73,7 +72,6 @@ public class GetObject extends CliCommand<DefaultResult> {
             LOG.info("Using sync command");
             this.sync = true;
         }
-        this.force = args.isForce();
         this.numberOfThreads = args.getNumberOfThreads();
         return this;
     }
