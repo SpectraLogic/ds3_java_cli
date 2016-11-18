@@ -49,6 +49,13 @@ subprojects {
     }
 }
 
+project(':ds3_java_cli') {
+    dependencies {
+        compile project(':ds3-cli-api')
+        compile project(':ds3-cli-tableview')
+    }
+}
+
 project(':ds3-cli-integration') {
     dependencies {
         compile project(':ds3_java_cli')
