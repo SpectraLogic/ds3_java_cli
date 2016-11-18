@@ -20,9 +20,10 @@ import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.models.GetJobResult;
+import com.spectralogic.ds3cli.views.cli.GetJobView;
+import com.spectralogic.ds3cli.views.json.DataView;
 import com.spectralogic.ds3client.commands.spectrads3.GetJobSpectraS3Request;
 import com.spectralogic.ds3client.commands.spectrads3.GetJobSpectraS3Response;
-import org.apache.commons.cli.MissingArgumentException;
 import org.apache.commons.cli.Option;
 
 import java.util.UUID;
@@ -56,9 +57,9 @@ public class GetJob extends CliCommand<GetJobResult> {
     @Override
     public View<GetJobResult> getView() {
         if (viewType == ViewType.JSON) {
-            return new com.spectralogic.ds3cli.views.json.GetJobView();
+            return new DataView<>();
         }
-        return new com.spectralogic.ds3cli.views.cli.GetJobView();
+        return new GetJobView();
     }
 }
     

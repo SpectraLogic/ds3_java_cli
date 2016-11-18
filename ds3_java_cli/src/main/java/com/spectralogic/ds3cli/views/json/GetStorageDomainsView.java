@@ -26,7 +26,7 @@ public class GetStorageDomainsView implements View<GetStorageDomainsResult> {
 
     @Override
     public String render(final GetStorageDomainsResult obj) throws JsonProcessingException {
-        final StorageDomainList result = obj.getDomainList();
+        final StorageDomainList result = obj.getResult();
         final CommonJsonView view = CommonJsonView.newView(CommonJsonView.Status.OK);
 
         if (Guard.isNullOrEmpty(result.getStorageDomains())) {

@@ -13,17 +13,32 @@
  * ***************************************************************************
  */
 
-package com.spectralogic.ds3cli.views.json;
+package com.spectralogic.ds3cli;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.spectralogic.ds3cli.View;
-import com.spectralogic.ds3cli.models.GetObjectsOnTapeResult;
-import com.spectralogic.ds3cli.util.JsonMapper;
+import com.spectralogic.ds3cli.util.FileSystemProvider;
 
-public class GetObjectsOnTapeView implements View<GetObjectsOnTapeResult> {
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+public class FileSystemProviderImpl implements FileSystemProvider {
     @Override
-    public String render(final GetObjectsOnTapeResult result) throws JsonProcessingException {
-        final CommonJsonView view = CommonJsonView.newView(CommonJsonView.Status.OK);
-        return JsonMapper.toJson(view.data(result));
+    public boolean exists(final Path path) {
+        return Files.exists(path);
+    }
+
+    @Override
+    public boolean isRegularFile(final Path path) {
+        return Files.isRegularFile(path);
+    }
+
+    @Override
+    public long size(final Path path) throws IOException {
+        return Files.size(path);
+    }
+
+    @Override
+    public void createDirectories(final Path path) throws IOException {
+        Files.createDirectories(path);
     }
 }

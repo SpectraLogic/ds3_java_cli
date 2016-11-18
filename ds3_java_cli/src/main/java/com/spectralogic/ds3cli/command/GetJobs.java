@@ -20,6 +20,8 @@ import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.models.GetJobsResult;
+import com.spectralogic.ds3cli.views.cli.GetJobsView;
+import com.spectralogic.ds3cli.views.json.DataView;
 import com.spectralogic.ds3client.commands.spectrads3.GetJobsSpectraS3Request;
 import org.apache.commons.cli.Option;
 
@@ -55,7 +57,8 @@ public class GetJobs extends CliCommand<GetJobsResult> {
      @Override
     public View<GetJobsResult> getView() {
         if (viewType == ViewType.JSON) {
-            return new com.spectralogic.ds3cli.views.json.GetJobsView();
+            return new DataView<>();
         }
-        return new com.spectralogic.ds3cli.views.cli.GetJobsView();
-    }}
+        return new GetJobsView();
+    }
+}

@@ -24,7 +24,7 @@ import com.spectralogic.ds3client.models.TapeList;
 public class GetTapesView implements View<GetTapesResult> {
     @Override
     public String render(final GetTapesResult obj) throws JsonProcessingException {
-        final TapeList result = obj.getTapes();
+        final TapeList result = obj.getResult();
         final CommonJsonView view = CommonJsonView.newView(CommonJsonView.Status.OK);
 
         if (result == null || null == result.getTapes()) {

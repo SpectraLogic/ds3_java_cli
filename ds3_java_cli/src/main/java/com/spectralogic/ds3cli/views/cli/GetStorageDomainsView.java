@@ -20,22 +20,25 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3cli.models.GetStorageDomainsResult;
 import com.spectralogic.ds3client.models.StorageDomain;
+import com.spectralogic.ds3client.models.StorageDomainList;
 import com.spectralogic.ds3client.utils.Guard;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.spectralogic.ds3cli.util.Utils.*;
+import static com.spectralogic.ds3cli.util.Guard.nullGuard;
+import static com.spectralogic.ds3cli.util.Guard.nullGuardToString;
 
 public class GetStorageDomainsView extends TableView<GetStorageDomainsResult> {
-    protected Iterable<StorageDomain> objectIterator;
+    private Iterable<StorageDomain> objectIterator;
 
     @Override
     public String render(final GetStorageDomainsResult obj) {
-        if (obj.getDomainList() == null || Guard.isNullOrEmpty(obj.getDomainList().getStorageDomains())) {
+        final StorageDomainList storageDomainList = obj.getResult();
+        if (storageDomainList == null || Guard.isNullOrEmpty(storageDomainList.getStorageDomains())) {
             return "No Storage Domains returned";
         }
-        objectIterator = obj.getDomainList().getStorageDomains();
+        objectIterator = storageDomainList.getStorageDomains();
 
         initTable(ImmutableList.of("Name", "ID", "LTFS Naming", "Flags", "Write Optimization"));
 
@@ -58,7 +61,7 @@ public class GetStorageDomainsView extends TableView<GetStorageDomainsResult> {
     }
 
     private static String formatFlagList(final StorageDomain domain) {
-        final List<String> flagsSet = new ArrayList<String>();
+        final List<String> flagsSet = new ArrayList<>();
         if(domain.getAutoEjectUponJobCancellation()) {
             flagsSet.add("Auto Eject upon Job Cancellation");
         }

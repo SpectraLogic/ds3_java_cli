@@ -29,7 +29,9 @@ import com.spectralogic.ds3client.utils.Guard;
 import javax.annotation.Nullable;
 
 import static com.spectralogic.ds3cli.util.Constants.DATE_FORMAT;
-import static com.spectralogic.ds3cli.util.Utils.*;
+import static com.spectralogic.ds3cli.util.Guard.nullGuard;
+import static com.spectralogic.ds3cli.util.Guard.nullGuardFromDate;
+import static com.spectralogic.ds3cli.util.Guard.nullGuardToString;
 
 public class DetailedObjectsView implements View<GetDetailedObjectsResult> {
 
@@ -37,13 +39,14 @@ public class DetailedObjectsView implements View<GetDetailedObjectsResult> {
 
     @Override
     public String render(final GetDetailedObjectsResult obj) {
-        if (obj == null || obj.getDetailedObjects() == null || Iterables.isEmpty(obj.getDetailedObjects())) {
+        final Iterable<DetailedS3Object> detailedS3Objects = obj.getResult();
+        if (detailedS3Objects == null || Iterables.isEmpty(detailedS3Objects)) {
             return "No objects returned";
         }
 
         final ImmutableList<String> headers = ImmutableList.of("Name", "Bucket", "Owner", "Size", "Type", "Creation Date", "Tapes", "Pools");
 
-        return new CsvOutput<>(headers, obj.getDetailedObjects(), new CsvOutput.ContentFormatter<DetailedS3Object>() {
+        return new CsvOutput<>(headers, detailedS3Objects, new CsvOutput.ContentFormatter<DetailedS3Object>() {
             @Override
             public Iterable<String> format(final DetailedS3Object content) {
 
@@ -53,7 +56,7 @@ public class DetailedObjectsView implements View<GetDetailedObjectsResult> {
                 builder.add(nullGuardToString(content.getOwner()));
                 builder.add(nullGuardToString(content.getSize()));
                 builder.add(nullGuardToString(content.getType()));
-                builder.add(nullGuardToDate(content.getCreationDate(), DATE_FORMAT));
+                builder.add(nullGuardFromDate(content.getCreationDate(), DATE_FORMAT));
                 builder.add(concatenateTapes(content.getBlobs()));
                 builder.add(concatenatePools(content.getBlobs()));
                 return builder.build();

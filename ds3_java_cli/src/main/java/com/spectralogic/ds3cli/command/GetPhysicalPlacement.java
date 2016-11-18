@@ -20,12 +20,12 @@ import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.models.GetPhysicalPlacementWithFullDetailsResult;
+import com.spectralogic.ds3cli.views.cli.GetPhysicalPlacementWithFullDetailsView;
+import com.spectralogic.ds3cli.views.json.DataView;
 import com.spectralogic.ds3client.commands.spectrads3.GetPhysicalPlacementForObjectsWithFullDetailsSpectraS3Request;
 import com.spectralogic.ds3client.commands.spectrads3.GetPhysicalPlacementForObjectsWithFullDetailsSpectraS3Response;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
-import org.apache.commons.cli.MissingOptionException;
 import org.apache.commons.cli.Option;
-import org.apache.commons.cli.UnrecognizedOptionException;
 
 import java.util.Collections;
 import java.util.List;
@@ -67,8 +67,8 @@ public class GetPhysicalPlacement extends CliCommand<GetPhysicalPlacementWithFul
     @Override
     public View<GetPhysicalPlacementWithFullDetailsResult> getView() {
         if (viewType == ViewType.JSON) {
-            return new com.spectralogic.ds3cli.views.json.GetPhysicalPlacementWithFullDetailsView();
+            return new DataView<>();
         }
-        return new com.spectralogic.ds3cli.views.cli.GetPhysicalPlacementWithFullDetailsView();
+        return new GetPhysicalPlacementWithFullDetailsView();
     }
 }

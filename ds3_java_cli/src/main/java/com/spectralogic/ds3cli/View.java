@@ -16,8 +16,9 @@
 package com.spectralogic.ds3cli;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.spectralogic.ds3cli.models.Result;
 
 
-public interface View<T>{
+public interface View<T extends Result> {
     String render(final T obj) throws JsonProcessingException;
 }

@@ -15,49 +15,49 @@
 
 package com.spectralogic.ds3cli.command;
 
-import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.CommandResponse;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.exceptions.BadArgumentException;
 import com.spectralogic.ds3cli.models.Result;
+import com.spectralogic.ds3cli.util.CommandHelpText;
 import com.spectralogic.ds3cli.util.Ds3Provider;
-import com.spectralogic.ds3cli.util.FileUtils;
+import com.spectralogic.ds3cli.util.FileSystemProvider;
 import com.spectralogic.ds3cli.views.cli.DefaultView;
+import com.spectralogic.ds3cli.views.json.StringView;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.ParseException;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-import com.spectralogic.ds3cli.util.CommandHelpText;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.ParseException;
-
 public abstract class CliCommand<T extends Result> implements Callable<T> {
 
-    private Ds3Provider ds3Provider;
-    private FileUtils fileUtils;
-    protected ViewType viewType = ViewType.CLI;
     protected final static List<Option> EMPTY_LIST = Collections.emptyList();
+
+    private Ds3Provider ds3Provider;
+    private FileSystemProvider fileSystemProvider;
+    protected ViewType viewType = ViewType.CLI;
 
     // for service provider instantiation
     public CliCommand() {
         this.ds3Provider = null;
-        this.fileUtils = null;
+        this.fileSystemProvider = null;
     }
 
-    public CliCommand withProvider(final Ds3Provider ds3Provider, final FileUtils fileUtils) {
+    public CliCommand withProvider(final Ds3Provider ds3Provider, final FileSystemProvider fileSystemProvider) {
         this.ds3Provider = ds3Provider;
-        this.fileUtils = fileUtils;
+        this.fileSystemProvider = fileSystemProvider;
         return this;
     }
 
-    public CliCommand(final Ds3Provider ds3Provider, final FileUtils fileUtils) {
+    public CliCommand(final Ds3Provider ds3Provider, final FileSystemProvider fileSystemProvider) {
         this.ds3Provider = ds3Provider;
-        this.fileUtils = fileUtils;
+        this.fileSystemProvider = fileSystemProvider;
     }
 
     /**
@@ -77,16 +77,16 @@ public abstract class CliCommand<T extends Result> implements Callable<T> {
         return this.ds3Provider.getClient();
     }
 
-    protected Ds3ClientHelpers getClientHelpers() {
+    Ds3ClientHelpers getClientHelpers() {
         return this.ds3Provider.getClientHelpers();
     }
 
-    protected Ds3Provider getProvider() {
+    Ds3Provider getProvider() {
         return this.ds3Provider;
     }
 
-    protected FileUtils getFileUtils() {
-        return this.fileUtils;
+    FileSystemProvider getFileSystemProvider() {
+        return this.fileSystemProvider;
     }
 
     /**
@@ -138,7 +138,7 @@ public abstract class CliCommand<T extends Result> implements Callable<T> {
      * @param reqArgs List<Option> of required args
      * @param args Arguments object
      */
-    protected void addRequiredArguments(final List<Option> reqArgs, final Arguments args) {
+    void addRequiredArguments(final List<Option> reqArgs, final Arguments args) {
         for (final Option oReq : reqArgs ) {
             oReq.setRequired(true);
             args.addOption(oReq, oReq.getArgName());
@@ -150,7 +150,7 @@ public abstract class CliCommand<T extends Result> implements Callable<T> {
      * @param reqArgs List<Option> of optional args
      * @param args Arguments object
      */
-    protected void addOptionalArguments(final List<Option> reqArgs, final Arguments args) {
+    private void addOptionalArguments(final List<Option> reqArgs, final Arguments args) {
         for (final Option oOpt : reqArgs ) {
             oOpt.setRequired(false);
             args.addOption(oOpt, oOpt.getArgName());
@@ -163,9 +163,9 @@ public abstract class CliCommand<T extends Result> implements Callable<T> {
      */
     public View<T> getView() {
         if (this.viewType == ViewType.JSON) {
-            return (View<T>) new com.spectralogic.ds3cli.views.json.DefaultView();
+            return new StringView<>();
         }
-        return (View<T>) new DefaultView();
+        return new DefaultView<>();
     }
 
     /**
@@ -176,10 +176,6 @@ public abstract class CliCommand<T extends Result> implements Callable<T> {
     public CommandResponse render() throws Exception {
         final String message = getView().render(call());
         return new CommandResponse(message, 0);
-    }
-
-    public ViewType getOutputFormat() {
-        return this.viewType;
     }
 
     public static String getPlatformInformation() {

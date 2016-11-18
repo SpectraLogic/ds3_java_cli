@@ -17,7 +17,7 @@ package com.spectralogic.ds3cli.models;
 
 import com.spectralogic.ds3client.models.ListAllMyBucketsResult;
 
-public class GetServiceResult implements Result {
+public class GetServiceResult implements Result<ListAllMyBucketsResult> {
 
     private final ListAllMyBucketsResult result;
 
@@ -25,6 +25,7 @@ public class GetServiceResult implements Result {
         this.result = result;
     }
 
+    @Override
     public ListAllMyBucketsResult getResult() {
         return this.result;
     }

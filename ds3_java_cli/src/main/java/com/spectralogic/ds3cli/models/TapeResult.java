@@ -13,17 +13,19 @@
  * ***************************************************************************
  */
 
-package com.spectralogic.ds3cli.views.json;
+package com.spectralogic.ds3cli.models;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.spectralogic.ds3cli.View;
-import com.spectralogic.ds3cli.models.VerifyAllTapesResult;
-import com.spectralogic.ds3cli.util.JsonMapper;
+import com.spectralogic.ds3client.models.Tape;
 
-public class VerifyAllTapesView implements View<VerifyAllTapesResult> {
+public class TapeResult implements Result<Tape> {
+    private final Tape tape;
+
+    public TapeResult(final Tape tape) {
+        this.tape = tape;
+    }
+
     @Override
-    public String render(final VerifyAllTapesResult result) throws JsonProcessingException {
-        final CommonJsonView view = CommonJsonView.newView(CommonJsonView.Status.OK);
-        return JsonMapper.toJson(view.data(result));
+    public Tape getResult() {
+        return tape;
     }
 }

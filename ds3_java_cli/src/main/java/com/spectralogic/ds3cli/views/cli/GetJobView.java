@@ -18,6 +18,7 @@ package com.spectralogic.ds3cli.views.cli;
 import com.bethecoder.ascii_table.ASCIITable;
 import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3cli.models.GetJobResult;
+import com.spectralogic.ds3cli.util.Guard;
 import com.spectralogic.ds3client.models.BulkObject;
 import com.spectralogic.ds3client.models.MasterObjectList;
 import com.spectralogic.ds3client.models.Objects;
@@ -26,25 +27,25 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 import static com.spectralogic.ds3cli.util.Constants.DATE_FORMAT;
-import static com.spectralogic.ds3cli.util.Utils.nullGuard;
-import static com.spectralogic.ds3cli.util.Utils.nullGuardToDate;
-import static com.spectralogic.ds3cli.util.Utils.nullGuardToString;
+import static com.spectralogic.ds3cli.util.Guard.nullGuard;
+import static com.spectralogic.ds3cli.util.Guard.nullGuardFromDate;
+import static com.spectralogic.ds3cli.util.Guard.nullGuardToString;
 
 public class GetJobView extends TableView<GetJobResult> {
 
-    protected Iterator<Objects> objectsIterator;
+    private Iterator<Objects> objectsIterator;
 
     @Override
     public String render(final GetJobResult obj) {
 
-        final MasterObjectList mol = obj.getJobDetails();
+        final MasterObjectList mol = obj.getResult();
 
         /// DATE_FORMAT is used before initTable() -- Set UTC
         final String returnString = String.format(
                 "JobId: %s | Status: %s | Bucket: %s | Type: %s | Priority: %s | User Name: %s | Creation Date: %s | Total Size: %s | Total Transferred: %s",
                 nullGuardToString(mol.getJobId()), nullGuardToString(mol.getStatus()), nullGuard(mol.getBucketName()),
                 nullGuardToString(mol.getRequestType()), nullGuardToString(mol.getPriority()), nullGuardToString(mol.getUserName()),
-                nullGuardToDate(mol.getStartDate(), DATE_FORMAT), nullGuardToString(mol.getOriginalSizeInBytes()),
+                nullGuardFromDate(mol.getStartDate(), DATE_FORMAT), nullGuardToString(mol.getOriginalSizeInBytes()),
                 nullGuardToString(mol.getCompletedSizeInBytes()));
 
         if (mol.getObjects() == null || mol.getObjects().isEmpty()) {

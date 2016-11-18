@@ -18,10 +18,9 @@ package com.spectralogic.ds3cli.views.cli;
 import com.bethecoder.ascii_table.ASCIITable;
 import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3cli.models.GetCapacitySummaryResult;
+import com.spectralogic.ds3cli.util.Guard;
 import com.spectralogic.ds3client.models.CapacitySummaryContainer;
 import com.spectralogic.ds3client.models.StorageDomainCapacitySummary;
-
-import static com.spectralogic.ds3cli.util.Utils.nullGuardToString;
 
 public class GetCapacitySummaryView extends TableView<GetCapacitySummaryResult> {
 
@@ -45,33 +44,26 @@ public class GetCapacitySummaryView extends TableView<GetCapacitySummaryResult> 
     protected String[][] formatTableContents() {
         // Pool and Tape
         final String [][] formatArray = new String[2][];
-        final String [] poolArray = new String[this.columnCount];
-        poolArray[0] = "Pool";
-        if(poolCapacity != null) {
-            poolArray[1] = nullGuardToString(poolCapacity.getPhysicalAllocated());
-            poolArray[2] = nullGuardToString(poolCapacity.getPhysicalUsed());
-            poolArray[3] = nullGuardToString(poolCapacity.getPhysicalFree());
-        } else {
-            poolArray[1] = "N/A";
-            poolArray[2] = "N/A";
-            poolArray[3] = "N/A";
-        }
-        formatArray[0] = poolArray;
 
-        final String [] tapeArray = new String[this.columnCount];
-        tapeArray[0] = "Tape";
-        if(tapeCapacity != null) {
-            tapeArray[1] = nullGuardToString(tapeCapacity.getPhysicalAllocated());
-            tapeArray[2] = nullGuardToString(tapeCapacity.getPhysicalUsed());
-            tapeArray[3] = nullGuardToString(tapeCapacity.getPhysicalFree());
-        } else {
-            tapeArray[1] = "N/A";
-            tapeArray[2] = "N/A";
-            tapeArray[3] = "N/A";
-        }
-        formatArray[1] = tapeArray;
+        formatArray[0] = createDomainCapacitySummaryEntry(poolCapacity, "Pool");
+        formatArray[1] = createDomainCapacitySummaryEntry(tapeCapacity, "Tape");
 
         return formatArray;
+    }
+
+    private String[] createDomainCapacitySummaryEntry(final StorageDomainCapacitySummary capacitySummary, final String name) {
+        final String [] capacitySummaryArray = new String[this.columnCount];
+        capacitySummaryArray[0] = name;
+        if(capacitySummary != null) {
+            capacitySummaryArray[1] = Guard.nullGuardToString(capacitySummary.getPhysicalAllocated());
+            capacitySummaryArray[2] = Guard.nullGuardToString(capacitySummary.getPhysicalUsed());
+            capacitySummaryArray[3] = Guard.nullGuardToString(capacitySummary.getPhysicalFree());
+        } else {
+            capacitySummaryArray[1] = "N/A";
+            capacitySummaryArray[2] = "N/A";
+            capacitySummaryArray[3] = "N/A";
+        }
+        return capacitySummaryArray;
     }
 }
 

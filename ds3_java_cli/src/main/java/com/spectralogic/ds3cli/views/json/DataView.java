@@ -17,13 +17,13 @@ package com.spectralogic.ds3cli.views.json;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.spectralogic.ds3cli.View;
-import com.spectralogic.ds3cli.models.GetJobResult;
+import com.spectralogic.ds3cli.models.Result;
 import com.spectralogic.ds3cli.util.JsonMapper;
 
-public class GetJobView implements View<GetJobResult> {
+public class DataView<T extends Result> implements View<T> {
     @Override
-    public String render(final GetJobResult obj) throws JsonProcessingException {
+    public String render(final T result) throws JsonProcessingException {
         final CommonJsonView view = CommonJsonView.newView(CommonJsonView.Status.OK);
-        return JsonMapper.toJson(view.data(obj));
+        return JsonMapper.toJson(view.data(result));
     }
 }

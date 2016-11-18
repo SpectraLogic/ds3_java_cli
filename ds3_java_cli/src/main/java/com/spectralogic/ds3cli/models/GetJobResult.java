@@ -18,14 +18,15 @@ package com.spectralogic.ds3cli.models;
 
 import com.spectralogic.ds3client.models.MasterObjectList;
 
-public class GetJobResult implements Result {
+public class GetJobResult implements Result<MasterObjectList> {
     private final MasterObjectList jobDetails;
 
     public GetJobResult(final MasterObjectList masterObjectList) {
         this.jobDetails = masterObjectList;
     }
 
-    public MasterObjectList getJobDetails() {
+    @Override
+    public MasterObjectList getResult() {
         return jobDetails;
     }
 }

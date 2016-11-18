@@ -23,28 +23,28 @@ import ch.qos.logback.classic.filter.ThresholdFilter;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.Appender;
 import ch.qos.logback.core.ConsoleAppender;
-import ch.qos.logback.core.rolling.*;
+import ch.qos.logback.core.rolling.FixedWindowRollingPolicy;
+import ch.qos.logback.core.rolling.RollingFileAppender;
+import ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy;
+import ch.qos.logback.core.rolling.TriggeringPolicy;
 import com.google.common.base.Joiner;
 import com.spectralogic.ds3cli.command.CliCommand;
 import com.spectralogic.ds3cli.command.CliCommandFactory;
 import com.spectralogic.ds3cli.exceptions.*;
+import com.spectralogic.ds3cli.util.CliUtils;
 import com.spectralogic.ds3cli.util.Ds3Provider;
-import com.spectralogic.ds3cli.util.FileUtils;
-import com.spectralogic.ds3cli.util.Utils;
+import com.spectralogic.ds3cli.util.FileSystemProvider;
 import com.spectralogic.ds3client.Ds3Client;
-import com.spectralogic.ds3client.Ds3ClientBuilder;
-import com.spectralogic.ds3client.models.common.Credentials;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.networking.FailedRequestException;
 import org.apache.commons.cli.MissingOptionException;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.util.Properties;
 
-import static com.spectralogic.ds3cli.ArgumentFactory.*;
+import static com.spectralogic.ds3cli.ArgumentFactory.COMMAND;
 
 public final class Main {
 
@@ -80,7 +80,7 @@ public final class Main {
             consoleEncoder.setPattern(LOG_FORMAT_PATTERN);
             consoleEncoder.start();
 
-            final ConsoleAppender<ILoggingEvent> consoleAppender = new ConsoleAppender<ILoggingEvent>();
+            final ConsoleAppender<ILoggingEvent> consoleAppender = new ConsoleAppender<>();
             consoleAppender.setContext(loggerContext);
             consoleAppender.setName("STDOUT");
             consoleAppender.setEncoder(consoleEncoder);
@@ -98,9 +98,9 @@ public final class Main {
         if (!fileLevel.equals(Level.OFF)) {
             // create file appender only if needed.
             // if done in the xml, it will create an empty file
-            final RollingFileAppender<ILoggingEvent> fileAppender = new RollingFileAppender<ILoggingEvent>();
+            final RollingFileAppender<ILoggingEvent> fileAppender = new RollingFileAppender<>();
             final FixedWindowRollingPolicy sizeBasedRollingPolicy = new FixedWindowRollingPolicy();
-            final SizeBasedTriggeringPolicy<Object> sizeBasedTriggeringPolicy = new SizeBasedTriggeringPolicy<Object>();
+            final SizeBasedTriggeringPolicy<Object> sizeBasedTriggeringPolicy = new SizeBasedTriggeringPolicy<>();
 
             fileAppender.setContext(loggerContext);
             sizeBasedTriggeringPolicy.setContext(loggerContext);
@@ -143,7 +143,7 @@ public final class Main {
     public static void main(final String[] args) {
 
         try {
-            final Properties props = Utils.readProperties(PROPERTY_FILE);
+            final Properties props = CliUtils.readProperties(PROPERTY_FILE);
 
             // constructor parses for command, help, version, and logging settings
             final Arguments arguments = new Arguments(args);
@@ -151,8 +151,8 @@ public final class Main {
             // turn root log wide open, filters will be set to argument levels
             configureLogging(arguments.getConsoleLogLevel(), arguments.getFileLogLevel());
 
-            LOG.info("Version: {}", Utils.getVersion(props));
-            LOG.info("Build Date: {}", Utils.getBuildDate(props));
+            LOG.info("Version: {}", CliUtils.getVersion(props));
+            LOG.info("Build Date: {}", CliUtils.getBuildDate(props));
             LOG.info("Command line args: {}", Joiner.on(", ").join(args));
             LOG.info("Console log level: {}", arguments.getConsoleLogLevel().toString());
             LOG.info("Log file log level: {}", arguments.getFileLogLevel().toString());
@@ -179,16 +179,16 @@ public final class Main {
 
 
             final Ds3Client client = ClientFactory.createClient(arguments);
-            if (!Utils.isVersionSupported(client)) {
-                System.out.println(String.format("ERROR: Minimum Black Pearl supported is %s", Utils.MINIMUM_VERSION_SUPPORTED));
+            if (!CliUtils.isVersionSupported(client)) {
+                System.out.println(String.format("ERROR: Minimum Black Pearl supported is %s", CliUtils.MINIMUM_VERSION_SUPPORTED));
                 System.exit(2);
             }
 
             final Ds3Provider provider = new Ds3ProviderImpl(client, Ds3ClientHelpers.wrap(client));
-            final FileUtils fileUtils = new FileUtilsImpl();
+            final FileSystemProvider fileSystemProvider = new FileSystemProviderImpl();
 
             // get command, parse args
-            final CliCommand command = CliCommandFactory.getCommandExecutor(arguments.getCommand()).withProvider(provider, fileUtils);
+            final CliCommand command = CliCommandFactory.getCommandExecutor(arguments.getCommand()).withProvider(provider, fileSystemProvider);
             command.init(arguments);
 
             final CommandResponse response = command.render();
@@ -220,12 +220,12 @@ public final class Main {
         }
     }
 
-    private static void printVersion(final Properties props) throws IOException {
+    private static void printVersion(final Properties props) {
         if (props == null) {
             System.err.println("Could not find property file.");
         } else {
-            System.out.println("Version: " + Utils.getVersion(props));
-            System.out.println("Build Date: " + Utils.getBuildDate(props));
+            System.out.println("Version: " + CliUtils.getVersion(props));
+            System.out.println("Build Date: " + CliUtils.getBuildDate(props));
         }
     }
 

@@ -20,7 +20,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3cli.command.PutBulk;
 
-public class PutBulkResult implements Result {
+public class PutBulkResult implements Result<String> {
     @JsonProperty("status_message")
     private final String result;
 
@@ -40,6 +40,7 @@ public class PutBulkResult implements Result {
         this.ignoredFiles = ignoredFiles;
     }
 
+    @Override
     final public String getResult(){
         return this.result;
     }

@@ -18,6 +18,7 @@ package com.spectralogic.ds3cli.views.cli;
 import com.bethecoder.ascii_table.ASCIITable;
 import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3cli.models.VerifyBulkJobResult;
+import com.spectralogic.ds3cli.util.Guard;
 import com.spectralogic.ds3client.models.BulkObject;
 import com.spectralogic.ds3client.models.Objects;
 
@@ -25,20 +26,21 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import static com.spectralogic.ds3cli.util.Utils.nullGuard;
-import static com.spectralogic.ds3cli.util.Utils.nullGuardToString;
+import static com.spectralogic.ds3cli.util.Guard.nullGuard;
+import static com.spectralogic.ds3cli.util.Guard.nullGuardToString;
 
 public class VerifyBulkJobView extends TableView<VerifyBulkJobResult> {
 
-    protected Iterator<Objects> objectsIterator;
+    private Iterator<Objects> objectsIterator;
 
     @Override
     public String render(final VerifyBulkJobResult verifyResult) {
-        if (null == verifyResult.getObjIterator() || !verifyResult.getObjIterator().hasNext()) {
+        final Iterator<Objects> objectsIterator = verifyResult.getResult();
+        if (null == objectsIterator || !objectsIterator.hasNext()) {
             return "No objects were reported in tape '" + verifyResult.getBucketId() + "'";
         }
 
-        this.objectsIterator = verifyResult.getObjIterator();
+        this.objectsIterator = objectsIterator;
 
         initTable(ImmutableList.of("Chunk", "Name", "Size", "Version"));
         setTableDataAlignment(ImmutableList.of(ASCIITable.ALIGN_LEFT, ASCIITable.ALIGN_LEFT, ASCIITable.ALIGN_RIGHT, ASCIITable.ALIGN_RIGHT));

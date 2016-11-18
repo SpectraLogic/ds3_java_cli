@@ -23,7 +23,7 @@ import com.spectralogic.ds3client.utils.Guard;
 
 import java.util.List;
 
-import static com.spectralogic.ds3cli.util.Utils.nullGuardToString;
+import static com.spectralogic.ds3cli.util.Guard.nullGuardToString;
 
 public class GetSuspectBlobTapesView extends TableView<SuspectBlobTapesResult> {
 
@@ -31,10 +31,11 @@ public class GetSuspectBlobTapesView extends TableView<SuspectBlobTapesResult> {
 
     @Override
     public String render(final SuspectBlobTapesResult obj) {
-        if (Guard.isNullOrEmpty(obj.getSuspectBlobTapes())) {
+        final List<SuspectBlobTape> suspectBlobTapes = obj.getResult();
+        if (Guard.isNullOrEmpty(suspectBlobTapes)) {
             return "No Suspect Blob Tapes reported";
         }
-        suspectBlobTapeList = obj.getSuspectBlobTapes();
+        suspectBlobTapeList = suspectBlobTapes;
         initTable(ImmutableList.of("ID", "Blob ID", "Tape ID", "Order Index"));
 
         return ASCIITable.getInstance().getTable(getHeaders(), formatTableContents());

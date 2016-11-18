@@ -18,7 +18,7 @@ package com.spectralogic.ds3cli.models;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.spectralogic.ds3client.models.TapeFailureList;
 
-public class VerifyAllTapesResult implements Result {
+public class VerifyAllTapesResult implements Result<TapeFailureList> {
 
     @JsonProperty("tape_failure_list")
     private final TapeFailureList tapeFailureList;
@@ -27,7 +27,8 @@ public class VerifyAllTapesResult implements Result {
         this.tapeFailureList = tapeFailureListResult;
     }
 
-    public TapeFailureList getTapeFailureList() {
+    @Override
+    public TapeFailureList getResult() {
         return tapeFailureList;
     }
 }

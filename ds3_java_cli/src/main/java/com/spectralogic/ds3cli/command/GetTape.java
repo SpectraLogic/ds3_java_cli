@@ -17,34 +17,40 @@ package com.spectralogic.ds3cli.command;
 
 import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3cli.Arguments;
-import com.spectralogic.ds3cli.models.DefaultResult;
-import com.spectralogic.ds3client.commands.spectrads3.DeleteTapeDriveSpectraS3Request;
+import com.spectralogic.ds3cli.View;
+import com.spectralogic.ds3cli.ViewType;
+import com.spectralogic.ds3cli.models.TapeResult;
+import com.spectralogic.ds3cli.views.cli.GetTapeView;
+import com.spectralogic.ds3cli.views.json.DataView;
+import com.spectralogic.ds3client.commands.spectrads3.GetTapeSpectraS3Request;
 import org.apache.commons.cli.Option;
-
-import java.util.UUID;
 
 import static com.spectralogic.ds3cli.ArgumentFactory.ID;
 
-public class DeleteTapeDrive extends CliCommand<DefaultResult> {
+public class GetTape extends CliCommand<TapeResult> {
 
     private final static ImmutableList<Option> requiredArgs = ImmutableList.of(ID);
 
-    private String id;
-
-    public DeleteTapeDrive() {
-    }
+    private String jobId;
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
         processCommandOptions(requiredArgs, EMPTY_LIST, args);
 
-        this.id = args.getId();
+        this.jobId = args.getId();
         return this;
     }
 
     @Override
-    public DefaultResult call() throws Exception {
-        getClient().deleteTapeDriveSpectraS3(new DeleteTapeDriveSpectraS3Request(UUID.fromString(this.id)));
-        return new DefaultResult("Success: Deleted tape drive '" + this.id+ "'.");
+    public TapeResult call() throws Exception {
+        return new TapeResult(getClient().getTapeSpectraS3(new GetTapeSpectraS3Request(jobId)).getTapeResult());
+    }
+
+    @Override
+    public View<TapeResult> getView() {
+        if (viewType == ViewType.JSON) {
+            return new DataView<>();
+        }
+        return new GetTapeView();
     }
 }

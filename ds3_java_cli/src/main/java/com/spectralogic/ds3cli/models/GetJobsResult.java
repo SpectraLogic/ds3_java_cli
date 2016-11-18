@@ -17,7 +17,7 @@ package com.spectralogic.ds3cli.models;
 
 import com.spectralogic.ds3client.models.JobList;
 
-public class GetJobsResult implements Result {
+public class GetJobsResult implements Result<JobList> {
 
     private final JobList jobs;
 
@@ -25,7 +25,8 @@ public class GetJobsResult implements Result {
         this.jobs = jobs;
     }
 
-    public JobList getJobs() {
+    @Override
+    public JobList getResult() {
         return jobs;
     }
 }

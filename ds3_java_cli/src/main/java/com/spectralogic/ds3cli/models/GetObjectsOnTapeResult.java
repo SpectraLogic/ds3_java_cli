@@ -16,20 +16,21 @@
 package com.spectralogic.ds3cli.models;
 
 import com.spectralogic.ds3client.models.BulkObject;
-import java.util.Iterator;
 
-public class GetObjectsOnTapeResult implements Result {
+public class GetObjectsOnTapeResult implements Result<Iterable<BulkObject>> {
     final private String tapeId;
-    final private Iterator<BulkObject> objIterator;
+    final private Iterable<BulkObject> objectIterable;
 
-    public GetObjectsOnTapeResult(final String id, final Iterator<BulkObject> objIterator) {
+    public GetObjectsOnTapeResult(final String id, final Iterable<BulkObject> objectIterable) {
         this.tapeId = id;
-        this.objIterator = objIterator;
+        this.objectIterable = objectIterable;
     }
 
     public String getTapeId() { return this.tapeId; }
 
-    public Iterator<BulkObject> getObjIterator() {
-        return objIterator;
+    @Override
+    public Iterable<BulkObject> getResult() {
+        return objectIterable;
     }
+
 }

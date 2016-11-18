@@ -17,7 +17,7 @@ package com.spectralogic.ds3cli.models;
 
 import com.spectralogic.ds3client.models.SystemFailureList;
 
-public class GetSystemFailureResult implements Result {
+public class GetSystemFailureResult implements Result<SystemFailureList> {
 
     private final SystemFailureList result;
 
@@ -25,6 +25,7 @@ public class GetSystemFailureResult implements Result {
         this.result = result;
     }
 
+    @Override
     public SystemFailureList getResult() {
         return this.result;
     }

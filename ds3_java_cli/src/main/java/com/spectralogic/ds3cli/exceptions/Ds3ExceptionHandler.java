@@ -15,8 +15,8 @@
 
 package com.spectralogic.ds3cli.exceptions;
 
-public interface Ds3ExceptionHandler<Throwable> {
+public interface Ds3ExceptionHandler<T extends Throwable>{
 
-    void handle(final Throwable e);
+    void handle(final T e);
 
 }

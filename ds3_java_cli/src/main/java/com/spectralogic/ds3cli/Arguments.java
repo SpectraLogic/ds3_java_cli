@@ -19,10 +19,9 @@ import ch.qos.logback.classic.Level;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.spectralogic.ds3cli.exceptions.BadArgumentException;
-import com.spectralogic.ds3cli.util.Metadata;
+import com.spectralogic.ds3cli.util.MetadataUtils;
 import com.spectralogic.ds3client.models.Priority;
 import com.spectralogic.ds3client.models.WriteOptimization;
-import com.spectralogic.ds3client.utils.Guard;
 import org.apache.commons.cli.*;
 
 import java.util.ArrayList;
@@ -132,7 +131,7 @@ public class Arguments {
      * instantiate object, set args array, complete initial parsing
      * @param args String array of COMMAND line tokens
      */
-    public Arguments(final String[] args) throws BadArgumentException, ParseException {
+    public Arguments(final String[] args) throws ParseException {
         this.args = args;
         this.options = new Options();
 
@@ -141,17 +140,17 @@ public class Arguments {
         this.processCommandLine();
     }
 
-    protected void addRootArguments() {
+    void addRootArguments() {
         for (final Option optionRoot : rootArgs) {
             optionRoot.setRequired(false);
             addOption(optionRoot, optionRoot.getArgName());
         }
     }
 
-    private String[] filterRootArguments() throws BadArgumentException {
+    private String[] filterRootArguments() {
         // Returns only arguments in rootArguments
         // After the command is instantiated, the full parse will be run against the complete Options list.
-        final List<String> rootArguments = new ArrayList<String>();
+        final List<String> rootArguments = new ArrayList<>();
 
         for (int i = 0; i < this.args.length; i++) {
             final String token = this.args[i];
@@ -160,7 +159,7 @@ public class Arguments {
             if (matchesOption(COMMAND_HELP, token)) {
                 rootArguments.add(token);
                 // might or might not have arg
-                if ((i + 1 < this.args.length) && (!this.args[i + 1].startsWith("-"))) {
+                if (i + 1 < this.args.length && !this.args[i + 1].startsWith("-")) {
                     rootArguments.add(this.args[++i]);
                 }
                 break;
@@ -184,25 +183,25 @@ public class Arguments {
     /**
      * call after adding all options to reparse
      */
-    public void parseCommandLine() throws ParseException, BadArgumentException  {
+    public void parseCommandLine() throws ParseException {
         parseAllCommands();
     }
 
     // parse command line. Set isRootParse true to first filter for only first parse options
-    private void parseRootCommands() throws ParseException, BadArgumentException {
+    private void parseRootCommands() throws ParseException {
         final CommandLineParser parser = new DefaultParser();
             final String[] roots =  filterRootArguments();
             this.cmd = parser.parse(this.options, roots);
     }
 
     // parse command line. Set isRootParse true to first filter for only first parse options
-    private void parseAllCommands() throws ParseException, BadArgumentException {
+    private void parseAllCommands() throws ParseException {
         final CommandLineParser parser = new DefaultParser();
         this.cmd = parser.parse(this.options, this.args);
     }
 
     // initial parse of root commands
-    private void processCommandLine() throws ParseException, BadArgumentException {
+    private void processCommandLine() throws ParseException {
         parseRootCommands();
 
         // set the level for console and log file logging
@@ -261,7 +260,7 @@ public class Arguments {
         return ViewType.valueOf(this.getOptionValueWithDefault(VIEW_TYPE.getLongOpt(), ViewType.CLI).toString().toUpperCase());
     }
     public boolean isHelp() {
-        return (this.optionExists(COMMAND_HELP.getLongOpt()) || this.optionExists(PRINT_HELP.getOpt()));
+        return this.optionExists(COMMAND_HELP.getLongOpt()) || this.optionExists(PRINT_HELP.getOpt());
     }
 
     public boolean isCertificateVerification() {
@@ -346,28 +345,28 @@ public class Arguments {
     public String getSizeOfFiles() { return this.getOptionValue(SIZE_OF_FILES.getOpt()); }
     public boolean isIgnoreErrors() { return this.optionExists(IGNORE_ERRORS.getLongOpt()); }
     public boolean isFollowSymlinks()  {
-        return (this.optionExists(FOLLOW_SYMLINKS.getLongOpt())  && !this.optionExists(NO_FOLLOW_SYMLINKS.getLongOpt()));
+        return this.optionExists(FOLLOW_SYMLINKS.getLongOpt())  && !this.optionExists(NO_FOLLOW_SYMLINKS.getLongOpt());
     }
     public ImmutableMap<String, String> getMetadata() {
         final String[] meta = this.getOptionValues(METADATA.getLongOpt());
         if (meta == null) {
             return null;
         }
-        return Metadata.parse(meta);
+        return MetadataUtils.parse(meta);
     }
     public ImmutableMap<String, String> getModifyParams() {
         final String[] meta = this.getOptionValues(MODIFY_PARAMS.getLongOpt());
         if (meta == null) {
             return null;
         }
-        return Metadata.parse(meta);
+        return MetadataUtils.parse(meta);
     }
     public ImmutableMap<String, String> getFilterParams() {
         final String[] meta = this.getOptionValues(FILTER_PARAMS.getLongOpt());
         if (meta == null) {
             return null;
         }
-        return Metadata.parse(meta);
+        return MetadataUtils.parse(meta);
     }
 
     public boolean isDiscard() { return this.optionExists(DISCARD.getLongOpt()); }

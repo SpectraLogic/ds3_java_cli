@@ -24,7 +24,7 @@ import com.spectralogic.ds3client.networking.Metadata;
 import java.util.List;
 import java.util.Set;
 
-import static com.spectralogic.ds3cli.util.Utils.nullGuard;
+import static com.spectralogic.ds3cli.util.Guard.nullGuard;
 
 public class HeadObjectView extends TableView<HeadObjectResult> {
 
@@ -33,7 +33,7 @@ public class HeadObjectView extends TableView<HeadObjectResult> {
     @Override
     public String render(final HeadObjectResult obj) {
 
-        switch (obj.getStatus()) {
+        switch (obj.getResult()) {
             case DOESNTEXIST: return "The object does not exist";
             case UNKNOWN: return "Authentication failed";
             default: {

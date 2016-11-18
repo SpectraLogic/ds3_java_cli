@@ -23,6 +23,7 @@ import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.models.SuspectedObjectResult;
 import com.spectralogic.ds3cli.views.cli.SuspectedObjectsView;
+import com.spectralogic.ds3cli.views.json.DataView;
 import com.spectralogic.ds3client.commands.spectrads3.GetSuspectObjectsWithFullDetailsSpectraS3Request;
 import com.spectralogic.ds3client.commands.spectrads3.GetSuspectObjectsWithFullDetailsSpectraS3Response;
 import com.spectralogic.ds3client.models.BulkObject;
@@ -80,7 +81,7 @@ public class GetSuspectObjects extends CliCommand<SuspectedObjectResult> {
     @Override
     public View<SuspectedObjectResult> getView() {
         if (viewType == ViewType.JSON) {
-            return new com.spectralogic.ds3cli.views.json.SuspectedObjectsView();
+            return new DataView<>();
         } else {
             return new SuspectedObjectsView();
         }

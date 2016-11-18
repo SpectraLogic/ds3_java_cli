@@ -21,6 +21,8 @@ import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.VerifyBulkJobResult;
+import com.spectralogic.ds3cli.views.cli.VerifyBulkJobView;
+import com.spectralogic.ds3cli.views.json.DataView;
 import com.spectralogic.ds3client.commands.spectrads3.VerifyBulkJobSpectraS3Request;
 import com.spectralogic.ds3client.commands.spectrads3.VerifyBulkJobSpectraS3Response;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
@@ -28,16 +30,12 @@ import com.spectralogic.ds3client.models.Contents;
 import com.spectralogic.ds3client.models.Priority;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.networking.FailedRequestException;
-import com.spectralogic.ds3client.utils.Guard;
-import org.apache.commons.cli.MissingOptionException;
 import org.apache.commons.cli.Option;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.spectralogic.ds3cli.ArgumentFactory.BUCKET;
-import static com.spectralogic.ds3cli.ArgumentFactory.PREFIX;
-import static com.spectralogic.ds3cli.ArgumentFactory.PRIORITY;
+import static com.spectralogic.ds3cli.ArgumentFactory.*;
 
 public class VerifyBulkJob extends CliCommand<VerifyBulkJobResult> {
 
@@ -95,8 +93,8 @@ public class VerifyBulkJob extends CliCommand<VerifyBulkJobResult> {
     @Override
     public View<VerifyBulkJobResult> getView() {
         if (viewType == ViewType.JSON) {
-            return new com.spectralogic.ds3cli.views.json.VerifyBulkJobView();
+            return new DataView<>();
         }
-        return new com.spectralogic.ds3cli.views.cli.VerifyBulkJobView();
+        return new VerifyBulkJobView();
     }
 }

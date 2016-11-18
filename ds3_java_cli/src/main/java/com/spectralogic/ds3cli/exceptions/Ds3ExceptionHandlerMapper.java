@@ -21,7 +21,7 @@ import java.util.Map;
 public class Ds3ExceptionHandlerMapper {
 
     private final static Ds3ExceptionHandlerMapper factoryInstance = new Ds3ExceptionHandlerMapper();
-    private final Map<Class<? extends Throwable>, Ds3ExceptionHandler> handlers = new HashMap();
+    private final Map<Class<? extends Throwable>, Ds3ExceptionHandler> handlers = new HashMap<>();
     private final Ds3ExceptionHandler defaultHandler = new DefaultExceptionHandler();
 
 
@@ -56,5 +56,4 @@ public class Ds3ExceptionHandlerMapper {
         final Ds3ExceptionHandler handler = getHandler(e.getClass());
         handler.handle(e);
     }
-
 }

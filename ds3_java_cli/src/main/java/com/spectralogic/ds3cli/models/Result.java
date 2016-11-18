@@ -15,5 +15,6 @@
 
 package com.spectralogic.ds3cli.models;
 
-public interface Result {
+public interface Result<T> {
+    T getResult();
 }

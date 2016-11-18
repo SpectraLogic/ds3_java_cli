@@ -26,19 +26,20 @@ import com.spectralogic.ds3client.utils.Guard;
 
 import java.util.List;
 
-import static com.spectralogic.ds3cli.util.Utils.nullGuard;
-import static com.spectralogic.ds3cli.util.Utils.nullGuardToString;
+import static com.spectralogic.ds3cli.util.Guard.nullGuard;
+import static com.spectralogic.ds3cli.util.Guard.nullGuardToString;
 
 public class SuspectedObjectsView extends TableView<SuspectedObjectResult> {
     private ImmutableList<BulkObject> suspectBlobTapes;
 
     @Override
     public String render(final SuspectedObjectResult obj) {
-        if (obj == null || obj.getSuspectBlobTapes() == null || Iterables.isEmpty(obj.getSuspectBlobTapes())) {
+        final ImmutableList<BulkObject> bulkObjects = obj.getResult();
+        if (bulkObjects == null || Iterables.isEmpty(bulkObjects)) {
             return "No suspected blobs returned";
         }
 
-        suspectBlobTapes = obj.getSuspectBlobTapes();
+        suspectBlobTapes = bulkObjects;
         initTable(ImmutableList.of("Name", "Bucket", "In Cache", "Offset", "Length"));
 
         return ASCIITable.getInstance().getTable(getHeaders(), formatTableContents());

@@ -24,28 +24,24 @@ import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.exceptions.BadArgumentException;
-import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.GetDetailedObjectsResult;
-import com.spectralogic.ds3cli.util.Utils;
+import com.spectralogic.ds3cli.util.DateUtils;
 import com.spectralogic.ds3cli.views.cli.DetailedObjectsView;
+import com.spectralogic.ds3cli.views.json.DataView;
 import com.spectralogic.ds3client.helpers.pagination.GetObjectsFullDetailsLoaderFactory;
 import com.spectralogic.ds3client.models.DetailedS3Object;
 import com.spectralogic.ds3client.utils.Guard;
 import com.spectralogic.ds3client.utils.collections.LazyIterable;
 import org.apache.commons.cli.Option;
-import org.slf4j.LoggerFactory;
 
-
+import javax.annotation.Nullable;
 import java.text.ParseException;
 import java.util.Date;
-import javax.annotation.Nullable;
 
 import static com.spectralogic.ds3cli.ArgumentFactory.BUCKET;
 import static com.spectralogic.ds3cli.ArgumentFactory.FILTER_PARAMS;
-import static com.spectralogic.ds3cli.ArgumentFactory.PREFIX;
 
 public class GetDetailedObjects extends CliCommand<GetDetailedObjectsResult> {
-    private final static org.slf4j.Logger LOG = LoggerFactory.getLogger(GetDetailedObjects.class);
 
     private final static ImmutableList<Option> optionalArgs = ImmutableList.of(FILTER_PARAMS, BUCKET);
 
@@ -100,7 +96,7 @@ public class GetDetailedObjects extends CliCommand<GetDetailedObjectsResult> {
         return new GetDetailedObjectsResult(detailedObjects);
     }
 
-    private Predicate<DetailedS3Object> getSizePredicate() throws CommandException {
+    private Predicate<DetailedS3Object> getSizePredicate() {
         if (Guard.isMapNullOrEmpty(this.filterParams)) {
             return Predicates.notNull();
         }
@@ -145,16 +141,16 @@ public class GetDetailedObjects extends CliCommand<GetDetailedObjectsResult> {
         Date olderThan = new Date(Long.MAX_VALUE);
 
         if (!Guard.isStringNullOrEmpty(newer)) {
-            newerThan = new Date(new Date().getTime() - Utils.dateDiffToSeconds(newer) * MILLIS_PER_SECOND);
+            newerThan = new Date(new Date().getTime() - DateUtils.dateDiffToSeconds(newer) * MILLIS_PER_SECOND);
         }
         if (!Guard.isStringNullOrEmpty(older)) {
-            olderThan = new Date(new Date().getTime() - Utils.dateDiffToSeconds(older) * MILLIS_PER_SECOND);
+            olderThan = new Date(new Date().getTime() - DateUtils.dateDiffToSeconds(older) * MILLIS_PER_SECOND);
         }
         if (!Guard.isStringNullOrEmpty(after)) {
-            newerThan = Utils.parseParamDate(after);
+            newerThan = DateUtils.parseParamDate(after);
         }
         if (!Guard.isStringNullOrEmpty(before)) {
-            olderThan = Utils.parseParamDate(before);
+            olderThan = DateUtils.parseParamDate(before);
         }
         // set final to pass iknto predicate
         final Date newerThanDate = newerThan;
@@ -169,7 +165,7 @@ public class GetDetailedObjects extends CliCommand<GetDetailedObjectsResult> {
         };
     }
 
-    private Predicate<DetailedS3Object> getOwnerPredicate() throws CommandException {
+    private Predicate<DetailedS3Object> getOwnerPredicate() {
         if (Guard.isMapNullOrEmpty(this.filterParams)) {
             return Predicates.notNull();
         }
@@ -185,7 +181,7 @@ public class GetDetailedObjects extends CliCommand<GetDetailedObjectsResult> {
         };
     }
 
-    private Predicate<DetailedS3Object> getNamePredicate() throws CommandException {
+    private Predicate<DetailedS3Object> getNamePredicate() {
         if (Guard.isMapNullOrEmpty(this.filterParams)) {
             return Predicates.notNull();
         }
@@ -201,14 +197,14 @@ public class GetDetailedObjects extends CliCommand<GetDetailedObjectsResult> {
         };
     }
 
-    private String paramLookup(final String key) throws CommandException {
+    private String paramLookup(final String key) {
         return this.filterParams.get(key);
     }
 
     @Override
     public View<GetDetailedObjectsResult> getView() {
         if (viewType == ViewType.JSON) {
-            return new com.spectralogic.ds3cli.views.json.DetailedObjectsView();
+            return new DataView<>();
         } else if (viewType == ViewType.CSV) {
             return new com.spectralogic.ds3cli.views.csv.DetailedObjectsView();
         } else {

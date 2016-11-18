@@ -25,7 +25,9 @@ import com.spectralogic.ds3client.utils.Guard;
 import java.util.ArrayList;
 
 import static com.spectralogic.ds3cli.util.Constants.DATE_FORMAT;
-import static com.spectralogic.ds3cli.util.Utils.*;
+import static com.spectralogic.ds3cli.util.Guard.nullGuard;
+import static com.spectralogic.ds3cli.util.Guard.nullGuardFromDate;
+import static com.spectralogic.ds3cli.util.Guard.nullGuardToString;
 
 public class DetailedObjectsView extends TableView<GetDetailedObjectsResult> {
 
@@ -35,11 +37,12 @@ public class DetailedObjectsView extends TableView<GetDetailedObjectsResult> {
 
     @Override
     public String render(final GetDetailedObjectsResult obj) {
-        if (obj == null || obj.getDetailedObjects() == null || Iterables.isEmpty(obj.getDetailedObjects())) {
+        final Iterable<DetailedS3Object> detailedS3Objects = obj.getResult();
+        if (detailedS3Objects == null || Iterables.isEmpty(detailedS3Objects)) {
             return "No objects returned";
         }
 
-        objects = ImmutableList.copyOf(obj.getDetailedObjects());
+        objects = ImmutableList.copyOf(detailedS3Objects);
         initTable(ImmutableList.of("Name", "Bucket", "Owner", "Size", "Type", "Creation Date", "Tapes", "Pools"));
 
         return renderTable();
@@ -56,7 +59,7 @@ public class DetailedObjectsView extends TableView<GetDetailedObjectsResult> {
             bucketArray[2] = nullGuardToString(detailedObject.getOwner());
             bucketArray[3] = nullGuardToString(detailedObject.getSize());
             bucketArray[4] = nullGuardToString(detailedObject.getType());
-            bucketArray[5] = nullGuardToDate(detailedObject.getCreationDate(), DATE_FORMAT);
+            bucketArray[5] = nullGuardFromDate(detailedObject.getCreationDate(), DATE_FORMAT);
             bucketArray[6] = concatenateTapes(detailedObject.getBlobs());
             bucketArray[7] = concatenatePools(detailedObject.getBlobs());
             formatArray.add(bucketArray);

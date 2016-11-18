@@ -24,11 +24,12 @@ import com.spectralogic.ds3client.utils.Guard;
 
 import java.util.List;
 
-import static com.spectralogic.ds3cli.util.Utils.*;
+import static com.spectralogic.ds3cli.util.Guard.nullGuard;
+import static com.spectralogic.ds3cli.util.Guard.nullGuardToString;
 
 public class GetCacheStateView extends TableView<GetCacheStateResult> {
 
-    protected List<CacheFilesystemInformation> filesystemList;
+    private List<CacheFilesystemInformation> filesystemList;
 
     @Override
     public String render(final GetCacheStateResult obj) {

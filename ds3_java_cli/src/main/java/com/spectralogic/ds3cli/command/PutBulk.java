@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.spectralogic.ds3cli.Arguments;
-import com.spectralogic.ds3cli.ClientFactory;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.exceptions.BadArgumentException;
@@ -44,7 +43,10 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.nio.channels.SeekableByteChannel;
-import java.nio.file.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.Map;
 
 import static com.spectralogic.ds3cli.ArgumentFactory.*;
@@ -85,13 +87,13 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         processCommandOptions(requiredArgs, optionalArgs, args);
 
         this.bucketName = args.getBucket();
-        this.pipe = Utils.isPipe();
+        this.pipe = CliUtils.isPipe();
         if (this.pipe) {
             if (this.isOtherArgs(args)) {
                 throw new BadArgumentException("-d, -o and -p arguments are not supported when using piped input");
             }
 
-            this.pipedFiles = Utils.getPipedFilesFromStdin(getFileUtils());
+            this.pipedFiles = FileUtils.getPipedFilesFromStdin(getFileSystemProvider());
             if (Guard.isNullOrEmpty(this.pipedFiles)) {
                 throw new MissingOptionException("Stdin is empty"); //We should never see that since we checked isPipe
             }
@@ -153,7 +155,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
             }
         }
 
-        final ObjectsToPut objectsToPut = Utils.getObjectsToPut(filesToPut, this.inputDirectory, this.ignoreErrors);
+        final ObjectsToPut objectsToPut = FileUtils.getObjectsToPut(filesToPut, this.inputDirectory, this.ignoreErrors);
         final Iterable<Ds3Object> ds3Objects = objectsToPut.getDs3Objects();
         this.appendPrefix(ds3Objects);
 
@@ -208,7 +210,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
     private ImmutableMap<String, String> getNormalizedObjectNameToObjectName(final ImmutableList<Path> pipedFiles) {
         final ImmutableMap.Builder<String, String> map = ImmutableMap.builder();
         for (final Path file : pipedFiles) {
-            map.put(Utils.normalizeObjectName(file.toString()), file.toString());
+            map.put(FileUtils.normalizeObjectName(file.toString()), file.toString());
         }
 
         return map.build();
@@ -245,7 +247,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
 
         @Override
         public boolean filter(final Path item) {
-            final String fileName = Utils.getFileName(this.inputDirectory, item);
+            final String fileName = FileUtils.getFileName(this.inputDirectory, item);
             final Contents content = mapBucketFiles.get(prefix + fileName);
             try {
                 if (content == null) {
@@ -271,7 +273,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
             filesToPut = this.pipedFiles;
         }
         else {
-            filesToPut = Utils.listObjectsForDirectory(this.inputDirectory);
+            filesToPut = FileUtils.listObjectsForDirectory(this.inputDirectory);
         }
         return new FilteringIterable<>(filesToPut, new FilteringIterable.FilterFunction<Path>() {
             @Override
@@ -314,7 +316,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
             final String unPrefixedFile = removePrefix(fileName);
 
             final Path path = inputDirectory.resolve(unPrefixedFile);
-            return Utils.getMetadataValues(path);
+            return MetadataUtils.getMetadataValues(path);
         }
 
         private String removePrefix(final String fileName) {
@@ -404,7 +406,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         @Override
         public Map<String, String> getMetadataValue(final String s) {
             final Path path = Paths.get(this.mapNormalizedObjectNameToObjectName.get(s));
-            return Utils.getMetadataValues(path);
+            return MetadataUtils.getMetadataValues(path);
         }
     }
 }

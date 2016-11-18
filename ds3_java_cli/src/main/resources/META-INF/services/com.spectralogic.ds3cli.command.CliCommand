@@ -69,3 +69,4 @@ com.spectralogic.ds3cli.command.GetDetailedObjects
 com.spectralogic.ds3cli.command.GetDetailedObjectsPhysical
 com.spectralogic.ds3cli.command.EjectStorageDomain
 com.spectralogic.ds3cli.command.GetStorageDomains
+com.spectralogic.ds3cli.command.GetTape

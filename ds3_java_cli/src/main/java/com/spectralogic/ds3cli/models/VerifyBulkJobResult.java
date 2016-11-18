@@ -19,7 +19,7 @@ import com.spectralogic.ds3client.models.Objects;
 
 import java.util.Iterator;
 
-public class VerifyBulkJobResult implements Result {
+public class VerifyBulkJobResult implements Result<Iterator<Objects>> {
     final private String bucketId;
     final private Iterator<Objects> objIterator;
 
@@ -30,7 +30,8 @@ public class VerifyBulkJobResult implements Result {
 
     public String getBucketId() { return this.bucketId; }
 
-    public Iterator<Objects> getObjIterator() {
+    @Override
+    public Iterator<Objects> getResult() {
         return objIterator;
     }
 }

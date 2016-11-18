@@ -22,8 +22,8 @@ import com.spectralogic.ds3cli.models.GetBucketResult;
 import com.spectralogic.ds3client.models.Contents;
 
 import static com.spectralogic.ds3cli.util.Constants.DATE_FORMAT;
-import static com.spectralogic.ds3cli.util.Utils.nullGuard;
-import static com.spectralogic.ds3cli.util.Utils.nullGuardToDate;
+import static com.spectralogic.ds3cli.util.Guard.nullGuard;
+import static com.spectralogic.ds3cli.util.Guard.nullGuardFromDate;
 
 public class GetBucketView extends TableView<GetBucketResult> {
 
@@ -51,7 +51,7 @@ public class GetBucketView extends TableView<GetBucketResult> {
             arrayEntry[0] = nullGuard(content.getKey());
             arrayEntry[1] = nullGuard(Long.toString(content.getSize()));
             arrayEntry[2] = nullGuard(content.getOwner().getDisplayName());
-            arrayEntry[3] = nullGuardToDate(content.getLastModified(), DATE_FORMAT);
+            arrayEntry[3] = nullGuardFromDate(content.getLastModified(), DATE_FORMAT);
             arrayEntry[4] = nullGuard(content.getETag());
             builder.add(arrayEntry);
         }

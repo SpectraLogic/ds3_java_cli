@@ -13,17 +13,14 @@
  * ***************************************************************************
  */
 
-package com.spectralogic.ds3cli.views.json;
+package com.spectralogic.ds3cli.util;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.spectralogic.ds3cli.View;
-import com.spectralogic.ds3cli.models.SuspectedObjectResult;
-import com.spectralogic.ds3cli.util.JsonMapper;
+import java.io.IOException;
+import java.nio.file.Path;
 
-public class SuspectedObjectsView implements View<SuspectedObjectResult> {
-    @Override
-    public String render(final SuspectedObjectResult obj) throws JsonProcessingException {
-        final CommonJsonView view = CommonJsonView.newView(CommonJsonView.Status.OK);
-        return JsonMapper.toJson(view.data(obj.getSuspectBlobTapes()));
-    }
+public interface FileSystemProvider {
+    boolean exists(final Path path);
+    boolean isRegularFile(final Path path);
+    long size(final Path path) throws IOException;
+    void createDirectories(final Path path) throws IOException;
 }

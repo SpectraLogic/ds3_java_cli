@@ -20,8 +20,8 @@ import com.spectralogic.ds3cli.*;
 import com.spectralogic.ds3cli.command.CliCommand;
 import com.spectralogic.ds3cli.command.CliCommandFactory;
 import com.spectralogic.ds3cli.util.Ds3Provider;
+import com.spectralogic.ds3cli.util.FileSystemProvider;
 import com.spectralogic.ds3cli.util.FileUtils;
-import com.spectralogic.ds3cli.util.Utils;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.spectrads3.GetSystemInformationSpectraS3Request;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
@@ -43,8 +43,8 @@ public class Util {
 
     public static CommandResponse command(final Ds3Client client, final Arguments args) throws Exception {
         final Ds3Provider provider = new Ds3ProviderImpl(client, Ds3ClientHelpers.wrap(client));
-        final FileUtils fileUtils = new FileUtilsImpl();
-        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(provider, fileUtils);
+        final FileSystemProvider fileSystemProvider = new FileSystemProviderImpl();
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(provider, fileSystemProvider);
         command.init(args);
         return command.render();
     }
@@ -79,14 +79,14 @@ public class Util {
     }
 
     public static void deleteLocalFiles() throws IOException {
-        final Iterable<Path> files = Utils.listObjectsForDirectory(Paths.get(DOWNLOAD_BASE_NAME));
+        final Iterable<Path> files = FileUtils.listObjectsForDirectory(Paths.get(DOWNLOAD_BASE_NAME));
         for (final Path file : files) {
             Files.deleteIfExists(file);
         }
     }
 
     public static int countLocalFiles() throws IOException {
-        final ImmutableList<Path>  files = Utils.listObjectsForDirectory(Paths.get(DOWNLOAD_BASE_NAME));
+        final ImmutableList<Path>  files = FileUtils.listObjectsForDirectory(Paths.get(DOWNLOAD_BASE_NAME));
         return files.size();
     }
 

@@ -15,13 +15,14 @@
 
 package com.spectralogic.ds3cli.models;
 
-public class DefaultResult implements Result {
+public class DefaultResult implements Result<String> {
     private final String result;
 
     public DefaultResult(final String result) {
         this.result = result;
     }
 
+    @Override
     public String getResult() {
         return result;
     }

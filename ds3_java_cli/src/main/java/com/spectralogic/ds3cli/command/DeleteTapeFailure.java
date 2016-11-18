@@ -19,7 +19,6 @@ import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.models.DefaultResult;
 import com.spectralogic.ds3client.commands.spectrads3.DeleteTapeFailureSpectraS3Request;
-import org.apache.commons.cli.MissingArgumentException;
 import org.apache.commons.cli.Option;
 
 import java.util.UUID;

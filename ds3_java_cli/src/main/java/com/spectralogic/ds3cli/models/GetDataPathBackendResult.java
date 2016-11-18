@@ -17,7 +17,7 @@ package com.spectralogic.ds3cli.models;
 
 import com.spectralogic.ds3client.models.DataPathBackend;
 
-public class GetDataPathBackendResult implements Result {
+public class GetDataPathBackendResult implements Result<DataPathBackend> {
 
     private final DataPathBackend dataPathBackend;
 
@@ -25,7 +25,8 @@ public class GetDataPathBackendResult implements Result {
         this.dataPathBackend = backend;
     }
 
-    public DataPathBackend getBackend() {
+    @Override
+    public DataPathBackend getResult() {
         return dataPathBackend;
     }
 

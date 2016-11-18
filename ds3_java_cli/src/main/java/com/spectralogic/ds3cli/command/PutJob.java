@@ -20,7 +20,6 @@ import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.models.DefaultResult;
 import com.spectralogic.ds3client.commands.spectrads3.ModifyJobSpectraS3Request;
 import com.spectralogic.ds3client.models.Priority;
-import org.apache.commons.cli.MissingOptionException;
 import org.apache.commons.cli.Option;
 
 import java.util.UUID;

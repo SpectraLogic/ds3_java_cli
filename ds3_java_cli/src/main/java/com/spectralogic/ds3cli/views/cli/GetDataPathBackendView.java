@@ -18,14 +18,15 @@ package com.spectralogic.ds3cli.views.cli;
 import com.bethecoder.ascii_table.ASCIITable;
 import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3cli.models.GetDataPathBackendResult;
+import com.spectralogic.ds3cli.util.Guard;
 import com.spectralogic.ds3client.models.DataPathBackend;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static com.spectralogic.ds3cli.util.Constants.DATE_FORMAT;
-import static com.spectralogic.ds3cli.util.Utils.nullGuardToDate;
-import static com.spectralogic.ds3cli.util.Utils.nullGuardToString;
+import static com.spectralogic.ds3cli.util.Guard.nullGuardFromDate;
+import static com.spectralogic.ds3cli.util.Guard.nullGuardToString;
 
 public class GetDataPathBackendView extends TableView<GetDataPathBackendResult> {
 
@@ -33,7 +34,7 @@ public class GetDataPathBackendView extends TableView<GetDataPathBackendResult> 
 
     @Override
     public String render(final GetDataPathBackendResult obj) {
-        dataPathBackend = obj.getBackend();
+        dataPathBackend = obj.getResult();
         if (dataPathBackend == null || null == dataPathBackend.getId()){
             return "No valid Data Path Backend on remote appliance";
         }
@@ -52,7 +53,7 @@ public class GetDataPathBackendView extends TableView<GetDataPathBackendResult> 
         attributesArray[2] = nullGuardToString(dataPathBackend.getAutoInspect());
         attributesArray[3] = nullGuardToString(dataPathBackend.getDefaultImportConflictResolutionMode());
         attributesArray[4] = nullGuardToString(dataPathBackend.getId());
-        attributesArray[5] = nullGuardToDate(dataPathBackend.getLastHeartbeat(), DATE_FORMAT);
+        attributesArray[5] = nullGuardFromDate(dataPathBackend.getLastHeartbeat(), DATE_FORMAT);
         attributesArray[6] = nullGuardToString(dataPathBackend.getUnavailableMediaPolicy());
         attributesArray[7] = nullGuardToString(dataPathBackend.getUnavailablePoolMaxJobRetryInMins());
         attributesArray[8] = nullGuardToString(dataPathBackend.getUnavailableTapePartitionMaxJobRetryInMins());

@@ -18,11 +18,11 @@ package com.spectralogic.ds3cli.views.cli;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.spectralogic.ds3cli.View;
-import com.spectralogic.ds3cli.models.DefaultResult;
+import com.spectralogic.ds3cli.models.Result;
 
-public class DefaultView implements View<DefaultResult> {
+public class DefaultView<T extends Result> implements View<T> {
     @Override
-    public String render(final DefaultResult result) throws JsonProcessingException {
-        return result.getResult();
+    public String render(final T result) throws JsonProcessingException {
+        return result.getResult().toString();
     }
 }

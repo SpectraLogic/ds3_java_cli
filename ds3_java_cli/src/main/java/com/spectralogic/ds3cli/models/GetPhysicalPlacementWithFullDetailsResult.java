@@ -17,7 +17,7 @@ package com.spectralogic.ds3cli.models;
 
 import com.spectralogic.ds3client.models.BulkObjectList;
 
-public class GetPhysicalPlacementWithFullDetailsResult implements Result {
+public class GetPhysicalPlacementWithFullDetailsResult implements Result<BulkObjectList> {
 
     private final BulkObjectList bulkObjectListResult;
 
@@ -25,7 +25,8 @@ public class GetPhysicalPlacementWithFullDetailsResult implements Result {
         this.bulkObjectListResult = bulkObjectList;
     }
 
-    public BulkObjectList getPhysicalPlacementWithDetails() {
+    @Override
+    public BulkObjectList getResult() {
         return bulkObjectListResult;
     }
 }

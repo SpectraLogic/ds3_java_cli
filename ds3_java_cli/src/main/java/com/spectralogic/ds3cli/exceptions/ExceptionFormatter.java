@@ -13,17 +13,21 @@
  * ***************************************************************************
  */
 
-package com.spectralogic.ds3cli.views.json;
+package com.spectralogic.ds3cli.exceptions;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.spectralogic.ds3cli.View;
-import com.spectralogic.ds3cli.models.GetSystemFailureResult;
-import com.spectralogic.ds3cli.util.JsonMapper;
+import com.spectralogic.ds3client.utils.Guard;
 
-public class GetSystemFailureView implements View<GetSystemFailureResult> {
-    @Override
-    public String render(final GetSystemFailureResult result) throws JsonProcessingException {
-        final CommonJsonView view = CommonJsonView.newView(CommonJsonView.Status.OK);
-        return JsonMapper.toJson(view.data(result));
+public final class ExceptionFormatter {
+
+    public static String format(final Throwable e) {
+        final StringBuilder message = new StringBuilder("Error (");
+        message.append(e.getClass().getSimpleName());
+        message.append("): ");
+        message.append(e.getMessage());
+        if (e.getCause() != null && !Guard.isStringNullOrEmpty(e.getCause().getMessage())) {
+            message.append("\nCause: ");
+            message.append(e.getCause().getMessage());
+        }
+        return message.toString();
     }
 }

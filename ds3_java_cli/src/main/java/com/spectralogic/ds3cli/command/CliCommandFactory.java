@@ -24,7 +24,7 @@ import com.spectralogic.ds3cli.exceptions.CommandException;
 import javax.annotation.Nullable;
 import java.util.ServiceLoader;
 
-public class CliCommandFactory {
+public final class CliCommandFactory {
 
     public static CliCommand getCommandExecutor(final String commandName) throws CommandException {
         final String commandCamel = CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, commandName.toString());
@@ -42,11 +42,11 @@ public class CliCommandFactory {
     public static String listAllCommands() {
         final StringBuilder commandHelp = new StringBuilder("Installed Commands: ");
 
-        FluentIterable<String> commands = FluentIterable.from(getAllCommands()).transform(
+        final FluentIterable<String> commands = FluentIterable.from(getAllCommands()).transform(
                 new Function<CliCommand, String>() {
                     @Nullable
                     @Override
-                    public String apply(@Nullable CliCommand input) {
+                    public String apply(@Nullable final CliCommand input) {
                         return CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, input.getClass().getSimpleName());
                     }
                 }

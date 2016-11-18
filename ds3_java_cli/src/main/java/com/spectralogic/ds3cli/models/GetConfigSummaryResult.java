@@ -17,7 +17,7 @@ package com.spectralogic.ds3cli.models;
 
 import java.util.Map;
 
-public class GetConfigSummaryResult implements Result {
+public class GetConfigSummaryResult implements Result<Map<String, Result>> {
 
     // Map for JSON output
     private final Map<String, Result> result;

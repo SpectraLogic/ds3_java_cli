@@ -25,17 +25,17 @@ import com.spectralogic.ds3client.utils.Guard;
 import java.util.List;
 
 import static com.spectralogic.ds3cli.util.Constants.DATE_FORMAT;
-import static com.spectralogic.ds3cli.util.Utils.nullGuard;
-import static com.spectralogic.ds3cli.util.Utils.nullGuardToDate;
-import static com.spectralogic.ds3cli.util.Utils.nullGuardToString;
+import static com.spectralogic.ds3cli.util.Guard.nullGuard;
+import static com.spectralogic.ds3cli.util.Guard.nullGuardFromDate;
+import static com.spectralogic.ds3cli.util.Guard.nullGuardToString;
 
 public class GetTapesView extends TableView<GetTapesResult> {
 
-    protected List<Tape> tapeList;
+    private List<Tape> tapeList;
 
     @Override
     public String render(final GetTapesResult obj) {
-        final TapeList result = obj.getTapes();
+        final TapeList result = obj.getResult();
         if (result == null || Guard.isNullOrEmpty(result.getTapes())) {
             return "You do not have any tapes";
         }
@@ -54,14 +54,14 @@ public class GetTapesView extends TableView<GetTapesResult> {
             bucketArray[0] = nullGuard(tape.getBarCode());
             bucketArray[1] = nullGuardToString(tape.getId());
             bucketArray[2] = nullGuardToString(tape.getState());
-            bucketArray[3] = nullGuardToDate(tape.getLastModified(), DATE_FORMAT);
+            bucketArray[3] = nullGuardFromDate(tape.getLastModified(), DATE_FORMAT);
             bucketArray[4] = nullGuardToString(tape.getAvailableRawCapacity());
             bucketArray[5] = nullGuardToString(tape.getBucketId());
             bucketArray[6] = nullGuardToString(tape.getAssignedToStorageDomain());
-            bucketArray[7] = nullGuardToDate(tape.getEjectDate(), DATE_FORMAT);
+            bucketArray[7] = nullGuardFromDate(tape.getEjectDate(), DATE_FORMAT);
             bucketArray[8] = nullGuard(tape.getEjectLocation());
             bucketArray[9] = nullGuard(tape.getEjectLabel());
-            bucketArray[10] = nullGuardToDate(tape.getEjectPending(), DATE_FORMAT);
+            bucketArray[10] = nullGuardFromDate(tape.getEjectPending(), DATE_FORMAT);
             formatArray[i++] = bucketArray;
         }
         return formatArray;

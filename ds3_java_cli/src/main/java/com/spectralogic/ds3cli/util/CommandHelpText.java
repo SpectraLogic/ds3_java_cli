@@ -15,7 +15,7 @@
 
 package com.spectralogic.ds3cli.util;
 
-import java.util.*;
+import java.util.ResourceBundle;
 
 public final class CommandHelpText {
 

@@ -25,11 +25,13 @@ import com.spectralogic.ds3client.utils.Guard;
 import java.util.List;
 
 import static com.spectralogic.ds3cli.util.Constants.DATE_FORMAT;
-import static com.spectralogic.ds3cli.util.Utils.*;
+import static com.spectralogic.ds3cli.util.Guard.nullGuard;
+import static com.spectralogic.ds3cli.util.Guard.nullGuardFromDate;
+import static com.spectralogic.ds3cli.util.Guard.nullGuardToString;
 
 public class GetSystemFailureView extends TableView<GetSystemFailureResult> {
 
-    protected List<SystemFailure> failures;
+    private List<SystemFailure> failures;
 
     @Override
     public String render(final GetSystemFailureResult obj) {
@@ -53,7 +55,7 @@ public class GetSystemFailureView extends TableView<GetSystemFailureResult> {
             bucketArray[0] = nullGuardToString(failure.getType());
             bucketArray[1] = nullGuard(failure.getErrorMessage());
             bucketArray[2] = nullGuardToString(failure.getId());
-            bucketArray[3] = nullGuardToDate(failure.getDate(), DATE_FORMAT);
+            bucketArray[3] = nullGuardFromDate(failure.getDate(), DATE_FORMAT);
             formatArray[i++] = bucketArray;
         }
         return formatArray;

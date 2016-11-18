@@ -19,7 +19,9 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.models.DefaultResult;
-import com.spectralogic.ds3cli.util.*;
+import com.spectralogic.ds3cli.util.FileUtils;
+import com.spectralogic.ds3cli.util.MetadataUtils;
+import com.spectralogic.ds3cli.util.SyncUtils;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.helpers.FileObjectGetter;
 import com.spectralogic.ds3client.helpers.MetadataReceivedListener;
@@ -51,7 +53,6 @@ public class GetObject extends CliCommand<DefaultResult> {
     private String objectName;
     private String prefix;
     private boolean sync;
-    private boolean force;
     private int numberOfThreads;
     private Priority priority;
 
@@ -72,8 +73,7 @@ public class GetObject extends CliCommand<DefaultResult> {
             LOG.info("Using sync command");
             this.sync = true;
         }
-        this.force = args.isForce();
-        this.numberOfThreads = Integer.valueOf(args.getNumberOfThreads());
+        this.numberOfThreads = args.getNumberOfThreads();
         return this;
     }
 
@@ -84,7 +84,7 @@ public class GetObject extends CliCommand<DefaultResult> {
         LOG.info("Output path: {}", filePath.toString());
 
         final Ds3Object ds3Obj = new Ds3Object(this.objectName.replace("\\", "/"));
-        if (this.sync && Utils.fileExists(filePath)) {
+        if (this.sync && FileUtils.fileExists(filePath)) {
             if (SyncUtils.needToSync(helpers, this.bucketName, filePath, ds3Obj.getName(), false)) {
                 this.Transfer(helpers, ds3Obj);
                 return new DefaultResult("SUCCESS: Finished syncing object.");
@@ -108,7 +108,7 @@ public class GetObject extends CliCommand<DefaultResult> {
         job.attachMetadataReceivedListener(new MetadataReceivedListener() {
             @Override
             public void metadataReceived(final String filename, final Metadata metadata) {
-                Utils.restoreLastModified(filename, metadata, Paths.get(prefix, filename));
+                MetadataUtils.restoreLastModified(filename, metadata, Paths.get(prefix, filename));
             }
         });
         job.transfer(new FileObjectGetter(Paths.get(this.prefix)));

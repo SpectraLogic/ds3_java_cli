@@ -18,7 +18,7 @@ package com.spectralogic.ds3cli.models;
 import com.spectralogic.ds3client.commands.HeadObjectResponse;
 import com.spectralogic.ds3client.networking.Metadata;
 
-public class HeadObjectResult implements Result {
+public class HeadObjectResult implements Result<HeadObjectResponse.Status> {
     private final Metadata metadata;
     private final HeadObjectResponse.Status status;
     public HeadObjectResult(final HeadObjectResponse result) {
@@ -30,7 +30,8 @@ public class HeadObjectResult implements Result {
         return metadata;
     }
 
-    public HeadObjectResponse.Status getStatus() {
+    @Override
+    public HeadObjectResponse.Status getResult() {
         return status;
     }
 }

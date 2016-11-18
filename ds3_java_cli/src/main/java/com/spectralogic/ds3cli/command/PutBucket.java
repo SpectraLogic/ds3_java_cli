@@ -21,7 +21,6 @@ import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.DefaultResult;
 import com.spectralogic.ds3client.commands.PutBucketRequest;
 import com.spectralogic.ds3client.networking.FailedRequestException;
-import org.apache.commons.cli.MissingOptionException;
 import org.apache.commons.cli.Option;
 
 import static com.spectralogic.ds3cli.ArgumentFactory.BUCKET;

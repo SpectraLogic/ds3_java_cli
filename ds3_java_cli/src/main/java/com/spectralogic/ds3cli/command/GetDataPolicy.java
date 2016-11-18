@@ -21,9 +21,10 @@ import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.GetDataPoliciesResult;
+import com.spectralogic.ds3cli.views.cli.GetDataPoliciesView;
+import com.spectralogic.ds3cli.views.json.DataView;
 import com.spectralogic.ds3client.commands.spectrads3.GetDataPolicySpectraS3Request;
 import com.spectralogic.ds3client.commands.spectrads3.GetDataPolicySpectraS3Response;
-import org.apache.commons.cli.MissingOptionException;
 import org.apache.commons.cli.Option;
 
 import java.io.IOException;
@@ -59,8 +60,8 @@ public class GetDataPolicy extends CliCommand<GetDataPoliciesResult> {
     @Override
     public View<GetDataPoliciesResult> getView() {
         if (viewType == ViewType.JSON) {
-            return new com.spectralogic.ds3cli.views.json.GetDataPoliciesView();
+            return new DataView<>();
         }
-        return new com.spectralogic.ds3cli.views.cli.GetDataPoliciesView();
+        return new GetDataPoliciesView();
     }
 }

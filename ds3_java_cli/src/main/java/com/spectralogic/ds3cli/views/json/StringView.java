@@ -13,32 +13,17 @@
  * ***************************************************************************
  */
 
-package com.spectralogic.ds3cli;
+package com.spectralogic.ds3cli.views.json;
 
-import com.spectralogic.ds3cli.util.FileUtils;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.spectralogic.ds3cli.View;
+import com.spectralogic.ds3cli.models.Result;
+import com.spectralogic.ds3cli.util.JsonMapper;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-
-public class FileUtilsImpl implements FileUtils {
+public class StringView<T extends Result> implements View<T> {
     @Override
-    public boolean exists(final Path path) {
-        return Files.exists(path);
-    }
-
-    @Override
-    public boolean isRegularFile(final Path path) {
-        return Files.isRegularFile(path);
-    }
-
-    @Override
-    public long size(final Path path) throws IOException {
-        return Files.size(path);
-    }
-
-    @Override
-    public void createDirectories(final Path path) throws IOException {
-        Files.createDirectories(path);
+    public String render(final T obj) throws JsonProcessingException {
+        final CommonJsonView view = CommonJsonView.newView(CommonJsonView.Status.OK);
+        return JsonMapper.toJson(view.message(obj.getResult().toString()));
     }
 }

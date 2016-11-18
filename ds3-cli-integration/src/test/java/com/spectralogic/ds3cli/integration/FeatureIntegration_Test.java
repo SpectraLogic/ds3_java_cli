@@ -24,8 +24,8 @@ import com.spectralogic.ds3cli.integration.models.HeadObject;
 import com.spectralogic.ds3cli.integration.models.JobResponse;
 import com.spectralogic.ds3cli.integration.test.helpers.TempStorageIds;
 import com.spectralogic.ds3cli.integration.test.helpers.TempStorageUtil;
+import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3cli.util.SterilizeString;
-import com.spectralogic.ds3cli.util.Utils;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.Ds3ClientBuilder;
 import com.spectralogic.ds3client.commands.GetObjectRequest;
@@ -38,8 +38,6 @@ import org.joda.time.DateTime;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -390,7 +388,7 @@ public class FeatureIntegration_Test {
         try {
             Util.createBucket(client, bucketName);
             final Arguments args = new Arguments(new String[]{"--http", "-c", "put_object", "-b", bucketName,
-                    "-o", Utils.getFileName(Paths.get("."), Paths.get(Util.RESOURCE_BASE_NAME + "beowulf.txt")), "--sync"});
+                    "-o", FileUtils.getFileName(Paths.get("."), Paths.get(Util.RESOURCE_BASE_NAME + "beowulf.txt")), "--sync"});
             CommandResponse response = Util.command(client, args);
 
             assertThat(response.getMessage(), is("Success: Finished syncing file to ds3 appliance."));
@@ -433,7 +431,7 @@ public class FeatureIntegration_Test {
             Util.createBucket(client, bucketName);
             final Arguments args = new Arguments(new String[]{"--http", "-c", "put_bulk", "-b", bucketName});
             final String file;
-            if (Utils.isWindows) {
+            if (FileUtils.IS_WINDOWS) {
                 file = ".\\src\\test\\resources\\books\\beowulf.txt\n.\\src\\test\\resources\\books\\ulysses.txt";
             } else {
                 file = "./src/test/resources/books/beowulf.txt\n./src/test/resources/books/ulysses.txt";
@@ -458,7 +456,7 @@ public class FeatureIntegration_Test {
             Util.createBucket(client, bucketName);
             final Arguments args = new Arguments(new String[]{"--http", "-c", "put_bulk", "-b", bucketName, "--sync"});
             final String file;
-            if (Utils.isWindows) {
+            if (FileUtils.IS_WINDOWS) {
                 file = ".\\src\\test\\resources\\books\\beowulf.txt\n.\\src\\test\\resources\\books\\ulysses.txt";
             } else {
                 file = "./src/test/resources/books/beowulf.txt\n./src/test/resources/books/ulysses.txt";
@@ -483,7 +481,7 @@ public class FeatureIntegration_Test {
 
         try {
             Util.createBucket(client, bucketName);
-            final Arguments args = new Arguments(new String[]{"--http", "-c", "put_object", "-b", bucketName, "-o", Utils.getFileName(Paths.get("."), Paths.get(Util.RESOURCE_BASE_NAME + "beowulf.txt")), "--metadata", "key:value"});
+            final Arguments args = new Arguments(new String[]{"--http", "-c", "put_object", "-b", bucketName, "-o", FileUtils.getFileName(Paths.get("."), Paths.get(Util.RESOURCE_BASE_NAME + "beowulf.txt")), "--metadata", "key:value"});
 
             final CommandResponse response = Util.command(client, args);
 
@@ -518,7 +516,7 @@ public class FeatureIntegration_Test {
 
         try {
             Util.createBucket(client, bucketName);
-            final Arguments args = new Arguments(new String[]{"--http", "-c", "put_object", "-b", bucketName, "-o", Utils.getFileName(Paths.get("."), Paths.get(Util.RESOURCE_BASE_NAME + "beowulf.txt")), "--metadata", "key:value,key2:value2"});
+            final Arguments args = new Arguments(new String[]{"--http", "-c", "put_object", "-b", bucketName, "-o", FileUtils.getFileName(Paths.get("."), Paths.get(Util.RESOURCE_BASE_NAME + "beowulf.txt")), "--metadata", "key:value,key2:value2"});
 
             final CommandResponse response = Util.command(client, args);
 
