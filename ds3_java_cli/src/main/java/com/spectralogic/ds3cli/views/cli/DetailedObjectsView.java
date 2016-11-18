@@ -25,6 +25,9 @@ import com.spectralogic.ds3client.utils.Guard;
 import java.util.ArrayList;
 
 import static com.spectralogic.ds3cli.util.Constants.DATE_FORMAT;
+import static com.spectralogic.ds3cli.util.Guard.nullGuard;
+import static com.spectralogic.ds3cli.util.Guard.nullGuardFromDate;
+import static com.spectralogic.ds3cli.util.Guard.nullGuardToString;
 
 public class DetailedObjectsView extends TableView<GetDetailedObjectsResult> {
 
@@ -51,12 +54,12 @@ public class DetailedObjectsView extends TableView<GetDetailedObjectsResult> {
         int lineCount = 0;
         for (final DetailedS3Object detailedObject : this.objects) {
             final String [] bucketArray = new String[this.columnCount];
-            bucketArray[0] = com.spectralogic.ds3cli.util.Guard.nullGuard(detailedObject.getName());
-            bucketArray[1] = com.spectralogic.ds3cli.util.Guard.nullGuardToString(detailedObject.getBucketId());
-            bucketArray[2] = com.spectralogic.ds3cli.util.Guard.nullGuardToString(detailedObject.getOwner());
-            bucketArray[3] = com.spectralogic.ds3cli.util.Guard.nullGuardToString(detailedObject.getSize());
-            bucketArray[4] = com.spectralogic.ds3cli.util.Guard.nullGuardToString(detailedObject.getType());
-            bucketArray[5] = com.spectralogic.ds3cli.util.Guard.nullGuardFromDate(detailedObject.getCreationDate(), DATE_FORMAT);
+            bucketArray[0] = nullGuard(detailedObject.getName());
+            bucketArray[1] = nullGuardToString(detailedObject.getBucketId());
+            bucketArray[2] = nullGuardToString(detailedObject.getOwner());
+            bucketArray[3] = nullGuardToString(detailedObject.getSize());
+            bucketArray[4] = nullGuardToString(detailedObject.getType());
+            bucketArray[5] = nullGuardFromDate(detailedObject.getCreationDate(), DATE_FORMAT);
             bucketArray[6] = concatenateTapes(detailedObject.getBlobs());
             bucketArray[7] = concatenatePools(detailedObject.getBlobs());
             formatArray.add(bucketArray);
