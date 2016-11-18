@@ -18,13 +18,12 @@ package com.spectralogic.ds3cli.views.cli;
 import com.bethecoder.ascii_table.ASCIITable;
 import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3cli.models.GetUsersResult;
+import com.spectralogic.ds3cli.util.Guard;
 import com.spectralogic.ds3client.models.SpectraUser;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-
-import static com.spectralogic.ds3cli.util.Utils.nullGuardToString;
 
 public class GetUsersView extends TableView<GetUsersResult> {
 
@@ -49,11 +48,11 @@ public class GetUsersView extends TableView<GetUsersResult> {
         while(this.objectIterator.hasNext()) {
             final SpectraUser content = this.objectIterator.next();
             final String[] arrayEntry = new String[this.columnCount];
-            arrayEntry[0] = nullGuardToString(content.getName());
-            arrayEntry[1] = nullGuardToString(content.getSecretKey());
-            arrayEntry[2] = nullGuardToString(content.getId());
-            arrayEntry[3] = nullGuardToString(content.getDefaultDataPolicyId());
-            arrayEntry[4] = nullGuardToString(content.getAuthId());
+            arrayEntry[0] = Guard.nullGuardToString(content.getName());
+            arrayEntry[1] = Guard.nullGuardToString(content.getSecretKey());
+            arrayEntry[2] = Guard.nullGuardToString(content.getId());
+            arrayEntry[3] = Guard.nullGuardToString(content.getDefaultDataPolicyId());
+            arrayEntry[4] = Guard.nullGuardToString(content.getAuthId());
 
             contents.add(arrayEntry);
         }

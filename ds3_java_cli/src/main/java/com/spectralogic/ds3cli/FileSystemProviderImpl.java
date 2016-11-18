@@ -13,22 +13,32 @@
  * ***************************************************************************
  */
 
-package com.spectralogic.ds3cli.util;
+package com.spectralogic.ds3cli;
 
-import com.google.common.collect.ImmutableMap;
+import com.spectralogic.ds3cli.util.FileSystemProvider;
 
-public final class Metadata {
-    public static ImmutableMap<String, String> parse(final String[] metadataArgs) {
-        final ImmutableMap.Builder<String, String> metadataBuilder = ImmutableMap.builder();
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
-        for (final String arg : metadataArgs) {
-            final String[] keyValue = arg.split(":");
-            if (keyValue.length != 2) {
-                throw new IllegalArgumentException("Malformed metadata entry: " + arg);
-            }
-            metadataBuilder.put(keyValue[0], keyValue[1]);
-        }
+public class FileSystemProviderImpl implements FileSystemProvider {
+    @Override
+    public boolean exists(final Path path) {
+        return Files.exists(path);
+    }
 
-        return metadataBuilder.build();
+    @Override
+    public boolean isRegularFile(final Path path) {
+        return Files.isRegularFile(path);
+    }
+
+    @Override
+    public long size(final Path path) throws IOException {
+        return Files.size(path);
+    }
+
+    @Override
+    public void createDirectories(final Path path) throws IOException {
+        Files.createDirectories(path);
     }
 }

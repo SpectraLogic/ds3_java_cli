@@ -26,7 +26,6 @@ import com.spectralogic.ds3client.utils.Guard;
 import java.util.ArrayList;
 
 import static com.spectralogic.ds3cli.util.Constants.DATE_FORMAT;
-import static com.spectralogic.ds3cli.util.Utils.*;
 
 public class DetailedObjectsPhysicalView extends TableView<GetDetailedObjectsResult> {
     private Iterable<DetailedS3Object> objects;
@@ -69,14 +68,14 @@ public class DetailedObjectsPhysicalView extends TableView<GetDetailedObjectsRes
 
     private String[] writeLine(final Tape tape, final DetailedS3Object detailedObject) {
         final String[] tapeArray = new String[this.columnCount];
-        tapeArray[0] = nullGuard(detailedObject.getName());
-        tapeArray[1] = nullGuardToString(detailedObject.getBucketId());
-        tapeArray[2] = nullGuardToString(detailedObject.getOwner());
-        tapeArray[3] = nullGuardToString(detailedObject.getSize());
-        tapeArray[4] = nullGuardToString(detailedObject.getType());
-        tapeArray[5] = nullGuardToDate(detailedObject.getCreationDate(), DATE_FORMAT);
-        tapeArray[6] = nullGuard(tape.getBarCode());
-        tapeArray[7] = nullGuardToString(tape.getState());
+        tapeArray[0] = com.spectralogic.ds3cli.util.Guard.nullGuard(detailedObject.getName());
+        tapeArray[1] = com.spectralogic.ds3cli.util.Guard.nullGuardToString(detailedObject.getBucketId());
+        tapeArray[2] = com.spectralogic.ds3cli.util.Guard.nullGuardToString(detailedObject.getOwner());
+        tapeArray[3] = com.spectralogic.ds3cli.util.Guard.nullGuardToString(detailedObject.getSize());
+        tapeArray[4] = com.spectralogic.ds3cli.util.Guard.nullGuardToString(detailedObject.getType());
+        tapeArray[5] = com.spectralogic.ds3cli.util.Guard.nullGuardFromDate(detailedObject.getCreationDate(), DATE_FORMAT);
+        tapeArray[6] = com.spectralogic.ds3cli.util.Guard.nullGuard(tape.getBarCode());
+        tapeArray[7] = com.spectralogic.ds3cli.util.Guard.nullGuardToString(tape.getState());
         return tapeArray;
     }
 

@@ -88,7 +88,7 @@ public class GetConfigSummary extends CliCommand<GetConfigSummaryResult> {
             final CliCommand implementation = implementations.next();
             final String className = implementation.getClass().getSimpleName();
             if (className.equalsIgnoreCase(commandName)) {
-                return implementation.withProvider(getProvider(), getFileUtils());
+                return implementation.withProvider(getProvider(), getFileSystemProvider());
             }
         }
         throw new CommandException("No command class: " + commandName);

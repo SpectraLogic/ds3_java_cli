@@ -18,11 +18,12 @@ package com.spectralogic.ds3cli.views.cli;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.models.TapeResult;
+import com.spectralogic.ds3cli.util.Guard;
 import com.spectralogic.ds3client.models.Tape;
 
 import static com.spectralogic.ds3cli.util.Constants.DATE_FORMAT;
-import static com.spectralogic.ds3cli.util.Utils.nullGuard;
-import static com.spectralogic.ds3cli.util.Utils.nullGuardToDate;
+import static com.spectralogic.ds3cli.util.Guard.nullGuard;
+import static com.spectralogic.ds3cli.util.Guard.nullGuardFromDate;
 
 public class GetTapeView implements View<TapeResult> {
     @Override
@@ -30,13 +31,18 @@ public class GetTapeView implements View<TapeResult> {
 
         final Tape tape = obj.getResult();
 
-        return String.format("Tape Bar Code: %s, Tape Type: %s, Available Space: %s, Full: %b, Last Modified: %s, Last Verification: %s",
+        return String.format("Tape Bar Code: %s, ID: %s, Tape Type: %s, Serial Number: %s, State: %s, Partition Id %s, Available Space: %s, Full: %b, Write Protected: %b, Last Modified: %s, Last Verification: %s",
             nullGuard(tape.getBarCode()),
+            Guard.nullGuardToString(tape.getId()),
             nullGuard(tape.getType().name()),
+            nullGuard(tape.getSerialNumber()),
+            Guard.nullGuardToString(tape.getState()),
+            Guard.nullGuardToString(tape.getPartitionId()),
             Long.toString(tape.getAvailableRawCapacity()),
             tape.getFullOfData(),
-            nullGuardToDate(tape.getLastModified(), DATE_FORMAT),
-            nullGuardToDate(tape.getLastVerified(), DATE_FORMAT)
+            tape.getWriteProtected(),
+            nullGuardFromDate(tape.getLastModified(), DATE_FORMAT),
+            nullGuardFromDate(tape.getLastVerified(), DATE_FORMAT)
             ) + ejectionState(tape);
     }
 
@@ -47,8 +53,8 @@ public class GetTapeView implements View<TapeResult> {
         }
 
         return String.format(", Ejection Date: %s, Ejection Pending: %s, Ejection Label: %s, Ejection Location: %s",
-                nullGuardToDate(tape.getEjectDate(), DATE_FORMAT),
-                nullGuardToDate(tape.getEjectPending(), DATE_FORMAT),
+                nullGuardFromDate(tape.getEjectDate(), DATE_FORMAT),
+                nullGuardFromDate(tape.getEjectPending(), DATE_FORMAT),
                 nullGuard(tape.getEjectLabel()),
                 nullGuard(tape.getEjectLocation()));
     }

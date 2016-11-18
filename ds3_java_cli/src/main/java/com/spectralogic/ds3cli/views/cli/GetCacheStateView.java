@@ -24,8 +24,6 @@ import com.spectralogic.ds3client.utils.Guard;
 
 import java.util.List;
 
-import static com.spectralogic.ds3cli.util.Utils.*;
-
 public class GetCacheStateView extends TableView<GetCacheStateResult> {
 
     private List<CacheFilesystemInformation> filesystemList;
@@ -49,17 +47,17 @@ public class GetCacheStateView extends TableView<GetCacheStateResult> {
         for(final CacheFilesystemInformation cacheFilesystemInfo : this.filesystemList) {
             final CacheFilesystem cacheFilesystem = cacheFilesystemInfo.getCacheFilesystem();
             final String [] bucketArray = new String[this.columnCount];
-            bucketArray[0] = nullGuard(cacheFilesystem.getPath());
-            bucketArray[1] = nullGuardToString(cacheFilesystemInfo.getAvailableCapacityInBytes());
-            bucketArray[2] = nullGuardToString(cacheFilesystemInfo.getUsedCapacityInBytes());
-            bucketArray[3] = nullGuardToString(cacheFilesystemInfo.getUnavailableCapacityInBytes());
-            bucketArray[4] = nullGuardToString(cacheFilesystemInfo.getTotalCapacityInBytes());
-            bucketArray[5] = nullGuardToString(cacheFilesystem.getMaxCapacityInBytes());
-            bucketArray[6] = nullGuardToString(cacheFilesystem.getAutoReclaimInitiateThreshold());
-            bucketArray[7] = nullGuardToString(cacheFilesystem.getBurstThreshold());
-            bucketArray[8] = nullGuardToString(cacheFilesystem.getMaxPercentUtilizationOfFilesystem());
-            bucketArray[9] = nullGuardToString(cacheFilesystem.getId());
-            bucketArray[10] = nullGuardToString(cacheFilesystem.getNodeId());
+            bucketArray[0] = com.spectralogic.ds3cli.util.Guard.nullGuard(cacheFilesystem.getPath());
+            bucketArray[1] = com.spectralogic.ds3cli.util.Guard.nullGuardToString(cacheFilesystemInfo.getAvailableCapacityInBytes());
+            bucketArray[2] = com.spectralogic.ds3cli.util.Guard.nullGuardToString(cacheFilesystemInfo.getUsedCapacityInBytes());
+            bucketArray[3] = com.spectralogic.ds3cli.util.Guard.nullGuardToString(cacheFilesystemInfo.getUnavailableCapacityInBytes());
+            bucketArray[4] = com.spectralogic.ds3cli.util.Guard.nullGuardToString(cacheFilesystemInfo.getTotalCapacityInBytes());
+            bucketArray[5] = com.spectralogic.ds3cli.util.Guard.nullGuardToString(cacheFilesystem.getMaxCapacityInBytes());
+            bucketArray[6] = com.spectralogic.ds3cli.util.Guard.nullGuardToString(cacheFilesystem.getAutoReclaimInitiateThreshold());
+            bucketArray[7] = com.spectralogic.ds3cli.util.Guard.nullGuardToString(cacheFilesystem.getBurstThreshold());
+            bucketArray[8] = com.spectralogic.ds3cli.util.Guard.nullGuardToString(cacheFilesystem.getMaxPercentUtilizationOfFilesystem());
+            bucketArray[9] = com.spectralogic.ds3cli.util.Guard.nullGuardToString(cacheFilesystem.getId());
+            bucketArray[10] = com.spectralogic.ds3cli.util.Guard.nullGuardToString(cacheFilesystem.getNodeId());
             formatArray[i++] = bucketArray;
         }
         return formatArray;

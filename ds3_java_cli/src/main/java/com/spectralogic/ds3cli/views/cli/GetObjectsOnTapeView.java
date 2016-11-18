@@ -19,13 +19,13 @@ import com.bethecoder.ascii_table.ASCIITable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.spectralogic.ds3cli.models.GetObjectsOnTapeResult;
+import com.spectralogic.ds3cli.util.Guard;
 import com.spectralogic.ds3client.models.BulkObject;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.spectralogic.ds3cli.util.Utils.nullGuard;
-import static com.spectralogic.ds3cli.util.Utils.nullGuardToString;
+import static com.spectralogic.ds3cli.util.Guard.nullGuard;
 
 public class GetObjectsOnTapeView extends TableView<GetObjectsOnTapeResult> {
 
@@ -51,8 +51,8 @@ public class GetObjectsOnTapeView extends TableView<GetObjectsOnTapeResult> {
             final String[] arrayEntry = new String[this.columnCount];
             arrayEntry[0] = nullGuard(content.getName());
             arrayEntry[1] = nullGuard(content.getBucket());
-            arrayEntry[2] = nullGuardToString(content.getLength());
-            arrayEntry[3] = nullGuardToString(content.getId());
+            arrayEntry[2] = Guard.nullGuardToString(content.getLength());
+            arrayEntry[3] = Guard.nullGuardToString(content.getId());
             contents.add(arrayEntry);
         }
 

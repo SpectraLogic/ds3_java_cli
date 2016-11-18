@@ -25,7 +25,6 @@ import com.spectralogic.ds3client.utils.Guard;
 import java.util.List;
 
 import static com.spectralogic.ds3cli.util.Constants.DATE_FORMAT;
-import static com.spectralogic.ds3cli.util.Utils.*;
 
 public class GetSystemFailureView extends TableView<GetSystemFailureResult> {
 
@@ -50,10 +49,10 @@ public class GetSystemFailureView extends TableView<GetSystemFailureResult> {
         int i = 0;
         for(final SystemFailure failure : this.failures) {
             final String [] bucketArray = new String[this.columnCount];
-            bucketArray[0] = nullGuardToString(failure.getType());
-            bucketArray[1] = nullGuard(failure.getErrorMessage());
-            bucketArray[2] = nullGuardToString(failure.getId());
-            bucketArray[3] = nullGuardToDate(failure.getDate(), DATE_FORMAT);
+            bucketArray[0] = com.spectralogic.ds3cli.util.Guard.nullGuardToString(failure.getType());
+            bucketArray[1] = com.spectralogic.ds3cli.util.Guard.nullGuard(failure.getErrorMessage());
+            bucketArray[2] = com.spectralogic.ds3cli.util.Guard.nullGuardToString(failure.getId());
+            bucketArray[3] = com.spectralogic.ds3cli.util.Guard.nullGuardFromDate(failure.getDate(), DATE_FORMAT);
             formatArray[i++] = bucketArray;
         }
         return formatArray;

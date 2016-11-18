@@ -23,7 +23,7 @@ import com.spectralogic.ds3cli.exceptions.BadArgumentException;
 import com.spectralogic.ds3cli.models.Result;
 import com.spectralogic.ds3cli.util.CommandHelpText;
 import com.spectralogic.ds3cli.util.Ds3Provider;
-import com.spectralogic.ds3cli.util.FileUtils;
+import com.spectralogic.ds3cli.util.FileSystemProvider;
 import com.spectralogic.ds3cli.views.cli.DefaultView;
 import com.spectralogic.ds3cli.views.json.StringView;
 import com.spectralogic.ds3client.Ds3Client;
@@ -37,26 +37,27 @@ import java.util.concurrent.Callable;
 
 public abstract class CliCommand<T extends Result> implements Callable<T> {
 
-    private Ds3Provider ds3Provider;
-    private FileUtils fileUtils;
-    protected ViewType viewType = ViewType.CLI;
     protected final static List<Option> EMPTY_LIST = Collections.emptyList();
+
+    private Ds3Provider ds3Provider;
+    private FileSystemProvider fileSystemProvider;
+    protected ViewType viewType = ViewType.CLI;
 
     // for service provider instantiation
     public CliCommand() {
         this.ds3Provider = null;
-        this.fileUtils = null;
+        this.fileSystemProvider = null;
     }
 
-    public CliCommand withProvider(final Ds3Provider ds3Provider, final FileUtils fileUtils) {
+    public CliCommand withProvider(final Ds3Provider ds3Provider, final FileSystemProvider fileSystemProvider) {
         this.ds3Provider = ds3Provider;
-        this.fileUtils = fileUtils;
+        this.fileSystemProvider = fileSystemProvider;
         return this;
     }
 
-    public CliCommand(final Ds3Provider ds3Provider, final FileUtils fileUtils) {
+    public CliCommand(final Ds3Provider ds3Provider, final FileSystemProvider fileSystemProvider) {
         this.ds3Provider = ds3Provider;
-        this.fileUtils = fileUtils;
+        this.fileSystemProvider = fileSystemProvider;
     }
 
     /**
@@ -84,8 +85,8 @@ public abstract class CliCommand<T extends Result> implements Callable<T> {
         return this.ds3Provider;
     }
 
-    FileUtils getFileUtils() {
-        return this.fileUtils;
+    FileSystemProvider getFileSystemProvider() {
+        return this.fileSystemProvider;
     }
 
     /**

@@ -26,8 +26,6 @@ import com.spectralogic.ds3client.utils.Guard;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.spectralogic.ds3cli.util.Utils.*;
-
 public class GetStorageDomainsView extends TableView<GetStorageDomainsResult> {
     private Iterable<StorageDomain> objectIterator;
 
@@ -49,11 +47,11 @@ public class GetStorageDomainsView extends TableView<GetStorageDomainsResult> {
 
         for (final StorageDomain domain : objectIterator) {
             final String[] domainArray = new String[this.columnCount];
-            domainArray[0] = nullGuard(domain.getName());
-            domainArray[1] = nullGuardToString(domain.getId());
-            domainArray[2] = nullGuardToString(domain.getLtfsFileNaming());
+            domainArray[0] = com.spectralogic.ds3cli.util.Guard.nullGuard(domain.getName());
+            domainArray[1] = com.spectralogic.ds3cli.util.Guard.nullGuardToString(domain.getId());
+            domainArray[2] = com.spectralogic.ds3cli.util.Guard.nullGuardToString(domain.getLtfsFileNaming());
             domainArray[3] = formatFlagList(domain);
-            domainArray[4] = nullGuardToString(domain.getWriteOptimization());
+            domainArray[4] = com.spectralogic.ds3cli.util.Guard.nullGuardToString(domain.getWriteOptimization());
             contents.add(domainArray);
         }
         return contents.toArray(new String[contents.size()][]);
@@ -69,7 +67,7 @@ public class GetStorageDomainsView extends TableView<GetStorageDomainsResult> {
         }
         if(domain.getAutoEjectUponMediaFull()) {
             flagsSet.add("Auto Eject upon Media Full ("
-                    + nullGuardToString(domain.getAutoEjectMediaFullThreshold())
+                    + com.spectralogic.ds3cli.util.Guard.nullGuardToString(domain.getAutoEjectMediaFullThreshold())
                     + " bytes)");
         }
         if(domain.getSecureMediaAllocation()) {

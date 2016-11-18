@@ -21,7 +21,7 @@ import com.spectralogic.ds3cli.command.PutBulk;
 import com.spectralogic.ds3cli.models.PutBulkResult;
 import com.spectralogic.ds3client.utils.Guard;
 
-import static com.spectralogic.ds3cli.util.Utils.nullGuard;
+import static com.spectralogic.ds3cli.util.Guard.nullGuard;
 
 public class PutBulkView extends TableView<PutBulkResult> {
 

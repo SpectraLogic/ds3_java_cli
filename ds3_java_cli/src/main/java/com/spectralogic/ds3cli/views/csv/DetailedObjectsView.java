@@ -29,7 +29,6 @@ import com.spectralogic.ds3client.utils.Guard;
 import javax.annotation.Nullable;
 
 import static com.spectralogic.ds3cli.util.Constants.DATE_FORMAT;
-import static com.spectralogic.ds3cli.util.Utils.*;
 
 public class DetailedObjectsView implements View<GetDetailedObjectsResult> {
 
@@ -49,12 +48,12 @@ public class DetailedObjectsView implements View<GetDetailedObjectsResult> {
             public Iterable<String> format(final DetailedS3Object content) {
 
                 final ImmutableList.Builder<String> builder = ImmutableList.builder();
-                builder.add(nullGuard(content.getName()));
-                builder.add(nullGuardToString(content.getBucketId()));
-                builder.add(nullGuardToString(content.getOwner()));
-                builder.add(nullGuardToString(content.getSize()));
-                builder.add(nullGuardToString(content.getType()));
-                builder.add(nullGuardToDate(content.getCreationDate(), DATE_FORMAT));
+                builder.add(com.spectralogic.ds3cli.util.Guard.nullGuard(content.getName()));
+                builder.add(com.spectralogic.ds3cli.util.Guard.nullGuardToString(content.getBucketId()));
+                builder.add(com.spectralogic.ds3cli.util.Guard.nullGuardToString(content.getOwner()));
+                builder.add(com.spectralogic.ds3cli.util.Guard.nullGuardToString(content.getSize()));
+                builder.add(com.spectralogic.ds3cli.util.Guard.nullGuardToString(content.getType()));
+                builder.add(com.spectralogic.ds3cli.util.Guard.nullGuardFromDate(content.getCreationDate(), DATE_FORMAT));
                 builder.add(concatenateTapes(content.getBlobs()));
                 builder.add(concatenatePools(content.getBlobs()));
                 return builder.build();

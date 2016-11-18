@@ -20,8 +20,9 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.models.DefaultResult;
+import com.spectralogic.ds3cli.util.FileUtils;
+import com.spectralogic.ds3cli.util.MetadataUtils;
 import com.spectralogic.ds3cli.util.SyncUtils;
-import com.spectralogic.ds3cli.util.Utils;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.helpers.options.WriteJobOptions;
 import com.spectralogic.ds3client.models.Priority;
@@ -84,7 +85,7 @@ public class PutObject extends CliCommand<DefaultResult> {
     @Override
     public DefaultResult call() throws Exception {
         final Ds3ClientHelpers helpers = getClientHelpers();
-        final Ds3Object ds3Obj = new Ds3Object(Utils.normalizeObjectName(this.objectName), getFileUtils().size(this.objectPath));
+        final Ds3Object ds3Obj = new Ds3Object(FileUtils.normalizeObjectName(this.objectName), getFileSystemProvider().size(this.objectPath));
 
         if (this.prefix != null) {
             LOG.info("Pre-appending {} to object name", this.prefix);
@@ -126,7 +127,7 @@ public class PutObject extends CliCommand<DefaultResult> {
                 public Map<String, String> getMetadataValue(final String s) {
 
                     return new ImmutableMap.Builder<String, String>()
-                            .putAll(Utils.getMetadataValues(objectPath))
+                            .putAll(MetadataUtils.getMetadataValues(objectPath))
                             .putAll(metadata).build();
                 }
             });

@@ -27,7 +27,7 @@ import com.spectralogic.ds3client.models.Tape;
 
 import java.util.List;
 
-import static com.spectralogic.ds3cli.util.Utils.nullGuard;
+import static com.spectralogic.ds3cli.util.Guard.nullGuard;
 
 public class GetPhysicalPlacementWithFullDetailsView  implements View<GetPhysicalPlacementWithFullDetailsResult> {
 

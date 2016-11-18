@@ -18,6 +18,7 @@ package com.spectralogic.ds3cli.views.cli;
 import com.bethecoder.ascii_table.ASCIITable;
 import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3cli.models.GetJobResult;
+import com.spectralogic.ds3cli.util.Guard;
 import com.spectralogic.ds3client.models.BulkObject;
 import com.spectralogic.ds3client.models.MasterObjectList;
 import com.spectralogic.ds3client.models.Objects;
@@ -26,9 +27,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 import static com.spectralogic.ds3cli.util.Constants.DATE_FORMAT;
-import static com.spectralogic.ds3cli.util.Utils.nullGuard;
-import static com.spectralogic.ds3cli.util.Utils.nullGuardToDate;
-import static com.spectralogic.ds3cli.util.Utils.nullGuardToString;
+import static com.spectralogic.ds3cli.util.Guard.nullGuard;
+import static com.spectralogic.ds3cli.util.Guard.nullGuardFromDate;
 
 public class GetJobView extends TableView<GetJobResult> {
 
@@ -42,10 +42,10 @@ public class GetJobView extends TableView<GetJobResult> {
         /// DATE_FORMAT is used before initTable() -- Set UTC
         final String returnString = String.format(
                 "JobId: %s | Status: %s | Bucket: %s | Type: %s | Priority: %s | User Name: %s | Creation Date: %s | Total Size: %s | Total Transferred: %s",
-                nullGuardToString(mol.getJobId()), nullGuardToString(mol.getStatus()), nullGuard(mol.getBucketName()),
-                nullGuardToString(mol.getRequestType()), nullGuardToString(mol.getPriority()), nullGuardToString(mol.getUserName()),
-                nullGuardToDate(mol.getStartDate(), DATE_FORMAT), nullGuardToString(mol.getOriginalSizeInBytes()),
-                nullGuardToString(mol.getCompletedSizeInBytes()));
+                Guard.nullGuardToString(mol.getJobId()), Guard.nullGuardToString(mol.getStatus()), nullGuard(mol.getBucketName()),
+                Guard.nullGuardToString(mol.getRequestType()), Guard.nullGuardToString(mol.getPriority()), Guard.nullGuardToString(mol.getUserName()),
+                nullGuardFromDate(mol.getStartDate(), DATE_FORMAT), Guard.nullGuardToString(mol.getOriginalSizeInBytes()),
+                Guard.nullGuardToString(mol.getCompletedSizeInBytes()));
 
         if (mol.getObjects() == null || mol.getObjects().isEmpty()) {
             return returnString;
@@ -66,10 +66,10 @@ public class GetJobView extends TableView<GetJobResult> {
             for (final BulkObject obj : chunk.getObjects()) {
                 final String[] arrayEntry = new String[this.columnCount];
                 arrayEntry[0] = nullGuard(obj.getName());
-                arrayEntry[1] = nullGuardToString(obj.getLength());
-                arrayEntry[2] = nullGuardToString(obj.getInCache());
-                arrayEntry[3] = nullGuardToString(chunk.getChunkNumber());
-                arrayEntry[4] = nullGuardToString(chunk.getChunkId());
+                arrayEntry[1] = Guard.nullGuardToString(obj.getLength());
+                arrayEntry[2] = Guard.nullGuardToString(obj.getInCache());
+                arrayEntry[3] = Guard.nullGuardToString(chunk.getChunkNumber());
+                arrayEntry[4] = Guard.nullGuardToString(chunk.getChunkId());
                 contents.add(arrayEntry);
             }
         }

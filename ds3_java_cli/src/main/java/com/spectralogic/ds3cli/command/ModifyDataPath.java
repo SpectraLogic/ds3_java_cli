@@ -18,7 +18,7 @@ package com.spectralogic.ds3cli.command;
 import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.models.DefaultResult;
-import com.spectralogic.ds3cli.util.Utils;
+import com.spectralogic.ds3cli.util.CliUtils;
 import com.spectralogic.ds3client.commands.spectrads3.ModifyDataPathBackendSpectraS3Request;
 import org.apache.commons.cli.Option;
 
@@ -44,7 +44,7 @@ public class ModifyDataPath extends CliCommand<DefaultResult> {
     @Override
     public DefaultResult call() throws Exception {
 
-        if (!Utils.isVersionSupported(getClient(), "3.2.3")) {
+        if (!CliUtils.isVersionSupported(getClient(), "3.2.3")) {
             throw new RuntimeException("'modify_data_path' is supported with BP version 3.2.3 or later");
         }
 

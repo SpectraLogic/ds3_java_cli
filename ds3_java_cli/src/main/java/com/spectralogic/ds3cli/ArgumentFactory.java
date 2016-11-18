@@ -15,7 +15,7 @@
 
 package com.spectralogic.ds3cli;
 
-import com.spectralogic.ds3cli.util.Utils;
+import com.spectralogic.ds3cli.util.CliUtils;
 import com.spectralogic.ds3client.models.Priority;
 import com.spectralogic.ds3client.models.WriteOptimization;
 import org.apache.commons.cli.Option;
@@ -66,7 +66,7 @@ public final class ArgumentFactory {
     public static final Option CHECKSUM = Option.builder().longOpt("checksum").desc("Validate checksum values").build();
     public static final Option WRITE_OPTIMIZATION = Option.builder().longOpt("writeOptimization")
             .desc("Set the job write optimization.  Possible values: ["
-                    + Utils.printEnumOptions(WriteOptimization.values()) + "]").build();
+                    + CliUtils.printEnumOptions(WriteOptimization.values()) + "]").build();
     public static final Option COMPLETED = Option.builder().longOpt("completed")
             .desc("Used with the command get_jobs to include the display of completed jobs").build();
     public static final Option SYNC = Option.builder().longOpt("sync").desc("Copy only the newest files").build();
@@ -101,7 +101,7 @@ public final class ArgumentFactory {
             .build();
     public static final Option PRIORITY = Option.builder().
             longOpt("priority")
-            .desc("Set the bulk job priority.  Possible values: [" + Utils.printEnumOptions(Priority.values()) + "]")
+            .desc("Set the bulk job priority.  Possible values: [" + CliUtils.printEnumOptions(Priority.values()) + "]")
             .hasArgs()
             .build();
     public static final Option VERIFY_PERCENT = Option.builder().longOpt("verify-last-percent").argName("percent")

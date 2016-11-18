@@ -19,7 +19,7 @@ import ch.qos.logback.classic.Level;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.spectralogic.ds3cli.exceptions.BadArgumentException;
-import com.spectralogic.ds3cli.util.Metadata;
+import com.spectralogic.ds3cli.util.MetadataUtils;
 import com.spectralogic.ds3client.models.Priority;
 import com.spectralogic.ds3client.models.WriteOptimization;
 import org.apache.commons.cli.*;
@@ -352,21 +352,21 @@ public class Arguments {
         if (meta == null) {
             return null;
         }
-        return Metadata.parse(meta);
+        return MetadataUtils.parse(meta);
     }
     public ImmutableMap<String, String> getModifyParams() {
         final String[] meta = this.getOptionValues(MODIFY_PARAMS.getLongOpt());
         if (meta == null) {
             return null;
         }
-        return Metadata.parse(meta);
+        return MetadataUtils.parse(meta);
     }
     public ImmutableMap<String, String> getFilterParams() {
         final String[] meta = this.getOptionValues(FILTER_PARAMS.getLongOpt());
         if (meta == null) {
             return null;
         }
-        return Metadata.parse(meta);
+        return MetadataUtils.parse(meta);
     }
 
     public boolean isDiscard() { return this.optionExists(DISCARD.getLongOpt()); }

@@ -18,6 +18,7 @@ package com.spectralogic.ds3cli.views.cli;
 import com.bethecoder.ascii_table.ASCIITable;
 import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3cli.models.VerifyBulkJobResult;
+import com.spectralogic.ds3cli.util.Guard;
 import com.spectralogic.ds3client.models.BulkObject;
 import com.spectralogic.ds3client.models.Objects;
 
@@ -25,8 +26,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import static com.spectralogic.ds3cli.util.Utils.nullGuard;
-import static com.spectralogic.ds3cli.util.Utils.nullGuardToString;
+import static com.spectralogic.ds3cli.util.Guard.nullGuard;
 
 public class VerifyBulkJobView extends TableView<VerifyBulkJobResult> {
 
@@ -55,10 +55,10 @@ public class VerifyBulkJobView extends TableView<VerifyBulkJobResult> {
             final List<BulkObject> bulkObjectList = content.getObjects();
             for (final BulkObject bulkObject : bulkObjectList) {
                 final String[] arrayEntry = new String[this.columnCount];
-                arrayEntry[0] = nullGuardToString(chunk);
+                arrayEntry[0] = Guard.nullGuardToString(chunk);
                 arrayEntry[1] = nullGuard(bulkObject.getName());
-                arrayEntry[2] = nullGuardToString(bulkObject.getLength());
-                arrayEntry[3] = nullGuardToString(bulkObject.getVersion());
+                arrayEntry[2] = Guard.nullGuardToString(bulkObject.getLength());
+                arrayEntry[3] = Guard.nullGuardToString(bulkObject.getVersion());
                 contents.add(arrayEntry);
             }
         }

@@ -30,7 +30,6 @@ import com.spectralogic.ds3client.utils.Guard;
 import javax.annotation.Nullable;
 
 import static com.spectralogic.ds3cli.util.Constants.DATE_FORMAT;
-import static com.spectralogic.ds3cli.util.Utils.*;
 
 public class DetailedObjectsPhysicalView implements View<GetDetailedObjectsResult> {
 
@@ -59,14 +58,14 @@ public class DetailedObjectsPhysicalView implements View<GetDetailedObjectsResul
                 final DetailedS3Object detailedObject = content.getDetailedS3Object();
                 final Tape tape = content.getTape();
 
-                csvRow.add(nullGuard(detailedObject.getName()));
-                csvRow.add(nullGuardToString(detailedObject.getBucketId()));
-                csvRow.add(nullGuardToString(detailedObject.getOwner()));
-                csvRow.add(nullGuardToString(detailedObject.getSize()));
-                csvRow.add(nullGuardToString(detailedObject.getType()));
-                csvRow.add(nullGuardToDate(detailedObject.getCreationDate(), DATE_FORMAT));
-                csvRow.add(nullGuard(tape.getBarCode()));
-                csvRow.add(nullGuardToString(tape.getState()));
+                csvRow.add(com.spectralogic.ds3cli.util.Guard.nullGuard(detailedObject.getName()));
+                csvRow.add(com.spectralogic.ds3cli.util.Guard.nullGuardToString(detailedObject.getBucketId()));
+                csvRow.add(com.spectralogic.ds3cli.util.Guard.nullGuardToString(detailedObject.getOwner()));
+                csvRow.add(com.spectralogic.ds3cli.util.Guard.nullGuardToString(detailedObject.getSize()));
+                csvRow.add(com.spectralogic.ds3cli.util.Guard.nullGuardToString(detailedObject.getType()));
+                csvRow.add(com.spectralogic.ds3cli.util.Guard.nullGuardFromDate(detailedObject.getCreationDate(), DATE_FORMAT));
+                csvRow.add(com.spectralogic.ds3cli.util.Guard.nullGuard(tape.getBarCode()));
+                csvRow.add(com.spectralogic.ds3cli.util.Guard.nullGuardToString(tape.getState()));
                 return csvRow.build();
             }
         }).toString();
