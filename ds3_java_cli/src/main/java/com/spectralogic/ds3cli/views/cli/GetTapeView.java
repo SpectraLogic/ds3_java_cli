@@ -24,6 +24,7 @@ import com.spectralogic.ds3client.models.Tape;
 import static com.spectralogic.ds3cli.util.Constants.DATE_FORMAT;
 import static com.spectralogic.ds3cli.util.Guard.nullGuard;
 import static com.spectralogic.ds3cli.util.Guard.nullGuardFromDate;
+import static com.spectralogic.ds3cli.util.Guard.nullGuardToString;
 
 public class GetTapeView implements View<TapeResult> {
     @Override
@@ -33,11 +34,11 @@ public class GetTapeView implements View<TapeResult> {
 
         return String.format("Tape Bar Code: %s, ID: %s, Tape Type: %s, Serial Number: %s, State: %s, Partition Id %s, Available Space: %s, Full: %b, Write Protected: %b, Last Modified: %s, Last Verification: %s",
             nullGuard(tape.getBarCode()),
-            Guard.nullGuardToString(tape.getId()),
+            nullGuardToString(tape.getId()),
             nullGuard(tape.getType().name()),
             nullGuard(tape.getSerialNumber()),
-            Guard.nullGuardToString(tape.getState()),
-            Guard.nullGuardToString(tape.getPartitionId()),
+            nullGuardToString(tape.getState()),
+            nullGuardToString(tape.getPartitionId()),
             Long.toString(tape.getAvailableRawCapacity()),
             tape.getFullOfData(),
             tape.getWriteProtected(),

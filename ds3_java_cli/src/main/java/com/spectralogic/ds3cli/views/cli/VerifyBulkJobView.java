@@ -27,6 +27,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import static com.spectralogic.ds3cli.util.Guard.nullGuard;
+import static com.spectralogic.ds3cli.util.Guard.nullGuardToString;
 
 public class VerifyBulkJobView extends TableView<VerifyBulkJobResult> {
 
@@ -55,10 +56,10 @@ public class VerifyBulkJobView extends TableView<VerifyBulkJobResult> {
             final List<BulkObject> bulkObjectList = content.getObjects();
             for (final BulkObject bulkObject : bulkObjectList) {
                 final String[] arrayEntry = new String[this.columnCount];
-                arrayEntry[0] = Guard.nullGuardToString(chunk);
+                arrayEntry[0] = nullGuardToString(chunk);
                 arrayEntry[1] = nullGuard(bulkObject.getName());
-                arrayEntry[2] = Guard.nullGuardToString(bulkObject.getLength());
-                arrayEntry[3] = Guard.nullGuardToString(bulkObject.getVersion());
+                arrayEntry[2] = nullGuardToString(bulkObject.getLength());
+                arrayEntry[3] = nullGuardToString(bulkObject.getVersion());
                 contents.add(arrayEntry);
             }
         }

@@ -27,10 +27,11 @@ import java.util.List;
 import static com.spectralogic.ds3cli.util.Constants.DATE_FORMAT;
 import static com.spectralogic.ds3cli.util.Guard.nullGuard;
 import static com.spectralogic.ds3cli.util.Guard.nullGuardFromDate;
+import static com.spectralogic.ds3cli.util.Guard.nullGuardToString;
 
 public class GetJobsView extends TableView<GetJobsResult> {
 
-    protected List<Job> jobs;
+    private List<Job> jobs;
 
     @Override
     public String render(final GetJobsResult result) {
@@ -52,11 +53,11 @@ public class GetJobsView extends TableView<GetJobsResult> {
             final Job job = jobs.get(i);
             final String [] jobArray = new String[this.columnCount];
             jobArray[0] = nullGuard(job.getBucketName());
-            jobArray[1] = Guard.nullGuardToString(job.getJobId());
+            jobArray[1] = nullGuardToString(job.getJobId());
             jobArray[2] = nullGuardFromDate(job.getStartDate(), DATE_FORMAT);
             jobArray[3] = nullGuard(job.getUserName());
-            jobArray[4] = Guard.nullGuardToString(job.getRequestType());
-            jobArray[5] = Guard.nullGuardToString(job.getStatus());
+            jobArray[4] = nullGuardToString(job.getRequestType());
+            jobArray[5] = nullGuardToString(job.getStatus());
             formatArray[i] = jobArray;
         }
         return formatArray;

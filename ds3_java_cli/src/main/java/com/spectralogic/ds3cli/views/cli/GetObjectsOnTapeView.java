@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.spectralogic.ds3cli.util.Guard.nullGuard;
+import static com.spectralogic.ds3cli.util.Guard.nullGuardToString;
 
 public class GetObjectsOnTapeView extends TableView<GetObjectsOnTapeResult> {
 
@@ -51,8 +52,8 @@ public class GetObjectsOnTapeView extends TableView<GetObjectsOnTapeResult> {
             final String[] arrayEntry = new String[this.columnCount];
             arrayEntry[0] = nullGuard(content.getName());
             arrayEntry[1] = nullGuard(content.getBucket());
-            arrayEntry[2] = Guard.nullGuardToString(content.getLength());
-            arrayEntry[3] = Guard.nullGuardToString(content.getId());
+            arrayEntry[2] = nullGuardToString(content.getLength());
+            arrayEntry[3] = nullGuardToString(content.getId());
             contents.add(arrayEntry);
         }
 

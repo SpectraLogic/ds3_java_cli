@@ -25,6 +25,7 @@ import com.spectralogic.ds3client.models.DataPolicyList;
 
 import static com.spectralogic.ds3cli.util.Constants.DATE_FORMAT;
 import static com.spectralogic.ds3cli.util.Guard.nullGuardFromDate;
+import static com.spectralogic.ds3cli.util.Guard.nullGuardToString;
 
 public class GetDataPoliciesView extends TableView<GetDataPoliciesResult> {
 
@@ -52,18 +53,18 @@ public class GetDataPoliciesView extends TableView<GetDataPoliciesResult> {
 
         for (final DataPolicy dataPolicy: dataPolicies) {
             final String[] arrayEntry = new String[this.columnCount];
-            arrayEntry[0] = Guard.nullGuardToString(dataPolicy.getName());
+            arrayEntry[0] = nullGuardToString(dataPolicy.getName());
             arrayEntry[1] = nullGuardFromDate(dataPolicy.getCreationDate(), DATE_FORMAT);
-            arrayEntry[2] = Guard.nullGuardToString(dataPolicy.getVersioning());
-            arrayEntry[3] = Guard.nullGuardToString(dataPolicy.getChecksumType());
-            arrayEntry[4] = Guard.nullGuardToString(dataPolicy.getEndToEndCrcRequired());
-            arrayEntry[5] = Guard.nullGuardToString(dataPolicy.getBlobbingEnabled());
-            arrayEntry[6] = Guard.nullGuardToString(dataPolicy.getDefaultBlobSize());
-            arrayEntry[7] = Guard.nullGuardToString(dataPolicy.getDefaultGetJobPriority());
-            arrayEntry[8] = Guard.nullGuardToString(dataPolicy.getDefaultPutJobPriority());
-            arrayEntry[9] = Guard.nullGuardToString(dataPolicy.getDefaultVerifyJobPriority());
-            arrayEntry[10] = Guard.nullGuardToString(dataPolicy.getId());
-            arrayEntry[11] = Guard.nullGuardToString(dataPolicy.getLtfsObjectNamingAllowed());
+            arrayEntry[2] = nullGuardToString(dataPolicy.getVersioning());
+            arrayEntry[3] = nullGuardToString(dataPolicy.getChecksumType());
+            arrayEntry[4] = nullGuardToString(dataPolicy.getEndToEndCrcRequired());
+            arrayEntry[5] = nullGuardToString(dataPolicy.getBlobbingEnabled());
+            arrayEntry[6] = nullGuardToString(dataPolicy.getDefaultBlobSize());
+            arrayEntry[7] = nullGuardToString(dataPolicy.getDefaultGetJobPriority());
+            arrayEntry[8] = nullGuardToString(dataPolicy.getDefaultPutJobPriority());
+            arrayEntry[9] = nullGuardToString(dataPolicy.getDefaultVerifyJobPriority());
+            arrayEntry[10] = nullGuardToString(dataPolicy.getId());
+            arrayEntry[11] = nullGuardToString(dataPolicy.getLtfsObjectNamingAllowed());
             builder.add(arrayEntry);
         }
 

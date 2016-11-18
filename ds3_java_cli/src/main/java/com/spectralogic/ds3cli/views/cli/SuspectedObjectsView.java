@@ -27,6 +27,7 @@ import com.spectralogic.ds3client.utils.Guard;
 import java.util.List;
 
 import static com.spectralogic.ds3cli.util.Guard.nullGuard;
+import static com.spectralogic.ds3cli.util.Guard.nullGuardToString;
 
 public class SuspectedObjectsView extends TableView<SuspectedObjectResult> {
     private ImmutableList<BulkObject> suspectBlobTapes;
@@ -52,9 +53,9 @@ public class SuspectedObjectsView extends TableView<SuspectedObjectResult> {
             final String [] bucketArray = new String[this.columnCount];
             bucketArray[0] = nullGuard(suspectBlobTape.getName());
             bucketArray[1] = nullGuard(getBucketFromBulkObject(suspectBlobTape));
-            bucketArray[2] = com.spectralogic.ds3cli.util.Guard.nullGuardToString(suspectBlobTape.getInCache());
-            bucketArray[3] = com.spectralogic.ds3cli.util.Guard.nullGuardToString(suspectBlobTape.getOffset());
-            bucketArray[4] = com.spectralogic.ds3cli.util.Guard.nullGuardToString(suspectBlobTape.getLength());
+            bucketArray[2] = nullGuardToString(suspectBlobTape.getInCache());
+            bucketArray[3] = nullGuardToString(suspectBlobTape.getOffset());
+            bucketArray[4] = nullGuardToString(suspectBlobTape.getLength());
             formatArray[i++] = bucketArray;
         }
         return formatArray;

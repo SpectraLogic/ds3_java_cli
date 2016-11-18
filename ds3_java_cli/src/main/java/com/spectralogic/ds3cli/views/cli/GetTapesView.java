@@ -27,6 +27,7 @@ import java.util.List;
 import static com.spectralogic.ds3cli.util.Constants.DATE_FORMAT;
 import static com.spectralogic.ds3cli.util.Guard.nullGuard;
 import static com.spectralogic.ds3cli.util.Guard.nullGuardFromDate;
+import static com.spectralogic.ds3cli.util.Guard.nullGuardToString;
 
 public class GetTapesView extends TableView<GetTapesResult> {
 
@@ -51,12 +52,12 @@ public class GetTapesView extends TableView<GetTapesResult> {
         for (final Tape tape : this.tapeList) {
             final String [] bucketArray = new String[this.columnCount];
             bucketArray[0] = nullGuard(tape.getBarCode());
-            bucketArray[1] = com.spectralogic.ds3cli.util.Guard.nullGuardToString(tape.getId());
-            bucketArray[2] = com.spectralogic.ds3cli.util.Guard.nullGuardToString(tape.getState());
+            bucketArray[1] = nullGuardToString(tape.getId());
+            bucketArray[2] = nullGuardToString(tape.getState());
             bucketArray[3] = nullGuardFromDate(tape.getLastModified(), DATE_FORMAT);
-            bucketArray[4] = com.spectralogic.ds3cli.util.Guard.nullGuardToString(tape.getAvailableRawCapacity());
-            bucketArray[5] = com.spectralogic.ds3cli.util.Guard.nullGuardToString(tape.getBucketId());
-            bucketArray[6] = com.spectralogic.ds3cli.util.Guard.nullGuardToString(tape.getAssignedToStorageDomain());
+            bucketArray[4] = nullGuardToString(tape.getAvailableRawCapacity());
+            bucketArray[5] = nullGuardToString(tape.getBucketId());
+            bucketArray[6] = nullGuardToString(tape.getAssignedToStorageDomain());
             bucketArray[7] = nullGuardFromDate(tape.getEjectDate(), DATE_FORMAT);
             bucketArray[8] = nullGuard(tape.getEjectLocation());
             bucketArray[9] = nullGuard(tape.getEjectLabel());

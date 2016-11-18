@@ -26,6 +26,7 @@ import java.util.List;
 
 import static com.spectralogic.ds3cli.util.Constants.DATE_FORMAT;
 import static com.spectralogic.ds3cli.util.Guard.nullGuardFromDate;
+import static com.spectralogic.ds3cli.util.Guard.nullGuardToString;
 
 public class GetDataPathBackendView extends TableView<GetDataPathBackendResult> {
 
@@ -47,15 +48,15 @@ public class GetDataPathBackendView extends TableView<GetDataPathBackendResult> 
     protected String[][] formatTableContents() {
         final List<String[]> contents = new ArrayList<>();
         final String[] attributesArray = new String[this.columnCount];
-        attributesArray[0] = Guard.nullGuardToString(dataPathBackend.getActivated());
-        attributesArray[1] = Guard.nullGuardToString(dataPathBackend.getAutoActivateTimeoutInMins());
-        attributesArray[2] = Guard.nullGuardToString(dataPathBackend.getAutoInspect());
-        attributesArray[3] = Guard.nullGuardToString(dataPathBackend.getDefaultImportConflictResolutionMode());
-        attributesArray[4] = Guard.nullGuardToString(dataPathBackend.getId());
+        attributesArray[0] = nullGuardToString(dataPathBackend.getActivated());
+        attributesArray[1] = nullGuardToString(dataPathBackend.getAutoActivateTimeoutInMins());
+        attributesArray[2] = nullGuardToString(dataPathBackend.getAutoInspect());
+        attributesArray[3] = nullGuardToString(dataPathBackend.getDefaultImportConflictResolutionMode());
+        attributesArray[4] = nullGuardToString(dataPathBackend.getId());
         attributesArray[5] = nullGuardFromDate(dataPathBackend.getLastHeartbeat(), DATE_FORMAT);
-        attributesArray[6] = Guard.nullGuardToString(dataPathBackend.getUnavailableMediaPolicy());
-        attributesArray[7] = Guard.nullGuardToString(dataPathBackend.getUnavailablePoolMaxJobRetryInMins());
-        attributesArray[8] = Guard.nullGuardToString(dataPathBackend.getUnavailableTapePartitionMaxJobRetryInMins());
+        attributesArray[6] = nullGuardToString(dataPathBackend.getUnavailableMediaPolicy());
+        attributesArray[7] = nullGuardToString(dataPathBackend.getUnavailablePoolMaxJobRetryInMins());
+        attributesArray[8] = nullGuardToString(dataPathBackend.getUnavailableTapePartitionMaxJobRetryInMins());
         contents.add(attributesArray);
         return contents.toArray(new String[contents.size()][]);
     }

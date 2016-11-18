@@ -23,6 +23,8 @@ import com.spectralogic.ds3client.utils.Guard;
 
 import java.util.List;
 
+import static com.spectralogic.ds3cli.util.Guard.nullGuardToString;
+
 public class GetSuspectBlobTapesView extends TableView<SuspectBlobTapesResult> {
 
     private List<SuspectBlobTape> suspectBlobTapeList;
@@ -48,10 +50,10 @@ public class GetSuspectBlobTapesView extends TableView<SuspectBlobTapesResult> {
         for (int i = 0; i < numSuspectTapeBlobs; i++) {
             suspectBlobTape = this.suspectBlobTapeList.get(i);
             final String [] suspectRow = new String[this.columnCount];
-            suspectRow[0] = com.spectralogic.ds3cli.util.Guard.nullGuardToString(suspectBlobTape.getId());
-            suspectRow[1] = com.spectralogic.ds3cli.util.Guard.nullGuardToString(suspectBlobTape.getBlobId());
-            suspectRow[2] = com.spectralogic.ds3cli.util.Guard.nullGuardToString(suspectBlobTape.getTapeId());
-            suspectRow[3] = com.spectralogic.ds3cli.util.Guard.nullGuardToString(suspectBlobTape.getOrderIndex());
+            suspectRow[0] = nullGuardToString(suspectBlobTape.getId());
+            suspectRow[1] = nullGuardToString(suspectBlobTape.getBlobId());
+            suspectRow[2] = nullGuardToString(suspectBlobTape.getTapeId());
+            suspectRow[3] = nullGuardToString(suspectBlobTape.getOrderIndex());
             suspectTable[i] = suspectRow;
         }
 
