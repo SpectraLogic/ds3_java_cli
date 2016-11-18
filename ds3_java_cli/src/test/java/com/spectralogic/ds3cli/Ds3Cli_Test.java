@@ -68,7 +68,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 
-@PrepareForTest({CliUtils.class, SyncUtils.class, GetPhysicalPlacementForObjectsWithFullDetailsSpectraS3Response.class})
+@PrepareForTest({CliUtils.class, SyncUtils.class, FileUtils.class, Guard.class, GetPhysicalPlacementForObjectsWithFullDetailsSpectraS3Response.class})
 @RunWith(PowerMockRunner.class)
 public class Ds3Cli_Test {
 
@@ -740,7 +740,7 @@ public class Ds3Cli_Test {
         final FileSystemProvider mockedFileSystemProvider = mock(FileSystemProvider.class);
         when(helpers.startReadJob(eq("bucketName"), (Iterable<Ds3Object>) isNotNull(), any(ReadJobOptions.class))).thenReturn(mockedGetJob);
 
-        PowerMockito.mockStatic(CliUtils.class);
+        PowerMockito.mockStatic(FileUtils.class);
         when(FileUtils.fileExists(any(Path.class))).thenReturn(false);
 
         PowerMockito.mockStatic(SyncUtils.class);
@@ -942,7 +942,7 @@ public class Ds3Cli_Test {
         when(helpers.startWriteJob(eq("bucketName"), eq(retObj), any(WriteJobOptions.class))).thenReturn(mockedPutJob);
         when(mockedPutJob.withMetadata((Ds3ClientHelpers.MetadataAccess) isNotNull())).thenReturn(mockedPutJob);
 
-        PowerMockito.mockStatic(CliUtils.class);
+        PowerMockito.mockStatic(FileUtils.class);
         when(FileUtils.getObjectsToPut((Iterable<Path>)isNotNull(), any(Path.class), any(Boolean.class))).thenCallRealMethod();
         when(FileUtils.listObjectsForDirectory(any(Path.class))).thenReturn(retPath);
         when(FileUtils.getFileName(any(Path.class), eq(p1))).thenReturn("obj1.txt");
@@ -976,7 +976,7 @@ public class Ds3Cli_Test {
         when(helpers.startWriteJob(eq("bucketName"), eq(retObj), any(WriteJobOptions.class))).thenReturn(mockedPutJob);
         when(mockedPutJob.withMetadata((Ds3ClientHelpers.MetadataAccess) isNotNull())).thenReturn(mockedPutJob);
 
-        PowerMockito.mockStatic(CliUtils.class);
+        PowerMockito.mockStatic(FileUtils.class);
         when(FileUtils.getObjectsToPut((Iterable<Path>)isNotNull(), any(Path.class), any(Boolean.class))).thenCallRealMethod();
         when(FileUtils.listObjectsForDirectory(any(Path.class))).thenReturn(retPath);
         when(FileUtils.getFileName(any(Path.class), eq(p1))).thenReturn("obj1.txt");
@@ -1021,7 +1021,7 @@ public class Ds3Cli_Test {
         final Path p2 = Paths.get("obj2.txt");
         final ImmutableList<Path> retPath = ImmutableList.copyOf(Lists.newArrayList(p1, p2));
 
-        PowerMockito.mockStatic(CliUtils.class);
+        PowerMockito.mockStatic(FileUtils.class);
         when(FileUtils.getObjectsToPut((Iterable<Path>)isNotNull(), any(Path.class), any(Boolean.class))).thenCallRealMethod();
         when(FileUtils.listObjectsForDirectory(any(Path.class))).thenReturn(retPath);
         when(FileUtils.getFileName(any(Path.class), eq(p1))).thenReturn("obj1.txt");
@@ -1085,7 +1085,7 @@ public class Ds3Cli_Test {
         final Path p2 = Paths.get("obj2.txt");
         final ImmutableList<Path> retPath = ImmutableList.copyOf(Lists.newArrayList(p1, p2));
 
-        PowerMockito.mockStatic(CliUtils.class);
+        PowerMockito.mockStatic(FileUtils.class);
         when(FileUtils.getObjectsToPut((Iterable<Path>)isNotNull(), any(Path.class), any(Boolean.class))).thenCallRealMethod();
         when(FileUtils.listObjectsForDirectory(any(Path.class))).thenReturn(retPath);
         when(FileUtils.getFileName(any(Path.class), eq(p1))).thenReturn("obj1.txt");
@@ -1258,7 +1258,8 @@ public class Ds3Cli_Test {
                 new Ds3Object("obj2.txt", 12345));
         when(helpers.startWriteJob(eq("bucketName"), eq(retObj), any(WriteJobOptions.class))).thenReturn(mockedPutJob);
 
-        PowerMockito.mockStatic(CliUtils.class);
+        PowerMockito.mockStatic(FileUtils.class);
+        PowerMockito.mockStatic(Guard.class);
         when(mockedPutJob.withMetadata((Ds3ClientHelpers.MetadataAccess) isNotNull())).thenReturn(mockedPutJob);
         when(FileUtils.getObjectsToPut((Iterable<Path>)isNotNull(), any(Path.class), any(Boolean.class))).thenCallRealMethod();
         when(FileUtils.listObjectsForDirectory(any(Path.class))).thenReturn(retPath);
@@ -1303,7 +1304,9 @@ public class Ds3Cli_Test {
                 new Ds3Object("obj2.txt", 12345));
         when(helpers.startWriteJob(eq("bucketName"), eq(retObj), any(WriteJobOptions.class))).thenReturn(mockedPutJob);
 
+        PowerMockito.mockStatic(FileUtils.class);
         PowerMockito.mockStatic(CliUtils.class);
+        PowerMockito.mockStatic(Guard.class);
         when(mockedPutJob.withMetadata((Ds3ClientHelpers.MetadataAccess) isNotNull())).thenReturn(mockedPutJob);
         when(FileUtils.getObjectsToPut((Iterable<Path>)isNotNull(), any(Path.class), any(Boolean.class))).thenCallRealMethod();
         when(FileUtils.listObjectsForDirectory(any(Path.class))).thenReturn(retPath);
@@ -1355,6 +1358,7 @@ public class Ds3Cli_Test {
         final ImmutableList<Path> retPath = ImmutableList.copyOf(Lists.newArrayList(p1, p2));
 
         PowerMockito.mockStatic(CliUtils.class);
+        PowerMockito.mockStatic(FileUtils.class);
         when(FileUtils.normalizeObjectName(any(String.class))).thenAnswer(new Answer<String>() {
             @Override
             public String answer(final InvocationOnMock invocation) throws Throwable {
@@ -1398,6 +1402,7 @@ public class Ds3Cli_Test {
         final Path p2 = Paths.get("obj2.txt");
         final ImmutableList<Path> retPath = ImmutableList.copyOf(Lists.newArrayList(p1, p2));
 
+        PowerMockito.mockStatic(FileUtils.class);
         PowerMockito.mockStatic(CliUtils.class);
         when(FileUtils.normalizeObjectName(any(String.class))).thenAnswer(new Answer<String>() {
             @Override
