@@ -19,33 +19,23 @@ package com.spectralogic.ds3cli.command;
 import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.View;
-import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.exceptions.BadArgumentException;
-import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.GetBucketResult;
-import com.spectralogic.ds3cli.views.cli.GetBucketView;
 import com.spectralogic.ds3cli.views.json.DataView;
 import com.spectralogic.ds3client.commands.spectrads3.GetBucketSpectraS3Request;
 import com.spectralogic.ds3client.commands.spectrads3.GetBucketSpectraS3Response;
-import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
-import com.spectralogic.ds3client.models.Bucket;
-import com.spectralogic.ds3client.models.Contents;
-import com.spectralogic.ds3client.networking.FailedRequestException;
 import com.spectralogic.ds3client.utils.Guard;
 import org.apache.commons.cli.Option;
 
 import static com.spectralogic.ds3cli.ArgumentFactory.BUCKET;
-import static com.spectralogic.ds3cli.ArgumentFactory.PREFIX;
+import static com.spectralogic.ds3cli.ArgumentFactory.ID;
 
-public class GetBucket extends CliCommand<GetBucketResult> {
+public class GetBucketDetails extends CliCommand<GetBucketResult> {
 
-    private final static ImmutableList<Option> optionalArgs = ImmutableList.of(PREFIX, BUCKET);
+
+    private final static ImmutableList<Option> optionalArgs = ImmutableList.of(BUCKET, ID);
 
     private String bucket;
-    private String prefix;
-
-    public GetBucket() {
-    }
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
@@ -53,54 +43,31 @@ public class GetBucket extends CliCommand<GetBucketResult> {
 
         this.bucket = args.getBucket();
         if (Guard.isStringNullOrEmpty(this.bucket)) {
-            // either -b name or -i ID
+            // this command takes either name or id. Accepting -i or -b matches GetBucket
             this.bucket = args.getId();
         }
         if (Guard.isStringNullOrEmpty(this.bucket)) {
             throw new BadArgumentException("Must provide either -b bucket_name or -i bucket_id");
         }
-        this.prefix = args.getPrefix();
         return this;
     }
 
+
     @Override
     public GetBucketResult call() throws Exception {
-
-        try {
-            // GetBucketDetail to get both name and id
-            final GetBucketSpectraS3Response response = getClient().getBucketSpectraS3(new GetBucketSpectraS3Request(bucket));
-            final Bucket bucketDetails = response.getBucketResult();
-            // helper.listObjects only takes bucket name
-            this.bucket = response.getBucketResult().getName();
-
-            final Ds3ClientHelpers helper = Ds3ClientHelpers.wrap(getClient());
-            final Iterable<Contents> objects;
-            if (this.prefix == null) {
-                objects = helper.listObjects(bucket);
-            }
-            else {
-                objects = helper.listObjects(bucket, this.prefix);
-            }
-
-            return new GetBucketResult(bucketDetails, objects);
-        } catch(final FailedRequestException e) {
-            if(e.getStatusCode() == 404) {
-                throw new CommandException("Error: Unknown bucket.", e);
-            }
-            throw e;
-        }
+        final GetBucketSpectraS3Response response = getClient().getBucketSpectraS3(new GetBucketSpectraS3Request(bucket));
+        return new GetBucketResult(response.getBucketResult(), null);
     }
 
     @Override
     public View<GetBucketResult> getView() {
         switch (viewType) {
             case JSON:
-                return new DataView();
+                return new DataView<>();
             case CSV:
-                return new com.spectralogic.ds3cli.views.csv.GetBucketView();
+                return new com.spectralogic.ds3cli.views.csv.GetBucketDetailsView();
             default:
-                return new com.spectralogic.ds3cli.views.cli.GetBucketView();
+                return new com.spectralogic.ds3cli.views.cli.GetBucketDetailsView();
         }
     }
-
 }

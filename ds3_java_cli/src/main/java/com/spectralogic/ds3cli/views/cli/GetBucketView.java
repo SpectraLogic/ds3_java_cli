@@ -31,20 +31,24 @@ public class GetBucketView extends TableView<GetBucketResult> {
 
     @Override
     public String render(final GetBucketResult br) {
-        if (null == br.getContents() || Iterables.isEmpty(br.getContents())) {
-            return "No objects were reported in bucket '" + br.getBucketName() + "'";
+        // Bucket details
+        final String bucketDesc = new com.spectralogic.ds3cli.views.cli.GetBucketDetailsView().render(br);
+
+        if (null == br.getResult() || Iterables.isEmpty(br.getResult())) {
+            return "No objects were reported in bucket.";
         }
-        this.contents = br.getContents();
+        this.contents = br.getResult();
         initTable(ImmutableList.of("File Name", "Size", "Owner", "Last Modified", "ETag"));
         setTableDataAlignment(ImmutableList.of(ASCIITable.ALIGN_LEFT, ASCIITable.ALIGN_RIGHT, ASCIITable.ALIGN_RIGHT ,ASCIITable.ALIGN_LEFT, ASCIITable.ALIGN_RIGHT ));
 
-        return ASCIITable.getInstance().getTable(getHeaders(), formatTableContents());
+        final String bucketContents =  ASCIITable.getInstance().getTable(getHeaders(), formatTableContents());
+
+        return String.format("%s\n%s", bucketDesc, bucketContents);
     }
 
     protected String[][] formatTableContents() {
 
         final ImmutableList.Builder<String[]> builder = ImmutableList.builder();
-
 
         for (final Contents content : contents) {
             final String[] arrayEntry = new String[5];
