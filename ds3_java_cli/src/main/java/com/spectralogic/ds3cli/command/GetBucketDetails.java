@@ -33,21 +33,18 @@ import static com.spectralogic.ds3cli.ArgumentFactory.ID;
 public class GetBucketDetails extends CliCommand<GetBucketResult> {
 
 
-    private final static ImmutableList<Option> optionalArgs = ImmutableList.of(BUCKET, ID);
+    private final static ImmutableList<Option> requiredArgs = ImmutableList.of(BUCKET);
 
     private String bucket;
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
-        processCommandOptions(EMPTY_LIST, optionalArgs, args);
+        processCommandOptions(requiredArgs, EMPTY_LIST, args);
 
         this.bucket = args.getBucket();
         if (Guard.isStringNullOrEmpty(this.bucket)) {
             // this command takes either name or id. Accepting -i or -b matches GetBucket
             this.bucket = args.getId();
-        }
-        if (Guard.isStringNullOrEmpty(this.bucket)) {
-            throw new BadArgumentException("Must provide either -b bucket_name or -i bucket_id");
         }
         return this;
     }
@@ -64,8 +61,6 @@ public class GetBucketDetails extends CliCommand<GetBucketResult> {
         switch (viewType) {
             case JSON:
                 return new DataView<>();
-            case CSV:
-                return new com.spectralogic.ds3cli.views.csv.GetBucketDetailsView();
             default:
                 return new com.spectralogic.ds3cli.views.cli.GetBucketDetailsView();
         }

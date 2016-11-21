@@ -96,8 +96,6 @@ public class GetBucket extends CliCommand<GetBucketResult> {
         switch (viewType) {
             case JSON:
                 return new DataView();
-            case CSV:
-                return new com.spectralogic.ds3cli.views.csv.GetBucketView();
             default:
                 return new com.spectralogic.ds3cli.views.cli.GetBucketView();
         }
