@@ -42,10 +42,6 @@ public class GetBucketDetails extends CliCommand<GetBucketResult> {
         processCommandOptions(requiredArgs, EMPTY_LIST, args);
 
         this.bucket = args.getBucket();
-        if (Guard.isStringNullOrEmpty(this.bucket)) {
-            // this command takes either name or id. Accepting -i or -b matches GetBucket
-            this.bucket = args.getId();
-        }
         return this;
     }
 
