@@ -18,11 +18,11 @@ package com.spectralogic.ds3cli.command;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import com.spectralogic.ds3cli.Arguments;
+import com.spectralogic.ds3cli.api.Arguments;
 import com.spectralogic.ds3cli.models.DefaultResult;
 import com.spectralogic.ds3cli.util.FileUtils;
-import com.spectralogic.ds3cli.util.MetadataUtils;
 import com.spectralogic.ds3cli.util.SyncUtils;
+import com.spectralogic.ds3cli.utils.MetadataUtils;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.helpers.options.WriteJobOptions;
 import com.spectralogic.ds3client.models.Priority;
@@ -41,9 +41,9 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.Map;
 
-import static com.spectralogic.ds3cli.ArgumentFactory.*;
+import static com.spectralogic.ds3cli.api.ArgumentFactory.*;
 
-public class PutObject extends CliCommand<DefaultResult> {
+public class PutObject extends BaseCliCommand<DefaultResult> {
 
     private final static Logger LOG = LoggerFactory.getLogger(PutObject.class);
 
@@ -63,7 +63,7 @@ public class PutObject extends CliCommand<DefaultResult> {
     private Priority priority;
 
     @Override
-    public CliCommand init(final Arguments args) throws Exception {
+    public BaseCliCommand init(final Arguments args) throws Exception {
         processCommandOptions(requiredArgs, optionalArgs, args);
 
         this.priority = args.getPriority();

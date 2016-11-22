@@ -21,17 +21,17 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-import com.spectralogic.ds3cli.View;
+import com.spectralogic.ds3cli.api.View;
 import com.spectralogic.ds3cli.models.GetDetailedObjectsResult;
 import com.spectralogic.ds3client.models.*;
 import com.spectralogic.ds3client.utils.Guard;
 
 import javax.annotation.Nullable;
 
-import static com.spectralogic.ds3cli.util.Constants.DATE_FORMAT;
-import static com.spectralogic.ds3cli.util.Guard.nullGuard;
-import static com.spectralogic.ds3cli.util.Guard.nullGuardFromDate;
-import static com.spectralogic.ds3cli.util.Guard.nullGuardToString;
+import static com.spectralogic.ds3cli.utils.Constants.DATE_FORMAT;
+import static com.spectralogic.ds3cli.utils.Guard.nullGuard;
+import static com.spectralogic.ds3cli.utils.Guard.nullGuardFromDate;
+import static com.spectralogic.ds3cli.utils.Guard.nullGuardToString;
 
 public class DetailedObjectsView implements View<GetDetailedObjectsResult> {
 

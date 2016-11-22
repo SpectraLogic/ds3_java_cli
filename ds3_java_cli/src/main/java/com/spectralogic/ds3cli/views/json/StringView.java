@@ -16,9 +16,10 @@
 package com.spectralogic.ds3cli.views.json;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.spectralogic.ds3cli.View;
-import com.spectralogic.ds3cli.models.Result;
-import com.spectralogic.ds3cli.util.JsonMapper;
+import com.spectralogic.ds3cli.api.View;
+import com.spectralogic.ds3cli.api.Result;
+import com.spectralogic.ds3cli.jsonview.CommonJsonView;
+import com.spectralogic.ds3cli.jsonview.JsonMapper;
 
 public class StringView<T extends Result> implements View<T> {
     @Override

@@ -15,18 +15,18 @@
 
 package com.spectralogic.ds3cli.command;
 
-import com.spectralogic.ds3cli.View;
-import com.spectralogic.ds3cli.ViewType;
-import com.spectralogic.ds3cli.exceptions.CommandException;
+import com.spectralogic.ds3cli.api.View;
+import com.spectralogic.ds3cli.api.ViewType;
+import com.spectralogic.ds3cli.api.exceptions.CommandException;
+import com.spectralogic.ds3cli.jsonview.DataView;
 import com.spectralogic.ds3cli.models.GetDataPoliciesResult;
 import com.spectralogic.ds3cli.views.cli.GetDataPoliciesView;
-import com.spectralogic.ds3cli.views.json.DataView;
 import com.spectralogic.ds3client.commands.spectrads3.GetDataPoliciesSpectraS3Request;
 import com.spectralogic.ds3client.commands.spectrads3.GetDataPoliciesSpectraS3Response;
 
 import java.io.IOException;
 
-public class GetDataPolicies extends CliCommand<GetDataPoliciesResult> {
+public class GetDataPolicies extends BaseCliCommand<GetDataPoliciesResult> {
 
     public GetDataPolicies() {
     }

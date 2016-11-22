@@ -15,14 +15,14 @@
 
 package com.spectralogic.ds3cli.command;
 
-import com.spectralogic.ds3cli.View;
-import com.spectralogic.ds3cli.ViewType;
+import com.spectralogic.ds3cli.api.View;
+import com.spectralogic.ds3cli.api.ViewType;
 import com.spectralogic.ds3cli.models.GetTapesResult;
 import com.spectralogic.ds3cli.views.cli.GetTapesView;
 import com.spectralogic.ds3client.commands.spectrads3.GetTapesSpectraS3Request;
 import com.spectralogic.ds3client.commands.spectrads3.GetTapesSpectraS3Response;
 
-public class GetTapes extends CliCommand<GetTapesResult> {
+public class GetTapes extends BaseCliCommand<GetTapesResult> {
 
     public GetTapes() {
     }

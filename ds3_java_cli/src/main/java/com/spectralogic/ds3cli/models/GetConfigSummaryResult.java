@@ -15,6 +15,8 @@
 
 package com.spectralogic.ds3cli.models;
 
+import com.spectralogic.ds3cli.api.Result;
+
 import java.util.Map;
 
 public class GetConfigSummaryResult implements Result<Map<String, Result>> {

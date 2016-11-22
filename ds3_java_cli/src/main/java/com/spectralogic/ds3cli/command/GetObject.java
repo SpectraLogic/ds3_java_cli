@@ -17,11 +17,11 @@ package com.spectralogic.ds3cli.command;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.spectralogic.ds3cli.Arguments;
+import com.spectralogic.ds3cli.api.Arguments;
 import com.spectralogic.ds3cli.models.DefaultResult;
 import com.spectralogic.ds3cli.util.FileUtils;
-import com.spectralogic.ds3cli.util.MetadataUtils;
 import com.spectralogic.ds3cli.util.SyncUtils;
+import com.spectralogic.ds3cli.utils.MetadataUtils;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.helpers.FileObjectGetter;
 import com.spectralogic.ds3client.helpers.MetadataReceivedListener;
@@ -39,9 +39,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
-import static com.spectralogic.ds3cli.ArgumentFactory.*;
+import static com.spectralogic.ds3cli.api.ArgumentFactory.*;
 
-public class GetObject extends CliCommand<DefaultResult> {
+public class GetObject extends BaseCliCommand<DefaultResult> {
 
     private final static Logger LOG = LoggerFactory.getLogger(GetObject.class);
 
@@ -60,7 +60,7 @@ public class GetObject extends CliCommand<DefaultResult> {
     }
 
     @Override
-    public CliCommand init(final Arguments args) throws Exception {
+    public BaseCliCommand init(final Arguments args) throws Exception {
         processCommandOptions(requiredArgs, optionalArgs, args);
         this.bucketName = args.getBucket();
         this.priority = args.getPriority();

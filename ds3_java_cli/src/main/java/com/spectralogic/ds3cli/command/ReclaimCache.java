@@ -18,7 +18,7 @@ package com.spectralogic.ds3cli.command;
 import com.spectralogic.ds3cli.models.DefaultResult;
 import com.spectralogic.ds3client.commands.spectrads3.ForceFullCacheReclaimSpectraS3Request;
 
-public class ReclaimCache extends CliCommand<DefaultResult> {
+public class ReclaimCache extends BaseCliCommand<DefaultResult> {
     public ReclaimCache() {
     }
 

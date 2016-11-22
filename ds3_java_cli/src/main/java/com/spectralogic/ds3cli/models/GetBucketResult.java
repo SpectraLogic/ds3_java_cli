@@ -17,6 +17,7 @@ package com.spectralogic.ds3cli.models;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.spectralogic.ds3cli.api.Result;
 import com.spectralogic.ds3client.models.Contents;
 
 public class GetBucketResult implements Result<Iterable<Contents>> {

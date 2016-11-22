@@ -15,16 +15,16 @@
 
 package com.spectralogic.ds3cli.command;
 
-import com.spectralogic.ds3cli.View;
-import com.spectralogic.ds3cli.ViewType;
-import com.spectralogic.ds3cli.exceptions.CommandException;
+import com.spectralogic.ds3cli.api.View;
+import com.spectralogic.ds3cli.api.ViewType;
+import com.spectralogic.ds3cli.api.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.GetServiceResult;
 import com.spectralogic.ds3client.commands.GetServiceRequest;
 import com.spectralogic.ds3client.commands.GetServiceResponse;
 
 import java.io.IOException;
 
-public class GetService extends CliCommand<GetServiceResult> {
+public class GetService extends BaseCliCommand<GetServiceResult> {
 
     public GetService() {
     }

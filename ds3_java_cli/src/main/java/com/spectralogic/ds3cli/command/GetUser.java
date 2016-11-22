@@ -16,13 +16,13 @@
 package com.spectralogic.ds3cli.command;
 
 import com.google.common.collect.ImmutableList;
-import com.spectralogic.ds3cli.Arguments;
-import com.spectralogic.ds3cli.View;
-import com.spectralogic.ds3cli.ViewType;
-import com.spectralogic.ds3cli.exceptions.CommandException;
+import com.spectralogic.ds3cli.api.Arguments;
+import com.spectralogic.ds3cli.api.View;
+import com.spectralogic.ds3cli.api.ViewType;
+import com.spectralogic.ds3cli.api.exceptions.CommandException;
+import com.spectralogic.ds3cli.jsonview.DataView;
 import com.spectralogic.ds3cli.models.GetUsersResult;
 import com.spectralogic.ds3cli.views.cli.GetUsersView;
-import com.spectralogic.ds3cli.views.json.DataView;
 import com.spectralogic.ds3client.commands.spectrads3.GetUserSpectraS3Request;
 import com.spectralogic.ds3client.commands.spectrads3.GetUserSpectraS3Response;
 import com.spectralogic.ds3client.networking.FailedRequestException;
@@ -30,9 +30,9 @@ import org.apache.commons.cli.Option;
 
 import java.io.IOException;
 
-import static com.spectralogic.ds3cli.ArgumentFactory.ID;
+import static com.spectralogic.ds3cli.api.ArgumentFactory.ID;
 
-public class GetUser extends CliCommand<GetUsersResult> {
+public class GetUser extends BaseCliCommand<GetUsersResult> {
 
     private final static ImmutableList<Option> requiredArgs = ImmutableList.of(ID);
 
@@ -43,7 +43,7 @@ public class GetUser extends CliCommand<GetUsersResult> {
     }
 
     @Override
-    public CliCommand init(final Arguments args) throws Exception {
+    public BaseCliCommand init(final Arguments args) throws Exception {
         processCommandOptions(requiredArgs, EMPTY_LIST, args);
 
         this.userId = args.getId();

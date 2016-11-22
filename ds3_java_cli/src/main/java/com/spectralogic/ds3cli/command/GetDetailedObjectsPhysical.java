@@ -15,10 +15,10 @@
 
 package com.spectralogic.ds3cli.command;
 
-import com.spectralogic.ds3cli.View;
-import com.spectralogic.ds3cli.ViewType;
+import com.spectralogic.ds3cli.api.View;
+import com.spectralogic.ds3cli.api.ViewType;
+import com.spectralogic.ds3cli.jsonview.DataView;
 import com.spectralogic.ds3cli.models.GetDetailedObjectsResult;
-import com.spectralogic.ds3cli.views.json.DataView;
 
 /**
  * Use the DetailedObjectsPhysicalView to format output

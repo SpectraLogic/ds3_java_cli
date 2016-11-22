@@ -16,17 +16,17 @@
 package com.spectralogic.ds3cli.command;
 
 import com.google.common.collect.ImmutableList;
-import com.spectralogic.ds3cli.Arguments;
+import com.spectralogic.ds3cli.api.Arguments;
 import com.spectralogic.ds3cli.models.DefaultResult;
 import com.spectralogic.ds3client.commands.spectrads3.DeleteFolderRecursivelySpectraS3Request;
 import org.apache.commons.cli.Option;
 
 import java.io.IOException;
 
-import static com.spectralogic.ds3cli.ArgumentFactory.BUCKET;
-import static com.spectralogic.ds3cli.ArgumentFactory.DIRECTORY;
+import static com.spectralogic.ds3cli.api.ArgumentFactory.BUCKET;
+import static com.spectralogic.ds3cli.api.ArgumentFactory.DIRECTORY;
 
-public class DeleteFolder extends CliCommand<DefaultResult> {
+public class DeleteFolder extends BaseCliCommand<DefaultResult> {
 
     private String bucketName;
     private String folderName;
@@ -37,7 +37,7 @@ public class DeleteFolder extends CliCommand<DefaultResult> {
     }
 
     @Override
-    public CliCommand init(final Arguments args) throws Exception {
+    public BaseCliCommand init(final Arguments args) throws Exception {
         processCommandOptions(requiredArgs, EMPTY_LIST, args);
 
         this.bucketName = args.getBucket();

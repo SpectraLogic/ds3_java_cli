@@ -18,7 +18,7 @@ package com.spectralogic.ds3cli.views.cli;
 import com.bethecoder.ascii_table.ASCIITable;
 import com.bethecoder.ascii_table.ASCIITableHeader;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.spectralogic.ds3cli.View;
+import com.spectralogic.ds3cli.api.View;
 import com.spectralogic.ds3cli.models.GetPhysicalPlacementWithFullDetailsResult;
 import com.spectralogic.ds3client.models.BulkObject;
 import com.spectralogic.ds3client.models.BulkObjectList;
@@ -27,7 +27,7 @@ import com.spectralogic.ds3client.models.Tape;
 
 import java.util.List;
 
-import static com.spectralogic.ds3cli.util.Guard.nullGuard;
+import static com.spectralogic.ds3cli.utils.Guard.nullGuard;
 
 public class GetPhysicalPlacementWithFullDetailsView  implements View<GetPhysicalPlacementWithFullDetailsResult> {
 

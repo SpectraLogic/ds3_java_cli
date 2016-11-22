@@ -16,6 +16,7 @@
 package com.spectralogic.ds3cli.models;
 
 import com.google.common.collect.ImmutableList;
+import com.spectralogic.ds3cli.api.Result;
 import com.spectralogic.ds3client.models.DataPolicy;
 import com.spectralogic.ds3client.models.DataPolicyList;
 

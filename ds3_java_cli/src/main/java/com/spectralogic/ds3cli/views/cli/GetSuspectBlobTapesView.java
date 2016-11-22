@@ -23,7 +23,7 @@ import com.spectralogic.ds3client.utils.Guard;
 
 import java.util.List;
 
-import static com.spectralogic.ds3cli.util.Guard.nullGuardToString;
+import static com.spectralogic.ds3cli.utils.Guard.nullGuardToString;
 
 public class GetSuspectBlobTapesView extends TableView<SuspectBlobTapesResult> {
 

@@ -15,9 +15,9 @@
 
 package com.spectralogic.ds3cli.command;
 
-import com.spectralogic.ds3cli.View;
-import com.spectralogic.ds3cli.ViewType;
-import com.spectralogic.ds3cli.exceptions.CommandException;
+import com.spectralogic.ds3cli.api.View;
+import com.spectralogic.ds3cli.api.ViewType;
+import com.spectralogic.ds3cli.api.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.GetCacheStateResult;
 import com.spectralogic.ds3client.commands.spectrads3.GetCacheStateSpectraS3Request;
 import com.spectralogic.ds3client.commands.spectrads3.GetCacheStateSpectraS3Response;
@@ -25,7 +25,7 @@ import com.spectralogic.ds3client.models.CacheInformation;
 
 import java.io.IOException;
 
-public class GetCacheState extends CliCommand<GetCacheStateResult> {
+public class GetCacheState extends BaseCliCommand<GetCacheStateResult> {
 
     public GetCacheState() {
     }

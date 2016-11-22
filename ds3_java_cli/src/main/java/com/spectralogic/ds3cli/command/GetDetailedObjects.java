@@ -20,14 +20,14 @@ import com.google.common.base.Predicates;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.spectralogic.ds3cli.Arguments;
-import com.spectralogic.ds3cli.View;
-import com.spectralogic.ds3cli.ViewType;
-import com.spectralogic.ds3cli.exceptions.BadArgumentException;
+import com.spectralogic.ds3cli.api.Arguments;
+import com.spectralogic.ds3cli.api.View;
+import com.spectralogic.ds3cli.api.ViewType;
+import com.spectralogic.ds3cli.api.exceptions.BadArgumentException;
+import com.spectralogic.ds3cli.jsonview.DataView;
 import com.spectralogic.ds3cli.models.GetDetailedObjectsResult;
 import com.spectralogic.ds3cli.util.DateUtils;
 import com.spectralogic.ds3cli.views.cli.DetailedObjectsView;
-import com.spectralogic.ds3cli.views.json.DataView;
 import com.spectralogic.ds3client.helpers.pagination.GetObjectsFullDetailsLoaderFactory;
 import com.spectralogic.ds3client.models.DetailedS3Object;
 import com.spectralogic.ds3client.utils.Guard;
@@ -38,10 +38,10 @@ import javax.annotation.Nullable;
 import java.text.ParseException;
 import java.util.Date;
 
-import static com.spectralogic.ds3cli.ArgumentFactory.BUCKET;
-import static com.spectralogic.ds3cli.ArgumentFactory.FILTER_PARAMS;
+import static com.spectralogic.ds3cli.api.ArgumentFactory.BUCKET;
+import static com.spectralogic.ds3cli.api.ArgumentFactory.FILTER_PARAMS;
 
-public class GetDetailedObjects extends CliCommand<GetDetailedObjectsResult> {
+public class GetDetailedObjects extends BaseCliCommand<GetDetailedObjectsResult> {
 
     private final static ImmutableList<Option> optionalArgs = ImmutableList.of(FILTER_PARAMS, BUCKET);
 
@@ -61,7 +61,7 @@ public class GetDetailedObjects extends CliCommand<GetDetailedObjectsResult> {
     private String prefix;
 
     @Override
-    public CliCommand init(final Arguments args) throws Exception {
+    public BaseCliCommand init(final Arguments args) throws Exception {
         processCommandOptions(EMPTY_LIST, optionalArgs, args);
 
         this.filterParams = args.getFilterParams();

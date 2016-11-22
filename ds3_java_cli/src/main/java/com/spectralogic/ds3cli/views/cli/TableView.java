@@ -18,8 +18,8 @@ package com.spectralogic.ds3cli.views.cli;
 import com.bethecoder.ascii_table.ASCIITable;
 import com.bethecoder.ascii_table.ASCIITableHeader;
 import com.google.common.collect.ImmutableList;
-import com.spectralogic.ds3cli.View;
-import com.spectralogic.ds3cli.models.Result;
+import com.spectralogic.ds3cli.api.View;
+import com.spectralogic.ds3cli.api.Result;
 
 public abstract class TableView<T extends Result> implements View<T> {
 

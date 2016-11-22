@@ -16,25 +16,25 @@
 package com.spectralogic.ds3cli.command;
 
 import com.google.common.collect.ImmutableList;
-import com.spectralogic.ds3cli.Arguments;
-import com.spectralogic.ds3cli.View;
-import com.spectralogic.ds3cli.ViewType;
+import com.spectralogic.ds3cli.api.Arguments;
+import com.spectralogic.ds3cli.api.View;
+import com.spectralogic.ds3cli.api.ViewType;
+import com.spectralogic.ds3cli.jsonview.DataView;
 import com.spectralogic.ds3cli.models.TapeResult;
 import com.spectralogic.ds3cli.views.cli.GetTapeView;
-import com.spectralogic.ds3cli.views.json.DataView;
 import com.spectralogic.ds3client.commands.spectrads3.GetTapeSpectraS3Request;
 import org.apache.commons.cli.Option;
 
-import static com.spectralogic.ds3cli.ArgumentFactory.ID;
+import static com.spectralogic.ds3cli.api.ArgumentFactory.ID;
 
-public class GetTape extends CliCommand<TapeResult> {
+public class GetTape extends BaseCliCommand<TapeResult> {
 
     private final static ImmutableList<Option> requiredArgs = ImmutableList.of(ID);
 
     private String jobId;
 
     @Override
-    public CliCommand init(final Arguments args) throws Exception {
+    public BaseCliCommand init(final Arguments args) throws Exception {
         processCommandOptions(requiredArgs, EMPTY_LIST, args);
 
         this.jobId = args.getId();

@@ -15,6 +15,7 @@
 
 package com.spectralogic.ds3cli.models;
 
+import com.spectralogic.ds3cli.api.Result;
 import com.spectralogic.ds3client.models.DetailedS3Object;
 
 public class GetDetailedObjectsResult implements Result<Iterable<DetailedS3Object>> {

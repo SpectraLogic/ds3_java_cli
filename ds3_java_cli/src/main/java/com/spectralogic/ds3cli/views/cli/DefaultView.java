@@ -17,8 +17,8 @@ package com.spectralogic.ds3cli.views.cli;
 
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.spectralogic.ds3cli.View;
-import com.spectralogic.ds3cli.models.Result;
+import com.spectralogic.ds3cli.api.View;
+import com.spectralogic.ds3cli.api.Result;
 
 public class DefaultView<T extends Result> implements View<T> {
     @Override

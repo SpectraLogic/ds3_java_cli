@@ -18,16 +18,15 @@ package com.spectralogic.ds3cli.views.cli;
 import com.bethecoder.ascii_table.ASCIITable;
 import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3cli.models.GetJobsResult;
-import com.spectralogic.ds3cli.util.Guard;
 import com.spectralogic.ds3client.models.Job;
 import com.spectralogic.ds3client.models.JobList;
 
 import java.util.List;
 
-import static com.spectralogic.ds3cli.util.Constants.DATE_FORMAT;
-import static com.spectralogic.ds3cli.util.Guard.nullGuard;
-import static com.spectralogic.ds3cli.util.Guard.nullGuardFromDate;
-import static com.spectralogic.ds3cli.util.Guard.nullGuardToString;
+import static com.spectralogic.ds3cli.utils.Constants.DATE_FORMAT;
+import static com.spectralogic.ds3cli.utils.Guard.nullGuard;
+import static com.spectralogic.ds3cli.utils.Guard.nullGuardFromDate;
+import static com.spectralogic.ds3cli.utils.Guard.nullGuardToString;
 
 public class GetJobsView extends TableView<GetJobsResult> {
 

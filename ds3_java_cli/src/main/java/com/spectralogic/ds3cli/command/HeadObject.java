@@ -16,18 +16,18 @@
 package com.spectralogic.ds3cli.command;
 
 import com.google.common.collect.ImmutableList;
-import com.spectralogic.ds3cli.Arguments;
-import com.spectralogic.ds3cli.View;
-import com.spectralogic.ds3cli.ViewType;
+import com.spectralogic.ds3cli.api.Arguments;
+import com.spectralogic.ds3cli.api.View;
+import com.spectralogic.ds3cli.api.ViewType;
 import com.spectralogic.ds3cli.models.HeadObjectResult;
 import com.spectralogic.ds3client.commands.HeadObjectRequest;
 import com.spectralogic.ds3client.commands.HeadObjectResponse;
 import org.apache.commons.cli.Option;
 
-import static com.spectralogic.ds3cli.ArgumentFactory.BUCKET;
-import static com.spectralogic.ds3cli.ArgumentFactory.OBJECT_NAME;
+import static com.spectralogic.ds3cli.api.ArgumentFactory.BUCKET;
+import static com.spectralogic.ds3cli.api.ArgumentFactory.OBJECT_NAME;
 
-public class HeadObject extends CliCommand<HeadObjectResult> {
+public class HeadObject extends BaseCliCommand<HeadObjectResult> {
 
     private final static ImmutableList<Option> requiredArgs = ImmutableList.of(BUCKET, OBJECT_NAME);
 
@@ -38,7 +38,7 @@ public class HeadObject extends CliCommand<HeadObjectResult> {
     }
 
     @Override
-    public CliCommand init(final Arguments args) throws Exception {
+    public BaseCliCommand init(final Arguments args) throws Exception {
         processCommandOptions(requiredArgs, EMPTY_LIST, args);
 
         this.bucketName = args.getBucket();

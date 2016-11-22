@@ -16,8 +16,8 @@
 package com.spectralogic.ds3cli.command;
 
 import com.google.common.collect.ImmutableList;
-import com.spectralogic.ds3cli.Arguments;
-import com.spectralogic.ds3cli.exceptions.CommandException;
+import com.spectralogic.ds3cli.api.Arguments;
+import com.spectralogic.ds3cli.api.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.DefaultResult;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.DeleteBucketRequest;
@@ -31,10 +31,10 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
-import static com.spectralogic.ds3cli.ArgumentFactory.BUCKET;
-import static com.spectralogic.ds3cli.ArgumentFactory.FORCE;
+import static com.spectralogic.ds3cli.api.ArgumentFactory.BUCKET;
+import static com.spectralogic.ds3cli.api.ArgumentFactory.FORCE;
 
-public class DeleteBucket extends CliCommand<DefaultResult> {
+public class DeleteBucket extends BaseCliCommand<DefaultResult> {
 
     private static final Logger LOG = LoggerFactory.getLogger(DeleteBucket.class);
 
@@ -48,7 +48,7 @@ public class DeleteBucket extends CliCommand<DefaultResult> {
     }
 
     @Override
-    public CliCommand init(final Arguments args) throws Exception {
+    public BaseCliCommand init(final Arguments args) throws Exception {
         processCommandOptions(requiredArgs, optionalArgs, args);
 
         this.bucketName = args.getBucket();

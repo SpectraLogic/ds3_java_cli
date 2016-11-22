@@ -15,6 +15,7 @@
 
 package com.spectralogic.ds3cli.models;
 
+import com.spectralogic.ds3cli.api.Result;
 import com.spectralogic.ds3client.commands.HeadObjectResponse;
 import com.spectralogic.ds3client.networking.Metadata;
 

@@ -13,6 +13,17 @@
  * ****************************************************************************
  */
 
+buildscript {
+    ext.kotlin_version = '1.0.5-2'
+
+   repositories {
+     mavenCentral()
+   }
+
+   dependencies {
+     classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+   }
+}
 
 allprojects {
     version = '3.2.5-RC1'
@@ -53,6 +64,28 @@ project(':ds3_java_cli') {
     dependencies {
         compile project(':ds3-cli-api')
         compile project(':ds3-cli-tableview')
+        compile project(':ds3-cli-jsonview')
+        compile project(':ds3-cli-utils')
+    }
+}
+
+project(':ds3-cli-api') {
+    dependencies {
+        compile project(':ds3-cli-utils')
+    }
+}
+
+project(':ds3-cli-jsonview') {
+    dependencies {
+        compile project(':ds3-cli-api')
+
+    }
+}
+
+project(':ds3-cli-tableview') {
+    dependencies {
+        compile project(':ds3-cli-api')
+        compile project(':ds3-cli-utils')
     }
 }
 

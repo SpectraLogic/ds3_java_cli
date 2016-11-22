@@ -16,7 +16,7 @@
 package com.spectralogic.ds3cli.command;
 
 import com.google.common.collect.ImmutableList;
-import com.spectralogic.ds3cli.Arguments;
+import com.spectralogic.ds3cli.api.Arguments;
 import com.spectralogic.ds3cli.models.DefaultResult;
 import com.spectralogic.ds3client.commands.spectrads3.CancelJobSpectraS3Request;
 import com.spectralogic.ds3client.commands.spectrads3.TruncateActiveJobSpectraS3Request;
@@ -24,10 +24,10 @@ import org.apache.commons.cli.Option;
 
 import java.util.UUID;
 
-import static com.spectralogic.ds3cli.ArgumentFactory.FORCE;
-import static com.spectralogic.ds3cli.ArgumentFactory.ID;
+import static com.spectralogic.ds3cli.api.ArgumentFactory.FORCE;
+import static com.spectralogic.ds3cli.api.ArgumentFactory.ID;
 
-public class DeleteJob extends CliCommand<DefaultResult> {
+public class DeleteJob extends BaseCliCommand<DefaultResult> {
 
     private UUID id;
     private boolean force;
@@ -39,7 +39,7 @@ public class DeleteJob extends CliCommand<DefaultResult> {
     }
 
     @Override
-    public CliCommand init(final Arguments args) throws Exception {
+    public BaseCliCommand init(final Arguments args) throws Exception {
         processCommandOptions(requiredArgs, optionalArgs, args);
 
         this.id = UUID.fromString(args.getId());

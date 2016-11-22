@@ -16,28 +16,28 @@
 package com.spectralogic.ds3cli.command;
 
 import com.google.common.collect.ImmutableList;
-import com.spectralogic.ds3cli.Arguments;
-import com.spectralogic.ds3cli.View;
-import com.spectralogic.ds3cli.ViewType;
+import com.spectralogic.ds3cli.api.Arguments;
+import com.spectralogic.ds3cli.api.View;
+import com.spectralogic.ds3cli.api.ViewType;
+import com.spectralogic.ds3cli.jsonview.DataView;
 import com.spectralogic.ds3cli.models.VerifyAllTapesResult;
 import com.spectralogic.ds3cli.views.cli.VerifyAllTapesView;
-import com.spectralogic.ds3cli.views.json.DataView;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.spectrads3.VerifyAllTapesSpectraS3Request;
 import com.spectralogic.ds3client.commands.spectrads3.VerifyAllTapesSpectraS3Response;
 import com.spectralogic.ds3client.models.Priority;
 import org.apache.commons.cli.Option;
 
-import static com.spectralogic.ds3cli.ArgumentFactory.PRIORITY;
+import static com.spectralogic.ds3cli.api.ArgumentFactory.PRIORITY;
 
-public class VerifyAllTapes extends CliCommand<VerifyAllTapesResult> {
+public class VerifyAllTapes extends BaseCliCommand<VerifyAllTapesResult> {
 
     private final static ImmutableList<Option> OPTIONAL_ARGS = ImmutableList.of(PRIORITY);
 
     private Priority priority;
 
     @Override
-    public CliCommand init(final Arguments args) throws Exception {
+    public BaseCliCommand init(final Arguments args) throws Exception {
         processCommandOptions(EMPTY_LIST, OPTIONAL_ARGS, args);
 
         this.priority = args.getPriority();

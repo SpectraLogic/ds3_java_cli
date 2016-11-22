@@ -16,12 +16,12 @@
 package com.spectralogic.ds3cli.command;
 
 import com.google.common.collect.ImmutableList;
-import com.spectralogic.ds3cli.Arguments;
-import com.spectralogic.ds3cli.View;
-import com.spectralogic.ds3cli.ViewType;
+import com.spectralogic.ds3cli.api.Arguments;
+import com.spectralogic.ds3cli.api.View;
+import com.spectralogic.ds3cli.api.ViewType;
+import com.spectralogic.ds3cli.jsonview.DataView;
 import com.spectralogic.ds3cli.models.GetPhysicalPlacementWithFullDetailsResult;
 import com.spectralogic.ds3cli.views.cli.GetPhysicalPlacementWithFullDetailsView;
-import com.spectralogic.ds3cli.views.json.DataView;
 import com.spectralogic.ds3client.commands.spectrads3.GetPhysicalPlacementForObjectsWithFullDetailsSpectraS3Request;
 import com.spectralogic.ds3client.commands.spectrads3.GetPhysicalPlacementForObjectsWithFullDetailsSpectraS3Response;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
@@ -30,11 +30,11 @@ import org.apache.commons.cli.Option;
 import java.util.Collections;
 import java.util.List;
 
-import static com.spectralogic.ds3cli.ArgumentFactory.BUCKET;
-import static com.spectralogic.ds3cli.ArgumentFactory.OBJECT_NAME;
+import static com.spectralogic.ds3cli.api.ArgumentFactory.BUCKET;
+import static com.spectralogic.ds3cli.api.ArgumentFactory.OBJECT_NAME;
 
 
-public class GetPhysicalPlacement extends CliCommand<GetPhysicalPlacementWithFullDetailsResult> {
+public class GetPhysicalPlacement extends BaseCliCommand<GetPhysicalPlacementWithFullDetailsResult> {
 
     private final static ImmutableList<Option> requiredArgs = ImmutableList.of(BUCKET, OBJECT_NAME);
 
@@ -45,7 +45,7 @@ public class GetPhysicalPlacement extends CliCommand<GetPhysicalPlacementWithFul
     }
 
     @Override
-    public CliCommand init(final Arguments args) throws Exception {
+    public BaseCliCommand init(final Arguments args) throws Exception {
         processCommandOptions(requiredArgs, EMPTY_LIST, args);
 
         this.bucketName = args.getBucket();
