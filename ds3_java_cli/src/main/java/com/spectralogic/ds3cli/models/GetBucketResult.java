@@ -17,28 +17,20 @@ package com.spectralogic.ds3cli.models;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.spectralogic.ds3client.models.Bucket;
 import com.spectralogic.ds3client.models.Contents;
 
 public class GetBucketResult implements Result<Iterable<Contents>> {
-    @JsonProperty("BucketName")
-    final private String bucketName;
+    final private Bucket bucket;
 
-    @JsonProperty("Objects")
-    @JacksonXmlElementWrapper(
-            useWrapping = true
-    )
     final private Iterable<Contents> contents;
 
-    public String getBucketName() {
-        return bucketName;
+    public Bucket getBucket() {
+        return bucket;
     }
 
-    public Iterable<Contents> getContents() {
-        return contents;
-    }
-
-    public GetBucketResult(final String bucketName, final Iterable<Contents> contents) {
-        this.bucketName = bucketName;
+    public GetBucketResult(final Bucket bucket, final Iterable<Contents> contents) {
+        this.bucket = bucket;
         this.contents = contents;
     }
 
@@ -46,4 +38,5 @@ public class GetBucketResult implements Result<Iterable<Contents>> {
     public Iterable<Contents> getResult() {
         return contents;
     }
+
 }
