@@ -367,12 +367,18 @@ public class Ds3Cli_Test {
     @Test
     public void getBucket() throws Exception {
 
-        final String expected = "+--------------------+--------+----------------+--------------------------+------------------------------------+\n" +
-                "|      File Name     |  Size  |      Owner     |       Last Modified      |                ETag                |\n" +
-                "+--------------------+--------+----------------+--------------------------+------------------------------------+\n" +
-                "| my-image.jpg       | 434234 | mtd@amazon.com | 2009-10-12T17:50:30.000Z | \"fba9dede5f27731c9771645a39863328\" |\n" +
-                "| my-third-image.jpg |  64994 | mtd@amazon.com | 2009-10-12T17:50:30.000Z | \"1b2cf535f27731c974343645a3985328\" |\n" +
-                "+--------------------+--------+----------------+--------------------------+------------------------------------+\n";
+        final String expected =
+                "+-------------+--------------------------------------+--------------------------------------+--------------------------+--------------------------------------+---------------+\n" +
+                        "|     Name    |                  Id                  |                User Id               |       Creation Date      |            Data Policy Id            | Used Capacity |\n" +
+                        "+-------------+--------------------------------------+--------------------------------------+--------------------------+--------------------------------------+---------------+\n" +
+                        "| jktwocopies | c5ed6a28-1499-432d-85e5-e0b2d866ec65 | c3eb82a5-574a-4a54-9083-60894866ea5f | 2016-09-22T23:09:31.000Z | c3bdbfc5-57e3-4dea-afb4-86ace65017fa | 132096040     |\n" +
+                        "+-------------+--------------------------------------+--------------------------------------+--------------------------+--------------------------------------+---------------+\n\n" +
+                        "+--------------------+--------+----------------+--------------------------+------------------------------------+\n" +
+                        "|      File Name     |  Size  |      Owner     |       Last Modified      |                ETag                |\n" +
+                        "+--------------------+--------+----------------+--------------------------+------------------------------------+\n" +
+                        "| my-image.jpg       | 434234 | mtd@amazon.com | 2009-10-12T17:50:30.000Z | \"fba9dede5f27731c9771645a39863328\" |\n" +
+                        "| my-third-image.jpg |  64994 | mtd@amazon.com | 2009-10-12T17:50:30.000Z | \"1b2cf535f27731c974343645a3985328\" |\n" +
+                        "+--------------------+--------+----------------+--------------------------+------------------------------------+\n";
 
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_bucket", "-b", "bucketName"});
         final String response = "<ListBucketResult>\n" +
@@ -405,6 +411,16 @@ public class Ds3Cli_Test {
                 "    </Contents>\n" +
                 "</ListBucketResult>";
 
+        final String detailResponse = "<Data>" +
+                "<CreationDate>2016-09-22T23:09:31.000Z</CreationDate>" +
+                "<DataPolicyId>c3bdbfc5-57e3-4dea-afb4-86ace65017fa</DataPolicyId>" +
+                "<Id>c5ed6a28-1499-432d-85e5-e0b2d866ec65</Id>" +
+                "<LastPreferredChunkSizeInBytes>28500002078</LastPreferredChunkSizeInBytes>" +
+                "<LogicalUsedCapacity>132096040</LogicalUsedCapacity>" +
+                "<Name>jktwocopies</Name>" +
+                "<UserId>c3eb82a5-574a-4a54-9083-60894866ea5f</UserId>" +
+                "</Data>\n";
+
         final Ds3Client client = mock(Ds3Client.class);
         final WebResponse webResponse = mock(WebResponse.class);
         final Headers headers = mock(Headers.class);
@@ -413,6 +429,13 @@ public class Ds3Cli_Test {
         when(webResponse.getResponseStream()).thenReturn(IOUtils.toInputStream(response));
         final GetBucketResponse getBucketResponse = new GetBucketResponse(webResponse);
         when(client.getBucket(any(GetBucketRequest.class))).thenReturn(getBucketResponse);
+
+        final WebResponse detailWebResponse = mock(WebResponse.class);
+        when(detailWebResponse.getStatusCode()).thenReturn(200);
+        when(detailWebResponse.getHeaders()).thenReturn(headers);
+        when(detailWebResponse.getResponseStream()).thenReturn(IOUtils.toInputStream(detailResponse));
+        final GetBucketSpectraS3Response getBucketDetailResponse = new GetBucketSpectraS3Response(detailWebResponse);
+        when(client.getBucketSpectraS3(any(GetBucketSpectraS3Request.class))).thenReturn(getBucketDetailResponse);
 
         final BaseCliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, null), null);
         command.init(args);
@@ -424,88 +447,98 @@ public class Ds3Cli_Test {
     @Test
     public void getBucketJson() throws Exception {
 
-        final String expected = "\"Data\" : {\n" +
-                "    \"result\" : [ {\n" +
-                "      \"etag\" : \"\\\"fba9dede5f27731c9771645a39863328\\\"\",\n" +
-                "      \"ETag\" : \"\\\"fba9dede5f27731c9771645a39863328\\\"\",\n" +
-                "      \"Key\" : \"my-image.jpg\",\n" +
-                "      \"LastModified\" : \"2009-10-12T17:50:30.000Z\",\n" +
-                "      \"Owner\" : {\n" +
-                "        \"DisplayName\" : \"mtd@amazon.com\",\n" +
-                "        \"ID\" : \"5df00f88-d5b2-11e5-ab30-625662870761\"\n" +
-                "      },\n" +
-                "      \"Size\" : 434234,\n" +
-                "      \"StorageClass\" : \"STANDARD\"\n" +
-                "    }, {\n" +
-                "      \"etag\" : \"\\\"1b2cf535f27731c974343645a3985328\\\"\",\n" +
-                "      \"ETag\" : \"\\\"1b2cf535f27731c974343645a3985328\\\"\",\n" +
-                "      \"Key\" : \"my-third-image.jpg\",\n" +
-                "      \"LastModified\" : \"2009-10-12T17:50:30.000Z\",\n" +
-                "      \"Owner\" : {\n" +
-                "        \"DisplayName\" : \"mtd@amazon.com\",\n" +
-                "        \"ID\" : \"5df00f88-d5b2-11e5-ab30-625662870761\"\n" +
-                "      },\n" +
-                "      \"Size\" : 64994,\n" +
-                "      \"StorageClass\" : \"STANDARD\"\n" +
-                "    } ],\n" +
-                "    \"BucketName\" : \"bucketName\",\n" +
-                "    \"Objects\" : [ {\n" +
-                "      \"etag\" : \"\\\"fba9dede5f27731c9771645a39863328\\\"\",\n" +
-                "      \"ETag\" : \"\\\"fba9dede5f27731c9771645a39863328\\\"\",\n" +
-                "      \"Key\" : \"my-image.jpg\",\n" +
-                "      \"LastModified\" : \"2009-10-12T17:50:30.000Z\",\n" +
-                "      \"Owner\" : {\n" +
-                "        \"DisplayName\" : \"mtd@amazon.com\",\n" +
-                "        \"ID\" : \"5df00f88-d5b2-11e5-ab30-625662870761\"\n" +
-                "      },\n" +
-                "      \"Size\" : 434234,\n" +
-                "      \"StorageClass\" : \"STANDARD\"\n" +
-                "    }, {\n" +
-                "      \"etag\" : \"\\\"1b2cf535f27731c974343645a3985328\\\"\",\n" +
-                "      \"ETag\" : \"\\\"1b2cf535f27731c974343645a3985328\\\"\",\n" +
-                "      \"Key\" : \"my-third-image.jpg\",\n" +
-                "      \"LastModified\" : \"2009-10-12T17:50:30.000Z\",\n" +
-                "      \"Owner\" : {\n" +
-                "        \"DisplayName\" : \"mtd@amazon.com\",\n" +
-                "        \"ID\" : \"5df00f88-d5b2-11e5-ab30-625662870761\"\n" +
-                "      },\n" +
-                "      \"Size\" : 64994,\n" +
-                "      \"StorageClass\" : \"STANDARD\"\n" +
-                "    } ]\n" +
-                "  },\n" +
-                "  \"Status\" : \"OK\"\n" +
-                "}";
+        final String expected =
+                "  \"Data\" : {\n" +
+                        "    \"bucket\" : {\n" +
+                        "      \"CreationDate\" : \"2016-11-18T15:48:08.000Z\",\n" +
+                        "      \"DataPolicyId\" : \"8a5d5e56-8d54-4098-b790-6002730b3d96\",\n" +
+                        "      \"Id\" : \"07cbc080-16ae-46ea-a275-ec8cb27e178c\",\n" +
+                        "      \"LastPreferredChunkSizeInBytes\" : 19004340787,\n" +
+                        "      \"LogicalUsedCapacity\" : 1928234,\n" +
+                        "      \"Name\" : \"mountain\",\n" +
+                        "      \"UserId\" : \"5079e312-bcff-43c7-bd54-d8148af0a515\"\n" +
+                        "    },\n" +
+                        "    \"result\" : [ {\n" +
+                        "      \"etag\" : \"3d1bc5d88e795c5b23da7f812c073870\",\n" +
+                        "      \"ETag\" : \"3d1bc5d88e795c5b23da7f812c073870\",\n" +
+                        "      \"Key\" : \"YouDontKnowMe_295x166.jpg\",\n" +
+                        "      \"LastModified\" : \"2016-11-18T15:48:10.000Z\",\n" +
+                        "      \"Owner\" : {\n" +
+                        "        \"DisplayName\" : \"jk\",\n" +
+                        "        \"ID\" : \"5079e312-bcff-43c7-bd54-d8148af0a515\"\n" +
+                        "      },\n" +
+                        "      \"Size\" : 10634,\n" +
+                        "      \"StorageClass\" : null\n" +
+                        "    }, {\n" +
+                        "      \"etag\" : \"ef751d03b7fe4fb2013be56c5a8da26e\",\n" +
+                        "      \"ETag\" : \"ef751d03b7fe4fb2013be56c5a8da26e\",\n" +
+                        "      \"Key\" : \"sky_bandana.jpg\",\n" +
+                        "      \"LastModified\" : \"2016-11-18T15:48:10.000Z\",\n" +
+                        "      \"Owner\" : {\n" +
+                        "        \"DisplayName\" : \"jk\",\n" +
+                        "        \"ID\" : \"5079e312-bcff-43c7-bd54-d8148af0a515\"\n" +
+                        "      },\n" +
+                        "      \"Size\" : 142164,\n" +
+                        "      \"StorageClass\" : null\n" +
+                        "    }, {\n" +
+                        "      \"etag\" : \"a2750043425399804e83288f5f97d112\",\n" +
+                        "      \"ETag\" : \"a2750043425399804e83288f5f97d112\",\n" +
+                        "      \"Key\" : \"sky_point,web.jpg\",\n" +
+                        "      \"LastModified\" : \"2016-11-18T15:48:10.000Z\",\n" +
+                        "      \"Owner\" : {\n" +
+                        "        \"DisplayName\" : \"jk\",\n" +
+                        "        \"ID\" : \"5079e312-bcff-43c7-bd54-d8148af0a515\"\n" +
+                        "      },\n" +
+                        "      \"Size\" : 17120,\n" +
+                        "      \"StorageClass\" : null\n" +
+                        "    }, {\n" +
+                        "      \"etag\" : \"71e93f1026d0362aa0b7dccedf031d8c\",\n" +
+                        "      \"ETag\" : \"71e93f1026d0362aa0b7dccedf031d8c\",\n" +
+                        "      \"Key\" : \"skylark,l5ct2.bmp\",\n" +
+                        "      \"LastModified\" : \"2016-11-18T15:48:10.000Z\",\n" +
+                        "      \"Owner\" : {\n" +
+                        "        \"DisplayName\" : \"jk\",\n" +
+                        "        \"ID\" : \"5079e312-bcff-43c7-bd54-d8148af0a515\"\n" +
+                        "      },\n" +
+                        "      \"Size\" : 921654,\n" +
+                        "      \"StorageClass\" : null\n" +
+                        "    }, {\n" +
+                        "      \"etag\" : \"777fd3670853d4f197c52cfa6a21f773\",\n" +
+                        "      \"ETag\" : \"777fd3670853d4f197c52cfa6a21f773\",\n" +
+                        "      \"Key\" : \"skylark--car 001.jpg\",\n" +
+                        "      \"LastModified\" : \"2016-11-18T15:48:10.000Z\",\n" +
+                        "      \"Owner\" : {\n" +
+                        "        \"DisplayName\" : \"jk\",\n" +
+                        "        \"ID\" : \"5079e312-bcff-43c7-bd54-d8148af0a515\"\n" +
+                        "      },\n" +
+                        "      \"Size\" : 391998,\n" +
+                        "      \"StorageClass\" : null\n" +
+                        "    }, {\n" +
+                        "      \"etag\" : \"6dc0c5e59418d651777c8432e13e9539\",\n" +
+                        "      \"ETag\" : \"6dc0c5e59418d651777c8432e13e9539\",\n" +
+                        "      \"Key\" : \"skylark004.jpg\",\n" +
+                        "      \"LastModified\" : \"2016-11-18T15:48:10.000Z\",\n" +
+                        "      \"Owner\" : {\n" +
+                        "        \"DisplayName\" : \"jk\",\n" +
+                        "        \"ID\" : \"5079e312-bcff-43c7-bd54-d8148af0a515\"\n" +
+                        "      },\n" +
+                        "      \"Size\" : 444664,\n" +
+                        "      \"StorageClass\" : null\n" +
+                        "    } ]\n" +
+                        "  },\n" +
+                        "  \"Status\" : \"OK\"\n" +
+                        "}";
 
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_bucket", "-b", "bucketName", "--output-format", "json"});
-        final String response = "<ListBucketResult>\n" +
-                "    <Name>bucket</Name>\n" +
-                "    <Prefix/>\n" +
-                "    <Marker/>\n" +
-                "    <MaxKeys>1000</MaxKeys>\n" +
-                "    <IsTruncated>false</IsTruncated>\n" +
-                "    <Contents>\n" +
-                "        <Key>my-image.jpg</Key>\n" +
-                "        <LastModified>2009-10-12T17:50:30.000Z</LastModified>\n" +
-                "        <ETag>&quot;fba9dede5f27731c9771645a39863328&quot;</ETag>\n" +
-                "        <Size>434234</Size>\n" +
-                "        <StorageClass>STANDARD</StorageClass>\n" +
-                "        <Owner>\n" +
-                "            <ID>5df00f88-d5b2-11e5-ab30-625662870761</ID>\n" +
-                "            <DisplayName>mtd@amazon.com</DisplayName>\n" +
-                "        </Owner>\n" +
-                "    </Contents>\n" +
-                "    <Contents>\n" +
-                "       <Key>my-third-image.jpg</Key>\n" +
-                "         <LastModified>2009-10-12T17:50:30.000Z</LastModified>\n" +
-                "        <ETag>&quot;1b2cf535f27731c974343645a3985328&quot;</ETag>\n" +
-                "        <Size>64994</Size>\n" +
-                "        <StorageClass>STANDARD</StorageClass>\n" +
-                "        <Owner>\n" +
-                "            <ID>5df00f88-d5b2-11e5-ab30-625662870761</ID>\n" +
-                "            <DisplayName>mtd@amazon.com</DisplayName>\n" +
-                "        </Owner>\n" +
-                "    </Contents>\n" +
-                "</ListBucketResult>";
+        final String response = "<ListBucketResult><Contents><ETag>3d1bc5d88e795c5b23da7f812c073870</ETag><Key>YouDontKnowMe_295x166.jpg</Key><LastModified>2016-11-18T15:48:10.000Z</LastModified><Owner><DisplayName>jk</DisplayName><ID>5079e312-bcff-43c7-bd54-d8148af0a515</ID></Owner><Size>10634</Size><StorageClass/></Contents><Contents><ETag>ef751d03b7fe4fb2013be56c5a8da26e</ETag><Key>sky_bandana.jpg</Key><LastModified>2016-11-18T15:48:10.000Z</LastModified><Owner><DisplayName>jk</DisplayName><ID>5079e312-bcff-43c7-bd54-d8148af0a515</ID></Owner><Size>142164</Size><StorageClass/></Contents><Contents><ETag>a2750043425399804e83288f5f97d112</ETag><Key>sky_point,web.jpg</Key><LastModified>2016-11-18T15:48:10.000Z</LastModified><Owner><DisplayName>jk</DisplayName><ID>5079e312-bcff-43c7-bd54-d8148af0a515</ID></Owner><Size>17120</Size><StorageClass/></Contents><Contents><ETag>71e93f1026d0362aa0b7dccedf031d8c</ETag><Key>skylark,l5ct2.bmp</Key><LastModified>2016-11-18T15:48:10.000Z</LastModified><Owner><DisplayName>jk</DisplayName><ID>5079e312-bcff-43c7-bd54-d8148af0a515</ID></Owner><Size>921654</Size><StorageClass/></Contents><Contents><ETag>777fd3670853d4f197c52cfa6a21f773</ETag><Key>skylark--car 001.jpg</Key><LastModified>2016-11-18T15:48:10.000Z</LastModified><Owner><DisplayName>jk</DisplayName><ID>5079e312-bcff-43c7-bd54-d8148af0a515</ID></Owner><Size>391998</Size><StorageClass/></Contents><Contents><ETag>6dc0c5e59418d651777c8432e13e9539</ETag><Key>skylark004.jpg</Key><LastModified>2016-11-18T15:48:10.000Z</LastModified><Owner><DisplayName>jk</DisplayName><ID>5079e312-bcff-43c7-bd54-d8148af0a515</ID></Owner><Size>444664</Size><StorageClass/></Contents><CreationDate>2016-11-18T15:48:08.000Z</CreationDate><Delimiter/><IsTruncated>false</IsTruncated><Marker/><MaxKeys>1000</MaxKeys><Name>mountain</Name><NextMarker/><Prefix/></ListBucketResult>";
+
+        final String detailResponse = "<Data>" +
+                "<CreationDate>2016-11-18T15:48:08.000Z</CreationDate>" +
+                "<DataPolicyId>8a5d5e56-8d54-4098-b790-6002730b3d96</DataPolicyId><Id>07cbc080-16ae-46ea-a275-ec8cb27e178c</Id>" +
+                "<LastPreferredChunkSizeInBytes>19004340787</LastPreferredChunkSizeInBytes>" +
+                "<LogicalUsedCapacity>1928234</LogicalUsedCapacity><Name>mountain</Name>" +
+                "<UserId>5079e312-bcff-43c7-bd54-d8148af0a515</UserId>" +
+            "</Data>\n";
 
         final Ds3Client client = mock(Ds3Client.class);
         final WebResponse webResponse = mock(WebResponse.class);
@@ -516,10 +549,54 @@ public class Ds3Cli_Test {
         final GetBucketResponse getBucketResponse = new GetBucketResponse(webResponse);
         when(client.getBucket(any(GetBucketRequest.class))).thenReturn(getBucketResponse);
 
+        final WebResponse detailWebResponse = mock(WebResponse.class);
+        when(detailWebResponse.getStatusCode()).thenReturn(200);
+        when(detailWebResponse.getHeaders()).thenReturn(headers);
+        when(detailWebResponse.getResponseStream()).thenReturn(IOUtils.toInputStream(detailResponse));
+        final GetBucketSpectraS3Response getBucketDetailResponse = new GetBucketSpectraS3Response(detailWebResponse);
+        when(client.getBucketSpectraS3(any(GetBucketSpectraS3Request.class))).thenReturn(getBucketDetailResponse);
+
         final BaseCliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, null), null);
         command.init(args);
         final CommandResponse result = command.render();
         assertTrue(result.getMessage().endsWith(expected));
+        assertThat(result.getReturnCode(), is(0));
+    }
+
+    @Test
+    public void getBucketDetails() throws Exception {
+
+        final String expected =
+            "+-------------+--------------------------------------+--------------------------------------+--------------------------+--------------------------------------+---------------+\n" +
+            "|     Name    |                  Id                  |                User Id               |       Creation Date      |            Data Policy Id            | Used Capacity |\n" +
+            "+-------------+--------------------------------------+--------------------------------------+--------------------------+--------------------------------------+---------------+\n" +
+            "| coffeehouse | 25df1bcd-f4a3-4ba5-9a91-1b39bcf8f1b2 | 5079e312-bcff-43c7-bd54-d8148af0a515 | 2016-08-30T21:50:25.000Z | 8a5d5e56-8d54-4098-b790-6002730b3d96 | 349642821     |\n" +
+            "+-------------+--------------------------------------+--------------------------------------+--------------------------+--------------------------------------+---------------+\n";
+
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_bucket_details", "-b", "coffeehouse"});
+        final String detailResponse = "<Data>" +
+                "<CreationDate>2016-08-30T21:50:25.000Z</CreationDate>" +
+                "<DataPolicyId>8a5d5e56-8d54-4098-b790-6002730b3d96</DataPolicyId>" +
+                "<Id>25df1bcd-f4a3-4ba5-9a91-1b39bcf8f1b2</Id>" +
+                "<LastPreferredChunkSizeInBytes>19004340787</LastPreferredChunkSizeInBytes>" +
+                "<LogicalUsedCapacity>349642821</LogicalUsedCapacity>" +
+                "<Name>coffeehouse</Name>" +
+                "<UserId>5079e312-bcff-43c7-bd54-d8148af0a515</UserId>" +
+            "</Data>\n";
+
+        final Ds3Client client = mock(Ds3Client.class);
+        final Headers headers = mock(Headers.class);
+        final WebResponse detailWebResponse = mock(WebResponse.class);
+        when(detailWebResponse.getStatusCode()).thenReturn(200);
+        when(detailWebResponse.getHeaders()).thenReturn(headers);
+        when(detailWebResponse.getResponseStream()).thenReturn(IOUtils.toInputStream(detailResponse));
+        final GetBucketSpectraS3Response getBucketDetailResponse = new GetBucketSpectraS3Response(detailWebResponse);
+        when(client.getBucketSpectraS3(any(GetBucketSpectraS3Request.class))).thenReturn(getBucketDetailResponse);
+
+        final BaseCliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, null), null);
+        command.init(args);
+        final CommandResponse result = command.render();
+        assertThat(result.getMessage(), is(expected));
         assertThat(result.getReturnCode(), is(0));
     }
 

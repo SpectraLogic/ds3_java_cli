@@ -19,12 +19,13 @@ package com.spectralogic.ds3cli.command;
 import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3cli.api.Arguments;
 import com.spectralogic.ds3cli.api.View;
-import com.spectralogic.ds3cli.api.ViewType;
 import com.spectralogic.ds3cli.api.exceptions.CommandException;
 import com.spectralogic.ds3cli.jsonview.DataView;
 import com.spectralogic.ds3cli.models.GetBucketResult;
-import com.spectralogic.ds3cli.views.cli.GetBucketView;
+import com.spectralogic.ds3client.commands.spectrads3.GetBucketSpectraS3Request;
+import com.spectralogic.ds3client.commands.spectrads3.GetBucketSpectraS3Response;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
+import com.spectralogic.ds3client.models.Bucket;
 import com.spectralogic.ds3client.models.Contents;
 import com.spectralogic.ds3client.networking.FailedRequestException;
 import org.apache.commons.cli.Option;
@@ -37,17 +38,14 @@ public class GetBucket extends BaseCliCommand<GetBucketResult> {
     private final static ImmutableList<Option> requiredArgs = ImmutableList.of(BUCKET);
     private final static ImmutableList<Option> optionalArgs = ImmutableList.of(PREFIX);
 
-    private String bucketName;
+    private String bucket;
     private String prefix;
-
-    public GetBucket() {
-    }
 
     @Override
     public BaseCliCommand init(final Arguments args) throws Exception {
         processCommandOptions(requiredArgs, optionalArgs, args);
 
-        this.bucketName = args.getBucket();
+        this.bucket = args.getBucket();
         this.prefix = args.getPrefix();
         return this;
     }
@@ -56,20 +54,23 @@ public class GetBucket extends BaseCliCommand<GetBucketResult> {
     public GetBucketResult call() throws Exception {
 
         try {
+            // GetBucketDetail to get both name and id
+            final GetBucketSpectraS3Response response = getClient().getBucketSpectraS3(new GetBucketSpectraS3Request(bucket));
+            final Bucket bucketDetails = response.getBucketResult();
+            // helper.listObjects only takes bucket name
+            this.bucket = response.getBucketResult().getName();
+
             final Ds3ClientHelpers helper = Ds3ClientHelpers.wrap(getClient());
-
             final Iterable<Contents> objects;
-
             if (this.prefix == null) {
-                objects = helper.listObjects(bucketName);
+                objects = helper.listObjects(bucket);
             }
             else {
-                objects = helper.listObjects(bucketName, this.prefix);
+                objects = helper.listObjects(bucket, this.prefix);
             }
 
-            return new GetBucketResult(bucketName, objects);
-        }
-        catch(final FailedRequestException e) {
+            return new GetBucketResult(bucketDetails, objects);
+        } catch(final FailedRequestException e) {
             if(e.getStatusCode() == 404) {
                 throw new CommandException("Error: Unknown bucket.", e);
             }
@@ -79,9 +80,12 @@ public class GetBucket extends BaseCliCommand<GetBucketResult> {
 
     @Override
     public View<GetBucketResult> getView() {
-        if (viewType == ViewType.JSON) {
-            return new DataView<>();
+        switch (viewType) {
+            case JSON:
+                return new DataView<>();
+            default:
+                return new com.spectralogic.ds3cli.views.cli.GetBucketView();
         }
-        return new GetBucketView();
     }
+
 }
