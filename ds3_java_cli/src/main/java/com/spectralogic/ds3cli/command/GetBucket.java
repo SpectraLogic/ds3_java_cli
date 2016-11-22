@@ -39,26 +39,17 @@ import static com.spectralogic.ds3cli.ArgumentFactory.PREFIX;
 
 public class GetBucket extends CliCommand<GetBucketResult> {
 
-    private final static ImmutableList<Option> optionalArgs = ImmutableList.of(PREFIX, BUCKET);
+    private final static ImmutableList<Option> requiredArgs = ImmutableList.of(BUCKET);
+    private final static ImmutableList<Option> optionalArgs = ImmutableList.of(PREFIX);
 
     private String bucket;
     private String prefix;
 
-    public GetBucket() {
-    }
-
     @Override
     public CliCommand init(final Arguments args) throws Exception {
-        processCommandOptions(EMPTY_LIST, optionalArgs, args);
+        processCommandOptions(requiredArgs, optionalArgs, args);
 
         this.bucket = args.getBucket();
-        if (Guard.isStringNullOrEmpty(this.bucket)) {
-            // either -b name or -i ID
-            this.bucket = args.getId();
-        }
-        if (Guard.isStringNullOrEmpty(this.bucket)) {
-            throw new BadArgumentException("Must provide either -b bucket_name or -i bucket_id");
-        }
         this.prefix = args.getPrefix();
         return this;
     }
