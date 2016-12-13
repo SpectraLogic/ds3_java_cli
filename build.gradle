@@ -49,9 +49,23 @@ subprojects {
     }
 }
 
+project(':ds3-cli-helpers') {
+    dependencies {
+        compile project(':ds3_java_cli')
+    }
+}
+
 project(':ds3-cli-integration') {
     dependencies {
         compile project(':ds3_java_cli')
+        testCompile project(path: ':ds3-cli-helpers', configuration: 'testOutput')
+    }
+}
+
+project(':ds3-cli-certification') {
+    dependencies {
+        compile project(':ds3_java_cli')
+        testCompile project(path: ':ds3-cli-helpers', configuration: 'testOutput')
     }
 }
 
