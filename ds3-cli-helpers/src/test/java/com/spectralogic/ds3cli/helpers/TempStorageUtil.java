@@ -13,7 +13,7 @@
  * ****************************************************************************
  */
 
-package com.spectralogic.ds3cli.integration.test.helpers;
+package com.spectralogic.ds3cli.helpers;
 
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.spectrads3.*;
@@ -24,7 +24,7 @@ import com.spectralogic.ds3client.models.VersioningLevel;
 import java.io.IOException;
 import java.util.UUID;
 
-import static com.spectralogic.ds3cli.integration.test.helpers.ABMTestHelper.*;
+import static com.spectralogic.ds3cli.helpers.ABMTestHelper.*;
 
 /**
  * This is a testing utility designed for creating a temporary data policy, storage domain,

@@ -13,11 +13,13 @@
  * ****************************************************************************
  */
 
-package com.spectralogic.ds3cli.integration.test.helpers;
+package com.spectralogic.ds3cli.helpers;
 
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.spectrads3.*;
 import com.spectralogic.ds3client.models.*;
+import org.hamcrest.CoreMatchers;
+import org.junit.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,13 +27,9 @@ import java.io.IOException;
 import java.util.UUID;
 
 import static org.apache.http.util.TextUtils.isEmpty;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
 
 /**
- * This class provides utilities for testing the ABM commands
+ * This class provides utilities for ABM commands
  */
 public final class ABMTestHelper {
 
@@ -66,7 +64,7 @@ public final class ABMTestHelper {
         //Check if data policy already exists
         try {
             client.getDataPolicySpectraS3(new GetDataPolicySpectraS3Request(dataPolicyName));
-            fail("Data policy already exists, terminating to prevent conflict: " + dataPolicyName);
+            Assert.fail("Data policy already exists, terminating to prevent conflict: " + dataPolicyName);
         } catch (final IOException e) {
             //Pass: expected data policy to not exist
         }
@@ -101,7 +99,7 @@ public final class ABMTestHelper {
         try {
             final DeleteDataPolicySpectraS3Response deleteDataPolicy = client
                     .deleteDataPolicySpectraS3(new DeleteDataPolicySpectraS3Request(dataPolicyName));
-            assertThat(deleteDataPolicy.getStatusCode(), is(204));
+            Assert.assertThat(deleteDataPolicy.getStatusCode(), CoreMatchers.is(204));
         } catch (final IOException|AssertionError e) {
             LOG.error("Data policy was not deleted as expected: {}", dataPolicyName);
         }
@@ -127,7 +125,7 @@ public final class ABMTestHelper {
         //Check if pool partition already exists
         try {
             client.getPoolPartitionSpectraS3(new GetPoolPartitionSpectraS3Request(poolPartitionName));
-            fail("Pool partition already exists, terminating to prevent conflict: " + poolPartitionName);
+            Assert.fail("Pool partition already exists, terminating to prevent conflict: " + poolPartitionName);
         } catch (final IOException e) {
             //Pass: expected pool partition to not exist
         }
@@ -154,7 +152,7 @@ public final class ABMTestHelper {
         try {
             final DeletePoolPartitionSpectraS3Response deletePoolPartition = client
                     .deletePoolPartitionSpectraS3(new DeletePoolPartitionSpectraS3Request(poolPartitionName));
-            assertThat(deletePoolPartition.getStatusCode(), is(204));
+            Assert.assertThat(deletePoolPartition.getStatusCode(), CoreMatchers.is(204));
         } catch (final IOException|AssertionError e) {
             LOG.error("Pool partition was not deleted as expected: {}", poolPartitionName);
         }
@@ -178,7 +176,7 @@ public final class ABMTestHelper {
         //Check if storage domain already exists
         try {
             client.getStorageDomainSpectraS3(new GetStorageDomainSpectraS3Request(storageDomainName));
-            fail("Storage domain already exists, terminating to prevent conflict: " + storageDomainName);
+            Assert.fail("Storage domain already exists, terminating to prevent conflict: " + storageDomainName);
         } catch (final IOException e) {
             //Pass: expected storage domain to not exist
         }
@@ -203,7 +201,7 @@ public final class ABMTestHelper {
             //Delete the storage domain
             final DeleteStorageDomainSpectraS3Response deleteStorageDomain = client
                     .deleteStorageDomainSpectraS3(new DeleteStorageDomainSpectraS3Request(storageDomainName));
-            assertThat(deleteStorageDomain.getStatusCode(), is(204));
+            Assert.assertThat(deleteStorageDomain.getStatusCode(), CoreMatchers.is(204));
         } catch (final IOException|AssertionError e) {
             LOG.error("Storage domain was not deleted as expected: {}", storageDomainName);
         }
@@ -232,7 +230,7 @@ public final class ABMTestHelper {
                     new GetStorageDomainMembersSpectraS3Request()
                             .withPoolPartitionId(poolPartitionId.toString())
                             .withStorageDomainId(storageDomainId.toString()));
-            assertThat(getMembers.getStorageDomainMemberListResult().getStorageDomainMembers().size(), is(0));
+            Assert.assertThat(getMembers.getStorageDomainMemberListResult().getStorageDomainMembers().size(), CoreMatchers.is(0));
         } catch (final IOException e) {
             //Pass: expected storage domain member to not exist
         }
@@ -260,7 +258,7 @@ public final class ABMTestHelper {
             final DeleteStorageDomainMemberSpectraS3Response deleteMember = client
                     .deleteStorageDomainMemberSpectraS3(
                             new DeleteStorageDomainMemberSpectraS3Request(memberId.toString()));
-            assertThat(deleteMember.getStatusCode(), is(204));
+            Assert.assertThat(deleteMember.getStatusCode(), CoreMatchers.is(204));
         } catch (final IOException|AssertionError e) {
             LOG.error("Storage domain member was not deleted as expected: {}", memberId.toString());
         }
@@ -288,7 +286,7 @@ public final class ABMTestHelper {
                 new GetDataPersistenceRulesSpectraS3Request()
                         .withDataPolicyId(dataPolicyId.toString())
                         .withStorageDomainId(storageDomainId.toString()));
-        assertThat(response.getDataPersistenceRuleListResult().getDataPersistenceRules().size(), is(0));
+        Assert.assertThat(response.getDataPersistenceRuleListResult().getDataPersistenceRules().size(), CoreMatchers.is(0));
 
         //Create the data persistence rule
         return client.putDataPersistenceRuleSpectraS3(new PutDataPersistenceRuleSpectraS3Request(
@@ -315,7 +313,7 @@ public final class ABMTestHelper {
         try {
             final DeleteDataPersistenceRuleSpectraS3Response deleteResponse = client.deleteDataPersistenceRuleSpectraS3(
                     new DeleteDataPersistenceRuleSpectraS3Request(dataPersistenceRuleId.toString()));
-            assertThat(deleteResponse.getStatusCode(), is(204));
+            Assert.assertThat(deleteResponse.getStatusCode(), CoreMatchers.is(204));
         } catch (final IOException|AssertionError e) {
             LOG.error("Data persistence rule was not deleted as expected: {}", dataPersistenceRuleId.toString());
         }
@@ -342,7 +340,7 @@ public final class ABMTestHelper {
         try {
             final GetGroupSpectraS3Response response = client.getGroupSpectraS3(
                     new GetGroupSpectraS3Request(groupName));
-            assertThat(response.getGroupResult(), is(nullValue()));
+            Assert.assertThat(response.getGroupResult(), CoreMatchers.is(CoreMatchers.nullValue()));
         } catch (final IOException e) {
             //Pass: expected group to not exist
         }
@@ -368,7 +366,7 @@ public final class ABMTestHelper {
         try {
             final DeleteGroupSpectraS3Response deleteResponse = client.deleteGroupSpectraS3(
                     new DeleteGroupSpectraS3Request(groupName));
-            assertThat(deleteResponse.getStatusCode(), is(204));
+            Assert.assertThat(deleteResponse.getStatusCode(), CoreMatchers.is(204));
         } catch (final IOException|AssertionError e) {
             LOG.error("Group was not deleted as expected: {}", groupName);
         }
@@ -395,7 +393,7 @@ public final class ABMTestHelper {
                 new GetDataPolicyAclsSpectraS3Request()
                         .withDataPolicyId(dataPolicyId.toString())
                         .withGroupId(groupId.toString()));
-        assertThat(response.getDataPolicyAclListResult().getDataPolicyAcls().size(), is(0));
+        Assert.assertThat(response.getDataPolicyAclListResult().getDataPolicyAcls().size(), CoreMatchers.is(0));
 
         //Create the data policy Acl
         return client.putDataPolicyAclForGroupSpectraS3(new PutDataPolicyAclForGroupSpectraS3Request(
@@ -419,7 +417,7 @@ public final class ABMTestHelper {
         try {
             final DeleteDataPolicyAclSpectraS3Response deleteAcl = client
                     .deleteDataPolicyAclSpectraS3(new DeleteDataPolicyAclSpectraS3Request(aclId.toString()));
-            assertThat(deleteAcl.getStatusCode(), is(204));
+            Assert.assertThat(deleteAcl.getStatusCode(), CoreMatchers.is(204));
         } catch (final IOException|AssertionError e) {
             LOG.error("Data policy Acl was not deleted as expected: {}", aclId.toString());
         }
@@ -437,8 +435,10 @@ public final class ABMTestHelper {
      * Gets the cached size in bytes for the job UUID provided every 500 milliseconds
      * and returns when greater than zero, or fails after timeoutSeconds.
      */
-    public static void waitForJobCachedSizeToBeMoreThanZero(final UUID jobId
-            , final Ds3Client client, final int timeoutSeconds) throws Exception {
+    public static void waitForJobCachedSizeToBeMoreThanZero(
+            final UUID jobId,
+            final Ds3Client client,
+            final int timeoutSeconds) throws Exception {
 
         long cachedSize = 0;
         int cycles = 0;
