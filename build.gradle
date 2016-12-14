@@ -57,14 +57,14 @@ project(':ds3-cli-helpers') {
 
 project(':ds3-cli-integration') {
     dependencies {
-        compile project(':ds3_java_cli')
+        testCompile project(':ds3-cli-helpers')
         testCompile project(path: ':ds3-cli-helpers', configuration: 'testOutput')
     }
 }
 
 project(':ds3-cli-certification') {
     dependencies {
-        compile project(':ds3_java_cli')
+        compile project(':ds3-cli-helpers')
         testCompile project(path: ':ds3-cli-helpers', configuration: 'testOutput')
     }
 }

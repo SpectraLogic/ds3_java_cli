@@ -91,18 +91,20 @@ public class TempStorageUtil {
     }
 
     /**
-     * Creates a Data Policy with the specified checksum type and end-to-end crc requirement
+     * Creates a Data Policy with the specified options, then set to the default "spectra" user Data Policy.
      */
     public static UUID setupDataPolicy(
             final String testSetName,
             final boolean withEndToEndCrcRequired,
             final ChecksumType.Type checksumType,
             final Ds3Client client) throws IOException {
-        final PutDataPolicySpectraS3Response dataPolicyResponse = client.putDataPolicySpectraS3(
-                new PutDataPolicySpectraS3Request(testSetName + DATA_POLICY_NAME)
-                        .withVersioning(VersioningLevel.NONE)
-                        .withEndToEndCrcRequired(withEndToEndCrcRequired)
-                        .withChecksumType(checksumType)); // TODO 3.2: .withAlwaysForcePutJobCreation(true));
+        final PutDataPolicySpectraS3Response dataPolicyResponse = createDataPolicy(
+                testSetName + DATA_POLICY_NAME,
+                VersioningLevel.NONE,
+                checksumType,
+                withEndToEndCrcRequired,
+                false,
+                client);
         client.modifyUserSpectraS3(new ModifyUserSpectraS3Request("spectra")
                 .withDefaultDataPolicyId(dataPolicyResponse.getDataPolicyResult().getId()));
         return dataPolicyResponse.getDataPolicyResult().getId();
