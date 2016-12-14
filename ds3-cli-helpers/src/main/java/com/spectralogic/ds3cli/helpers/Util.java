@@ -49,6 +49,16 @@ public class Util {
         return command.render();
     }
 
+    public static CommandResponse createUser(final Ds3Client client, final String userName) throws Exception {
+        final Arguments args = new Arguments(new String[]{"--http", "-c", "get_service"});
+        return command(client, args);
+    }
+
+    public static CommandResponse getService(final Ds3Client client) throws Exception {
+        final Arguments args = new Arguments(new String[]{"--http", "-c", "get_service"});
+        return command(client, args);
+    }
+
     public static CommandResponse createBucket(final Ds3Client client, final String bucketName) throws Exception {
         final Arguments args = new Arguments(new String[]{"--http", "-c", "put_bucket", "-b", bucketName});
         return command(client, args);
