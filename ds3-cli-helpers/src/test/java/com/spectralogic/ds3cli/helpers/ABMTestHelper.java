@@ -36,30 +36,16 @@ public final class ABMTestHelper {
     final private static Logger LOG = LoggerFactory.getLogger(ABMTestHelper.class);
 
     /**
-     * Creates a data policy with the specified name and versioning level, if a
+     * Creates a data policy with the specified name and options if a
      * policy with the same name does not currently exist. If a policy already
      * exists with the specified name, an error is thrown.
      */
-    public static PutDataPolicySpectraS3Response createDataPolicyWithVersioning(
-            final String dataPolicyName,
-            final VersioningLevel versioningLevel,
-            final Ds3Client client) throws IOException {
-        return createDataPolicyWithVersioningAndCrcRequired(
-                dataPolicyName,
-                versioningLevel,
-                null,
-                client);
-    }
-
-    /**
-     * Creates a data policy with the specified name and versioning level and checksum, if a
-     * policy with the same name does not currently exist. If a policy already
-     * exists with the specified name, an error is thrown.
-     */
-    public static PutDataPolicySpectraS3Response createDataPolicyWithVersioningAndCrcRequired(
+    public static PutDataPolicySpectraS3Response createDataPolicy(
             final String dataPolicyName,
             final VersioningLevel versioningLevel,
             final ChecksumType.Type checksumType,
+            final Boolean endToEndCrcRequired,
+            final Boolean alwaysForceJobCreation,
             final Ds3Client client) throws IOException {
         //Check if data policy already exists
         try {
@@ -69,18 +55,22 @@ public final class ABMTestHelper {
             //Pass: expected data policy to not exist
         }
 
-        if (checksumType == null) {
-            //Create the data policy with versioning
-            return client.putDataPolicySpectraS3(new PutDataPolicySpectraS3Request(dataPolicyName)
-                    .withVersioning(versioningLevel));
-                    // TODO 3.2: .withAlwaysForcePutJobCreation(true));
+        final PutDataPolicySpectraS3Request request = new PutDataPolicySpectraS3Request(dataPolicyName);
+
+        if (checksumType != null) {
+            request.withChecksumType(checksumType);
         }
-        //Create the data policy with versioning and checksum
-        return client.putDataPolicySpectraS3(new PutDataPolicySpectraS3Request(dataPolicyName)
-                .withVersioning(versioningLevel)
-                .withEndToEndCrcRequired(true)
-                .withChecksumType(checksumType));
-                // TODO 3.2: .withAlwaysForcePutJobCreation(true));
+        if (versioningLevel != null) {
+            request.withVersioning(versioningLevel);
+        }
+        if (endToEndCrcRequired != null) {
+            request.withEndToEndCrcRequired(endToEndCrcRequired);
+        }
+        if (alwaysForceJobCreation != null) {
+            request.withAlwaysForcePutJobCreation(alwaysForceJobCreation);
+        }
+
+        return client.putDataPolicySpectraS3(request);
     }
 
     /**
