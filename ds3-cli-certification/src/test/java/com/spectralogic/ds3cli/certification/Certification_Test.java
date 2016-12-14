@@ -15,12 +15,15 @@
 
 package com.spectralogic.ds3cli.certification;
 
+import com.spectralogic.ds3cli.CommandResponse;
+import com.spectralogic.ds3cli.helpers.Util;
 import com.spectralogic.ds3cli.helpers.TempStorageIds;
 import com.spectralogic.ds3cli.helpers.TempStorageUtil;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.Ds3ClientBuilder;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.models.ChecksumType;
+import com.spectralogic.ds3client.models.common.Credentials;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -28,16 +31,22 @@ import org.junit.Test;
 import java.io.IOException;
 import java.util.UUID;
 
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+
+
 /**
  * Implement tests to automate the BlackPearl Certification process for the JavaCLI.
  *
- * Refer to https://developer.spectralogic.com/certification/ and https://developer.spectralogic.com/test-plan/
- * for details.
+ * For details, refer to
+ *   https://developer.spectralogic.com/certification/
+ *   https://developer.spectralogic.com/test-plan/
  */
 public class Certification_Test {
     private static final Ds3Client client = Ds3ClientBuilder.fromEnv().withHttps(false).build();
     private static final Ds3ClientHelpers HELPERS = Ds3ClientHelpers.wrap(client);
-    private static final String TEST_ENV_NAME = "Certification_Test";
+    private static final String TEST_ENV_NAME = "JavaCLI_Certification_Test";
     private static TempStorageIds envStorageIds;
     private static UUID envDataPolicyId;
 
@@ -54,12 +63,76 @@ public class Certification_Test {
     }
 
     @Test
-    public void putBucket() throws Exception {
-        final String bucketName = "test_put_bucket";
+    public void test_7_1_create_bucket() throws Exception {
+        final String bucketName = "test_create_bucket";
         try {
             final String expected = "Success: created bucket " + bucketName + ".";
+            final CommandResponse response = Util.createBucket(client, bucketName);
+            assertThat(response.getMessage(), is(expected));
 
         } finally {
+            Util.deleteBucket(client, bucketName);
+        }
+    }
+
+    @Test
+    public void test_7_2_1_invalid_credentials() throws Exception {
+        final String bucketName = "test_create_bucket";
+        try {
+            final String endpoint = System.getenv("DS3_ENDPOINT");
+            final Credentials creds = new Credentials("invalid_access_id", "invalid_secret_key");
+            final Ds3Client invalid_client = Ds3ClientBuilder.create(endpoint, creds).build();
+            final CommandResponse response = Util.getService(invalid_client);
+
+            assertThat(response.getReturnCode(), is(400));
+
+        } finally {
+            Util.deleteBucket(client, bucketName);
+        }
+    }
+
+    @Test
+    public void test_7_2_2_invalid_endpoint() throws Exception {
+        final String bucketName = "test_create_bucket";
+        try {
+            final String endpoint = "INVALID_DS3_ENDPOINT";
+            final Credentials creds = new Credentials("invalid_access_id", "invalid_secret_key");
+            final Ds3Client invalid_client = Ds3ClientBuilder.create(endpoint, creds).build();
+            final CommandResponse response = Util.getService(invalid_client);
+
+            assertThat(response.getReturnCode(), is(400));
+
+        } finally {
+            Util.deleteBucket(client, bucketName);
+        }
+    }
+
+    @Test
+    public void test_7_3_1_list_nonexistent_bucket() throws Exception {
+        final String bucketName = "test_create_bucket";
+        try {
+            final CommandResponse response = Util.createBucket(client, bucketName);
+
+            assertThat(response.getReturnCode(), is(400));
+
+        } finally {
+            Util.deleteBucket(client, bucketName);
+        }
+    }
+
+    @Test
+    public void test_7_3_2_access_bucket_wrong_user() throws Exception {
+        final String bucketName = "test_create_bucket";
+        try {
+            final String endpoint = System.getenv("DS3_ENDPOINT");
+            final Credentials creds = new Credentials("invalid_access_id", "invalid_secret_key");
+            final Ds3Client invalid_client = Ds3ClientBuilder.create(endpoint, creds).build();
+            final CommandResponse response = Util.getService(invalid_client);
+
+            assertThat(response.getReturnCode(), is(400));
+
+        } finally {
+            Util.deleteBucket(client, bucketName);
         }
     }
 }
