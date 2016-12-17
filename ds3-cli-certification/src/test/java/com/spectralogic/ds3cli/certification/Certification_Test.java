@@ -17,11 +17,7 @@ package com.spectralogic.ds3cli.certification;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
-import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.CommandResponse;
-import com.spectralogic.ds3cli.Ds3ProviderImpl;
-import com.spectralogic.ds3cli.command.CliCommand;
-import com.spectralogic.ds3cli.command.CliCommandFactory;
 import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.helpers.Util;
 import com.spectralogic.ds3cli.helpers.TempStorageIds;
@@ -32,18 +28,22 @@ import com.spectralogic.ds3client.exceptions.InvalidCertificate;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.models.ChecksumType;
 import com.spectralogic.ds3client.models.common.Credentials;
+import com.spectralogic.ds3client.networking.FailedRequestException;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.net.UnknownHostException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.UUID;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 
 
 /**
@@ -115,7 +115,7 @@ public class Certification_Test {
         } catch(final UnknownHostException uhe) {
             final String expectedError = "INVALID_DS3_ENDPOINT: unknown error";
             assertThat(uhe.getMessage(), containsString(expectedError));
-            LOG.info(uhe.getMessage());
+            LOG.info("CommandResponse for 7.2.2 invalid endpoint: \n{}", uhe.getMessage());
         }
     }
 
@@ -126,7 +126,7 @@ public class Certification_Test {
             Util.getBucket(client, bucketName);
         } catch(final CommandException ce) {
             assertThat(ce.getMessage(), containsString("Error: Unknown bucket."));
-            LOG.info(ce.getMessage());
+            LOG.info("CommandResponse for 7.3.1 failed attempt to list nonexistent bucket: \n{}", ce.getMessage());
         }
     }
 
@@ -148,9 +148,77 @@ public class Certification_Test {
         } catch(final InvalidCertificate ice) {
             final String expectedError = "The certificate on black pearl is not a strong certificate and the request is being aborted.  Configure with the insecure option to perform the request.";
             assertThat(ice.getMessage(), containsString(expectedError));
-            LOG.info(ice.getMessage());
+            LOG.info("CommandResponse for 7.3.2 failed attempt to list bucket with invalid user credentials: \n{}", ice.getMessage());
         } finally {
             Util.deleteBucket(client, bucketName);
         }
+    }
+
+    @Test
+    public void test_7_4_get_nonexistent_object() throws Exception {
+        final String bucketName = "test_get_nonexistent_object";
+        try {
+            final CommandResponse createBucketResponse = Util.createBucket(client, bucketName);
+            LOG.info("CommandResponse for creating a bucket: \n{}", createBucketResponse.getMessage());
+            assertThat(createBucketResponse.getReturnCode(), is(0));
+
+            final CommandResponse getBucketResponse = Util.getBucket(client, bucketName);
+            LOG.info("CommandResponse for listing contents of bucket test_get_nonexistent_object: \n{}", getBucketResponse.getMessage());
+            assertThat(getBucketResponse.getReturnCode(), is(0));
+
+            final CommandResponse getNonexistentObjectResponse = Util.getObject(client, bucketName, "nonexistent_object");
+            LOG.info("CommandResponse for getting nonexistent object from bucket test_get_nonexistent_object: \n{}", getNonexistentObjectResponse.getMessage());
+            assertThat(getNonexistentObjectResponse.getReturnCode(), is(404));
+
+        } catch(final FailedRequestException fre) {
+            final String expectedError = "Expected a status code of 200, 204 but got 404. Error message: \"NotFound[404]: Objects do not exist: [nonexistent_object]\"";
+            assertThat(fre.getMessage(), containsString(expectedError));
+            LOG.info("CommandResponse for 7.4 failed attempt to get nonexistent object: \n{}", fre.getMessage());
+
+        } finally {
+            Util.deleteBucket(client, bucketName);
+        }
+    }
+
+    @Test
+    public void test_7_5_bulk_put_3x110GB() throws Exception {
+        final String bucketName = "test_put_bulk_3x110GB_performance";
+        final int numFiles = 3;
+        final int fileSize = 110*(1024^4);
+        try {
+
+            final CommandResponse createBucketResponse = Util.createBucket(client, bucketName);
+            LOG.info("CommandResponse for creating a bucket: \n{}", createBucketResponse.getMessage());
+            assertThat(createBucketResponse.getReturnCode(), is(0));
+
+            final CommandResponse getBucketResponse = Util.getBucket(client, bucketName);
+            LOG.info("CommandResponse for listing contents of bucket test_get_nonexistent_object: \n{}", getBucketResponse.getMessage());
+            assertThat(getBucketResponse.getReturnCode(), is(0));
+
+            // create 3 110GB files for bulk_put
+            final Path tempDir = createSparseTempFiles("bulk_put_3x110GB", numFiles, fileSize);
+
+            final CommandResponse putBulkResponse = Util.putBulk(client, bucketName, tempDir.toString());
+            LOG.info("CommandResponse for put_bulk: \n{}", putBulkResponse.getMessage());
+            assertThat(putBulkResponse.getReturnCode(), is(0));
+
+            final CommandResponse getBucketResponse2 = Util.getBucket(client, bucketName);
+            LOG.info("CommandResponse for listing contents of bucket test_put_bulk: \n{}", getBucketResponse2.getMessage());
+            assertThat(getBucketResponse2.getReturnCode(), is(0));
+
+        } finally {
+            Util.deleteBucket(client, bucketName);
+        }
+    }
+
+    private static Path createSparseTempFiles(final String prefix, final int numFiles, final int length) throws IOException {
+        final Path tempDir = Files.createTempDirectory(prefix);
+
+        for(int fileNum = 0; fileNum < numFiles; fileNum++) {
+            final File tempFile = new File(tempDir.toString(), prefix + "_" + fileNum);
+            final RandomAccessFile raf = new RandomAccessFile(tempFile, "rw");
+            raf.setLength(length);
+        }
+        return tempDir;
     }
 }
