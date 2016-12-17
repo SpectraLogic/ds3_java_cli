@@ -277,8 +277,8 @@ public class FeatureIntegration_Test {
         final String objectName = "beowulf.txt";
         try {
             // For a Get with sync, the local file needs to be older than the server copy
-            Util.copyFile(objectName, Util.RESOURCE_BASE_NAME, Util.DOWNLOAD_BASE_NAME);
-            final File file = new File(Util.DOWNLOAD_BASE_NAME + File.separator + objectName);
+            Util.copyFile(objectName, Util.RESOURCE_BASE_NAME, Util.RESOURCE_BASE_NAME);
+            final File file = new File(Util.RESOURCE_BASE_NAME + File.separator + objectName);
             final DateTime modTime = new DateTime().minusHours(1);
             file.setLastModified(modTime.getMillis());
 
@@ -286,7 +286,7 @@ public class FeatureIntegration_Test {
             Util.loadBookTestData(client, bucketName);
 
             final Arguments args = new Arguments(new String[]{"--http", "-c", "get_object", "-b", bucketName,
-                    "-o", objectName, "-d", Util.DOWNLOAD_BASE_NAME, "--sync"});
+                    "-o", objectName, "-d", Util.RESOURCE_BASE_NAME, "--sync"});
             final CommandResponse response = Util.command(client, args);
             assertThat(response.getMessage(), is("SUCCESS: Finished syncing object."));
         } finally {

@@ -69,6 +69,17 @@ public class Util {
         return command(client, args);
     }
 
+    // Put an object from the resource directory
+    public static CommandResponse putBulk(final Ds3Client client, final String bucketName, final String localDirectory) throws Exception {
+        final Arguments args = new Arguments(new String[]{"--http", "-c", "put_bulk", "-b", bucketName, "-d", localDirectory});
+        return command(client, args);
+    }
+
+    public static CommandResponse getObject(final Ds3Client client, final String bucketName, final String objectName) throws Exception {
+        final Arguments args = new Arguments(new String[]{"--http", "-c", "get_object", "-b", bucketName, "-o", objectName});
+        return command(client, args);
+    }
+
     public static CommandResponse loadBookTestData(final Ds3Client client, final String bucketName) throws Exception {
         final Arguments args = new Arguments(new String[]{"--http", "-c", "put_bulk", "-b", bucketName, "-d", RESOURCE_BASE_NAME});
         return command(client, args);
