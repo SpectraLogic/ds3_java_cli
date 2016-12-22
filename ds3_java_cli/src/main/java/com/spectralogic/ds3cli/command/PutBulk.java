@@ -98,10 +98,12 @@ public class PutBulk extends CliCommand<PutBulkResult> {
                 throw new MissingOptionException("Stdin is empty"); //We should never see that since we checked isPipe
             }
             this.mapNormalizedObjectNameToObjectName = this.getNormalizedObjectNameToObjectName(this.pipedFiles);
-        } else {
+        } else if (!Guard.isStringNullOrEmpty(args.getDirectory())) {
             final String srcDir = args.getDirectory();
             this.inputDirectory = Paths.get(srcDir);
             this.prefix = args.getPrefix();
+        } else {
+            throw new BadArgumentException("-d argument required unless using piped input");
         }
 
         this.priority = args.getPriority();
