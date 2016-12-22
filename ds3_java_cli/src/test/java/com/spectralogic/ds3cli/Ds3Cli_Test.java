@@ -1148,6 +1148,15 @@ public class Ds3Cli_Test {
         command.render();
     }
 
+    @Test(expected = BadArgumentException.class)
+    public void putBulkMissingDirectory() throws Exception {
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "put_bulk", "-b", "bucketName"});
+        final Ds3Client client = mock(Ds3Client.class);
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand())
+                .withProvider(new Ds3ProviderImpl(client, null), null);
+        command.init(args);
+    }
+
     @Test
     public void putBulkJson() throws Exception {
         final String expected = "\"Status\" : \"OK\",\n  \"Message\" : \"SUCCESS: Wrote all the files in dir to bucket bucketName\"\n}";
