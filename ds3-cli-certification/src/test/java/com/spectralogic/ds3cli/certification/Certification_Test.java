@@ -43,6 +43,8 @@ import java.io.RandomAccessFile;
 import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Random;
 import java.util.UUID;
 
@@ -203,9 +205,18 @@ public class Certification_Test {
             // create 3 110GB files for bulk_put
             tempDir = createTempFiles("bulk_put_3x110GB", numFiles, fileSize);
 
+            final Date startTime = new Date();
+            final SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy h:mm:ss a");
+            final String startFormattedDate = sdf.format(startTime);
+            LOG.info("Start datestamp for BULK_PUT 3x110GB objects[{}]\n", startFormattedDate);
+
             final CommandResponse putBulkResponse = Util.putBulk(client, bucketName, tempDir.toString());
             LOG.info("CommandResponse for put_bulk: \n{}", putBulkResponse.getMessage());
             assertThat(putBulkResponse.getReturnCode(), is(0));
+
+            final Date endTime = new Date();
+            final String endFormattedDate = sdf.format(endTime);
+            LOG.info("Start datestamp for BULK_PUT 3x110GB objects[{}]\n", endFormattedDate);
 
             final CommandResponse getBucketResponse2 = Util.getBucket(client, bucketName);
             LOG.info("CommandResponse for listing contents of bucket test_put_bulk: \n{}", getBucketResponse2.getMessage());
