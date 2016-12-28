@@ -69,9 +69,14 @@ public class Util {
         return command(client, args);
     }
 
-    // Put an object from the resource directory
     public static CommandResponse putBulk(final Ds3Client client, final String bucketName, final String localDirectory) throws Exception {
-        final Arguments args = new Arguments(new String[]{"--http", "-c", "put_bulk", "-b", bucketName, "-d", localDirectory});
+        final Arguments args = new Arguments(
+                new String[]{
+                        "--http",
+                        "-c", "put_bulk",
+                        "-b", bucketName,
+                        "-d", localDirectory,
+                        "-nt", "3"});
         return command(client, args);
     }
 
