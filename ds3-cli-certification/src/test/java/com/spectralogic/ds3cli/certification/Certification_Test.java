@@ -29,6 +29,8 @@ import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.models.ChecksumType;
 import com.spectralogic.ds3client.models.common.Credentials;
 import com.spectralogic.ds3client.networking.FailedRequestException;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -36,10 +38,12 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Random;
 import java.util.UUID;
 
 import static org.hamcrest.CoreMatchers.*;
@@ -184,7 +188,8 @@ public class Certification_Test {
     public void test_7_5_bulk_put_3x110GB() throws Exception {
         final String bucketName = "test_put_bulk_3x110GB_performance";
         final int numFiles = 3;
-        final int fileSize = 110*(1024^4);
+        final long fileSize = 110 * 1073741824L;
+        Path tempDir = null;
         try {
 
             final CommandResponse createBucketResponse = Util.createBucket(client, bucketName);
@@ -196,7 +201,7 @@ public class Certification_Test {
             assertThat(getBucketResponse.getReturnCode(), is(0));
 
             // create 3 110GB files for bulk_put
-            final Path tempDir = createSparseTempFiles("bulk_put_3x110GB", numFiles, fileSize);
+            tempDir = createTempFiles("bulk_put_3x110GB", numFiles, fileSize);
 
             final CommandResponse putBulkResponse = Util.putBulk(client, bucketName, tempDir.toString());
             LOG.info("CommandResponse for put_bulk: \n{}", putBulkResponse.getMessage());
@@ -208,17 +213,23 @@ public class Certification_Test {
 
         } finally {
             Util.deleteBucket(client, bucketName);
+            if (tempDir != null) {
+                FileUtils.forceDeleteOnExit(tempDir.toFile());
+            }
         }
     }
 
-    private static Path createSparseTempFiles(final String prefix, final int numFiles, final int length) throws IOException {
+    private static Path createTempFiles(final String prefix, final int numFiles, final long length) throws IOException {
         final Path tempDir = Files.createTempDirectory(prefix);
 
         for(int fileNum = 0; fileNum < numFiles; fileNum++) {
             final File tempFile = new File(tempDir.toString(), prefix + "_" + fileNum);
             final RandomAccessFile raf = new RandomAccessFile(tempFile, "rw");
-            raf.setLength(length);
+            raf.seek(length);
+            raf.writeBytes("end of RandomAccessFile.");
+            raf.close();
         }
         return tempDir;
     }
+
 }
