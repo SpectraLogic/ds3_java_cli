@@ -80,6 +80,24 @@ public class Util {
         return command(client, args);
     }
 
+    /*
+    public static CommandResponse testPerformance(
+            final Ds3Client client,
+            final String bucketName,
+            final String numFiles,
+            final String fileSize) throws Exception {
+        final Arguments args = new Arguments(
+                new String[]{
+                        "--http",
+                        "-c", "performance",
+                        "-b", bucketName,
+                        "-n", numFiles,
+                        "-s", fileSize,
+                        "-nt", "3"});
+        return command(client, args);
+    }
+    */
+
     public static CommandResponse getObject(final Ds3Client client, final String bucketName, final String objectName) throws Exception {
         final Arguments args = new Arguments(new String[]{"--http", "-c", "get_object", "-b", bucketName, "-o", objectName});
         return command(client, args);

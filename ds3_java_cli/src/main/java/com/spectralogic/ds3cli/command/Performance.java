@@ -73,7 +73,7 @@ public class Performance extends CliCommand<DefaultResult> {
     public DefaultResult call() throws Exception {
         final Ds3ClientHelpers helpers = Ds3ClientHelpers.wrap(getClient());
         final int numberOfFiles = Integer.valueOf(this.numberOfFiles);
-        final long sizeOfFiles = Integer.valueOf(this.sizeOfFiles);
+        final long sizeOfFiles = Long.valueOf(this.sizeOfFiles);
 
         try {
             try {
