@@ -29,8 +29,6 @@ import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.models.ChecksumType;
 import com.spectralogic.ds3client.models.common.Credentials;
 import com.spectralogic.ds3client.networking.FailedRequestException;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -38,14 +36,12 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Random;
 import java.util.UUID;
 
 import static org.hamcrest.CoreMatchers.*;
@@ -189,11 +185,10 @@ public class Certification_Test {
     @Test
     public void test_7_5_bulk_put_3x110GB() throws Exception {
         final String bucketName = "test_put_bulk_3x110GB_performance";
-        final int numFiles = 3;
-        final long fileSize = 110 * 1073741824L;
+        final Integer numFiles = 3;
+        final Long fileSize = 110 * 1073741824L;
         Path tempDir = null;
         try {
-
             final CommandResponse createBucketResponse = Util.createBucket(client, bucketName);
             LOG.info("CommandResponse for creating a bucket: \n{}", createBucketResponse.getMessage());
             assertThat(createBucketResponse.getReturnCode(), is(0));
@@ -214,6 +209,12 @@ public class Certification_Test {
             LOG.info("CommandResponse for put_bulk: \n{}", putBulkResponse.getMessage());
             assertThat(putBulkResponse.getReturnCode(), is(0));
 
+            /*
+            final CommandResponse perfResponse = Util.testPerformance(client, bucketName, numFiles.toString(), fileSize.toString());
+            LOG.info("CommandResponse for put_bulk: \n{}", perfResponse.getMessage());
+            assertThat(perfResponse.getReturnCode(), is(0));
+            */
+
             final Date endTime = new Date();
             final String endFormattedDate = sdf.format(endTime);
             LOG.info("Start datestamp for BULK_PUT 3x110GB objects[{}]\n", endFormattedDate);
@@ -224,23 +225,20 @@ public class Certification_Test {
 
         } finally {
             Util.deleteBucket(client, bucketName);
-            if (tempDir != null) {
-                FileUtils.forceDeleteOnExit(tempDir.toFile());
-            }
         }
     }
 
-    private static Path createTempFiles(final String prefix, final int numFiles, final long length) throws IOException {
-        final Path tempDir = Files.createTempDirectory(prefix);
 
-        for(int fileNum = 0; fileNum < numFiles; fileNum++) {
-            final File tempFile = new File(tempDir.toString(), prefix + "_" + fileNum);
-            final RandomAccessFile raf = new RandomAccessFile(tempFile, "rw");
-            raf.seek(length);
-            raf.writeBytes("end of RandomAccessFile.");
-            raf.close();
-        }
-        return tempDir;
+   private static Path createTempFiles(final String prefix, final int numFiles, final long length) throws IOException {
+       final Path tempDir = Files.createTempDirectory(prefix);
+       for(int fileNum = 0; fileNum < numFiles; fileNum++) {
+           final File tempFile = new File(tempDir.toString(), prefix + "_" + fileNum);
+           final RandomAccessFile raf = new RandomAccessFile(tempFile, "rw");
+           raf.seek(length);
+           raf.writeBytes("end of RandomAccessFile.");
+           raf.close();
+       }
+       return tempDir;
     }
 
 }
