@@ -236,8 +236,6 @@ public class Certification_Test {
         final String bucketName = "test_bulk_performance_" + testDescription;
         Path bulkPutLocalTempDir = null;
         Path bulkGetLocalTempDir = null;
-        final SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy h:mm:ss a");
-        final long transferredMb= fileSize / 1024L / 1024L;
         try {
             /*
              * Start BULK_PUT
@@ -253,25 +251,9 @@ public class Certification_Test {
             // Create 250 1GB files for BULK_PUT
             bulkPutLocalTempDir = createTempFiles(testDescription, numFiles, fileSize);
 
-            // Record start time for BULK_PUT performance calculation
-            final Date bulkPutStartTime = new Date();
-            final String bulkPutStartFormattedDate = sdf.format(bulkPutStartTime);
-            LOG.info("Start datestamp for BULK_PUT {} objects[{}]\n", testDescription, bulkPutStartFormattedDate);
-
             final CommandResponse putBulkResponse = Util.putBulk(client, testDescription, bulkPutLocalTempDir.toString());
             LOG.info("CommandResponse for put_bulk: \n{}", putBulkResponse.getMessage());
             assertThat(putBulkResponse.getReturnCode(), is(0));
-
-            final Date bulkPutEndTime = new Date();
-            final String bulkPutEndFormattedDate = sdf.format(bulkPutEndTime);
-            LOG.info("End datestamp for BULK_PUT {} objects[{}]\n", testDescription, bulkPutEndFormattedDate);
-
-            // Calculate BULK_PUT performance
-            final long putDurationSeconds = new Date(bulkPutEndTime.getTime() - bulkPutStartTime.getTime()).getTime() * 1000L;
-            final long bulkPutMbps = transferredMb / putDurationSeconds;
-            LOG.info("Duration in seconds for BULK_PUT {} objects[{}]\n", testDescription, putDurationSeconds);
-            LOG.info("Performance in mb/s for BULK_PUT {} objects[{}]\n", testDescription, bulkPutMbps);
-
 
             final CommandResponse getBucketResponseAfterBulkPut = Util.getBucket(client, testDescription);
             LOG.info("CommandResponse for listing contents of bucket {}: \n{}", bucketName, getBucketResponseAfterBulkPut.getMessage());
@@ -282,25 +264,9 @@ public class Certification_Test {
              */
             bulkGetLocalTempDir = Files.createTempDirectory(testDescription);
 
-            // Record start time for BULK_GET performance calculation
-            final Date bulkGetStartTime = new Date();
-            final String bulkGetStartFormattedDate = sdf.format(bulkGetStartTime);
-            LOG.info("Start datestamp for BULK_GET {} objects[{}]\n", bulkGetStartFormattedDate);
-
             final CommandResponse getBulkResponse = Util.getBulk(client, testDescription, bulkGetLocalTempDir.toString());
             LOG.info("CommandResponse for BULK_GET: \n{}", getBulkResponse.getMessage());
             assertThat(getBulkResponse.getReturnCode(), is(0));
-
-            final Date bulkGetEndTime = new Date();
-            final String bulkGetEndFormattedDate = sdf.format(bulkGetEndTime);
-            LOG.info("End datestamp for BULK_PUT {} objects[{}]\n", testDescription, bulkGetEndFormattedDate);
-
-            // Calculate BULK_GET performance
-            final long getDurationSeconds = new Date(bulkGetEndTime.getTime() - bulkGetStartTime.getTime()).getTime() * 1000L;
-            final long bulkGetMbps = transferredMb / getDurationSeconds;
-            LOG.info("Duration in seconds for BULK_GET {} objects[{}]\n", testDescription, getDurationSeconds);
-            LOG.info("Performance in mb/s for BULK_GET {} objects[{}]\n", testDescription, bulkGetMbps);
-
         } finally {
             Util.deleteBucket(client, testDescription);
             if (bulkPutLocalTempDir != null) {
