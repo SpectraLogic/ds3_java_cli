@@ -234,12 +234,8 @@ public class Certification_Test {
             final Integer numFiles,
             final Long fileSize) throws Exception {
         final String bucketName = "test_bulk_performance_" + testDescription;
-        Path bulkPutLocalTempDir = null;
-        Path bulkGetLocalTempDir = null;
         try {
-            /*
-             * Start BULK_PUT
-             */
+            // Start BULK_PUT
             final CommandResponse createBucketResponse = Util.createBucket(client, bucketName);
             LOG.info("CommandResponse for creating a bucket: \n{}", createBucketResponse.getMessage());
             assertThat(createBucketResponse.getReturnCode(), is(0));
@@ -248,35 +244,31 @@ public class Certification_Test {
             LOG.info("CommandResponse for listing contents of bucket {}: \n{}", bucketName, getBucketResponse.getMessage());
             assertThat(getBucketResponse.getReturnCode(), is(0));
 
-            // Create 250 1GB files for BULK_PUT
-            bulkPutLocalTempDir = createTempFiles(testDescription, numFiles, fileSize);
+            // Create temp files for BULK_PUT
+            final Path bulkPutLocalTempDir = createTempFiles(bucketName, numFiles, fileSize);
 
-            final CommandResponse putBulkResponse = Util.putBulk(client, testDescription, bulkPutLocalTempDir.toString());
+            final CommandResponse putBulkResponse = Util.putBulk(client, bucketName, bulkPutLocalTempDir.toString());
             LOG.info("CommandResponse for put_bulk: \n{}", putBulkResponse.getMessage());
             assertThat(putBulkResponse.getReturnCode(), is(0));
 
-            final CommandResponse getBucketResponseAfterBulkPut = Util.getBucket(client, testDescription);
+            final CommandResponse getBucketResponseAfterBulkPut = Util.getBucket(client, bucketName);
             LOG.info("CommandResponse for listing contents of bucket {}: \n{}", bucketName, getBucketResponseAfterBulkPut.getMessage());
             assertThat(getBucketResponseAfterBulkPut.getReturnCode(), is(0));
 
-            if (bulkPutLocalTempDir != null) {
-                FileUtils.forceDelete(bulkPutLocalTempDir.toFile());
-            }
+            // Free up disk space
+            FileUtils.forceDelete(bulkPutLocalTempDir.toFile());
 
-            /*
-             * Start BULK_GET from the same bucket that we just did the BULK_PUT to, with a new local directory
-             */
-            bulkGetLocalTempDir = Files.createTempDirectory(testDescription);
+            // Start BULK_GET from the same bucket that we just did the BULK_PUT to, with a new local directory
+            final Path bulkGetLocalTempDir = Files.createTempDirectory(bucketName);
 
-            final CommandResponse getBulkResponse = Util.getBulk(client, testDescription, bulkGetLocalTempDir.toString());
+            final CommandResponse getBulkResponse = Util.getBulk(client, bucketName, bulkGetLocalTempDir.toString());
             LOG.info("CommandResponse for BULK_GET: \n{}", getBulkResponse.getMessage());
             assertThat(getBulkResponse.getReturnCode(), is(0));
 
-            if (bulkGetLocalTempDir != null) {
-                FileUtils.forceDelete(bulkGetLocalTempDir.toFile());
-            }
+            // Free up disk space
+            FileUtils.forceDelete(bulkGetLocalTempDir.toFile());
         } finally {
-            Util.deleteBucket(client, testDescription);
+            Util.deleteBucket(client, bucketName);
         }
 
     }
