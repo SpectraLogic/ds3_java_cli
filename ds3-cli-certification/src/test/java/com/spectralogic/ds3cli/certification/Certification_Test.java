@@ -259,6 +259,10 @@ public class Certification_Test {
             LOG.info("CommandResponse for listing contents of bucket {}: \n{}", bucketName, getBucketResponseAfterBulkPut.getMessage());
             assertThat(getBucketResponseAfterBulkPut.getReturnCode(), is(0));
 
+            if (bulkPutLocalTempDir != null) {
+                FileUtils.forceDelete(bulkPutLocalTempDir.toFile());
+            }
+
             /*
              * Start BULK_GET from the same bucket that we just did the BULK_PUT to, with a new local directory
              */
@@ -267,14 +271,12 @@ public class Certification_Test {
             final CommandResponse getBulkResponse = Util.getBulk(client, testDescription, bulkGetLocalTempDir.toString());
             LOG.info("CommandResponse for BULK_GET: \n{}", getBulkResponse.getMessage());
             assertThat(getBulkResponse.getReturnCode(), is(0));
+
+            if (bulkGetLocalTempDir != null) {
+                FileUtils.forceDelete(bulkGetLocalTempDir.toFile());
+            }
         } finally {
             Util.deleteBucket(client, testDescription);
-            if (bulkPutLocalTempDir != null) {
-                FileUtils.forceDeleteOnExit(bulkPutLocalTempDir.toFile());
-            }
-            if (bulkGetLocalTempDir != null) {
-                FileUtils.forceDeleteOnExit(bulkGetLocalTempDir.toFile());
-            }
         }
 
     }
