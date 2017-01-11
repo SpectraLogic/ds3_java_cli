@@ -32,7 +32,9 @@ import com.spectralogic.ds3client.networking.FailedRequestException;
 import org.apache.commons.io.FileUtils;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.FixMethodOrder;
 import org.junit.Test;
+import org.junit.runners.MethodSorters;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
@@ -56,6 +58,7 @@ import static org.junit.Assert.assertThat;
  *   https://developer.spectralogic.com/certification/
  *   https://developer.spectralogic.com/test-plan/
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING) // Order only matters for manually verifying the results
 public class Certification_Test {
     private static final ch.qos.logback.classic.Logger LOG =  (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
     private static final Ds3Client client = Ds3ClientBuilder.fromEnv().withHttps(false).build();
@@ -63,6 +66,8 @@ public class Certification_Test {
     private static final String TEST_ENV_NAME = "JavaCLI_Certification_Test";
     private static TempStorageIds envStorageIds;
     private static UUID envDataPolicyId;
+
+    private static final Long GB_BYTES = 1073741824L;
 
     @BeforeClass
     public static void startup() throws IOException {
@@ -184,14 +189,51 @@ public class Certification_Test {
     }
 
     /**
-     * Combine the BULK_PUT and BULK_GET performance tests for efficiency.
+     * 7.5-7: Archive and Restore 3 objects larger than the chunk size to BP simultaneously.
      * @throws Exception
      */
     @Test
     public void test_7_5_and_6_bulk_performance_3x110GB() throws Exception {
-        final String bucketName = "test_bulk_performance_3x110GB";
+        final String testDescription = "3x110GB";
         final Integer numFiles = 3;
-        final Long fileSize = 110 * 1073741824L;
+        final Long fileSize = 110 * GB_BYTES;
+        testBulkPutAndBulkGetPerformance(testDescription, numFiles, fileSize);
+    }
+
+    /**
+     * 7.7-8: Archive 250 objects of approximately 1GB size to BP.
+     * @throws Exception
+     */
+    @Test
+    public void test_7_7_and_8_bulk_performance_250x1GB() throws Exception {
+        final String testDescription = "250x1GB";
+        final Integer numFiles = 250;
+        final Long fileSize = 1 * GB_BYTES;
+        testBulkPutAndBulkGetPerformance(testDescription, numFiles, fileSize);
+    }
+
+
+
+   private static Path createTempFiles(
+           final String prefix,
+           final int numFiles,
+           final long length) throws IOException {
+       final Path tempDir = Files.createTempDirectory(prefix);
+       for(int fileNum = 0; fileNum < numFiles; fileNum++) {
+           final File tempFile = new File(tempDir.toString(), prefix + "_" + fileNum);
+           final RandomAccessFile raf = new RandomAccessFile(tempFile, "rw");
+           raf.seek(length);
+           raf.writeBytes("end of RandomAccessFile.");
+           raf.close();
+       }
+       return tempDir;
+    }
+
+    private static void testBulkPutAndBulkGetPerformance(
+            final String testDescription,
+            final Integer numFiles,
+            final Long fileSize) throws Exception {
+        final String bucketName = "test_bulk_performance_" + testDescription;
         Path bulkPutLocalTempDir = null;
         Path bulkGetLocalTempDir = null;
         final SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy h:mm:ss a");
@@ -205,62 +247,62 @@ public class Certification_Test {
             assertThat(createBucketResponse.getReturnCode(), is(0));
 
             final CommandResponse getBucketResponse = Util.getBucket(client, bucketName);
-            LOG.info("CommandResponse for listing contents of bucket test_get_nonexistent_object: \n{}", getBucketResponse.getMessage());
+            LOG.info("CommandResponse for listing contents of bucket {}: \n{}", bucketName, getBucketResponse.getMessage());
             assertThat(getBucketResponse.getReturnCode(), is(0));
 
-            // Create 3 110GB files for BULK_PUT
-            bulkPutLocalTempDir = createTempFiles(bucketName, numFiles, fileSize);
+            // Create 250 1GB files for BULK_PUT
+            bulkPutLocalTempDir = createTempFiles(testDescription, numFiles, fileSize);
 
             // Record start time for BULK_PUT performance calculation
             final Date bulkPutStartTime = new Date();
             final String bulkPutStartFormattedDate = sdf.format(bulkPutStartTime);
-            LOG.info("Start datestamp for BULK_PUT 3x110GB objects[{}]\n", bulkPutStartFormattedDate);
+            LOG.info("Start datestamp for BULK_PUT {} objects[{}]\n", testDescription, bulkPutStartFormattedDate);
 
-            final CommandResponse putBulkResponse = Util.putBulk(client, bucketName, bulkPutLocalTempDir.toString());
+            final CommandResponse putBulkResponse = Util.putBulk(client, testDescription, bulkPutLocalTempDir.toString());
             LOG.info("CommandResponse for put_bulk: \n{}", putBulkResponse.getMessage());
             assertThat(putBulkResponse.getReturnCode(), is(0));
 
             final Date bulkPutEndTime = new Date();
             final String bulkPutEndFormattedDate = sdf.format(bulkPutEndTime);
-            LOG.info("End datestamp for BULK_PUT 3x110GB objects[{}]\n", bulkPutEndFormattedDate);
+            LOG.info("End datestamp for BULK_PUT {} objects[{}]\n", testDescription, bulkPutEndFormattedDate);
 
             // Calculate BULK_PUT performance
             final long putDurationSeconds = new Date(bulkPutEndTime.getTime() - bulkPutStartTime.getTime()).getTime() * 1000L;
             final long bulkPutMbps = transferredMb / putDurationSeconds;
-            LOG.info("Duration in seconds for BULK_PUT 3x110GB objects[{}]\n", putDurationSeconds);
-            LOG.info("Performance in mb/s for BULK_PUT 3x110GB objects[{}]\n", bulkPutMbps);
+            LOG.info("Duration in seconds for BULK_PUT {} objects[{}]\n", testDescription, putDurationSeconds);
+            LOG.info("Performance in mb/s for BULK_PUT {} objects[{}]\n", testDescription, bulkPutMbps);
 
 
-            final CommandResponse getBucketResponse2 = Util.getBucket(client, bucketName);
-            LOG.info("CommandResponse for listing contents of bucket test_put_bulk: \n{}", getBucketResponse2.getMessage());
-            assertThat(getBucketResponse2.getReturnCode(), is(0));
+            final CommandResponse getBucketResponseAfterBulkPut = Util.getBucket(client, testDescription);
+            LOG.info("CommandResponse for listing contents of bucket {}: \n{}", bucketName, getBucketResponseAfterBulkPut.getMessage());
+            assertThat(getBucketResponseAfterBulkPut.getReturnCode(), is(0));
 
             /*
              * Start BULK_GET from the same bucket that we just did the BULK_PUT to, with a new local directory
              */
-            bulkGetLocalTempDir = Files.createTempDirectory(bucketName);
+            bulkGetLocalTempDir = Files.createTempDirectory(testDescription);
 
             // Record start time for BULK_GET performance calculation
             final Date bulkGetStartTime = new Date();
             final String bulkGetStartFormattedDate = sdf.format(bulkGetStartTime);
-            LOG.info("Start datestamp for BULK_GET 3x110GB objects[{}]\n", bulkGetStartFormattedDate);
+            LOG.info("Start datestamp for BULK_GET {} objects[{}]\n", bulkGetStartFormattedDate);
 
-            final CommandResponse getBulkResponse = Util.getBulk(client, bucketName, bulkGetLocalTempDir.toString());
+            final CommandResponse getBulkResponse = Util.getBulk(client, testDescription, bulkGetLocalTempDir.toString());
             LOG.info("CommandResponse for BULK_GET: \n{}", getBulkResponse.getMessage());
             assertThat(getBulkResponse.getReturnCode(), is(0));
 
             final Date bulkGetEndTime = new Date();
             final String bulkGetEndFormattedDate = sdf.format(bulkGetEndTime);
-            LOG.info("End datestamp for BULK_PUT 3x110GB objects[{}]\n", bulkGetEndFormattedDate);
+            LOG.info("End datestamp for BULK_PUT {} objects[{}]\n", testDescription, bulkGetEndFormattedDate);
 
             // Calculate BULK_GET performance
             final long getDurationSeconds = new Date(bulkGetEndTime.getTime() - bulkGetStartTime.getTime()).getTime() * 1000L;
             final long bulkGetMbps = transferredMb / getDurationSeconds;
-            LOG.info("Duration in seconds for BULK_GET 3x110GB objects[{}]\n", getDurationSeconds);
-            LOG.info("Performance in mb/s for BULK_GET 3x110GB objects[{}]\n", bulkGetMbps);
+            LOG.info("Duration in seconds for BULK_GET {} objects[{}]\n", testDescription, getDurationSeconds);
+            LOG.info("Performance in mb/s for BULK_GET {} objects[{}]\n", testDescription, bulkGetMbps);
 
         } finally {
-            Util.deleteBucket(client, bucketName);
+            Util.deleteBucket(client, testDescription);
             if (bulkPutLocalTempDir != null) {
                 FileUtils.forceDeleteOnExit(bulkPutLocalTempDir.toFile());
             }
@@ -268,18 +310,6 @@ public class Certification_Test {
                 FileUtils.forceDeleteOnExit(bulkGetLocalTempDir.toFile());
             }
         }
-    }
 
-   private static Path createTempFiles(final String prefix, final int numFiles, final long length) throws IOException {
-       final Path tempDir = Files.createTempDirectory(prefix);
-       for(int fileNum = 0; fileNum < numFiles; fileNum++) {
-           final File tempFile = new File(tempDir.toString(), prefix + "_" + fileNum);
-           final RandomAccessFile raf = new RandomAccessFile(tempFile, "rw");
-           raf.seek(length);
-           raf.writeBytes("end of RandomAccessFile.");
-           raf.close();
-       }
-       return tempDir;
     }
-
 }
