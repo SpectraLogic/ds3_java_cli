@@ -24,7 +24,9 @@ import com.spectralogic.ds3cli.util.FileSystemProvider;
 import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.spectrads3.GetSystemInformationSpectraS3Request;
+import com.spectralogic.ds3client.commands.spectrads3.GetUserSpectraS3Request;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
+import com.spectralogic.ds3client.models.User;
 
 import java.io.IOException;
 import java.nio.file.Files;
