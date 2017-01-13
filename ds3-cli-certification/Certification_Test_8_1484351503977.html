@@ -1,0 +1,43 @@
+<html><head><title>Certification_Test_8_1484351503977</title></head>
+<body class="testbody"><h1 class="maintitle">Certification_Test_8_1484351503977</h1>
+<a name="1484351503983" />
+<h2 class="testtitle">8.6: FullyPeristed</h2>
+<p class="logentry">List bucket contents</p>
+<p class="logentry">Reclaim cache (force to tape)</p>
+<p class="commandline"><strong>Run command: --http -c reclaim_cache</strong></p>
+<p class="logentry">Command output:</p>
+<pre>Success: Forced Reclaim of Cache</pre>
+<p class="logentry">Show as persisted</p>
+<p class="commandline"><strong>Run command: --http -c get_physical_placement -b test_FullyPeristed -o file_0</strong></p>
+<p class="logentry">Command output:</p>
+<pre>+-------------+--------------------------------------+----------+---------+--------+--------+---------+
+| Object Name |                  ID                  | In Cache |  Length | Offset | Latest | Version |
++-------------+--------------------------------------+----------+---------+--------+--------+---------+
+| file_0      | 0440f96d-c69f-4878-89df-5ef5e6409374 | true     | 1048576 | 0      | true   | 1       |
++-------------+--------------------------------------+----------+---------+--------+--------+---------+
+</pre>
+<p class="endtest"><strong>8.6: FullyPeristed (Passed)</strong> <a href="#1484351503983">Start of test</a>
+</p>
+<a name="1484351505805" />
+<h2 class="testtitle">8.7: LargeList</h2>
+<p class="commandline"><strong>Run command: --http -c get_bucket -b test_LargeList</strong></p>
+<p class="logentry">Command output:</p>
+<pre>+----------------+--------------------------------------+--------------------------------------+--------------------------+--------------------------------------+---------------+
+|      Name      |                  Id                  |                User Id               |       Creation Date      |            Data Policy Id            | Used Capacity |
++----------------+--------------------------------------+--------------------------------------+--------------------------+--------------------------------------+---------------+
+| test_LargeList | 781f9137-329d-4183-b6d2-3e2b33a6e926 | c1fdd654-5e00-4adf-a5d5-bafeba1bb237 | 2017-01-13T23:51:45.000Z | 9899597d-113a-4c91-8b42-863db87134cc | 5242880       |
++----------------+--------------------------------------+--------------------------------------+--------------------------+--------------------------------------+---------------+
+
++-----------+---------+-------+--------------------------+----------------------------------+
+| File Name |   Size  | Owner |       Last Modified      |               ETag               |
++-----------+---------+-------+--------------------------+----------------------------------+
+| file_0    | 1048576 |    jk | 2017-01-13T23:51:46.000Z | f79f32f7cb9cc52987a98a8de29b6bd8 |
+| file_1    | 1048576 |    jk | 2017-01-13T23:51:46.000Z | f79f32f7cb9cc52987a98a8de29b6bd8 |
+| file_2    | 1048576 |    jk | 2017-01-13T23:51:46.000Z | f79f32f7cb9cc52987a98a8de29b6bd8 |
+| file_3    | 1048576 |    jk | 2017-01-13T23:51:46.000Z | f79f32f7cb9cc52987a98a8de29b6bd8 |
+| file_4    | 1048576 |    jk | 2017-01-13T23:51:46.000Z | f79f32f7cb9cc52987a98a8de29b6bd8 |
++-----------+---------+-------+--------------------------+----------------------------------+
+</pre>
+<p class="endtest"><strong>8.7: LargeList (Passed)</strong> <a href="#1484351505805">Start of test</a>
+</p>
+</body></html>
