@@ -149,13 +149,13 @@ public class Certification_Test_8 {
      */
      @Test
      public void test_8_6_fully_persisted() throws Exception {
-         final String testDescription = "FullyPeristed";
+         final String testDescription = "8.6: Fully Peristed";
          final Integer numFiles = 6;
          final Long fileSize = 1L; // converted to GB in performance
-         final String bucketName = "test_" + testDescription;
+         final String bucketName = CertificationUtil.getBucketName(testDescription);
          boolean success = false;
 
-         OUT.startNewTest("8.6: " + testDescription );
+         OUT.startNewTest(testDescription);
          try {
              // Put files into bucket
              final CommandResponse performanceResponse = CertificationUtil.putPerformanceFiles(client, bucketName,  numFiles, fileSize);
@@ -180,7 +180,7 @@ public class Certification_Test_8 {
              success = true;
 
          } finally {
-             OUT.finishTest("8.6: " + testDescription, success);
+             OUT.finishTest(testDescription, success);
              Util.deleteBucket(client, bucketName);
          }
      }
@@ -190,12 +190,12 @@ public class Certification_Test_8 {
      */
     @Test
     public void test_8_7_large_list() throws Exception {
-        final String testDescription = "LargeList";
+        final String testDescription = "8.7: Large List";
         final Integer numFiles = 5;
         final Long fileSize = 1L; // converted to GB in performance
-        final String bucketName = "test_" + testDescription;
+        final String bucketName = CertificationUtil.getBucketName(testDescription);
 
-        OUT.startNewTest("8.7: " + testDescription );
+        OUT.startNewTest(testDescription);
         boolean success = false;
         try {
             // Put 500 files into bucket
@@ -206,7 +206,7 @@ public class Certification_Test_8 {
             assertThat(getBucketResponseAfterBulkPut.getReturnCode(), is(0));
             success = true;
         } finally {
-            OUT.finishTest("8.7: " + testDescription, success);
+            OUT.finishTest(testDescription, success);
             Util.deleteBucket(client, bucketName);
         }
     }
