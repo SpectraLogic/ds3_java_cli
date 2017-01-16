@@ -72,4 +72,8 @@ public class CertificationUtil {
         return command.render();
     }
 
+    public static String getBucketName(final String testName) {
+        return "test_" + testName.replaceAll("[ !,.:;<>&]+", "_");
+    }
+
 }

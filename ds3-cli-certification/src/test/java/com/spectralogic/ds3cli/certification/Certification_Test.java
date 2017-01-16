@@ -92,8 +92,9 @@ public class Certification_Test {
 
     @Test
     public void test_7_1_create_bucket() throws Exception {
-        final String bucketName = "test_create_bucket";
-        OUT.startNewTest("7.1: Create Bucket");
+        final String testDescription = "7.1: Create Bucket";
+        final String bucketName = CertificationUtil.getBucketName(testDescription);
+        OUT.startNewTest(testDescription);
         boolean success = false;
 
         try {
@@ -110,17 +111,18 @@ public class Certification_Test {
             success = true;
 
         } finally {
-            OUT.finishTest("7.1: Create Bucket", success);
+            OUT.finishTest(testDescription, success);
             Util.deleteBucket(client, bucketName);
         }
     }
 
     @Test
     public void test_7_2_1_invalid_credentials() throws Exception {
+        final String testDescription = "7.2.1: Invalid Credentials";
         final String endpoint = System.getenv("DS3_ENDPOINT");
         final Credentials creds = new Credentials("invalid_access_id", "invalid_secret_key");
         final Ds3Client invalid_client = Ds3ClientBuilder.create(endpoint, creds).withHttps(false).build();
-        OUT.startNewTest("7.2.1: Invalid Credentials");
+        OUT.startNewTest(testDescription);
         boolean success = false;
 
         try {
@@ -132,16 +134,17 @@ public class Certification_Test {
             assertThat(formattedException, containsString(expectedError));
             success = true;
         } finally {
-            OUT.finishTest("7.2.1: Invalid Credentials", success);
+            OUT.finishTest(testDescription, success);
         }
     }
 
     @Test
     public void test_7_2_2_invalid_endpoint() throws Exception {
+        final String testDescription = "7.2.2: Invalid Endpoint";
         final String endpoint = "invalid_endpoint";
         final Credentials creds = new Credentials("invalid_access_id", "invalid_secret_key");
         final Ds3Client invalid_client = Ds3ClientBuilder.create(endpoint, creds).build();
-        OUT.startNewTest("7.2.2: Invalid endpoint");
+        OUT.startNewTest(testDescription);
         boolean success = false;
         try {
             OUT.runCommand(invalid_client, "--http -c get_service");
@@ -153,14 +156,15 @@ public class Certification_Test {
             OUT.insertPreformat(formattedException);
             success = true;
         } finally {
-            OUT.finishTest("7.2.2: Invalid Endpoint", success);
+            OUT.finishTest(testDescription, success);
         }
     }
 
     @Test
     public void test_7_3_1_list_nonexistent_bucket() throws Exception {
-        final String bucketName = "test_list_nonexistent_bucket";
-        OUT.startNewTest("7.3.1: Non-extant bucket");
+        final String testDescription = "7.3.1: Non-extant bucket";
+        final String bucketName = CertificationUtil.getBucketName(testDescription);
+        OUT.startNewTest("");
         boolean success = false;
 
         try {
@@ -172,14 +176,15 @@ public class Certification_Test {
             OUT.insertPreformat(formattedException);
             success = true;
         } finally {
-            OUT.finishTest("7.3.1: Non-extant bucket", success);
+            OUT.finishTest(testDescription, success);
         }
     }
 
     @Test
     public void test_7_3_2_access_bucket_wrong_user() throws Exception {
-        final String bucketName = "test_wrong_user_bucket";
-        OUT.startNewTest("7.3.2: Access bucket wrong user");
+        final String testDescription = "7.3.2: Access bucket wrong user";
+        final String bucketName = CertificationUtil.getBucketName(testDescription);
+        OUT.startNewTest(testDescription);
         boolean success = false;
         try {
             final String  noRightsUserSecretKey = CertificationUtil.getUserSecretKey(client, NO_RIGHTS_USERNAME);
@@ -191,8 +196,6 @@ public class Certification_Test {
             final Ds3Client invalid_client = Ds3ClientBuilder.create(endpoint, badCreds).withHttps(false).build();
 
             final CommandResponse createBucketResponse = OUT.runCommand(client, "--http -c put_bucket -b " + bucketName);;
-            OUT.insertLog("CommandResponse for creating a bucket:");
-            OUT.insertPreformat(createBucketResponse.getMessage());
             assertThat(createBucketResponse.getReturnCode(), is(0));
 
             OUT.runCommand(invalid_client, "--http -c get_bucket -b " + bucketName);;
@@ -205,15 +208,16 @@ public class Certification_Test {
             OUT.insertPreformat(formattedException);
             success = true;
         } finally {
-            OUT.finishTest("7.3.2: Access bucket wrong user", success);
+            OUT.finishTest(testDescription, success);
             Util.deleteBucket(client, bucketName);
         }
     }
 
     @Test
     public void test_7_4_get_nonexistent_object() throws Exception {
-        final String bucketName = "test_get_nonexistent_object";
-        OUT.startNewTest("7.4: Non-extant object");
+        final String testDescription = "7.4: Non-extant object";
+        final String bucketName = CertificationUtil.getBucketName(testDescription);
+        OUT.startNewTest(testDescription);
         boolean success = false;
 
         try {
@@ -236,7 +240,7 @@ public class Certification_Test {
             success = true;
 
         } finally {
-            OUT.finishTest("7.4: Non-extant object", success);
+            OUT.finishTest(testDescription, success);
             Util.deleteBucket(client, bucketName);
         }
     }
@@ -247,12 +251,13 @@ public class Certification_Test {
      */
     @Test
     public void test_7_5_and_6_bulk_performance_3x110GB() throws Exception {
-        final String testDescription = "3x110GB";
         final Integer numFiles = 3;
         final Long fileSize = 110 * GB_BYTES;
-        OUT.startNewTest("7.5.6: Bulk performance 3 x 110GB");
-        boolean success = testBulkPutAndBulkGetPerformance(testDescription, numFiles, fileSize);
-        OUT.finishTest("7.5.6: Bulk performance 3 x 110GB", success);
+        final String testDescription = "7.5 & 7.6: Bulk Performance 3x110GB";
+        final String bucketName = CertificationUtil.getBucketName(testDescription);
+        OUT.startNewTest(testDescription);
+        boolean success = testBulkPutAndBulkGetPerformance(bucketName, numFiles, fileSize);
+        OUT.finishTest(testDescription, success);
     }
 
     /**
@@ -261,12 +266,13 @@ public class Certification_Test {
      */
     @Test
     public void test_7_7_and_8_bulk_performance_250x1GB() throws Exception {
-        final String testDescription = "250x1GB";
-        final Integer numFiles = 250;
-        final Long fileSize = 1 * GB_BYTES;
-        OUT.startNewTest("7.7.8: Bulk performance 250 x 1GB");
-        boolean success = testBulkPutAndBulkGetPerformance(testDescription, numFiles, fileSize);
-        OUT.finishTest("7.7.8: Bulk performance 250 x 1GB", success);
+        final Integer numFiles = 3;
+        final Long fileSize = 110 * GB_BYTES;
+        final String testDescription = "7.5 & 7.6: Bulk Performance 250X1GB";
+        final String bucketName = CertificationUtil.getBucketName(testDescription);
+        OUT.startNewTest(testDescription);
+        boolean success = testBulkPutAndBulkGetPerformance(bucketName, numFiles, fileSize);
+        OUT.finishTest(testDescription, success);
     }
 
     private static boolean testBulkPutAndBulkGetPerformance(
@@ -290,11 +296,9 @@ public class Certification_Test {
             final Path bulkPutLocalTempDir = CertificationUtil.createTempFiles(bucketName, numFiles, fileSize);
 
             final CommandResponse putBulkResponse = OUT.runCommand(client, "--http -c put_bulk -b " + bucketName + " -d "  + bulkPutLocalTempDir.toString());
-            OUT.insertCommandOutput("CommandResponse for put_bulk:", putBulkResponse.getMessage());
             assertThat(putBulkResponse.getReturnCode(), is(0));
 
             final CommandResponse getBucketResponseAfterBulkPut = OUT.runCommand(client, "--http -c get_bucket -b " + bucketName);
-            OUT.insertCommandOutput("CommandResponse for listing contents of bucket: " + bucketName, getBucketResponseAfterBulkPut.getMessage());
             assertThat(getBucketResponseAfterBulkPut.getReturnCode(), is(0));
 
             // Free up disk space
