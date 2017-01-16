@@ -17,29 +17,17 @@ package com.spectralogic.ds3cli.certification;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
-import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.CommandResponse;
-import com.spectralogic.ds3cli.command.PutBulk;
-import com.spectralogic.ds3cli.command.ReclaimCache;
 import com.spectralogic.ds3cli.exceptions.*;
 import com.spectralogic.ds3cli.helpers.TempStorageIds;
 import com.spectralogic.ds3cli.helpers.TempStorageUtil;
 import com.spectralogic.ds3cli.helpers.Util;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.Ds3ClientBuilder;
-import com.spectralogic.ds3client.commands.spectrads3.ForceFullCacheReclaimSpectraS3Request;
-import com.spectralogic.ds3client.commands.spectrads3.GetBucketSpectraS3Request;
-import com.spectralogic.ds3client.commands.spectrads3.GetBucketSpectraS3Response;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
-import com.spectralogic.ds3client.helpers.options.WriteJobOptions;
-import com.spectralogic.ds3client.models.Bucket;
 import com.spectralogic.ds3client.models.ChecksumType;
 import com.spectralogic.ds3client.models.Contents;
-import com.spectralogic.ds3client.models.Priority;
-import com.spectralogic.ds3client.models.bulk.Ds3Object;
-import com.spectralogic.ds3client.models.common.Credentials;
 import com.spectralogic.ds3client.networking.FailedRequestException;
-import org.apache.commons.io.FileUtils;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
@@ -48,17 +36,11 @@ import org.junit.runners.MethodSorters;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.UnknownHostException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Date;
 import java.util.Iterator;
-import java.util.List;
 import java.util.UUID;
 
-import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 

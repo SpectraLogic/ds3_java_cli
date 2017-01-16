@@ -18,17 +18,18 @@ package com.spectralogic.ds3cli.certification;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import com.spectralogic.ds3cli.CommandResponse;
-import com.spectralogic.ds3cli.exceptions.CommandException;
-import com.spectralogic.ds3cli.exceptions.ExceptionFormatter;
-import com.spectralogic.ds3cli.exceptions.FailedRequestExceptionHandler;
+import com.spectralogic.ds3cli.exceptions.*;
 import com.spectralogic.ds3cli.helpers.Util;
 import com.spectralogic.ds3cli.helpers.TempStorageIds;
 import com.spectralogic.ds3cli.helpers.TempStorageUtil;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.Ds3ClientBuilder;
-import com.spectralogic.ds3client.exceptions.InvalidCertificate;
+import com.spectralogic.ds3client.commands.spectrads3.GetCacheFilesystemSpectraS3Request;
+import com.spectralogic.ds3client.commands.spectrads3.ModifyAllTapePartitionsSpectraS3Request;
+import com.spectralogic.ds3client.commands.spectrads3.ModifyCacheFilesystemSpectraS3Request;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.models.ChecksumType;
+import com.spectralogic.ds3client.models.Quiesced;
 import com.spectralogic.ds3client.models.common.Credentials;
 import com.spectralogic.ds3client.networking.FailedRequestException;
 import org.apache.commons.io.FileUtils;
@@ -39,13 +40,10 @@ import org.junit.Test;
 import org.junit.runners.MethodSorters;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.UUID;
 
@@ -62,7 +60,7 @@ import static org.junit.Assert.assertThat;
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING) // Order only matters for manually verifying the results
 public class Certification_Test {
-    private static final ch.qos.logback.classic.Logger LOG =  (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+    private static final Logger LOG =  (Logger) LoggerFactory.getLogger(Certification_Test.class);
     private static final Ds3Client client = Ds3ClientBuilder.fromEnv().withHttps(false).build();
     private static final Ds3ClientHelpers HELPERS = Ds3ClientHelpers.wrap(client);
     private static final String TEST_ENV_NAME = "JavaCLI_Certification_Test";
@@ -71,8 +69,13 @@ public class Certification_Test {
     private static UUID envDataPolicyId;
     private static CertificationWriter OUT;
 
-    //    private static final Long GB_BYTES = 1073741824L;
-    private static final Long GB_BYTES = 1024L;
+    private static final Long GB_BYTES = 1073741824L;
+
+    private final static Ds3ExceptionHandlerMapper EXCEPTION = Ds3ExceptionHandlerMapper.getInstance();
+    static {
+        EXCEPTION.addHandler(FailedRequestException.class, new FailedRequestExceptionHandler());
+        EXCEPTION.addHandler(RuntimeException.class, new RuntimeExceptionHandler());
+    }
 
     @BeforeClass
     public static void startup() throws IOException {
@@ -157,7 +160,7 @@ public class Certification_Test {
             success = true;
         } finally {
             OUT.finishTest(testDescription, success);
-        }
+       }
     }
 
     @Test
@@ -256,7 +259,7 @@ public class Certification_Test {
         final String testDescription = "7.5 & 7.6: Bulk Performance 3x110GB";
         final String bucketName = CertificationUtil.getBucketName(testDescription);
         OUT.startNewTest(testDescription);
-        boolean success = testBulkPutAndBulkGetPerformance(bucketName, numFiles, fileSize);
+        final boolean success = testBulkPutAndBulkGetPerformance(bucketName, numFiles, fileSize);
         OUT.finishTest(testDescription, success);
     }
 
@@ -271,9 +274,74 @@ public class Certification_Test {
         final String testDescription = "7.5 & 7.6: Bulk Performance 250X1GB";
         final String bucketName = CertificationUtil.getBucketName(testDescription);
         OUT.startNewTest(testDescription);
-        boolean success = testBulkPutAndBulkGetPerformance(bucketName, numFiles, fileSize);
+        final boolean success = testBulkPutAndBulkGetPerformance(bucketName, numFiles, fileSize);
         OUT.finishTest(testDescription, success);
     }
+
+    /**
+     * 7.9: Test "cache full" by explicitly lowering cache pool size.
+     */
+    @Test
+    public void test_7_9_cache_full() throws Exception {
+        final String bucketName = "testCacheFull";
+        final int numFiles = 175;
+        final long fileSize = GB_BYTES;
+        final long cacheLimit = 50 * GB_BYTES;
+
+        // Quiesce Tape Partition
+        final ModifyAllTapePartitionsSpectraS3Request quiesceAllTapePartitions = new ModifyAllTapePartitionsSpectraS3Request(Quiesced.YES);
+        assertThat(client.modifyAllTapePartitionsSpectraS3(quiesceAllTapePartitions).getResponse().getStatusCode(), is(0));
+
+        // Find s3cachefilesystem ID
+        final GetCacheFilesystemSpectraS3Request getCacheFs = new GetCacheFilesystemSpectraS3Request("cache");
+        final UUID cacheFsId = client.getCacheFilesystemSpectraS3(getCacheFs).getCacheFilesystemResult().getId();
+
+        // Lower s3cachefilesystem to 150GB
+        final ModifyCacheFilesystemSpectraS3Request limitCacheFs = new ModifyCacheFilesystemSpectraS3Request(cacheFsId.toString()).withMaxCapacityInBytes(cacheLimit);
+        assertThat(client.modifyCacheFilesystemSpectraS3(limitCacheFs).getResponse().getStatusCode(), is(0));
+
+        // Create bucket
+        final CommandResponse createBucketResponse = Util.createBucket(client, bucketName);
+        LOG.info("CommandResponse for creating a bucket: \n{}", createBucketResponse.getMessage());
+        assertThat(createBucketResponse.getReturnCode(), is(0));
+
+        // Transfer 175 1GB files using JavaCLI methods
+        final Path fillCacheFiles = CertificationUtil.createTempFiles("cache_full", numFiles, fileSize);
+
+        try {
+            final CommandResponse putBulkResponse = Util.putBulk(client, bucketName, fillCacheFiles.toString());
+            LOG.info("CommandResponse for put_bulk: \n{}", putBulkResponse.getMessage());
+            assertThat(putBulkResponse.getReturnCode(), is(0));
+
+            // Wait for Cache full
+        } catch (final IOException ioe) {
+            // expect to fail because job can't finish when cache fills and no tapes are available to offload to
+            final String cacheFullFailureMsg = "cache full";
+            LOG.info("Caught IOException after BULK_PUT bigger than available cache: {}", ioe);
+        } finally {
+
+        }
+
+        // Un-quiesce the tape partition to allow cache offload to tape
+        final ModifyAllTapePartitionsSpectraS3Request unQuiesceAllTapePartitions = new ModifyAllTapePartitionsSpectraS3Request(Quiesced.NO);
+        assertThat(client.modifyAllTapePartitionsSpectraS3(unQuiesceAllTapePartitions).getResponse().getStatusCode(), is(0));
+
+        // Resume the job
+        final CommandResponse allJobsResponse = Util.getJobs(client);
+        assertThat(allJobsResponse.getMessage(), containsString("cache_full"));
+        //HELPERS.recoverWriteJob()
+
+        // Verify Job finishes
+        final CommandResponse completedJobsResponse = Util.getCompletedJobs(client);
+        assertThat(allJobsResponse.getMessage(), containsString("cache_full"));
+
+
+        // Reset cache size to max
+        final ModifyCacheFilesystemSpectraS3Request resetCacheFs = new ModifyCacheFilesystemSpectraS3Request(cacheFsId.toString()).withMaxCapacityInBytes(0L);
+        assertThat(client.modifyCacheFilesystemSpectraS3(resetCacheFs).getResponse().getStatusCode(), is(0));
+
+    }
+
 
     private static boolean testBulkPutAndBulkGetPerformance(
             final String testDescription,
