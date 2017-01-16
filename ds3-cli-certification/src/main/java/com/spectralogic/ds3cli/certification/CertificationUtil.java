@@ -15,7 +15,6 @@
 
 package com.spectralogic.ds3cli.certification;
 
-import ch.qos.logback.classic.Logger;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.CommandResponse;
 import com.spectralogic.ds3cli.Ds3ProviderImpl;
@@ -32,7 +31,6 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.text.ParseException;
 
 
 public class CertificationUtil {

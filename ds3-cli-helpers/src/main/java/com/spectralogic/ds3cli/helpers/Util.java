@@ -24,9 +24,7 @@ import com.spectralogic.ds3cli.util.FileSystemProvider;
 import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.spectrads3.GetSystemInformationSpectraS3Request;
-import com.spectralogic.ds3client.commands.spectrads3.GetUserSpectraS3Request;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
-import com.spectralogic.ds3client.models.User;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -90,6 +88,23 @@ public class Util {
                         "-b", bucketName,
                         "-d", localDirectory,
                         "-nt", "3"});
+        return command(client, args);
+    }
+
+    public static CommandResponse getJobs(final Ds3Client client) throws Exception {
+        final Arguments args = new Arguments(
+                new String[]{
+                        "--http",
+                        "-c", "get_jobs"});
+        return command(client, args);
+    }
+
+    public static CommandResponse getCompletedJobs(final Ds3Client client) throws Exception {
+        final Arguments args = new Arguments(
+                new String[]{
+                        "--http",
+                        "-c", "get_jobs",
+                        "--completed"});
         return command(client, args);
     }
 
