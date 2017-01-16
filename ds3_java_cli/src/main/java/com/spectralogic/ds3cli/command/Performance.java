@@ -17,6 +17,7 @@ package com.spectralogic.ds3cli.command;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.spectralogic.ds3cli.ArgumentFactory;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.exceptions.CommandException;
@@ -43,6 +44,13 @@ import static com.spectralogic.ds3cli.ArgumentFactory.*;
 
 public class Performance extends CliCommand<DefaultResult> {
 
+    private final static Option DO_NOT_DELETE = Option.builder()
+            .longOpt("do-not-delete")
+            .desc("Leave files on the applicance")
+            .hasArg(false)
+            .build();
+    private final static ImmutableList<Option> optionalArgs
+            = ImmutableList.of(DO_NOT_DELETE);
     private final static ImmutableList<Option> requiredArgs
             = ImmutableList.of(BUCKET, NUMBER_OF_FILES, SIZE_OF_FILES);
 
@@ -58,7 +66,7 @@ public class Performance extends CliCommand<DefaultResult> {
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
-        processCommandOptions(requiredArgs, EMPTY_LIST, args);
+        processCommandOptions(requiredArgs, optionalArgs, args);
 
         this.viewType = ViewType.CLI;
         bucketName = args.getBucket();
@@ -66,6 +74,7 @@ public class Performance extends CliCommand<DefaultResult> {
         sizeOfFiles = args.getSizeOfFiles();
         bufferSize = args.getBufferSize();
         this.numberOfThreads = args.getNumberOfThreads();
+        this.doNotDelete = args.optionExists(DO_NOT_DELETE.getLongOpt());
         return this;
     }
 
@@ -73,7 +82,7 @@ public class Performance extends CliCommand<DefaultResult> {
     public DefaultResult call() throws Exception {
         final Ds3ClientHelpers helpers = Ds3ClientHelpers.wrap(getClient());
         final int numberOfFiles = Integer.valueOf(this.numberOfFiles);
-        final long sizeOfFiles = Integer.valueOf(this.sizeOfFiles);
+        final long sizeOfFiles = Long.valueOf(this.sizeOfFiles);
 
         try {
             try {

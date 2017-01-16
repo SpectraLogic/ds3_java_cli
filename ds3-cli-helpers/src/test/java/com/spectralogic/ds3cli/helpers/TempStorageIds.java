@@ -13,7 +13,7 @@
  * ****************************************************************************
  */
 
-package com.spectralogic.ds3cli.integration.test.helpers;
+package com.spectralogic.ds3cli.helpers;
 
 import java.util.UUID;
 

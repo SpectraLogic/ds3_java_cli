@@ -1,0 +1,139 @@
+<html><head><title>Certification_Test_1484582711124</title></head>
+<body class="testbody"><h1 class="maintitle">Certification_Test_1484582711124</h1>
+<a name="1484582711130" />
+<h2 class="testtitle">7.1: Create Bucket</h2>
+<p class="logentry">Create bucket</p>
+<p class="commandline"><strong>Run command: --http -c put_bucket -b test_7_1_Create_Bucket</strong></p>
+<p class="logentry">Command output:</p>
+<pre>Success: created bucket test_7_1_Create_Bucket.</pre>
+<p class="logentry">List all buckets</p>
+<p class="commandline"><strong>Run command: --http -c get_service</strong></p>
+<p class="logentry">Command output:</p>
+<pre>Owner: jk
++---------------------------+--------------------------+
+|        Bucket Name        |       Creation Date      |
++---------------------------+--------------------------+
+| CertificationBucket       | 2016-12-20T16:31:20.000Z |
+| bulk_Bucket               | 2017-01-06T16:56:26.000Z |
+| bulky                     | 2016-12-22T16:51:47.000Z |
+| bulky2                    | 2016-12-22T23:39:37.000Z |
+| coffeehouse               | 2016-12-01T18:22:18.000Z |
+| georgetest                | 2016-12-28T21:08:57.000Z |
+| georgetest2               | 2016-12-28T23:12:31.000Z |
+| perfBucket                | 2016-12-20T22:54:38.000Z |
+| test_7_1_Create_Bucket    | 2017-01-16T16:05:11.000Z |
+| test_bulk_performance_7.5 | 2017-01-16T15:54:50.000Z |
++---------------------------+--------------------------+
+</pre>
+<p class="endtest"><strong>7.1: Create Bucket (Passed)</strong> <a href="#1484582711130">Start of test</a>
+</p>
+<a name="1484582711505" />
+<h2 class="testtitle">7.2.1: Invalid Credentials</h2>
+<p class="commandline"><strong>Run command: --http -c get_service</strong></p>
+<pre>Error (FailedRequestException): permissions / authorization error.</pre>
+<p class="endtest"><strong>7.2.1: Invalid Credentials (Passed)</strong> <a href="#1484582711505">Start of test</a>
+</p>
+<a name="1484582711527" />
+<h2 class="testtitle">7.2.2: Invalid Endpoint</h2>
+<p class="commandline"><strong>Run command: --http -c get_service</strong></p>
+<p class="logentry">CommandResponse for 7.2.2 invalid endpoint:</p>
+<pre>Error (UnknownHostException): invalid_endpoint</pre>
+<p class="endtest"><strong>7.2.2: Invalid Endpoint (Passed)</strong> <a href="#1484582711527">Start of test</a>
+</p>
+<a name="1484582711537" />
+<h2 class="testtitle"></h2>
+<p class="commandline"><strong>Run command: --http -c get_bucket -b test_7_3_1_Non-extant_bucket</strong></p>
+<p class="logentry">CommandResponse for 7.3.1 failed attempt to list nonexistent bucket:</p>
+<pre>Error (CommandException): Error: Unknown bucket.
+Cause: Expected a status code of 200 but got 404. Error message: "NotFound[404]: interface com.spectralogic.s3.common.dao.domain.ds3.Bucket not found via identifier / bean property value 'test_7_3_1_Non-extant_bucket'."</pre>
+<p class="endtest"><strong>7.3.1: Non-extant bucket (Passed)</strong> <a href="#1484582711537">Start of test</a>
+</p>
+<a name="1484582711556" />
+<h2 class="testtitle">7.3.2: Access bucket wrong user</h2>
+<p class="commandline"><strong>Run command: --http -c put_bucket -b test_7_3_2_Access_bucket_wrong_user</strong></p>
+<p class="logentry">Command output:</p>
+<pre>Success: created bucket test_7_3_2_Access_bucket_wrong_user.</pre>
+<p class="commandline"><strong>Run command: --http -c get_bucket -b test_7_3_2_Access_bucket_wrong_user</strong></p>
+<p class="logentry">CommandResponse for 7.3.2 failed attempt to list bucket with invalid user credentials:</p>
+<pre>Error (FailedRequestException): permissions / authorization error.</pre>
+<p class="endtest"><strong>7.3.2: Access bucket wrong user (Passed)</strong> <a href="#1484582711556">Start of test</a>
+</p>
+<a name="1484582711739" />
+<h2 class="testtitle">7.4: Non-extant object</h2>
+<p class="logentry">Create bucket.</p>
+<p class="commandline"><strong>Run command: --http -c put_bucket -b test_7_4_Non-extant_object</strong></p>
+<p class="logentry">Command output:</p>
+<pre>Success: created bucket test_7_4_Non-extant_object.</pre>
+<p class="logentry">List bucket.</p>
+<p class="commandline"><strong>Run command: --http -c get_bucket -b test_7_4_Non-extant_object</strong></p>
+<p class="logentry">Command output:</p>
+<pre>No objects were reported in bucket.</pre>
+<p class="logentry">Get non-extant object</p>
+<p class="commandline"><strong>Run command: --http -c get_object -o not_there -b test_7_4_Non-extant_object</strong></p>
+<p class="logentry">CommandResponse for 7.4 failed attempt to get nonexistent object:</p>
+<pre>Error (FailedRequestException): target entity not found.</pre>
+<p class="endtest"><strong>7.4: Non-extant object (Passed)</strong> <a href="#1484582711739">Start of test</a>
+</p>
+<a name="1484582712272" />
+<h2 class="testtitle">7.5 & 7.6: Bulk Performance 3x110GB</h2>
+<p class="logentry">Create bucket.</p>
+<p class="commandline"><strong>Run command: --http -c put_bucket -b test_bulk_performance_test_7_5_7_6_Bulk_Performance_3x110GB</strong></p>
+<p class="logentry">Command output:</p>
+<pre>Success: created bucket test_bulk_performance_test_7_5_7_6_Bulk_Performance_3x110GB.</pre>
+<p class="logentry">List bucket.</p>
+<p class="commandline"><strong>Run command: --http -c get_bucket -b test_bulk_performance_test_7_5_7_6_Bulk_Performance_3x110GB</strong></p>
+<p class="logentry">Command output:</p>
+<pre>No objects were reported in bucket.</pre>
+<p class="commandline"><strong>Run command: --http -c put_bulk -b test_bulk_performance_test_7_5_7_6_Bulk_Performance_3x110GB -d C:\Users\johnk\AppData\Local\Temp\test_bulk_performance_test_7_5_7_6_Bulk_Performance_3x110GB3803782138673673370</strong></p>
+<p class="logentry">Command output:</p>
+<pre>SUCCESS: Wrote all the files in C:\Users\johnk\AppData\Local\Temp\test_bulk_performance_test_7_5_7_6_Bulk_Performance_3x110GB3803782138673673370 to bucket test_bulk_performance_test_7_5_7_6_Bulk_Performance_3x110GB</pre>
+<p class="commandline"><strong>Run command: --http -c get_bucket -b test_bulk_performance_test_7_5_7_6_Bulk_Performance_3x110GB</strong></p>
+<p class="logentry">Command output:</p>
+<pre>+-------------------------------------------------------------+--------------------------------------+--------------------------------------+--------------------------+--------------------------------------+---------------+
+|                             Name                            |                  Id                  |                User Id               |       Creation Date      |            Data Policy Id            | Used Capacity |
++-------------------------------------------------------------+--------------------------------------+--------------------------------------+--------------------------+--------------------------------------+---------------+
+| test_bulk_performance_test_7_5_7_6_Bulk_Performance_3x110GB | 7cff962a-b714-4f44-a935-d568bf10b978 | c1fdd654-5e00-4adf-a5d5-bafeba1bb237 | 2017-01-16T16:05:12.000Z | 9899597d-113a-4c91-8b42-863db87134cc | 337992        |
++-------------------------------------------------------------+--------------------------------------+--------------------------------------+--------------------------+--------------------------------------+---------------+
+
++---------------------------------------------------------------+--------+-------+--------------------------+----------------------------------+
+|                           File Name                           |  Size  | Owner |       Last Modified      |               ETag               |
++---------------------------------------------------------------+--------+-------+--------------------------+----------------------------------+
+| test_bulk_performance_test_7_5_7_6_Bulk_Performance_3x110GB_0 | 112664 |    jk | 2017-01-16T16:05:16.000Z | 3353afe855eb27f1b0ecb4350d209222 |
+| test_bulk_performance_test_7_5_7_6_Bulk_Performance_3x110GB_1 | 112664 |    jk | 2017-01-16T16:05:16.000Z | 3353afe855eb27f1b0ecb4350d209222 |
+| test_bulk_performance_test_7_5_7_6_Bulk_Performance_3x110GB_2 | 112664 |    jk | 2017-01-16T16:05:16.000Z | 3353afe855eb27f1b0ecb4350d209222 |
++---------------------------------------------------------------+--------+-------+--------------------------+----------------------------------+
+</pre>
+<p class="endtest"><strong>7.5 & 7.6: Bulk Performance 3x110GB (Passed)</strong> <a href="#1484582712272">Start of test</a>
+</p>
+<a name="1484582720567" />
+<h2 class="testtitle">7.5 & 7.6: Bulk Performance 250X1GB</h2>
+<p class="logentry">Create bucket.</p>
+<p class="commandline"><strong>Run command: --http -c put_bucket -b test_bulk_performance_test_7_5_7_6_Bulk_Performance_250X1GB</strong></p>
+<p class="logentry">Command output:</p>
+<pre>Success: created bucket test_bulk_performance_test_7_5_7_6_Bulk_Performance_250X1GB.</pre>
+<p class="logentry">List bucket.</p>
+<p class="commandline"><strong>Run command: --http -c get_bucket -b test_bulk_performance_test_7_5_7_6_Bulk_Performance_250X1GB</strong></p>
+<p class="logentry">Command output:</p>
+<pre>No objects were reported in bucket.</pre>
+<p class="commandline"><strong>Run command: --http -c put_bulk -b test_bulk_performance_test_7_5_7_6_Bulk_Performance_250X1GB -d C:\Users\johnk\AppData\Local\Temp\test_bulk_performance_test_7_5_7_6_Bulk_Performance_250X1GB6574140497678683309</strong></p>
+<p class="logentry">Command output:</p>
+<pre>SUCCESS: Wrote all the files in C:\Users\johnk\AppData\Local\Temp\test_bulk_performance_test_7_5_7_6_Bulk_Performance_250X1GB6574140497678683309 to bucket test_bulk_performance_test_7_5_7_6_Bulk_Performance_250X1GB</pre>
+<p class="commandline"><strong>Run command: --http -c get_bucket -b test_bulk_performance_test_7_5_7_6_Bulk_Performance_250X1GB</strong></p>
+<p class="logentry">Command output:</p>
+<pre>+-------------------------------------------------------------+--------------------------------------+--------------------------------------+--------------------------+--------------------------------------+---------------+
+|                             Name                            |                  Id                  |                User Id               |       Creation Date      |            Data Policy Id            | Used Capacity |
++-------------------------------------------------------------+--------------------------------------+--------------------------------------+--------------------------+--------------------------------------+---------------+
+| test_bulk_performance_test_7_5_7_6_Bulk_Performance_250X1GB | 7baff3ed-10d1-4ed1-ba6f-09f780630f04 | c1fdd654-5e00-4adf-a5d5-bafeba1bb237 | 2017-01-16T16:05:20.000Z | 9899597d-113a-4c91-8b42-863db87134cc | 337992        |
++-------------------------------------------------------------+--------------------------------------+--------------------------------------+--------------------------+--------------------------------------+---------------+
+
++---------------------------------------------------------------+--------+-------+--------------------------+----------------------------------+
+|                           File Name                           |  Size  | Owner |       Last Modified      |               ETag               |
++---------------------------------------------------------------+--------+-------+--------------------------+----------------------------------+
+| test_bulk_performance_test_7_5_7_6_Bulk_Performance_250X1GB_0 | 112664 |    jk | 2017-01-16T16:05:24.000Z | 3353afe855eb27f1b0ecb4350d209222 |
+| test_bulk_performance_test_7_5_7_6_Bulk_Performance_250X1GB_1 | 112664 |    jk | 2017-01-16T16:05:24.000Z | 3353afe855eb27f1b0ecb4350d209222 |
+| test_bulk_performance_test_7_5_7_6_Bulk_Performance_250X1GB_2 | 112664 |    jk | 2017-01-16T16:05:24.000Z | 3353afe855eb27f1b0ecb4350d209222 |
++---------------------------------------------------------------+--------+-------+--------------------------+----------------------------------+
+</pre>
+<p class="endtest"><strong>7.5 & 7.6: Bulk Performance 250X1GB (Passed)</strong> <a href="#1484582720567">Start of test</a>
+</p>
+</body></html>
