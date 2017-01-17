@@ -3114,6 +3114,26 @@ public class Ds3Cli_Test {
         assertThat(actual, is(expectedString));
     }
 
+    @Test
+    public void getDetailedObjectsPhysicalNoPhysical() throws Exception {
+        final String expectedString = "No speciifed objects have physical placement";
+        final Arguments args = new Arguments( new String[] {"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_detailed_objects_physical", "-b", "jktwocopies", "--filter-params", "largerthan:1000000"});
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
+        command.init(args);
+        assertTrue(command.getClass() == GetDetailedObjectsPhysical.class);
+
+        final ImmutableList.Builder<DetailedS3Object> objects = new ImmutableList.Builder<>();
+        final String[] barcodes = new String[] {};
+        objects.add(buildDetailedObject("coffeehouse/im_in_the_mood.mp3", 3309717L, "c5ed6a28-1499-432d-85e5-e0b2d866ec65", "jk", "2016-09-22T23:10:09.000Z",  barcodes));
+        objects.add(buildDetailedObject("coffeehouse/jk/Misty_2015.m4a", 10396369L, "c5ed6a28-1499-432d-85e5-e0b2d866ec65", "jk", "2016-09-22T23:10:20.000Z2016-09-22T23:10:20.000Z",  barcodes));
+        objects.add(buildDetailedObject("coffeehouse/witchcraft.mp3", 6409093L, "c5ed6a28-1499-432d-85e5-e0b2d866ec65", "jk", "2016-09-22T23:10:15.000Z",  barcodes));
+
+        final GetDetailedObjectsResult result = new GetDetailedObjectsResult(objects.build());
+
+        final String actual = command.getView().render(result);
+        assertThat(actual, is(expectedString));
+    }
+
     @Test(expected = UnrecognizedOptionException.class)
     public void getDetailedObjectsBadArgs() throws Exception {
         final Arguments args = new Arguments( new String[] {"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_detailed_objects_physical", "-b", "jktwocopies", "--filter-params", "largerthan:1000000", "-d", "directory"});
