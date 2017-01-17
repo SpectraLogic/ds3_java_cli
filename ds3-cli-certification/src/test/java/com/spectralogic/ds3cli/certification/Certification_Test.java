@@ -19,7 +19,6 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import com.spectralogic.ds3cli.CommandResponse;
 import com.spectralogic.ds3cli.exceptions.*;
-import com.spectralogic.ds3cli.helpers.ABMTestHelper;
 import com.spectralogic.ds3cli.helpers.Util;
 import com.spectralogic.ds3cli.helpers.TempStorageIds;
 import com.spectralogic.ds3cli.helpers.TempStorageUtil;
@@ -32,7 +31,6 @@ import com.spectralogic.ds3client.models.Quiesced;
 import com.spectralogic.ds3client.models.common.Credentials;
 import com.spectralogic.ds3client.networking.FailedRequestException;
 import org.apache.commons.io.FileUtils;
-import org.hamcrest.number.OrderingComparison;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
@@ -62,16 +60,15 @@ import static org.junit.Assume.assumeThat;
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING) // Order only matters for manually verifying the results
 public class Certification_Test {
-    private static final Logger LOG =  (Logger) LoggerFactory.getLogger(Certification_Test.class);
+    private static final Logger LOG = (Logger) LoggerFactory.getLogger(Certification_Test.class);
     private static final Ds3Client client = Ds3ClientBuilder.fromEnv().withHttps(false).build();
     private static final Ds3ClientHelpers HELPERS = Ds3ClientHelpers.wrap(client);
     private static final String TEST_ENV_NAME = "JavaCLI_Certification_Test";
-    private static final String NO_RIGHTS_USERNAME = "no_rights";
+    private static final String NO_RIGHTS_USERNAME = "no_rights_user";
+    private static final Long GB_BYTES = 1073741824L;
     private static TempStorageIds envStorageIds;
     private static UUID envDataPolicyId;
     private static CertificationWriter OUT;
-
-    private static final Long GB_BYTES = 1073741824L;
 
     private final static Ds3ExceptionHandlerMapper EXCEPTION = Ds3ExceptionHandlerMapper.getInstance();
     static {
@@ -292,7 +289,7 @@ public class Certification_Test {
         final long fileSize = GB_BYTES;
         final long cacheLimit = 50 * GB_BYTES;
 
-        // Assume there is a valid Tape Partition before changing anything
+        //*** Assume there is a valid Tape Partition ***
         final GetTapePartitionsSpectraS3Request getTapePartitions = new GetTapePartitionsSpectraS3Request();
         final GetTapePartitionsSpectraS3Response getTapePartitionsResponse= client.getTapePartitionsSpectraS3(getTapePartitions);
         assumeThat(getTapePartitionsResponse.getTapePartitionListResult().getTapePartitions().size(), is(greaterThan(0)));
@@ -301,17 +298,21 @@ public class Certification_Test {
 
         // Quiesce Tape Partition
         final ModifyAllTapePartitionsSpectraS3Request quiesceAllTapePartitions = new ModifyAllTapePartitionsSpectraS3Request(Quiesced.YES);
-        final ModifyAllTapePartitionsSpectraS3Response quiesceAllTapePartitionsResponse =  client.modifyAllTapePartitionsSpectraS3(quiesceAllTapePartitions);
-        assertThat(quiesceAllTapePartitionsResponse.getResponse().getStatusCode(), is(0));
+        try {
+            client.modifyAllTapePartitionsSpectraS3(quiesceAllTapePartitions);
+        } catch (final FailedRequestException fre) {
+            // Ignore Request failure if no tape partitions or they are already quiesced
+        }
 
         // Find s3cachefilesystem ID
-        final GetCacheFilesystemSpectraS3Request getCacheFs = new GetCacheFilesystemSpectraS3Request("cache");
-        final UUID cacheFsId = client.getCacheFilesystemSpectraS3(getCacheFs).getCacheFilesystemResult().getId();
+        final GetCacheFilesystemsSpectraS3Response getCacheFilesystemsSpectraS3Response= client.getCacheFilesystemsSpectraS3(new GetCacheFilesystemsSpectraS3Request());
+        final UUID cacheFsId = getCacheFilesystemsSpectraS3Response.getCacheFilesystemListResult().getCacheFilesystems().get(0).getId();
+        final GetCacheFilesystemSpectraS3Request getCacheFs = new GetCacheFilesystemSpectraS3Request(cacheFsId.toString());
 
         // Lower s3cachefilesystem to 150GB
         final ModifyCacheFilesystemSpectraS3Request limitCacheFsRequest = new ModifyCacheFilesystemSpectraS3Request(cacheFsId.toString()).withMaxCapacityInBytes(cacheLimit);
         final ModifyCacheFilesystemSpectraS3Response limitCacheFsResponse = client.modifyCacheFilesystemSpectraS3(limitCacheFsRequest);
-        assertThat(limitCacheFsResponse.getResponse().getStatusCode(), is(0));
+        assertThat(limitCacheFsResponse.getResponse().getStatusCode(), is(200));
         assertThat(client.getCacheFilesystemSpectraS3(getCacheFs).getCacheFilesystemResult().getMaxCapacityInBytes(), is(cacheLimit));
         OUT.insertCommandOutput("Modify Cache Pool size to " +  cacheLimit, limitCacheFsResponse.getResponse().getResponseStream().toString());
 
@@ -323,13 +324,13 @@ public class Certification_Test {
         final Path fillCacheFiles = CertificationUtil.createTempFiles("cache_full", numFiles, fileSize);
 
         try {
-            final CommandResponse putBulkResponse = OUT.runCommand(client, "--http -c put_bulk -b " + bucketName + "-d" + fillCacheFiles + "-nt 3");
+            final CommandResponse putBulkResponse = OUT.runCommand(client, "--http -c put_bulk -b " + bucketName + " -d " + fillCacheFiles + " -nt 3");
             assertThat(putBulkResponse.getReturnCode(), is(0));
 
             // Wait for Cache full
         } catch (final IOException ioe) {
             // expect to fail because job can't finish when cache fills and no tapes are available to offload to
-            LOG.info("Caught IOException after BULK_PUT bigger than available cache: {}", ioe);
+            OUT.insertCommandOutput("Caught IOException after BULK_PUT bigger than available cache: ", ioe.toString());
             //final String cacheFullFailureMsg = "cache full";
         } finally {
 
@@ -393,7 +394,7 @@ public class Certification_Test {
             final Path bulkGetLocalTempDir = Files.createTempDirectory(bucketName);
 
             final CommandResponse getBulkResponse = Util.getBulk(client, bucketName, bulkGetLocalTempDir.toString());
-            LOG.info("CommandResponse for BULK_GET: \n{}", getBulkResponse.getMessage());
+            OUT.insertCommandOutput(String.format("CommandResponse for BULK_GET from %s to %s", bucketName, bulkGetLocalTempDir), getBulkResponse.getMessage());
             assertThat(getBulkResponse.getReturnCode(), is(0));
             success = true;
 
