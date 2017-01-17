@@ -25,14 +25,13 @@ import com.spectralogic.ds3cli.command.CliCommandFactory;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileSystemProvider;
 import com.spectralogic.ds3client.Ds3Client;
-import com.spectralogic.ds3client.commands.spectrads3.GetUserSpectraS3Request;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Date;
+
+import static com.spectralogic.ds3cli.helpers.Util.command;
 
 
 public class CertificationWriter {
@@ -40,7 +39,7 @@ public class CertificationWriter {
     private static final String EXT = ".html";
     private static final Logger LOG =  (Logger) LoggerFactory.getLogger(CertificationWriter.class);
 
-    private OutputStreamWriter OUT;
+    private final OutputStreamWriter OUT;
     private long currentTimeTag = 0L;
 
     public CertificationWriter(final String title) throws IOException {
@@ -88,17 +87,12 @@ public class CertificationWriter {
     }
 
     /**
-     * // same as com.spectralogic.ds3cli.helpers.Util.command() but takes command line as string
-     *
+     * Run ds3-cli-helpers::Util.command with a cmd line string
      */
     public  CommandResponse runCommand(final Ds3Client client, final String commandLine ) throws Exception {
         insertCommand("Run command: " + commandLine);
         final Arguments args = new Arguments(commandLine.split(" "));
-        final Ds3Provider provider = new Ds3ProviderImpl(client, Ds3ClientHelpers.wrap(client));
-        final FileSystemProvider fileSystemProvider = new FileSystemProviderImpl();
-        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(provider, fileSystemProvider);
-        command.init(args);
-        final CommandResponse response = command.render();
+        final CommandResponse response = command(client, args);
         insertLog("Command output:");
         insertPreformat(response.getMessage());
         return response;

@@ -65,6 +65,7 @@ project(':ds3-cli-integration') {
 project(':ds3-cli-certification') {
     dependencies {
         compile project(':ds3_java_cli') // provides Ds3Cli Credentials
+        compile project(':ds3-cli-helpers')
         testCompile project(':ds3-cli-helpers')
         testCompile project(path: ':ds3-cli-helpers', configuration: 'testOutput')
     }
