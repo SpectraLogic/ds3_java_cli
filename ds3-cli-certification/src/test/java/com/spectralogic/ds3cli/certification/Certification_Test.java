@@ -190,19 +190,20 @@ public class Certification_Test {
         OUT.startNewTest(testDescription);
         boolean success = false;
         try {
-            final String  noRightsUserSecretKey = CertificationUtil.getUserSecretKey(client, NO_RIGHTS_USERNAME);
-            if (noRightsUserSecretKey.isEmpty()) {
-                throw new RuntimeException("Must have account for user " + NO_RIGHTS_USERNAME);
-            }
+            // Create a bucket
+            final CommandResponse createBucketResponse = OUT.runCommand(client, "--http -c put_bucket -b " + bucketName);
+            assertThat(createBucketResponse.getReturnCode(), is(0));
+
+            // Create a new user, and wrap it with a new client
+            final DelegateCreateUserSpectraS3Request createUserRequest = new DelegateCreateUserSpectraS3Request(NO_RIGHTS_USERNAME);
+            final DelegateCreateUserSpectraS3Response createUserResponse = client.delegateCreateUserSpectraS3(createUserRequest);
+            final String noRightsUserSecretKey = createUserResponse.getSpectraUserResult().getSecretKey();
             final Credentials badCreds = new Credentials(NO_RIGHTS_USERNAME, noRightsUserSecretKey);
             final String endpoint = System.getenv("DS3_ENDPOINT");
             final Ds3Client invalid_client = Ds3ClientBuilder.create(endpoint, badCreds).withHttps(false).build();
 
-            final CommandResponse createBucketResponse = OUT.runCommand(client, "--http -c put_bucket -b " + bucketName);;
-            assertThat(createBucketResponse.getReturnCode(), is(0));
-
-            OUT.runCommand(invalid_client, "--http -c get_bucket -b " + bucketName);;
-
+            // Attempt to access the bucket with the new user, which should fail
+            OUT.runCommand(invalid_client, "--http -c get_bucket -b " + bucketName);
         } catch(final FailedRequestException e) {
             final String formattedException = FailedRequestExceptionHandler.format(e);
             final String expectedError = "permissions / authorization error";
@@ -213,6 +214,7 @@ public class Certification_Test {
         } finally {
             OUT.finishTest(testDescription, success);
             Util.deleteBucket(client, bucketName);
+            client.delegateDeleteUserSpectraS3(new DelegateDeleteUserSpectraS3Request(NO_RIGHTS_USERNAME));
         }
     }
 
@@ -279,7 +281,8 @@ public class Certification_Test {
     }
 
     /**
-     * 7.9: Test "cache full" by explicitly lowering cache pool size.
+     * 7.9: Test "cache full" by explicitly lowering cache pool size and do not allow cache to drain by quiescing any
+     * tape partitions.
      */
     @Test
     public void test_7_9_cache_full() throws Exception {
@@ -287,7 +290,7 @@ public class Certification_Test {
         final String bucketName = "testCacheFull";
         final int numFiles = 175;
         final long fileSize = GB_BYTES;
-        final long cacheLimit = 50 * GB_BYTES;
+        final long cacheLimit = 150 * GB_BYTES;
 
         //*** Assume there is a valid Tape Partition ***
         final GetTapePartitionsSpectraS3Request getTapePartitions = new GetTapePartitionsSpectraS3Request();
@@ -314,7 +317,7 @@ public class Certification_Test {
         final ModifyCacheFilesystemSpectraS3Response limitCacheFsResponse = client.modifyCacheFilesystemSpectraS3(limitCacheFsRequest);
         assertThat(limitCacheFsResponse.getResponse().getStatusCode(), is(200));
         assertThat(client.getCacheFilesystemSpectraS3(getCacheFs).getCacheFilesystemResult().getMaxCapacityInBytes(), is(cacheLimit));
-        OUT.insertCommandOutput("Modify Cache Pool size to " +  cacheLimit, limitCacheFsResponse.getResponse().getResponseStream().toString());
+        OUT.insertLog("Modify Cache Pool size to " +  cacheLimit + "status: " + limitCacheFsResponse.getResponse().getStatusCode());
 
         // Create bucket
         final CommandResponse createBucketResponse = OUT.runCommand(client, "--http -c put_bucket -b" + bucketName);
@@ -393,7 +396,7 @@ public class Certification_Test {
             // Start BULK_GET from the same bucket that we just did the BULK_PUT to, with a new local directory
             final Path bulkGetLocalTempDir = Files.createTempDirectory(bucketName);
 
-            final CommandResponse getBulkResponse = Util.getBulk(client, bucketName, bulkGetLocalTempDir.toString());
+            final CommandResponse getBulkResponse = OUT.runCommand(client, "--http -c get_bulk -b " + bucketName + "-d " + bulkGetLocalTempDir.toString() + "-nt 3");
             OUT.insertCommandOutput(String.format("CommandResponse for BULK_GET from %s to %s", bucketName, bulkGetLocalTempDir), getBulkResponse.getMessage());
             assertThat(getBulkResponse.getReturnCode(), is(0));
             success = true;
