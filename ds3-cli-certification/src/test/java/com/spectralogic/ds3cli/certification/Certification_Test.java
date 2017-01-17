@@ -300,9 +300,12 @@ public class Certification_Test {
         OUT.startNewTest(testDescription);
 
         // Quiesce Tape Partition
-        final ModifyAllTapePartitionsSpectraS3Request quiesceAllTapePartitions = new ModifyAllTapePartitionsSpectraS3Request(Quiesced.YES);
         try {
-            client.modifyAllTapePartitionsSpectraS3(quiesceAllTapePartitions);
+            // Must transition state from NO -> PENDING -> YES
+            ModifyAllTapePartitionsSpectraS3Response modAllTapePartitionsResponse = client.modifyAllTapePartitionsSpectraS3(new ModifyAllTapePartitionsSpectraS3Request(Quiesced.PENDING));
+            assertThat(modAllTapePartitionsResponse.getStatusCode(), is(204));
+            modAllTapePartitionsResponse = client.modifyAllTapePartitionsSpectraS3(new ModifyAllTapePartitionsSpectraS3Request(Quiesced.YES));
+            assertThat(modAllTapePartitionsResponse.getStatusCode(), is(204));
         } catch (final FailedRequestException fre) {
             // Ignore Request failure if no tape partitions or they are already quiesced
         }
