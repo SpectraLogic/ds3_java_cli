@@ -15,6 +15,7 @@
 
 package com.spectralogic.ds3cli.views.cli;
 
+import com.bethecoder.ascii_table.ASCIITable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.spectralogic.ds3cli.models.GetDetailedObjectsResult;
@@ -44,6 +45,15 @@ public class DetailedObjectsPhysicalView extends TableView<GetDetailedObjectsRes
         initTable(ImmutableList.of("Name", "Bucket", "Owner", "Size", "Type", "Creation Date", "Barcode", "State"));
 
         return renderTable();
+    }
+
+    @Override
+    protected String renderTable() {
+        final String[][] tableContents =  formatTableContents();
+        if (tableContents.length == 0) {
+            return "No speciifed objects have physical placement";
+        }
+        return ASCIITable.getInstance().getTable(getHeaders(),tableContents);
     }
 
     @Override
