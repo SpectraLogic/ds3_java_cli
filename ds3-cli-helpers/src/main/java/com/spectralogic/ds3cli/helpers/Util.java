@@ -1,6 +1,6 @@
 /*
  * ******************************************************************************
- *   Copyright 2014-2015 Spectra Logic Corporation. All Rights Reserved.
+ *   Copyright 2014-2016 Spectra Logic Corporation. All Rights Reserved.
  *   Licensed under the Apache License, Version 2.0 (the "License"). You may not use
  *   this file except in compliance with the License. A copy of the License is located at
  *
@@ -13,7 +13,7 @@
  * ****************************************************************************
  */
 
-package com.spectralogic.ds3cli.integration;
+package com.spectralogic.ds3cli.helpers;
 
 import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3cli.*;
@@ -49,6 +49,16 @@ public class Util {
         return command.render();
     }
 
+    public static CommandResponse getBucket(final Ds3Client client, final String bucketName) throws Exception {
+        final Arguments args = new Arguments(new String[]{"--http", "-c", "get_bucket", "-b", bucketName});
+        return command(client, args);
+    }
+
+    public static CommandResponse getService(final Ds3Client client) throws Exception {
+        final Arguments args = new Arguments(new String[]{"--http", "-c", "get_service"});
+        return command(client, args);
+    }
+
     public static CommandResponse createBucket(final Ds3Client client, final String bucketName) throws Exception {
         final Arguments args = new Arguments(new String[]{"--http", "-c", "put_bucket", "-b", bucketName});
         return command(client, args);
@@ -56,6 +66,50 @@ public class Util {
 
     public static CommandResponse deleteBucket(final Ds3Client client, final String bucketName) throws Exception {
         final Arguments args = new Arguments(new String[]{"--http", "-c", "delete_bucket", "-b", bucketName, "--force"});
+        return command(client, args);
+    }
+
+    public static CommandResponse putBulk(final Ds3Client client, final String bucketName, final String localDirectory) throws Exception {
+        final Arguments args = new Arguments(
+                new String[]{
+                        "--http",
+                        "-c", "put_bulk",
+                        "-b", bucketName,
+                        "-d", localDirectory,
+                        "-nt", "3"});
+        return command(client, args);
+    }
+
+    public static CommandResponse getBulk(final Ds3Client client, final String bucketName, final String localDirectory) throws Exception {
+        final Arguments args = new Arguments(
+                new String[]{
+                        "--http",
+                        "-c", "get_bulk",
+                        "-b", bucketName,
+                        "-d", localDirectory,
+                        "-nt", "3"});
+        return command(client, args);
+    }
+
+    public static CommandResponse getJobs(final Ds3Client client) throws Exception {
+        final Arguments args = new Arguments(
+                new String[]{
+                        "--http",
+                        "-c", "get_jobs"});
+        return command(client, args);
+    }
+
+    public static CommandResponse getCompletedJobs(final Ds3Client client) throws Exception {
+        final Arguments args = new Arguments(
+                new String[]{
+                        "--http",
+                        "-c", "get_jobs",
+                        "--completed"});
+        return command(client, args);
+    }
+
+    public static CommandResponse getObject(final Ds3Client client, final String bucketName, final String objectName) throws Exception {
+        final Arguments args = new Arguments(new String[]{"--http", "-c", "get_object", "-b", bucketName, "-o", objectName});
         return command(client, args);
     }
 

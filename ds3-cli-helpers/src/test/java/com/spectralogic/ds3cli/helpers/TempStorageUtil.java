@@ -13,7 +13,7 @@
  * ****************************************************************************
  */
 
-package com.spectralogic.ds3cli.integration.test.helpers;
+package com.spectralogic.ds3cli.helpers;
 
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.spectrads3.*;
@@ -24,7 +24,7 @@ import com.spectralogic.ds3client.models.VersioningLevel;
 import java.io.IOException;
 import java.util.UUID;
 
-import static com.spectralogic.ds3cli.integration.test.helpers.ABMTestHelper.*;
+import static com.spectralogic.ds3cli.helpers.ABMTestHelper.*;
 
 /**
  * This is a testing utility designed for creating a temporary data policy, storage domain,
@@ -91,18 +91,20 @@ public class TempStorageUtil {
     }
 
     /**
-     * Creates a Data Policy with the specified checksum type and end-to-end crc requirement
+     * Creates a Data Policy with the specified options, then set to the default "spectra" user Data Policy.
      */
     public static UUID setupDataPolicy(
             final String testSetName,
             final boolean withEndToEndCrcRequired,
             final ChecksumType.Type checksumType,
             final Ds3Client client) throws IOException {
-        final PutDataPolicySpectraS3Response dataPolicyResponse = client.putDataPolicySpectraS3(
-                new PutDataPolicySpectraS3Request(testSetName + DATA_POLICY_NAME)
-                        .withVersioning(VersioningLevel.NONE)
-                        .withEndToEndCrcRequired(withEndToEndCrcRequired)
-                        .withChecksumType(checksumType)); // TODO 3.2: .withAlwaysForcePutJobCreation(true));
+        final PutDataPolicySpectraS3Response dataPolicyResponse = createDataPolicy(
+                testSetName + DATA_POLICY_NAME,
+                VersioningLevel.NONE,
+                checksumType,
+                withEndToEndCrcRequired,
+                false,
+                client);
         client.modifyUserSpectraS3(new ModifyUserSpectraS3Request("spectra")
                 .withDefaultDataPolicyId(dataPolicyResponse.getDataPolicyResult().getId()));
         return dataPolicyResponse.getDataPolicyResult().getId();
