@@ -93,7 +93,7 @@ public class CertificationWriter {
         insertCommand("Run command: " + commandLine);
         final Arguments args = new Arguments(commandLine.split(" "));
         final CommandResponse response = command(client, args);
-        insertLog("Command output:");
+        insertLog("Command output: (" + (new Date().getTime() - currentTimeTag)/1000 + "sec)");
         insertPreformat(response.getMessage());
         return response;
     }

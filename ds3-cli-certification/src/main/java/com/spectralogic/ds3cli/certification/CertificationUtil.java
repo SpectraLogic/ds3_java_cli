@@ -24,8 +24,9 @@ import com.spectralogic.ds3cli.command.CliCommandFactory;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileSystemProvider;
 import com.spectralogic.ds3client.Ds3Client;
-import com.spectralogic.ds3client.commands.spectrads3.GetUserSpectraS3Request;
+import com.spectralogic.ds3client.commands.spectrads3.*;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
+import com.spectralogic.ds3client.models.SpectraUser;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
@@ -59,6 +60,19 @@ public class CertificationUtil {
             return "";
         }
     }
+
+    public static SpectraUser createUser(final Ds3Client client, final String username) throws IOException {
+        DelegateCreateUserSpectraS3Response response
+                =  client.delegateCreateUserSpectraS3(new DelegateCreateUserSpectraS3Request(username));
+        return response.getSpectraUserResult();
+    }
+
+    public static boolean deleteUser(final Ds3Client client, final String username) throws IOException {
+        DelegateDeleteUserSpectraS3Response response
+                =  client.delegateDeleteUserSpectraS3(new DelegateDeleteUserSpectraS3Request(username));
+        return (response.getStatusCode() == 200);
+    }
+
 
     public static CommandResponse putPerformanceFiles(final Ds3Client client, final String bucketName, final int fileCount, final long fileSize) throws Exception {
         final Arguments args = new Arguments(new String[]{"--http", "-c", "performance", "-b", bucketName,
