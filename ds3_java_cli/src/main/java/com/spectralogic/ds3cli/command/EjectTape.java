@@ -19,11 +19,9 @@ import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
-import com.spectralogic.ds3cli.models.DefaultResult;
 import com.spectralogic.ds3cli.models.TapeResult;
 import com.spectralogic.ds3cli.views.cli.GetTapeView;
 import com.spectralogic.ds3cli.views.json.DataView;
-import com.spectralogic.ds3client.commands.spectrads3.EjectStorageDomainSpectraS3Request;
 import com.spectralogic.ds3client.commands.spectrads3.EjectTapeSpectraS3Request;
 import com.spectralogic.ds3client.commands.spectrads3.EjectTapeSpectraS3Response;
 import com.spectralogic.ds3client.utils.Guard;
@@ -58,10 +56,19 @@ public class EjectTape extends CliCommand<TapeResult> {
     @Override
     public TapeResult call() throws Exception {
 
-        final EjectTapeSpectraS3Request request
-                = new EjectTapeSpectraS3Request(id)
-                .withEjectLabel(ejectLabel).withEjectLocation(ejectLocation);
-
+        EjectTapeSpectraS3Request request;
+        if (!Guard.isStringNullOrEmpty(ejectLabel) && !Guard.isStringNullOrEmpty(ejectLocation)) {
+            request = new EjectTapeSpectraS3Request(id)
+                        .withEjectLabel(ejectLabel).withEjectLocation(ejectLocation);
+        } else if (!Guard.isStringNullOrEmpty(ejectLabel)) {
+            request = new EjectTapeSpectraS3Request(id)
+                        .withEjectLabel(ejectLabel);
+        } else if (!Guard.isStringNullOrEmpty(ejectLocation)) {
+            request = new EjectTapeSpectraS3Request(id)
+                        .withEjectLocation(ejectLocation);
+        } else  {
+            request = new EjectTapeSpectraS3Request(id);
+        }
         final EjectTapeSpectraS3Response response = this.getClient().ejectTapeSpectraS3(request);
 
         return new TapeResult(response.getTapeResult());
