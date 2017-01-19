@@ -15,6 +15,8 @@
 
 package com.spectralogic.ds3cli.models;
 
+import com.spectralogic.ds3cli.api.Result;
+
 public class DefaultResult implements Result<String> {
     private final String result;
 

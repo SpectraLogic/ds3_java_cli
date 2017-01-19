@@ -16,9 +16,10 @@
 package com.spectralogic.ds3cli.views.json;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.spectralogic.ds3cli.View;
+import com.spectralogic.ds3cli.api.View;
+import com.spectralogic.ds3cli.jsonview.CommonJsonView;
+import com.spectralogic.ds3cli.jsonview.JsonMapper;
 import com.spectralogic.ds3cli.models.GetServiceResult;
-import com.spectralogic.ds3cli.util.JsonMapper;
 import com.spectralogic.ds3client.models.ListAllMyBucketsResult;
 
 public class GetServiceView implements View<GetServiceResult> {
@@ -35,5 +36,4 @@ public class GetServiceView implements View<GetServiceResult> {
 
         return JsonMapper.toJson(view.data(result));
     }
-
 }

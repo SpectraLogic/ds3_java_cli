@@ -18,9 +18,10 @@ package com.spectralogic.ds3cli.views.json;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.ImmutableMultimap;
-import com.spectralogic.ds3cli.View;
+import com.spectralogic.ds3cli.api.View;
+import com.spectralogic.ds3cli.jsonview.CommonJsonView;
+import com.spectralogic.ds3cli.jsonview.JsonMapper;
 import com.spectralogic.ds3cli.models.HeadObjectResult;
-import com.spectralogic.ds3cli.util.JsonMapper;
 import com.spectralogic.ds3client.commands.HeadObjectResponse;
 import com.spectralogic.ds3client.networking.Metadata;
 

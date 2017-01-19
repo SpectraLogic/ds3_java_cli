@@ -25,9 +25,9 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import static com.spectralogic.ds3cli.util.Constants.DATE_FORMAT;
-import static com.spectralogic.ds3cli.util.Guard.nullGuard;
-import static com.spectralogic.ds3cli.util.Guard.nullGuardFromDate;
+import static com.spectralogic.ds3cli.utils.Constants.DATE_FORMAT;
+import static com.spectralogic.ds3cli.utils.Guard.nullGuard;
+import static com.spectralogic.ds3cli.utils.Guard.nullGuardFromDate;
 
 public class GetServiceView extends TableView<GetServiceResult> {
     private Iterator<BucketDetails> objectIterator;

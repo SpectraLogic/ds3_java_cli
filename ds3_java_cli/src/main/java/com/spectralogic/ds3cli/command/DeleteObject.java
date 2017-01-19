@@ -16,15 +16,15 @@
 package com.spectralogic.ds3cli.command;
 
 import com.google.common.collect.ImmutableList;
-import com.spectralogic.ds3cli.Arguments;
+import com.spectralogic.ds3cli.api.Arguments;
 import com.spectralogic.ds3cli.models.DefaultResult;
 import com.spectralogic.ds3client.commands.DeleteObjectRequest;
 import org.apache.commons.cli.Option;
 
-import static com.spectralogic.ds3cli.ArgumentFactory.BUCKET;
-import static com.spectralogic.ds3cli.ArgumentFactory.OBJECT_NAME;
+import static com.spectralogic.ds3cli.api.ArgumentFactory.BUCKET;
+import static com.spectralogic.ds3cli.api.ArgumentFactory.OBJECT_NAME;
 
-public class DeleteObject extends CliCommand<DefaultResult> {
+public class DeleteObject extends BaseCliCommand<DefaultResult> {
     
     private String bucketName;
     private String objectName;
@@ -35,7 +35,7 @@ public class DeleteObject extends CliCommand<DefaultResult> {
     }
 
     @Override
-    public CliCommand init(final Arguments args) throws Exception {
+    public BaseCliCommand init(final Arguments args) throws Exception {
         processCommandOptions(requiredArgs, EMPTY_LIST, args);
 
         this.bucketName = args.getBucket();

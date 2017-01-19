@@ -19,13 +19,15 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
-import com.spectralogic.ds3cli.Arguments;
-import com.spectralogic.ds3cli.View;
-import com.spectralogic.ds3cli.ViewType;
-import com.spectralogic.ds3cli.exceptions.BadArgumentException;
+import com.spectralogic.ds3cli.api.Arguments;
+import com.spectralogic.ds3cli.api.View;
+import com.spectralogic.ds3cli.api.ViewType;
+import com.spectralogic.ds3cli.api.exceptions.BadArgumentException;
 import com.spectralogic.ds3cli.exceptions.SyncNotSupportedException;
 import com.spectralogic.ds3cli.models.PutBulkResult;
 import com.spectralogic.ds3cli.util.*;
+import com.spectralogic.ds3cli.utils.CliUtils;
+import com.spectralogic.ds3cli.utils.MetadataUtils;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.helpers.FileObjectPutter;
 import com.spectralogic.ds3client.helpers.options.WriteJobOptions;
@@ -49,9 +51,9 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.Map;
 
-import static com.spectralogic.ds3cli.ArgumentFactory.*;
+import static com.spectralogic.ds3cli.api.ArgumentFactory.*;
 
-public class PutBulk extends CliCommand<PutBulkResult> {
+public class PutBulk extends BaseCliCommand<PutBulkResult> {
 
     private final static Logger LOG = LoggerFactory.getLogger(PutBulk.class);
 
@@ -82,7 +84,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
     }
 
     @Override
-    public CliCommand init(final Arguments args) throws Exception {
+    public BaseCliCommand init(final Arguments args) throws Exception {
         // set up Options and parse
         processCommandOptions(requiredArgs, optionalArgs, args);
 

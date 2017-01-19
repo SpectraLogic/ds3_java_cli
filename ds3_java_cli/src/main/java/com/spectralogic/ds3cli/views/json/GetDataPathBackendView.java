@@ -16,9 +16,10 @@
 package com.spectralogic.ds3cli.views.json;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.spectralogic.ds3cli.View;
+import com.spectralogic.ds3cli.api.View;
+import com.spectralogic.ds3cli.jsonview.CommonJsonView;
+import com.spectralogic.ds3cli.jsonview.JsonMapper;
 import com.spectralogic.ds3cli.models.GetDataPathBackendResult;
-import com.spectralogic.ds3cli.util.JsonMapper;
 import com.spectralogic.ds3client.models.DataPathBackend;
 
 public class GetDataPathBackendView implements View<GetDataPathBackendResult> {

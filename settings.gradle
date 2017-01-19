@@ -1,1 +1,1 @@
-include 'ds3-cli-integration', 'ds3_java_cli'
+include 'ds3-cli-api', 'ds3-cli-jsonview', 'ds3-cli-tableview', 'ds3-cli-integration', 'ds3-cli-utils', 'ds3_java_cli'

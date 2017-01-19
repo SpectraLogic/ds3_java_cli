@@ -15,16 +15,16 @@
 
 package com.spectralogic.ds3cli.command;
 
-import com.spectralogic.ds3cli.View;
-import com.spectralogic.ds3cli.ViewType;
+import com.spectralogic.ds3cli.api.View;
+import com.spectralogic.ds3cli.api.ViewType;
+import com.spectralogic.ds3cli.jsonview.DataView;
 import com.spectralogic.ds3cli.models.GetSystemFailureResult;
 import com.spectralogic.ds3cli.views.cli.GetSystemFailureView;
-import com.spectralogic.ds3cli.views.json.DataView;
 import com.spectralogic.ds3client.commands.spectrads3.GetSystemFailuresSpectraS3Request;
 import com.spectralogic.ds3client.commands.spectrads3.GetSystemFailuresSpectraS3Response;
 import com.spectralogic.ds3client.models.SystemFailureList;
 
-public class GetSystemFailure extends CliCommand<GetSystemFailureResult> {
+public class GetSystemFailure extends BaseCliCommand<GetSystemFailureResult> {
 
     public GetSystemFailure() {
     }

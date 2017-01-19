@@ -28,10 +28,15 @@ import ch.qos.logback.core.rolling.RollingFileAppender;
 import ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy;
 import ch.qos.logback.core.rolling.TriggeringPolicy;
 import com.google.common.base.Joiner;
-import com.spectralogic.ds3cli.command.CliCommand;
+import com.spectralogic.ds3cli.api.Arguments;
+import com.spectralogic.ds3cli.api.CliCommand;
+import com.spectralogic.ds3cli.api.CommandResponse;
+import com.spectralogic.ds3cli.api.exceptions.BadArgumentException;
+import com.spectralogic.ds3cli.api.exceptions.CommandException;
+import com.spectralogic.ds3cli.command.BaseCliCommand;
 import com.spectralogic.ds3cli.command.CliCommandFactory;
 import com.spectralogic.ds3cli.exceptions.*;
-import com.spectralogic.ds3cli.util.CliUtils;
+import com.spectralogic.ds3cli.utils.CliUtils;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileSystemProvider;
 import com.spectralogic.ds3client.Ds3Client;
@@ -44,7 +49,7 @@ import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.util.Properties;
 
-import static com.spectralogic.ds3cli.ArgumentFactory.COMMAND;
+import static com.spectralogic.ds3cli.api.ArgumentFactory.COMMAND;
 
 public final class Main {
 
@@ -156,7 +161,7 @@ public final class Main {
             LOG.info("Command line args: {}", Joiner.on(", ").join(args));
             LOG.info("Console log level: {}", arguments.getConsoleLogLevel().toString());
             LOG.info("Log file log level: {}", arguments.getFileLogLevel().toString());
-            LOG.info(CliCommand.getPlatformInformation());
+            LOG.info(CliUtils.getPlatformInformation());
 
             if(arguments.isHelp()) {
                 printHelp(arguments);
@@ -210,9 +215,9 @@ public final class Main {
             return;
         }
         try {
-            final CliCommand helpCommand = CliCommandFactory.getCommandExecutor(arguments.getHelp());
+            final BaseCliCommand helpCommand = CliCommandFactory.getCommandExecutor(arguments.getHelp());
             // command help from Resource
-            System.out.println(CliCommand.getVerboseHelp(arguments.getHelp()));
+            System.out.println(CliUtils.getVerboseHelp(arguments.getHelp()));
             // usage for command args
             helpCommand.printArgumentHelp(arguments);
         } catch (final IllegalArgumentException e) {

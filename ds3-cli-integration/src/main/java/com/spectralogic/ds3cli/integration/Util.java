@@ -17,7 +17,9 @@ package com.spectralogic.ds3cli.integration;
 
 import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3cli.*;
-import com.spectralogic.ds3cli.command.CliCommand;
+import com.spectralogic.ds3cli.api.Arguments;
+import com.spectralogic.ds3cli.api.CommandResponse;
+import com.spectralogic.ds3cli.command.BaseCliCommand;
 import com.spectralogic.ds3cli.command.CliCommandFactory;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileSystemProvider;
@@ -44,7 +46,7 @@ public class Util {
     public static CommandResponse command(final Ds3Client client, final Arguments args) throws Exception {
         final Ds3Provider provider = new Ds3ProviderImpl(client, Ds3ClientHelpers.wrap(client));
         final FileSystemProvider fileSystemProvider = new FileSystemProviderImpl();
-        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(provider, fileSystemProvider);
+        final BaseCliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(provider, fileSystemProvider);
         command.init(args);
         return command.render();
     }

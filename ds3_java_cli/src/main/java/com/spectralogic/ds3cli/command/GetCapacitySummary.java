@@ -15,9 +15,9 @@
 
 package com.spectralogic.ds3cli.command;
 
-import com.spectralogic.ds3cli.View;
-import com.spectralogic.ds3cli.ViewType;
-import com.spectralogic.ds3cli.exceptions.CommandException;
+import com.spectralogic.ds3cli.api.View;
+import com.spectralogic.ds3cli.api.ViewType;
+import com.spectralogic.ds3cli.api.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.GetCapacitySummaryResult;
 import com.spectralogic.ds3client.commands.spectrads3.GetSystemCapacitySummarySpectraS3Request;
 import com.spectralogic.ds3client.commands.spectrads3.GetSystemCapacitySummarySpectraS3Response;
@@ -25,7 +25,7 @@ import com.spectralogic.ds3client.models.CapacitySummaryContainer;
 
 import java.io.IOException;
 
-public class GetCapacitySummary extends CliCommand<GetCapacitySummaryResult> {
+public class GetCapacitySummary extends BaseCliCommand<GetCapacitySummaryResult> {
 
     public GetCapacitySummary() {
     }

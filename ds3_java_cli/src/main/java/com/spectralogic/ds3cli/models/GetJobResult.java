@@ -16,6 +16,7 @@
 package com.spectralogic.ds3cli.models;
 
 
+import com.spectralogic.ds3cli.api.Result;
 import com.spectralogic.ds3client.models.MasterObjectList;
 
 public class GetJobResult implements Result<MasterObjectList> {

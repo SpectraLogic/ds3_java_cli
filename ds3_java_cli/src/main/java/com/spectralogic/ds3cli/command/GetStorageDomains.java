@@ -16,10 +16,10 @@
 package com.spectralogic.ds3cli.command;
 
 import com.google.common.collect.ImmutableList;
-import com.spectralogic.ds3cli.Arguments;
-import com.spectralogic.ds3cli.View;
-import com.spectralogic.ds3cli.ViewType;
-import com.spectralogic.ds3cli.exceptions.CommandException;
+import com.spectralogic.ds3cli.api.Arguments;
+import com.spectralogic.ds3cli.api.View;
+import com.spectralogic.ds3cli.api.ViewType;
+import com.spectralogic.ds3cli.api.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.GetStorageDomainsResult;
 import com.spectralogic.ds3client.commands.spectrads3.GetStorageDomainSpectraS3Request;
 import com.spectralogic.ds3client.commands.spectrads3.GetStorageDomainSpectraS3Response;
@@ -31,10 +31,10 @@ import org.apache.commons.cli.Option;
 
 import java.io.IOException;
 
-import static com.spectralogic.ds3cli.ArgumentFactory.ID;
-import static com.spectralogic.ds3cli.ArgumentFactory.WRITE_OPTIMIZATION;
+import static com.spectralogic.ds3cli.api.ArgumentFactory.ID;
+import static com.spectralogic.ds3cli.api.ArgumentFactory.WRITE_OPTIMIZATION;
 
-public class GetStorageDomains extends CliCommand<GetStorageDomainsResult> {
+public class GetStorageDomains extends BaseCliCommand<GetStorageDomainsResult> {
 
     private final static ImmutableList<Option> optionalArgs = ImmutableList.of(ID, WRITE_OPTIMIZATION);
 
@@ -45,7 +45,7 @@ public class GetStorageDomains extends CliCommand<GetStorageDomainsResult> {
     }
 
     @Override
-    public CliCommand init(final Arguments args) throws Exception {
+    public BaseCliCommand init(final Arguments args) throws Exception {
         processCommandOptions(EMPTY_LIST, optionalArgs, args);
 
         this.id = args.getId();

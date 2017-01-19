@@ -16,6 +16,7 @@
 package com.spectralogic.ds3cli.models;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.spectralogic.ds3cli.api.Result;
 import com.spectralogic.ds3client.models.TapeFailureList;
 
 public class VerifyAllTapesResult implements Result<TapeFailureList> {

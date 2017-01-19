@@ -15,15 +15,15 @@
 
 package com.spectralogic.ds3cli.command;
 
-import com.spectralogic.ds3cli.View;
-import com.spectralogic.ds3cli.ViewType;
+import com.spectralogic.ds3cli.api.View;
+import com.spectralogic.ds3cli.api.ViewType;
+import com.spectralogic.ds3cli.jsonview.DataView;
 import com.spectralogic.ds3cli.models.GetTapeFailureResult;
 import com.spectralogic.ds3cli.views.cli.GetTapeFailureView;
-import com.spectralogic.ds3cli.views.json.DataView;
 import com.spectralogic.ds3client.commands.spectrads3.GetTapeFailuresSpectraS3Request;
 import com.spectralogic.ds3client.commands.spectrads3.GetTapeFailuresSpectraS3Response;
 
-public class GetTapeFailure extends CliCommand<GetTapeFailureResult> {
+public class GetTapeFailure extends BaseCliCommand<GetTapeFailureResult> {
 
     public GetTapeFailure() {
     }

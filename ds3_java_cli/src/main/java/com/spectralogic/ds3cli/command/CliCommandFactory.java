@@ -19,18 +19,18 @@ import com.google.common.base.CaseFormat;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.FluentIterable;
-import com.spectralogic.ds3cli.exceptions.CommandException;
+import com.spectralogic.ds3cli.api.exceptions.CommandException;
 
 import javax.annotation.Nullable;
 import java.util.ServiceLoader;
 
 public final class CliCommandFactory {
 
-    public static CliCommand getCommandExecutor(final String commandName) throws CommandException {
+    public static BaseCliCommand getCommandExecutor(final String commandName) throws CommandException {
         final String commandCamel = CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, commandName.toString());
 
-        final Iterable<CliCommand> implementations = getAllCommands();
-        for  (final CliCommand implementation : implementations) {
+        final Iterable<BaseCliCommand> implementations = getAllCommands();
+        for  (final BaseCliCommand implementation : implementations) {
             final String className = implementation.getClass().getSimpleName();
             if (className.equalsIgnoreCase(commandCamel)) {
                 return implementation;
@@ -43,10 +43,10 @@ public final class CliCommandFactory {
         final StringBuilder commandHelp = new StringBuilder("Installed Commands: ");
 
         final FluentIterable<String> commands = FluentIterable.from(getAllCommands()).transform(
-                new Function<CliCommand, String>() {
+                new Function<BaseCliCommand, String>() {
                     @Nullable
                     @Override
-                    public String apply(@Nullable final CliCommand input) {
+                    public String apply(@Nullable final BaseCliCommand input) {
                         return CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, input.getClass().getSimpleName());
                     }
                 }
@@ -56,8 +56,8 @@ public final class CliCommandFactory {
         return commandHelp.toString();
     }
 
-    private static Iterable<CliCommand> getAllCommands() {
-        return ServiceLoader.load(CliCommand.class);
+    private static Iterable<BaseCliCommand> getAllCommands() {
+        return ServiceLoader.load(BaseCliCommand.class);
     }
 
 }

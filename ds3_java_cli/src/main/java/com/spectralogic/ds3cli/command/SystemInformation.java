@@ -20,7 +20,7 @@ import com.spectralogic.ds3client.commands.spectrads3.GetSystemInformationSpectr
 import com.spectralogic.ds3client.commands.spectrads3.GetSystemInformationSpectraS3Response;
 import com.spectralogic.ds3client.models.BuildInformation;
 
-public class SystemInformation extends CliCommand<DefaultResult> {
+public class SystemInformation extends BaseCliCommand<DefaultResult> {
     public SystemInformation() {
     }
 

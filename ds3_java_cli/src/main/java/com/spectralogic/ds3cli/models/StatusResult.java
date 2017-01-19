@@ -16,6 +16,7 @@
 package com.spectralogic.ds3cli.models;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.spectralogic.ds3cli.api.Result;
 
 public class StatusResult implements Result<String> {
     @JsonProperty("status_message")

@@ -16,18 +16,18 @@
 package com.spectralogic.ds3cli.command;
 
 import com.google.common.collect.ImmutableList;
-import com.spectralogic.ds3cli.Arguments;
-import com.spectralogic.ds3cli.View;
-import com.spectralogic.ds3cli.ViewType;
+import com.spectralogic.ds3cli.api.Arguments;
+import com.spectralogic.ds3cli.api.View;
+import com.spectralogic.ds3cli.api.ViewType;
+import com.spectralogic.ds3cli.jsonview.DataView;
 import com.spectralogic.ds3cli.models.GetJobsResult;
 import com.spectralogic.ds3cli.views.cli.GetJobsView;
-import com.spectralogic.ds3cli.views.json.DataView;
 import com.spectralogic.ds3client.commands.spectrads3.GetJobsSpectraS3Request;
 import org.apache.commons.cli.Option;
 
-import static com.spectralogic.ds3cli.ArgumentFactory.COMPLETED;
+import static com.spectralogic.ds3cli.api.ArgumentFactory.COMPLETED;
 
-public class GetJobs extends CliCommand<GetJobsResult> {
+public class GetJobs extends BaseCliCommand<GetJobsResult> {
 
     private final static ImmutableList<Option> optionalArgs = ImmutableList.of(COMPLETED);
 
@@ -37,7 +37,7 @@ public class GetJobs extends CliCommand<GetJobsResult> {
     }
 
     @Override
-    public CliCommand init(final Arguments args) throws Exception {
+    public BaseCliCommand init(final Arguments args) throws Exception {
         processCommandOptions(EMPTY_LIST, optionalArgs, args);
 
         this.completed = args.isCompleted();

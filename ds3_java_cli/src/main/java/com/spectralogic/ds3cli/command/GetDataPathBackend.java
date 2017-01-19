@@ -15,9 +15,9 @@
 
 package com.spectralogic.ds3cli.command;
 
-import com.spectralogic.ds3cli.View;
-import com.spectralogic.ds3cli.ViewType;
-import com.spectralogic.ds3cli.exceptions.CommandException;
+import com.spectralogic.ds3cli.api.View;
+import com.spectralogic.ds3cli.api.ViewType;
+import com.spectralogic.ds3cli.api.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.GetDataPathBackendResult;
 import com.spectralogic.ds3client.commands.spectrads3.GetDataPathBackendSpectraS3Request;
 import com.spectralogic.ds3client.commands.spectrads3.GetDataPathBackendSpectraS3Response;
@@ -25,7 +25,7 @@ import com.spectralogic.ds3client.models.DataPathBackend;
 
 import java.io.IOException;
 
-public class GetDataPathBackend extends CliCommand<GetDataPathBackendResult> {
+public class GetDataPathBackend extends BaseCliCommand<GetDataPathBackendResult> {
 
     public GetDataPathBackend() {
     }

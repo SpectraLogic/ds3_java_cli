@@ -24,7 +24,7 @@ import com.spectralogic.ds3client.utils.Guard;
 
 import java.util.List;
 
-import static com.spectralogic.ds3cli.util.Guard.nullGuard;
+import static com.spectralogic.ds3cli.utils.Guard.nullGuard;
 
 public class VerifyAllTapesView extends TableView<VerifyAllTapesResult> {
 

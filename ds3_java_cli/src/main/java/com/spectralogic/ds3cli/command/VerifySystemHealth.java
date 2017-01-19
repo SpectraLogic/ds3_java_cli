@@ -16,11 +16,12 @@
 package com.spectralogic.ds3cli.command;
 
 import com.spectralogic.ds3cli.models.DefaultResult;
-import com.spectralogic.ds3cli.util.Guard;
 import com.spectralogic.ds3client.commands.spectrads3.VerifySystemHealthSpectraS3Request;
 import com.spectralogic.ds3client.commands.spectrads3.VerifySystemHealthSpectraS3Response;
 
-public class VerifySystemHealth extends CliCommand<DefaultResult> {
+import static com.spectralogic.ds3cli.utils.Guard.nullGuardToString;
+
+public class VerifySystemHealth extends BaseCliCommand<DefaultResult> {
     public VerifySystemHealth() {
     }
 
@@ -29,7 +30,7 @@ public class VerifySystemHealth extends CliCommand<DefaultResult> {
         final VerifySystemHealthSpectraS3Response response = getClient().verifySystemHealthSpectraS3(new VerifySystemHealthSpectraS3Request());
 
         final com.spectralogic.ds3client.models.HealthVerificationResult sysInfo = response.getHealthVerificationResult();
-        final String freeSpace = Guard.nullGuardToString(sysInfo.getDatabaseFilesystemFreeSpace());
+        final String freeSpace = nullGuardToString(sysInfo.getDatabaseFilesystemFreeSpace());
         return new DefaultResult(String.format("Database filesystem free space: %s", freeSpace));
     }
 }

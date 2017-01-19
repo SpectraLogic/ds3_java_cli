@@ -24,7 +24,7 @@ import com.spectralogic.ds3client.networking.Metadata;
 import java.util.List;
 import java.util.Set;
 
-import static com.spectralogic.ds3cli.util.Guard.nullGuard;
+import static com.spectralogic.ds3cli.utils.Guard.nullGuard;
 
 public class HeadObjectView extends TableView<HeadObjectResult> {
 

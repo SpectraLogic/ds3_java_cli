@@ -17,7 +17,7 @@ package com.spectralogic.ds3cli.views.cli;
 
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.spectralogic.ds3cli.View;
+import com.spectralogic.ds3cli.api.View;
 import com.spectralogic.ds3cli.models.GetConfigSummaryResult;
 
 public class GetConfigSummaryView implements View<GetConfigSummaryResult> {

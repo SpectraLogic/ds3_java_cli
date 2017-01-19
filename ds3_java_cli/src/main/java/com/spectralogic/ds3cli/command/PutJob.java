@@ -16,7 +16,7 @@
 package com.spectralogic.ds3cli.command;
 
 import com.google.common.collect.ImmutableList;
-import com.spectralogic.ds3cli.Arguments;
+import com.spectralogic.ds3cli.api.Arguments;
 import com.spectralogic.ds3cli.models.DefaultResult;
 import com.spectralogic.ds3client.commands.spectrads3.ModifyJobSpectraS3Request;
 import com.spectralogic.ds3client.models.Priority;
@@ -24,10 +24,10 @@ import org.apache.commons.cli.Option;
 
 import java.util.UUID;
 
-import static com.spectralogic.ds3cli.ArgumentFactory.ID;
-import static com.spectralogic.ds3cli.ArgumentFactory.PRIORITY;
+import static com.spectralogic.ds3cli.api.ArgumentFactory.ID;
+import static com.spectralogic.ds3cli.api.ArgumentFactory.PRIORITY;
 
-public class PutJob extends CliCommand<DefaultResult> {
+public class PutJob extends BaseCliCommand<DefaultResult> {
 
     private final static ImmutableList<Option> requiredArgs = ImmutableList.of(ID);
     private final static ImmutableList<Option> optionalArgs = ImmutableList.of(PRIORITY);
@@ -39,7 +39,7 @@ public class PutJob extends CliCommand<DefaultResult> {
     }
 
     @Override
-    public CliCommand init(final Arguments args) throws Exception {
+    public BaseCliCommand init(final Arguments args) throws Exception {
         processCommandOptions(requiredArgs, optionalArgs, args);
 
         this.jobId = UUID.fromString(args.getId());

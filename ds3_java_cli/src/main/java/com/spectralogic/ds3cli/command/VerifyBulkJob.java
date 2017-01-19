@@ -16,13 +16,13 @@
 package com.spectralogic.ds3cli.command;
 
 import com.google.common.collect.ImmutableList;
-import com.spectralogic.ds3cli.Arguments;
-import com.spectralogic.ds3cli.View;
-import com.spectralogic.ds3cli.ViewType;
-import com.spectralogic.ds3cli.exceptions.CommandException;
+import com.spectralogic.ds3cli.api.Arguments;
+import com.spectralogic.ds3cli.api.View;
+import com.spectralogic.ds3cli.api.ViewType;
+import com.spectralogic.ds3cli.api.exceptions.CommandException;
+import com.spectralogic.ds3cli.jsonview.DataView;
 import com.spectralogic.ds3cli.models.VerifyBulkJobResult;
 import com.spectralogic.ds3cli.views.cli.VerifyBulkJobView;
-import com.spectralogic.ds3cli.views.json.DataView;
 import com.spectralogic.ds3client.commands.spectrads3.VerifyBulkJobSpectraS3Request;
 import com.spectralogic.ds3client.commands.spectrads3.VerifyBulkJobSpectraS3Response;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
@@ -35,9 +35,9 @@ import org.apache.commons.cli.Option;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.spectralogic.ds3cli.ArgumentFactory.*;
+import static com.spectralogic.ds3cli.api.ArgumentFactory.*;
 
-public class VerifyBulkJob extends CliCommand<VerifyBulkJobResult> {
+public class VerifyBulkJob extends BaseCliCommand<VerifyBulkJobResult> {
 
     private final static ImmutableList<Option> requiredArgs = ImmutableList.of(BUCKET);
     private final static ImmutableList<Option> optionalArgs = ImmutableList.of(PREFIX, PRIORITY);
@@ -47,7 +47,7 @@ public class VerifyBulkJob extends CliCommand<VerifyBulkJobResult> {
     private Priority priority;
 
     @Override
-    public CliCommand init(final Arguments args) throws Exception {
+    public BaseCliCommand init(final Arguments args) throws Exception {
         processCommandOptions(requiredArgs, optionalArgs, args);
 
         this.priority = args.getPriority();

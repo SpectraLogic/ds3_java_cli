@@ -16,22 +16,22 @@
 package com.spectralogic.ds3cli.command;
 
 import com.google.common.collect.ImmutableList;
-import com.spectralogic.ds3cli.Arguments;
-import com.spectralogic.ds3cli.View;
-import com.spectralogic.ds3cli.ViewType;
-import com.spectralogic.ds3cli.exceptions.CommandException;
+import com.spectralogic.ds3cli.api.Arguments;
+import com.spectralogic.ds3cli.api.View;
+import com.spectralogic.ds3cli.api.ViewType;
+import com.spectralogic.ds3cli.api.exceptions.CommandException;
+import com.spectralogic.ds3cli.jsonview.DataView;
 import com.spectralogic.ds3cli.models.GetDataPoliciesResult;
 import com.spectralogic.ds3cli.views.cli.GetDataPoliciesView;
-import com.spectralogic.ds3cli.views.json.DataView;
 import com.spectralogic.ds3client.commands.spectrads3.GetDataPolicySpectraS3Request;
 import com.spectralogic.ds3client.commands.spectrads3.GetDataPolicySpectraS3Response;
 import org.apache.commons.cli.Option;
 
 import java.io.IOException;
 
-import static com.spectralogic.ds3cli.ArgumentFactory.ID;
+import static com.spectralogic.ds3cli.api.ArgumentFactory.ID;
 
-public class GetDataPolicy extends CliCommand<GetDataPoliciesResult> {
+public class GetDataPolicy extends BaseCliCommand<GetDataPoliciesResult> {
 
     private final static ImmutableList<Option> requiredArgs = ImmutableList.of(ID);
 
@@ -42,7 +42,7 @@ public class GetDataPolicy extends CliCommand<GetDataPoliciesResult> {
     }
 
     @Override
-    public CliCommand init(final Arguments args) throws Exception {
+    public BaseCliCommand init(final Arguments args) throws Exception {
         addRequiredArguments(requiredArgs, args);
         args.parseCommandLine();
 

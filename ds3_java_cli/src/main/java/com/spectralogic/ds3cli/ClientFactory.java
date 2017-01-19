@@ -15,7 +15,8 @@
 
 package com.spectralogic.ds3cli;
 
-import com.spectralogic.ds3cli.exceptions.BadArgumentException;
+import com.spectralogic.ds3cli.api.Arguments;
+import com.spectralogic.ds3cli.api.exceptions.BadArgumentException;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.Ds3ClientBuilder;
 import com.spectralogic.ds3client.models.common.Credentials;
@@ -23,7 +24,7 @@ import com.spectralogic.ds3client.utils.Guard;
 import org.apache.commons.cli.MissingOptionException;
 import org.apache.commons.cli.Option;
 
-import static com.spectralogic.ds3cli.ArgumentFactory.*;
+import static com.spectralogic.ds3cli.api.ArgumentFactory.*;
 
 public final class ClientFactory {
 
