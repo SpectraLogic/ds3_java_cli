@@ -2512,6 +2512,50 @@ public class Ds3Cli_Test {
     }
 
     @Test
+    public void ejectTape() throws Exception {
+        final String expectedString =
+                "Tape Bar Code: 362449L5, ID: 190da533-a254-4fbd-ae71-c2aed0580448, Tape Type: LTO5, " +
+                        "Serial Number: HP-G140314442, State: FORMAT_IN_PROGRESS, " +
+                        "Partition Id 9bccaba8-440a-431f-9357-5a66c48d09f2, Available Space: 1424834428928, " +
+                        "Full: false, Write Protected: false, " +
+                        "Last Modified: 2017-01-19T22:16:09.000Z, Last Verification: N/A";
+
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "eject_tape", "-i", "52741a53-24d5-4391-87a9-9cce703d7ed7"});
+        final Ds3Client client = mock(Ds3Client.class);
+        final Headers headers = mock(Headers.class);
+        final WebResponse webResponse = mock(WebResponse.class);
+        final InputStream stream = IOUtils.toInputStream("<Data>" +
+                "<AssignedToStorageDomain>false</AssignedToStorageDomain>" +
+                "<AvailableRawCapacity>1424834428928</AvailableRawCapacity>" +
+                "<BarCode>362449L5</BarCode><BucketId/>" +
+                "<DescriptionForIdentification>67e68d2e-eaf0-4430-a2c1-05991b522cc3:BlackPearl@59ee0e90-a3e5-46e7-932b-0d9ce2096025</DescriptionForIdentification>" +
+                "<EjectDate/><EjectLabel/><EjectLocation/><EjectPending>2017-01-19T22:17:03.000Z</EjectPending>" +
+                "<FullOfData>false</FullOfData><Id>190da533-a254-4fbd-ae71-c2aed0580448</Id>" +
+                "<LastAccessed>2017-01-19T22:16:09.000Z</LastAccessed><LastCheckpoint/>" +
+                "<LastModified>2017-01-19T22:16:09.000Z</LastModified><LastVerified/>" +
+                "<PartiallyVerifiedEndOfTape/><PartitionId>9bccaba8-440a-431f-9357-5a66c48d09f2</PartitionId>" +
+                "<PreviousState>FOREIGN</PreviousState><SerialNumber>HP-G140314442</SerialNumber>" +
+                "<State>FORMAT_IN_PROGRESS</State><StorageDomainId/>" +
+                "<TakeOwnershipPending>false</TakeOwnershipPending><TotalRawCapacity>1425000103936</TotalRawCapacity>" +
+                "<Type>LTO5</Type><VerifyPending/><WriteProtected>false</WriteProtected>" +
+                "</Data>", "utf-8");
+
+        when(webResponse.getStatusCode()).thenReturn(200);
+        when(webResponse.getHeaders()).thenReturn(headers);
+        when(webResponse.getResponseStream()).thenReturn(stream);
+
+        final EjectTapeSpectraS3Response tapesResponse = new EjectTapeSpectraS3Response(webResponse);
+        when(client.ejectTapeSpectraS3(any(EjectTapeSpectraS3Request.class))).thenReturn(tapesResponse);
+
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand())
+                .withProvider(new Ds3ProviderImpl(client, null), null);
+        command.init(args);
+        final CommandResponse result = command.render();
+        assertThat(result.getMessage(), is(expectedString));
+        assertThat(result.getReturnCode(), is(0));
+    }
+
+    @Test
     public void headObject() throws Exception {
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "head_object", "-b", "bucketName", "-o", "ulysses.txt"});
         final Ds3Client client = mock(Ds3Client.class);
