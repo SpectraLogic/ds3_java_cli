@@ -56,19 +56,14 @@ public class EjectTape extends CliCommand<TapeResult> {
     @Override
     public TapeResult call() throws Exception {
 
-        EjectTapeSpectraS3Request request;
-        if (!Guard.isStringNullOrEmpty(ejectLabel) && !Guard.isStringNullOrEmpty(ejectLocation)) {
-            request = new EjectTapeSpectraS3Request(id)
-                        .withEjectLabel(ejectLabel).withEjectLocation(ejectLocation);
-        } else if (!Guard.isStringNullOrEmpty(ejectLabel)) {
-            request = new EjectTapeSpectraS3Request(id)
-                        .withEjectLabel(ejectLabel);
-        } else if (!Guard.isStringNullOrEmpty(ejectLocation)) {
-            request = new EjectTapeSpectraS3Request(id)
-                        .withEjectLocation(ejectLocation);
-        } else  {
-            request = new EjectTapeSpectraS3Request(id);
+        final EjectTapeSpectraS3Request request = new EjectTapeSpectraS3Request(id);
+        if (!Guard.isStringNullOrEmpty(ejectLabel)) {
+            request.withEjectLabel(ejectLabel);
         }
+        if (!Guard.isStringNullOrEmpty(ejectLocation)) {
+            request.withEjectLocation(ejectLocation);
+        }
+
         final EjectTapeSpectraS3Response response = this.getClient().ejectTapeSpectraS3(request);
 
         return new TapeResult(response.getTapeResult());
