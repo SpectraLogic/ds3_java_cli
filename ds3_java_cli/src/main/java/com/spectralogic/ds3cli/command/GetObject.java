@@ -32,8 +32,7 @@ import com.spectralogic.ds3client.models.bulk.PartialDs3Object;
 import com.spectralogic.ds3client.models.common.Range;
 import com.spectralogic.ds3client.networking.Metadata;
 import com.spectralogic.ds3client.serializer.XmlProcessingException;
-import com.spectralogic.ds3client.utils.Guard;
-import org.apache.commons.cli.MissingArgumentException;
+import org.apache.commons.cli.MissingOptionException;
 import org.apache.commons.cli.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -84,7 +83,7 @@ public class GetObject extends CliCommand<DefaultResult> {
         // if you set one, you must set both start and length
         if (args.getRangeLength() != null || args.getRangeStart() != null ) {
             if (args.getRangeLength() == null || args.getRangeStart() == null) {
-                throw new MissingArgumentException("Partial recovery must provide values for both "
+                throw new MissingOptionException("Partial recovery must provide values for both "
                                                     + RANGE_START.getLongOpt() + " and "
                                                     + RANGE_LENGTH.getLongOpt());
             } else {

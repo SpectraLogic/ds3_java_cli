@@ -37,7 +37,6 @@ import com.spectralogic.ds3client.networking.FailedRequestException;
 import com.spectralogic.ds3client.networking.Headers;
 import com.spectralogic.ds3client.networking.WebResponse;
 import com.spectralogic.ds3client.serializer.XmlOutput;
-import org.apache.commons.cli.MissingArgumentException;
 import org.apache.commons.cli.MissingOptionException;
 import org.apache.commons.cli.UnrecognizedOptionException;
 import org.apache.commons.io.IOUtils;
@@ -885,7 +884,7 @@ public class Ds3Cli_Test {
         assertThat(result.getReturnCode(), is(0));
     }
 
-    @Test(expected = MissingArgumentException.class)
+    @Test(expected = MissingOptionException.class)
     public void getObjectPartialBadArgs() throws Exception {
         final String expected = "Error (MissingArgumentException): Partial recovery must provide values for both range-start and range-length";
 
