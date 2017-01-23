@@ -37,6 +37,7 @@ import com.spectralogic.ds3client.networking.FailedRequestException;
 import com.spectralogic.ds3client.networking.Headers;
 import com.spectralogic.ds3client.networking.WebResponse;
 import com.spectralogic.ds3client.serializer.XmlOutput;
+import org.apache.commons.cli.MissingArgumentException;
 import org.apache.commons.cli.MissingOptionException;
 import org.apache.commons.cli.UnrecognizedOptionException;
 import org.apache.commons.io.IOUtils;
@@ -864,6 +865,35 @@ public class Ds3Cli_Test {
         final CommandResponse result = command.render();
         assertTrue(result.getMessage().endsWith(expected));
         assertThat(result.getReturnCode(), is(0));
+    }
+
+    @Test
+    public void getObjectPartial() throws Exception {
+        final String expected = "SUCCESS: Finished downloading object.  The object was written to: ." + SterilizeString.getFileDelimiter() + "obj.txt";
+
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "--range-start", "0", "--range-length", "100", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_object", "-b", "bucketName", "-o", "obj.txt"});
+        final Ds3ClientHelpers helpers = mock(Ds3ClientHelpers.class);
+        final Ds3ClientHelpers.Job mockedGetJob = mock(Ds3ClientHelpers.Job.class);
+        final FileSystemProvider mockedFileSystemProvider = mock(FileSystemProvider.class);
+        when(helpers.startReadJob(eq("bucketName"), (Iterable<Ds3Object>) isNotNull(), any(ReadJobOptions.class))).thenReturn(mockedGetJob);
+
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand())
+                .withProvider(new Ds3ProviderImpl(null, helpers), mockedFileSystemProvider);
+        command.init(args);
+        final CommandResponse result = command.render();
+        assertThat(result.getMessage(), is(expected));
+        assertThat(result.getReturnCode(), is(0));
+    }
+
+    @Test(expected = MissingArgumentException.class)
+    public void getObjectPartialBadArgs() throws Exception {
+        final String expected = "Error (MissingArgumentException): Partial recovery must provide values for both range-start and range-length";
+
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "--range-start", "0", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_object", "-b", "bucketName", "-o", "obj.txt"});
+
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand())
+                .withProvider(new Ds3ProviderImpl(null, null), null);
+        command.init(args);
     }
 
     @Test

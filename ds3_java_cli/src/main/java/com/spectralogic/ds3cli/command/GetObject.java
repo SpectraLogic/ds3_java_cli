@@ -28,8 +28,12 @@ import com.spectralogic.ds3client.helpers.MetadataReceivedListener;
 import com.spectralogic.ds3client.helpers.options.ReadJobOptions;
 import com.spectralogic.ds3client.models.Priority;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
+import com.spectralogic.ds3client.models.bulk.PartialDs3Object;
+import com.spectralogic.ds3client.models.common.Range;
 import com.spectralogic.ds3client.networking.Metadata;
 import com.spectralogic.ds3client.serializer.XmlProcessingException;
+import com.spectralogic.ds3client.utils.Guard;
+import org.apache.commons.cli.MissingArgumentException;
 import org.apache.commons.cli.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,7 +51,7 @@ public class GetObject extends CliCommand<DefaultResult> {
 
     private final static ImmutableList<Option> requiredArgs = ImmutableList.of(BUCKET, OBJECT_NAME);
     private final static ImmutableList<Option> optionalArgs = ImmutableList.of(DIRECTORY, SYNC,
-            FORCE, NUMBER_OF_THREADS, PRIORITY);
+            FORCE, NUMBER_OF_THREADS, PRIORITY, RANGE_START, RANGE_LENGTH);
 
     private String bucketName;
     private String objectName;
@@ -55,6 +59,8 @@ public class GetObject extends CliCommand<DefaultResult> {
     private boolean sync;
     private int numberOfThreads;
     private Priority priority;
+    private long rangeStart = 0L;
+    private long rangeLength = 0L;
 
     public GetObject() {
     }
@@ -74,6 +80,18 @@ public class GetObject extends CliCommand<DefaultResult> {
             this.sync = true;
         }
         this.numberOfThreads = args.getNumberOfThreads();
+
+        // if you set one, you must set both start and length
+        if (args.getRangeLength() != null || args.getRangeStart() != null ) {
+            if (args.getRangeLength() == null || args.getRangeStart() == null) {
+                throw new MissingArgumentException("Partial recovery must provide values for both "
+                                                    + RANGE_START.getLongOpt() + " and "
+                                                    + RANGE_LENGTH.getLongOpt());
+            } else {
+                this.rangeStart = Long.parseLong(args.getOptionValue(RANGE_START.getLongOpt()));
+                this.rangeLength = Long.parseLong(args.getOptionValue(RANGE_LENGTH.getLongOpt()));
+            }
+        }
         return this;
     }
 
@@ -83,7 +101,14 @@ public class GetObject extends CliCommand<DefaultResult> {
         final Path filePath = Paths.get(this.prefix, this.objectName);
         LOG.info("Output path: {}", filePath.toString());
 
-        final Ds3Object ds3Obj = new Ds3Object(this.objectName.replace("\\", "/"));
+        final Ds3Object ds3Obj;
+        if (this.rangeLength > 0L) {
+            ds3Obj = new PartialDs3Object(this.objectName.replace("\\", "/"),
+                    Range.byLength(this.rangeStart, this.rangeLength));
+        } else {
+            ds3Obj = new Ds3Object(this.objectName.replace("\\", "/"));
+        }
+
         if (this.sync && FileUtils.fileExists(filePath)) {
             if (SyncUtils.needToSync(helpers, this.bucketName, filePath, ds3Obj.getName(), false)) {
                 this.Transfer(helpers, ds3Obj);
