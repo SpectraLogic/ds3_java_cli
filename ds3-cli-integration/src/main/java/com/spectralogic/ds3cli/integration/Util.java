@@ -27,6 +27,7 @@ import com.spectralogic.ds3client.commands.spectrads3.GetSystemInformationSpectr
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -69,7 +70,7 @@ public class Util {
     }
 
     public static Iterable<String> readLocalFile(final String fileName) throws IOException {
-        return Files.readAllLines(Paths.get(DOWNLOAD_BASE_NAME + fileName));
+        return Files.readAllLines(Paths.get(DOWNLOAD_BASE_NAME + fileName), Charset.defaultCharset());
     }
 
     public static void copyFile(final String fileName, final String from, final String to) throws IOException {
