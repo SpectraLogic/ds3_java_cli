@@ -32,6 +32,7 @@ import com.spectralogic.ds3client.models.bulk.PartialDs3Object;
 import com.spectralogic.ds3client.models.common.Range;
 import com.spectralogic.ds3client.networking.Metadata;
 import com.spectralogic.ds3client.serializer.XmlProcessingException;
+import com.spectralogic.ds3client.utils.Guard;
 import org.apache.commons.cli.MissingOptionException;
 import org.apache.commons.cli.Option;
 import org.slf4j.Logger;
@@ -50,7 +51,7 @@ public class GetObject extends CliCommand<DefaultResult> {
 
     private final static ImmutableList<Option> requiredArgs = ImmutableList.of(BUCKET, OBJECT_NAME);
     private final static ImmutableList<Option> optionalArgs = ImmutableList.of(DIRECTORY, SYNC,
-            FORCE, NUMBER_OF_THREADS, PRIORITY, RANGE_START, RANGE_LENGTH);
+            FORCE, NUMBER_OF_THREADS, PRIORITY, RANGE_OFFSET, RANGE_LENGTH);
 
     private String bucketName;
     private String objectName;
@@ -81,13 +82,13 @@ public class GetObject extends CliCommand<DefaultResult> {
         this.numberOfThreads = args.getNumberOfThreads();
 
         // if you set one, you must set both start and length
-        if (args.getRangeLength() != null || args.getRangeStart() != null ) {
-            if (args.getRangeLength() == null || args.getRangeStart() == null) {
+        if (!Guard.isStringNullOrEmpty(args.getRangeLength()) || !Guard.isStringNullOrEmpty(args.getRangeOffset())) {
+            if (Guard.isStringNullOrEmpty(args.getRangeLength()) || Guard.isStringNullOrEmpty(args.getRangeLength())) {
                 throw new MissingOptionException("Partial recovery must provide values for both "
-                                                    + RANGE_START.getLongOpt() + " and "
+                                                    + RANGE_OFFSET.getLongOpt() + " and "
                                                     + RANGE_LENGTH.getLongOpt());
             } else {
-                this.rangeStart = Long.parseLong(args.getOptionValue(RANGE_START.getLongOpt()));
+                this.rangeStart = Long.parseLong(args.getOptionValue(RANGE_OFFSET.getLongOpt()));
                 this.rangeLength = Long.parseLong(args.getOptionValue(RANGE_LENGTH.getLongOpt()));
             }
         }

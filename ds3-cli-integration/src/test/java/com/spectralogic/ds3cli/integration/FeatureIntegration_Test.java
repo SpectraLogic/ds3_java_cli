@@ -160,7 +160,7 @@ public class FeatureIntegration_Test {
             Util.loadBookTestData(client, bucketName);
 
             final Arguments args = new Arguments(new String[]{"--http", "-c", "get_object", "-b", bucketName,
-                    "--range-start", "15", "--range-length", "15",
+                    "--range-offset", "15", "--range-length", "15",
                     "-o", "beowulf.txt", "-d", Util.DOWNLOAD_BASE_NAME});
             final CommandResponse response = Util.command(client, args);
             assertThat(response.getMessage(), is(expectedResponse));

@@ -70,7 +70,7 @@ public class Util {
     }
 
     public static Iterable<String> readLocalFile(final String fileName) throws IOException {
-        return Files.readAllLines(Paths.get(DOWNLOAD_BASE_NAME + fileName), Charset.defaultCharset());
+        return Files.readAllLines(Paths.get(DOWNLOAD_BASE_NAME + fileName), Charset.forName("utf-8"));
     }
 
     public static void copyFile(final String fileName, final String from, final String to) throws IOException {

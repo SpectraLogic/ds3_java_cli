@@ -870,7 +870,7 @@ public class Ds3Cli_Test {
     public void getObjectPartial() throws Exception {
         final String expected = "SUCCESS: Finished downloading object.  The object was written to: ." + SterilizeString.getFileDelimiter() + "obj.txt";
 
-        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "--range-start", "0", "--range-length", "100", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_object", "-b", "bucketName", "-o", "obj.txt"});
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "--range-offset", "0", "--range-length", "100", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_object", "-b", "bucketName", "-o", "obj.txt"});
         final Ds3ClientHelpers helpers = mock(Ds3ClientHelpers.class);
         final Ds3ClientHelpers.Job mockedGetJob = mock(Ds3ClientHelpers.Job.class);
         final FileSystemProvider mockedFileSystemProvider = mock(FileSystemProvider.class);
@@ -888,7 +888,7 @@ public class Ds3Cli_Test {
     public void getObjectPartialBadArgs() throws Exception {
         final String expected = "Error (MissingArgumentException): Partial recovery must provide values for both range-start and range-length";
 
-        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "--range-start", "0", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_object", "-b", "bucketName", "-o", "obj.txt"});
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "--range-offset", "0", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_object", "-b", "bucketName", "-o", "obj.txt"});
 
         final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand())
                 .withProvider(new Ds3ProviderImpl(null, null), null);
