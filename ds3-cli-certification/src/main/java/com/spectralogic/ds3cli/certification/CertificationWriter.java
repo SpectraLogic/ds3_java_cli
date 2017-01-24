@@ -18,14 +18,7 @@ package com.spectralogic.ds3cli.certification;
 import ch.qos.logback.classic.Logger;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.CommandResponse;
-import com.spectralogic.ds3cli.Ds3ProviderImpl;
-import com.spectralogic.ds3cli.FileSystemProviderImpl;
-import com.spectralogic.ds3cli.command.CliCommand;
-import com.spectralogic.ds3cli.command.CliCommandFactory;
-import com.spectralogic.ds3cli.util.Ds3Provider;
-import com.spectralogic.ds3cli.util.FileSystemProvider;
 import com.spectralogic.ds3client.Ds3Client;
-import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;

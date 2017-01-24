@@ -27,9 +27,12 @@ import com.spectralogic.ds3client.Ds3ClientBuilder;
 import com.spectralogic.ds3client.commands.spectrads3.*;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.models.ChecksumType;
+import com.spectralogic.ds3client.models.Job;
+import com.spectralogic.ds3client.models.JobStatus;
 import com.spectralogic.ds3client.models.Quiesced;
 import com.spectralogic.ds3client.models.common.Credentials;
 import com.spectralogic.ds3client.networking.FailedRequestException;
+import com.spectralogic.ds3client.networking.TooManyRedirectsException;
 import org.apache.commons.io.FileUtils;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -42,12 +45,16 @@ import java.io.IOException;
 import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.sql.Time;
 import java.util.Date;
+import java.util.Optional;
 import java.util.UUID;
 
+import static java.lang.Thread.sleep;
 import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.number.OrderingComparison.*;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeThat;
 
 
@@ -287,7 +294,7 @@ public class Certification_Test {
     @Test
     public void test_7_9_cache_full() throws Exception {
         final String testDescription = "7.9: Cache Full for Bulk PUT";
-        final String bucketName = "testCacheFull";
+        final String bucketName = CertificationUtil.getBucketName(testDescription);
         final int numFiles = 175;
         final long fileSize = GB_BYTES;
         final long cacheLimit = 150 * GB_BYTES;
@@ -302,17 +309,14 @@ public class Certification_Test {
         // Quiesce Tape Partition
         try {
             // Must transition state from NO -> PENDING -> YES
-            ModifyAllTapePartitionsSpectraS3Response modAllTapePartitionsResponse = client.modifyAllTapePartitionsSpectraS3(new ModifyAllTapePartitionsSpectraS3Request(Quiesced.PENDING));
-            assertThat(modAllTapePartitionsResponse.getStatusCode(), is(204));
-            modAllTapePartitionsResponse = client.modifyAllTapePartitionsSpectraS3(new ModifyAllTapePartitionsSpectraS3Request(Quiesced.YES));
-            assertThat(modAllTapePartitionsResponse.getStatusCode(), is(204));
+            client.modifyAllTapePartitionsSpectraS3(new ModifyAllTapePartitionsSpectraS3Request(Quiesced.PENDING));
+            client.modifyAllTapePartitionsSpectraS3(new ModifyAllTapePartitionsSpectraS3Request(Quiesced.YES));
         } catch (final FailedRequestException fre) {
             // Ignore Request failure if no tape partitions or they are already quiesced
         }
 
         // Find s3cachefilesystem ID
-        final GetCacheFilesystemsSpectraS3Response getCacheFilesystemsSpectraS3Response= client.getCacheFilesystemsSpectraS3(new GetCacheFilesystemsSpectraS3Request());
-        final UUID cacheFsId = getCacheFilesystemsSpectraS3Response.getCacheFilesystemListResult().getCacheFilesystems().get(0).getId();
+        final UUID cacheFsId = client.getCacheFilesystemsSpectraS3(new GetCacheFilesystemsSpectraS3Request()).getCacheFilesystemListResult().getCacheFilesystems().get(0).getId();
         final GetCacheFilesystemSpectraS3Request getCacheFs = new GetCacheFilesystemSpectraS3Request(cacheFsId.toString());
 
         // Lower s3cachefilesystem to 150GB
@@ -327,39 +331,53 @@ public class Certification_Test {
         assertThat(createBucketResponse.getReturnCode(), is(0));
 
         // Transfer 175 1GB files using JavaCLI methods
-        final Path fillCacheFiles = CertificationUtil.createTempFiles("cache_full", numFiles, fileSize);
+        final Path fillCacheFiles = CertificationUtil.createTempFiles("Cache_Full", numFiles, fileSize);
 
         try {
             final CommandResponse putBulkResponse = OUT.runCommand(client, "--http -c put_bulk -b " + bucketName + " -d " + fillCacheFiles + " -nt 3");
             assertThat(putBulkResponse.getReturnCode(), is(0));
 
             // Wait for Cache full
-        } catch (final IOException ioe) {
+        } catch (final TooManyRedirectsException tmre) {
             // expect to fail because job can't finish when cache fills and no tapes are available to offload to
-            OUT.insertCommandOutput("Caught IOException after BULK_PUT bigger than available cache: ", ioe.toString());
-            //final String cacheFullFailureMsg = "cache full";
-        } finally {
+            OUT.insertCommandOutput("Caught TooManyRedirectsException after BULK_PUT bigger than available cache: ", tmre.getMessage());
 
+            OUT.runCommand(client, "--http -c get_jobs --json");
         }
 
         // Un-quiesce the tape partition to allow cache offload to tape
-        final ModifyAllTapePartitionsSpectraS3Request unQuiesceAllTapePartitions = new ModifyAllTapePartitionsSpectraS3Request(Quiesced.NO);
-        final ModifyAllTapePartitionsSpectraS3Response unQuiesceAllTapePartitionsResponse = client.modifyAllTapePartitionsSpectraS3(unQuiesceAllTapePartitions);
-        assertThat(unQuiesceAllTapePartitionsResponse.getResponse().getStatusCode(), is(0));
-        OUT.insertCommandOutput("Unquiesce Tape Partition: ", unQuiesceAllTapePartitionsResponse.getResponse().getResponseStream().toString());
+        final ModifyAllTapePartitionsSpectraS3Response unQuiesceAllTapePartitionsResponse = client.modifyAllTapePartitionsSpectraS3(new ModifyAllTapePartitionsSpectraS3Request(Quiesced.NO));
+        //assertThat(unQuiesceAllTapePartitionsResponse.getResponse().getStatusCode(), is(0));
+        OUT.insertCommandOutput("Unquiesce Tape Partition status: ", Integer.toString(unQuiesceAllTapePartitionsResponse.getResponse().getStatusCode()));
 
         // Resume the job
-        final CommandResponse allJobsResponse = OUT.runCommand(client, "--http -c get_jobs --json");
-        //assertThat(allJobsResponse.getMessage(), containsString("cache_full"));
-
-        //HELPERS.recoverWriteJob()
+        final GetJobsSpectraS3Response allJobs = client.getJobsSpectraS3(new GetJobsSpectraS3Request());
+        final Optional<Job> bulkJob = allJobs.getJobListResult().getJobs()
+                .stream()
+                .filter(job -> job.getBucketName().matches(bucketName))
+                .findFirst();
+        OUT.insertLog("");
+        assertTrue(bulkJob.isPresent());
+        final UUID jobId = bulkJob.get().getJobId();
+        HELPERS.recoverWriteJob(jobId);
 
         // Verify Job finishes
-        final CommandResponse completedJobsResponse = OUT.runCommand(client, "--http -c get_jobs --completed");
+        int retries = 0;
+        final int max_retries = 12;
+        while (JobStatus.IN_PROGRESS == client.getJobSpectraS3(new GetJobSpectraS3Request(jobId)).getMasterObjectListResult().getStatus()) {
+            sleep(300 * 1000); // sleep 5 minutes
+            if (++retries > max_retries) {
+                OUT.insertLog("Timed out after an hour waiting for cache to drain and job to finish.");
+                break;
+            }
+        }
+
+        OUT.runCommand(client, "--http -c get_jobs --completed");
         //assertThat(allJobsResponse.getMessage(), containsString("cache_full"));
 
         // Reset cache size to max
-        final ModifyCacheFilesystemSpectraS3Request resetCacheFs = new ModifyCacheFilesystemSpectraS3Request(cacheFsId.toString()).withMaxCapacityInBytes(0L);
+        final ModifyCacheFilesystemSpectraS3Response resetCacheFsResponse = client.modifyCacheFilesystemSpectraS3(new ModifyCacheFilesystemSpectraS3Request(cacheFsId.toString()).withMaxCapacityInBytes(0L));
+        OUT.insertCommandOutput("ModifyCacheFileSystem back to max capacity: ", resetCacheFsResponse.getCacheFilesystemResult().getMaxCapacityInBytes().toString());
         //assertThat(client.modifyCacheFilesystemSpectraS3(resetCacheFs).getResponse().getStatusCode(), is(0));
         //assertThat(client.getCacheFilesystemSpectraS3(getCacheFs).getCacheFilesystemResult().getMaxCapacityInBytes(), is(0L));
 
