@@ -59,7 +59,7 @@ public class GetObject extends CliCommand<DefaultResult> {
     private boolean sync;
     private int numberOfThreads;
     private Priority priority;
-    private long rangeStart = 0L;
+    private long rangeOffset = 0L;
     private long rangeLength = 0L;
 
     public GetObject() {
@@ -83,12 +83,12 @@ public class GetObject extends CliCommand<DefaultResult> {
 
         // if you set one, you must set both start and length
         if (!Guard.isStringNullOrEmpty(args.getRangeLength()) || !Guard.isStringNullOrEmpty(args.getRangeOffset())) {
-            if (Guard.isStringNullOrEmpty(args.getRangeLength()) || Guard.isStringNullOrEmpty(args.getRangeLength())) {
+            if (Guard.isStringNullOrEmpty(args.getRangeLength()) || Guard.isStringNullOrEmpty(args.getRangeOffset())) {
                 throw new MissingOptionException("Partial recovery must provide values for both "
                                                     + RANGE_OFFSET.getLongOpt() + " and "
                                                     + RANGE_LENGTH.getLongOpt());
             } else {
-                this.rangeStart = Long.parseLong(args.getOptionValue(RANGE_OFFSET.getLongOpt()));
+                this.rangeOffset = Long.parseLong(args.getOptionValue(RANGE_OFFSET.getLongOpt()));
                 this.rangeLength = Long.parseLong(args.getOptionValue(RANGE_LENGTH.getLongOpt()));
             }
         }
@@ -104,7 +104,7 @@ public class GetObject extends CliCommand<DefaultResult> {
         final Ds3Object ds3Obj;
         if (this.rangeLength > 0L) {
             ds3Obj = new PartialDs3Object(this.objectName.replace("\\", "/"),
-                    Range.byLength(this.rangeStart, this.rangeLength));
+                    Range.byLength(this.rangeOffset, this.rangeLength));
         } else {
             ds3Obj = new Ds3Object(this.objectName.replace("\\", "/"));
         }
