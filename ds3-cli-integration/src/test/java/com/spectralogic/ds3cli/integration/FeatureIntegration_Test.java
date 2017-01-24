@@ -149,6 +149,31 @@ public class FeatureIntegration_Test {
     }
 
     @Test
+    public void getPartialObject() throws Exception {
+        final String bucketName = "test_get_partial_object";
+        try {
+            final String expectedRestore = "Gutenberg EBook";
+            final String expectedResponse = "SUCCESS: Finished downloading object.  The object was written to: "
+                    + SterilizeString.osSpecificPath(Util.DOWNLOAD_BASE_NAME) + "beowulf.txt";
+
+            Util.createBucket(client, bucketName);
+            Util.loadBookTestData(client, bucketName);
+
+            final Arguments args = new Arguments(new String[]{"--http", "-c", "get_object", "-b", bucketName,
+                    "--range-start", "15", "--range-length", "15",
+                    "-o", "beowulf.txt", "-d", Util.DOWNLOAD_BASE_NAME});
+            final CommandResponse response = Util.command(client, args);
+            assertThat(response.getMessage(), is(expectedResponse));
+
+            // get the right section?
+            assertEquals(expectedRestore, Util.readLocalFile("beowulf.txt").iterator().next());
+        } finally {
+            Util.deleteBucket(client, bucketName);
+            Util.deleteLocalFile("beowulf.txt");
+        }
+    }
+
+    @Test
     public void getObjectJson() throws Exception {
         final String bucketName = "test_get_object_json";
         try {

@@ -68,6 +68,10 @@ public class Util {
         Files.deleteIfExists(Paths.get(DOWNLOAD_BASE_NAME + fileName));
     }
 
+    public static Iterable<String> readLocalFile(final String fileName) throws IOException {
+        return Files.readAllLines(Paths.get(DOWNLOAD_BASE_NAME + fileName));
+    }
+
     public static void copyFile(final String fileName, final String from, final String to) throws IOException {
         final Path toDir = Paths.get(to);
 
