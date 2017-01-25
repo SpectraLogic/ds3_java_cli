@@ -27,6 +27,7 @@ import com.spectralogic.ds3client.commands.spectrads3.GetSystemInformationSpectr
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -66,6 +67,10 @@ public class Util {
 
     public static void deleteLocalFile(final String fileName) throws IOException {
         Files.deleteIfExists(Paths.get(DOWNLOAD_BASE_NAME + fileName));
+    }
+
+    public static Iterable<String> readLocalFile(final String fileName) throws IOException {
+        return Files.readAllLines(Paths.get(DOWNLOAD_BASE_NAME + fileName), Charset.forName("utf-8"));
     }
 
     public static void copyFile(final String fileName, final String from, final String to) throws IOException {

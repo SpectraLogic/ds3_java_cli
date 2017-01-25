@@ -867,6 +867,35 @@ public class Ds3Cli_Test {
     }
 
     @Test
+    public void getObjectPartial() throws Exception {
+        final String expected = "SUCCESS: Finished downloading object.  The object was written to: ." + SterilizeString.getFileDelimiter() + "obj.txt";
+
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "--range-offset", "0", "--range-length", "100", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_object", "-b", "bucketName", "-o", "obj.txt"});
+        final Ds3ClientHelpers helpers = mock(Ds3ClientHelpers.class);
+        final Ds3ClientHelpers.Job mockedGetJob = mock(Ds3ClientHelpers.Job.class);
+        final FileSystemProvider mockedFileSystemProvider = mock(FileSystemProvider.class);
+        when(helpers.startReadJob(eq("bucketName"), (Iterable<Ds3Object>) isNotNull(), any(ReadJobOptions.class))).thenReturn(mockedGetJob);
+
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand())
+                .withProvider(new Ds3ProviderImpl(null, helpers), mockedFileSystemProvider);
+        command.init(args);
+        final CommandResponse result = command.render();
+        assertThat(result.getMessage(), is(expected));
+        assertThat(result.getReturnCode(), is(0));
+    }
+
+    @Test(expected = MissingOptionException.class)
+    public void getObjectPartialBadArgs() throws Exception {
+        final String expected = "Error (MissingArgumentException): Partial recovery must provide values for both range-start and range-length";
+
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "--range-offset", "0", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_object", "-b", "bucketName", "-o", "obj.txt"});
+
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand())
+                .withProvider(new Ds3ProviderImpl(null, null), null);
+        command.init(args);
+    }
+
+    @Test
     public void getCompletedJob() throws Exception {
         final String jobId = "aa5df0cc-b03a-4cb9-b69d-56e7367e917f";
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!",
