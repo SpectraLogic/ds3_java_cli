@@ -116,6 +116,16 @@ public final class ArgumentFactory {
             .desc("Enter information to assist in the handling of the tapes.").build();
     public static final Option EJECT_LOCATION = Option.builder().longOpt("eject-location").hasArg()
             .desc("Enter information to describe where the ejected tapes can be located.").build();
+    public static final Option RANGE_OFFSET = Option.builder().
+            longOpt("range-offset")
+            .desc("Set the start point (long) for partial object recovery")
+            .hasArg(true)
+            .build();
+    public static final Option RANGE_LENGTH = Option.builder().
+            longOpt("range-length")
+            .desc("Set the length in bytes for partial object recovery; use with " + RANGE_OFFSET.getLongOpt())
+            .hasArg(true)
+            .build();
 
 }
 
