@@ -102,7 +102,7 @@ public final class ArgumentFactory {
     public static final Option PRIORITY = Option.builder().
             longOpt("priority")
             .desc("Set the bulk job priority.  Possible values: [" + CliUtils.printEnumOptions(Priority.values()) + "]")
-            .hasArgs()
+            .hasArg(true)
             .build();
     public static final Option VERIFY_PERCENT = Option.builder().longOpt("verify-last-percent").argName("percent")
             .desc("Set verify last percent as an integer.").build();
