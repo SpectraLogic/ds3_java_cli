@@ -45,7 +45,6 @@ import java.io.IOException;
 import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.sql.Time;
 import java.util.Date;
 import java.util.Optional;
 import java.util.UUID;
@@ -69,7 +68,7 @@ import static org.junit.Assume.assumeThat;
 public class Certification_Test {
     private static final Logger LOG = (Logger) LoggerFactory.getLogger(Certification_Test.class);
     private static final Ds3Client client = Ds3ClientBuilder.fromEnv().withHttps(false).build();
-    private static final Ds3ClientHelpers HELPERS = Ds3ClientHelpers.wrap(client);
+    private static final Ds3ClientHelpers HELPERS = Ds3ClientHelpers.wrap(client, 1); // Limit retries on transfers
     private static final String TEST_ENV_NAME = "JavaCLI_Certification_Test";
     private static final String NO_RIGHTS_USERNAME = "no_rights_user";
     private static final Long GB_BYTES = 1073741824L;
@@ -405,8 +404,11 @@ public class Certification_Test {
             // Create temp files for BULK_PUT
             final Path bulkPutLocalTempDir = CertificationUtil.createTempFiles(bucketName, numFiles, fileSize);
 
+            final long startPutTime = getCurrentTime();
             final CommandResponse putBulkResponse = OUT.runCommand(client, "--http -c put_bulk -b " + bucketName + " -d "  + bulkPutLocalTempDir.toString());
+            final long endPutTime = getCurrentTime();
             assertThat(putBulkResponse.getReturnCode(), is(0));
+            OUT.insertPerformanceMetrics(startPutTime, endPutTime, numFiles * fileSize, true);
 
             final CommandResponse getBucketResponseAfterBulkPut = OUT.runCommand(client, "--http -c get_bucket -b " + bucketName);
             assertThat(getBucketResponseAfterBulkPut.getReturnCode(), is(0));
@@ -417,8 +419,10 @@ public class Certification_Test {
             // Start BULK_GET from the same bucket that we just did the BULK_PUT to, with a new local directory
             final Path bulkGetLocalTempDir = Files.createTempDirectory(bucketName);
 
+            final long startGetTime = getCurrentTime();
             final CommandResponse getBulkResponse = OUT.runCommand(client, "--http -c get_bulk -b " + bucketName + "-d " + bulkGetLocalTempDir.toString() + "-nt 3");
-            OUT.insertCommandOutput(String.format("CommandResponse for BULK_GET from %s to %s", bucketName, bulkGetLocalTempDir), getBulkResponse.getMessage());
+            final long endGetTime = getCurrentTime();
+            OUT.insertPerformanceMetrics(startPutTime, endPutTime, numFiles * fileSize, true);
             assertThat(getBulkResponse.getReturnCode(), is(0));
             success = true;
 
@@ -430,4 +434,7 @@ public class Certification_Test {
         return success;
     }
 
+    private static long getCurrentTime() {
+        return System.currentTimeMillis();
+    }
 }

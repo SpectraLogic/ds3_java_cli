@@ -73,6 +73,29 @@ public class CertificationWriter {
         insertPreformat(output);
     }
 
+    public void insertPerformanceMetrics(
+        final long startTime,
+        final long curTime,
+        final long bytesTransferred,
+        final boolean isPutCommand) throws IOException {
+            final String messagePrefix = getMessagePrefix(isPutCommand);
+            final double elapsedTime = (curTime - startTime == 0)? 0.0: (curTime - startTime)/1000D;
+            final double megaBytesTransferred = convertBytesToMegaBytes(bytesTransferred);
+
+            insertLog(String.format("%s Transferred (%.03f MB), Time (%.03f sec)", messagePrefix, megaBytesTransferred, elapsedTime));
+        }
+
+    private static String getMessagePrefix(final boolean isPutCommand) {
+        if (isPutCommand) {
+            return  "PUT";
+        }
+        return  "GET";
+    }
+
+    private static double convertBytesToMegaBytes(final long bytes) {
+        return bytes/1024D/1024D;
+    }
+
     public  void finishTest(final String testTitle, final boolean success)  throws IOException {
         LOG.info("COMPLETE TEST: {} ({})\n-----------------", testTitle, (success ? "Passed" : "Failed"));
         final String link = String.format("<a href=\"#%d\">Start of test</a>\n", currentTimeTag);

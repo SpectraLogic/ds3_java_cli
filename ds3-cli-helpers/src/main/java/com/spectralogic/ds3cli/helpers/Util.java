@@ -33,7 +33,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.regex.Pattern;
 
-public class Util {
+final public class Util {
     public static final String RESOURCE_BASE_NAME = "./src/test/resources/books/";
     public static final String DOWNLOAD_BASE_NAME = "./output/";
 
