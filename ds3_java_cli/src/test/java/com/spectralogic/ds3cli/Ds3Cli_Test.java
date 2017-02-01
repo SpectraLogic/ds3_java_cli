@@ -17,24 +17,24 @@ package com.spectralogic.ds3cli;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.spectralogic.ds3cli.command.CliCommand;
-import com.spectralogic.ds3cli.command.CliCommandFactory;
-import com.spectralogic.ds3cli.command.GetDetailedObjects;
-import com.spectralogic.ds3cli.command.GetDetailedObjectsPhysical;
+import com.spectralogic.ds3cli.command.*;
 import com.spectralogic.ds3cli.exceptions.*;
-import com.spectralogic.ds3cli.models.GetDetailedObjectsResult;
+import com.spectralogic.ds3cli.models.*;
 import com.spectralogic.ds3cli.util.*;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.*;
 import com.spectralogic.ds3client.commands.spectrads3.*;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
+import com.spectralogic.ds3client.helpers.MetadataAccess;
 import com.spectralogic.ds3client.helpers.options.ReadJobOptions;
 import com.spectralogic.ds3client.helpers.options.WriteJobOptions;
 import com.spectralogic.ds3client.models.*;
 import com.spectralogic.ds3client.models.Error;
+import com.spectralogic.ds3client.models.SystemInformation;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.networking.FailedRequestException;
 import com.spectralogic.ds3client.networking.Headers;
+import com.spectralogic.ds3client.networking.HttpVerb;
 import com.spectralogic.ds3client.networking.WebResponse;
 import com.spectralogic.ds3client.serializer.XmlOutput;
 import org.apache.commons.cli.MissingOptionException;
@@ -54,18 +54,19 @@ import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.ParseException;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import static com.spectralogic.ds3cli.util.Constants.DATE_FORMAT;
 import static com.spectralogic.ds3client.utils.ResponseUtils.toImmutableIntList;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
+import com.spectralogic.ds3client.serializer.XmlOutput;
+import sun.security.krb5.Checksum;
 
 
 @PrepareForTest({CliUtils.class, SyncUtils.class, FileUtils.class, Guard.class, GetPhysicalPlacementForObjectsWithFullDetailsSpectraS3Response.class})
@@ -73,19 +74,49 @@ import static org.mockito.Mockito.when;
 public class Ds3Cli_Test {
 
     @Test
-    public void getService() throws Exception {
-        final String expectedString = "Owner: webfile\n" +
-                "+-------------+--------------------------+\n" +
-                "| Bucket Name |       Creation Date      |\n" +
-                "+-------------+--------------------------+\n" +
-                "| quotes      | 2006-02-03T16:45:09.000Z |\n" +
-                "| samples     | 2006-02-03T16:41:58.000Z |\n" +
-                "+-------------+--------------------------+\n";
+    public void getBuckets() throws IOException, ParseException {
+        final UUID id = UUID.randomUUID();
+        final String stringResponse = "<ListAllMyBucketsResult xmlns=\"http://doc.s3.amazonaws.com/2006-03-01\">\n" +
+                "<Owner><ID>" + id.toString() + "</ID><DisplayName>ryan</DisplayName></Owner><Buckets><Bucket><Name>testBucket2</Name><CreationDate>2013-12-11T23:20:09</CreationDate></Bucket><Bucket><Name>bulkTest</Name><CreationDate>2013-12-11T23:20:09</CreationDate></Bucket><Bucket><Name>bulkTest1</Name><CreationDate>2013-12-11T23:20:09</CreationDate></Bucket><Bucket><Name>bulkTest2</Name><CreationDate>2013-12-11T23:20:09</CreationDate></Bucket><Bucket><Name>bulkTest3</Name><CreationDate>2013-12-11T23:20:09</CreationDate></Bucket><Bucket><Name>bulkTest4</Name><CreationDate>2013-12-11T23:20:09</CreationDate></Bucket><Bucket><Name>bulkTest5</Name><CreationDate>2013-12-11T23:20:09</CreationDate></Bucket><Bucket><Name>bulkTest6</Name><CreationDate>2013-12-11T23:20:09</CreationDate></Bucket><Bucket><Name>testBucket3</Name><CreationDate>2013-12-11T23:20:09</CreationDate></Bucket><Bucket><Name>testBucket1</Name><CreationDate>2013-12-11T23:20:09</CreationDate></Bucket><Bucket><Name>testbucket</Name><CreationDate>2013-12-11T23:20:09</CreationDate></Bucket></Buckets></ListAllMyBucketsResult>";
 
+        final List<String> expectedBucketNames = Arrays.asList(
+                "testBucket2",
+                "bulkTest",
+                "bulkTest1",
+                "bulkTest2",
+                "bulkTest3",
+                "bulkTest4",
+                "bulkTest5",
+                "bulkTest6",
+                "testBucket3",
+                "testBucket1",
+                "testbucket"
+        );
+
+        final ListAllMyBucketsResult result = XmlOutput.fromXml(stringResponse, ListAllMyBucketsResult.class);
+        assertThat(result.getOwner().getDisplayName(), is("ryan"));
+        assertThat(result.getOwner().getId(), is(id));
+
+        final List<BucketDetails> buckets = result.getBuckets();
+        final List<String> bucketNames = new ArrayList<>();
+        for (final BucketDetails bucket : buckets) {
+            bucketNames.add(bucket.getName());
+            assertThat(bucket.getCreationDate(), is(DATE_FORMAT.parse("2013-12-11T23:20:09.000Z")));
+        }
+        assertThat(bucketNames, is(expectedBucketNames));
+    }
+
+    @Test
+    public void getService() throws Exception {
+        /// test argument parse
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_service"});
-        final Ds3Client client = mock(Ds3Client.class);
-        final WebResponse webResponse = mock(WebResponse.class);
-        final InputStream stream = IOUtils.toInputStream("<ListAllMyBucketsResult>\n" +
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
+        command.init(args);
+        assertTrue(command instanceof GetService);
+        final View view = command.getView();
+
+        // test output / view
+        final InputStream packet = IOUtils.toInputStream("<ListAllMyBucketsResult>\n" +
                 "  <Owner>\n" +
                 "    <ID>5df00f88-d5b2-11e5-ab30-625662870761</ID>\n" +
                 "    <DisplayName>webfile</DisplayName>\n" +
@@ -102,28 +133,19 @@ public class Ds3Cli_Test {
                 "  </Buckets>\n" +
                 "</ListAllMyBucketsResult>", "utf-8");
 
-        when(webResponse.getStatusCode()).thenReturn(200);
-        when(webResponse.getHeaders()).thenReturn(new Headers() {
-            @Override
-            public List<String> get(final String key) {
-                return null;
-            }
+        final String expectedString = "Owner: webfile\n" +
+                "+-------------+--------------------------+\n" +
+                "| Bucket Name |       Creation Date      |\n" +
+                "+-------------+--------------------------+\n" +
+                "| quotes      | 2006-02-03T16:45:09.000Z |\n" +
+                "| samples     | 2006-02-03T16:41:58.000Z |\n" +
+                "+-------------+--------------------------+\n";
 
-            @Override
-            public Set<String> keys() {
-                return null;
-            }
-        });
-        when(webResponse.getResponseStream()).thenReturn(stream);
+        final ListAllMyBucketsResult buckets = XmlOutput.fromXml(packet, ListAllMyBucketsResult.class);
+        final GetServiceResult result = new GetServiceResult(buckets);
 
-        final GetServiceResponse serviceResponse = new GetServiceResponse(webResponse);
-        when(client.getService(any(GetServiceRequest.class))).thenReturn(serviceResponse);
-
-        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, null), null);
-        command.init(args);
-        final CommandResponse result = command.render();
-        assertThat(result.getMessage(), is(expectedString));
-        assertThat(result.getReturnCode(), is(0));
+        final String output = view.render(result);
+        assertThat(output, is(expectedString));
     }
 
     @Test
@@ -135,6 +157,14 @@ public class Ds3Cli_Test {
 
     @Test
     public void getServiceJson() throws Exception {
+        // parse arguments
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_service", "--output-format", "json"});
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
+        command.init(args);
+        assertTrue(command instanceof GetService);
+        final View view = command.getView();
+
+        // test output
         final String expectedString = "  \"Data\" : {\n" +
                 "    \"Buckets\" : [ {\n" +
                 "      \"CreationDate\" : \"2006-02-03T16:45:09.000Z\",\n" +
@@ -151,10 +181,7 @@ public class Ds3Cli_Test {
                 "  \"Status\" : \"OK\"\n" +
                 "}";
 
-        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_service", "--output-format", "json"});
-        final Ds3Client client = mock(Ds3Client.class);
-        final WebResponse webResponse = mock(WebResponse.class);
-        final InputStream stream = IOUtils.toInputStream("<ListAllMyBucketsResult>\n" +
+        final InputStream packet = IOUtils.toInputStream("<ListAllMyBucketsResult>\n" +
                 "  <Owner>\n" +
                 "    <ID>5df00f88-d5b2-11e5-ab30-625662870761</ID>\n" +
                 "    <DisplayName>webfile</DisplayName>\n" +
@@ -171,28 +198,11 @@ public class Ds3Cli_Test {
                 "  </Buckets>\n" +
                 "</ListAllMyBucketsResult>", "utf-8");
 
-        when(webResponse.getStatusCode()).thenReturn(200);
-        when(webResponse.getHeaders()).thenReturn(new Headers() {
-            @Override
-            public List<String> get(final String key) {
-                return null;
-            }
+        final ListAllMyBucketsResult buckets = XmlOutput.fromXml(packet, ListAllMyBucketsResult.class);
+        final GetServiceResult result = new GetServiceResult(buckets);
 
-            @Override
-            public Set<String> keys() {
-                return null;
-            }
-        });
-        when(webResponse.getResponseStream()).thenReturn(stream);
-
-        final GetServiceResponse serviceResponse = new GetServiceResponse(webResponse);
-        when(client.getService(any(GetServiceRequest.class))).thenReturn(serviceResponse);
-
-        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, null), null);
-        command.init(args);
-        final CommandResponse result = command.render();
-        assertTrue(result.getMessage().endsWith(expectedString));
-        assertThat(result.getReturnCode(), is(0));
+        final String output = view.render(result);
+        assertTrue(output.endsWith(expectedString));
     }
 
     @Test(expected = FailedRequestException.class)
@@ -200,7 +210,7 @@ public class Ds3Cli_Test {
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_service"});
         final Ds3Client client = mock(Ds3Client.class);
         when(client.getService(any(GetServiceRequest.class)))
-                .thenThrow(new FailedRequestException(toImmutableIntList(new int[]{200}), 500, new Error(), ""));
+                .thenThrow(new FailedRequestException(toImmutableIntList(new int[]{200}), 500, new Error(), "", "666"));
 
         final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, null), null);
         command.init(args);
@@ -221,30 +231,23 @@ public class Ds3Cli_Test {
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_service", "--output-format", "json"});
         final Ds3Client client = mock(Ds3Client.class);
         when(client.getService(any(GetServiceRequest.class)))
-                .thenThrow(new FailedRequestException(toImmutableIntList(new int[]{200}), 500, new Error(), ""));
+                .thenThrow(new FailedRequestException(toImmutableIntList(new int[]{200}), 500, new Error(), "", "666"));
 
         final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, null), null);
         command.init(args);
         final CommandResponse result = command.render();
     }
 
+
     @Test
     public void deleteBucket() throws Exception {
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "delete_bucket", "-b", "bucketName"});
-        final Ds3Client client = mock(Ds3Client.class);
-        final WebResponse webResponse = mock(WebResponse.class);
-        final Headers headers = mock(Headers.class);
-        when(webResponse.getStatusCode()).thenReturn(204);
-        when(webResponse.getHeaders()).thenReturn(headers);
-
-        final DeleteBucketResponse deleteBucketResponse = new DeleteBucketResponse(webResponse);
-        when(client.deleteBucket(any(DeleteBucketRequest.class))).thenReturn(deleteBucketResponse);
-
-        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, null), null);
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
         command.init(args);
-        final CommandResponse result = command.render();
-        assertThat(result.getMessage(), is("Success: Deleted bucket 'bucketName'."));
-        assertThat(result.getReturnCode(), is(0));
+        assertTrue(command instanceof DeleteBucket);
+        final View view = command.getView();
+        final String result = view.render(new DefaultResult("Success: Deleted bucket 'bucketName'."));
+        assertThat(result, is("Success: Deleted bucket 'bucketName'."));
     }
 
     @Test
@@ -254,40 +257,24 @@ public class Ds3Cli_Test {
                 "}";
 
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "delete_bucket", "-b", "bucketName", "--output-format", "json"});
-        final Ds3Client client = mock(Ds3Client.class);
-        final WebResponse webResponse = mock(WebResponse.class);
-        final Headers headers = mock(Headers.class);
-        when(webResponse.getStatusCode()).thenReturn(204);
-        when(webResponse.getHeaders()).thenReturn(headers);
-
-        final DeleteBucketResponse deleteBucketResponse = new DeleteBucketResponse(webResponse);
-        when(client.deleteBucket(any(DeleteBucketRequest.class))).thenReturn(deleteBucketResponse);
-
-        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, null), null);
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
         command.init(args);
-        final CommandResponse result = command.render();
-        assertTrue(result.getMessage().endsWith(expected));
-        assertThat(result.getReturnCode(), is(0));
+        assertTrue(command instanceof DeleteBucket);
+        final View view = command.getView();
+        final String result = view.render(new DefaultResult("Success: Deleted bucket 'bucketName'."));
+        assertTrue(result.endsWith(expected));
     }
 
     @Test
     public void deleteFolder() throws Exception {
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!",
                 "-a", "access", "-c", "delete_folder", "-b", "bucketName", "-d", "folderName"});
-        final Ds3Client client = mock(Ds3Client.class);
-        final WebResponse webResponse = mock(WebResponse.class);
-        final Headers headers = mock(Headers.class);
-        when(webResponse.getStatusCode()).thenReturn(204);
-        when(webResponse.getHeaders()).thenReturn(headers);
-
-        final DeleteFolderRecursivelySpectraS3Response deleteFolderResponse = new DeleteFolderRecursivelySpectraS3Response(webResponse);
-        when(client.deleteFolderRecursivelySpectraS3(any(DeleteFolderRecursivelySpectraS3Request.class))).thenReturn(deleteFolderResponse);
-
-        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, null), null);
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
         command.init(args);
-        final CommandResponse result = command.render();
-        assertThat(result.getMessage(), is("Success: Deleted folder 'folderName'."));
-        assertThat(result.getReturnCode(), is(0));
+        assertTrue(command instanceof DeleteFolder);
+        final View view = command.getView();
+        final String result = view.render(new DefaultResult("Success: Deleted folder 'folderName'."));
+        assertThat(result, is("Success: Deleted folder 'folderName'."));
     }
 
     @Test
@@ -298,39 +285,23 @@ public class Ds3Cli_Test {
 
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!",
                 "-a", "access", "-c", "delete_folder", "-b", "bucketName", "-d", "folderName", "--output-format", "json"});
-        final Ds3Client client = mock(Ds3Client.class);
-        final WebResponse webResponse = mock(WebResponse.class);
-        final Headers headers = mock(Headers.class);
-        when(webResponse.getStatusCode()).thenReturn(204);
-        when(webResponse.getHeaders()).thenReturn(headers);
-
-        final DeleteFolderRecursivelySpectraS3Response deleteFolderResponse = new DeleteFolderRecursivelySpectraS3Response(webResponse);
-        when(client.deleteFolderRecursivelySpectraS3(any(DeleteFolderRecursivelySpectraS3Request.class))).thenReturn(deleteFolderResponse);
-
-        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, null), null);
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
         command.init(args);
-        final CommandResponse result = command.render();
-        assertTrue(result.getMessage().endsWith(expected));
-        assertThat(result.getReturnCode(), is(0));
+        assertTrue(command instanceof DeleteFolder);
+        final View view = command.getView();
+        final String result = view.render(new DefaultResult("Success: Deleted folder 'folderName'."));
+        assertTrue(result.endsWith(expected));
     }
 
     @Test
     public void testDeleteObject() throws Exception {
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "delete_object", "-b", "bucketName", "-o", "obj.txt"});
-        final Ds3Client client = mock(Ds3Client.class);
-        final WebResponse webResponse = mock(WebResponse.class);
-        final Headers headers = mock(Headers.class);
-        when(webResponse.getStatusCode()).thenReturn(204);
-        when(webResponse.getHeaders()).thenReturn(headers);
-
-        final DeleteObjectResponse deleteObjectResponse = new DeleteObjectResponse(webResponse);
-        when(client.deleteObject(any(DeleteObjectRequest.class))).thenReturn(deleteObjectResponse);
-
-        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, null), null);
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
         command.init(args);
-        final CommandResponse result = command.render();
-        assertThat(result.getMessage(), is("Success: Deleted object 'obj.txt' from bucket 'bucketName'."));
-        assertThat(result.getReturnCode(), is(0));
+        assertTrue(command instanceof DeleteObject);
+        final View view = command.getView();
+        final String result = view.render(new DefaultResult("Success: Deleted object 'obj.txt' from bucket 'bucketName'."));
+        assertThat(result, is("Success: Deleted object 'obj.txt' from bucket 'bucketName'."));
     }
 
     @Test
@@ -340,40 +311,38 @@ public class Ds3Cli_Test {
                 "}";
 
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "delete_object", "-b", "bucketName", "-o", "obj.txt", "--output-format", "json"});
-        final Ds3Client client = mock(Ds3Client.class);
-        final WebResponse webResponse = mock(WebResponse.class);
-        final Headers headers = mock(Headers.class);
-        when(webResponse.getStatusCode()).thenReturn(204);
-        when(webResponse.getHeaders()).thenReturn(headers);
-
-        final DeleteObjectResponse deleteObjectResponse = new DeleteObjectResponse(webResponse);
-        when(client.deleteObject(any(DeleteObjectRequest.class))).thenReturn(deleteObjectResponse);
-
-        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, null), null);
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
         command.init(args);
-        final CommandResponse result = command.render();
-        assertTrue(result.getMessage().endsWith(expected));
-        assertThat(result.getReturnCode(), is(0));
+        assertTrue(command instanceof DeleteObject);
+        final View view = command.getView();
+        final String result = view.render(new DefaultResult("Success: Deleted object 'obj.txt' from bucket 'bucketName'."));
+        assertTrue(result.endsWith(expected));
     }
 
     @Test
     public void getBucket() throws Exception {
+        /// test argument parse
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_bucket", "-b", "bucketName"});
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
+        command.init(args);
+        assertTrue(command instanceof GetBucket);
+        final View view = command.getView();
 
+        // test output / view
         final String expected =
                 "+-------------+--------------------------------------+--------------------------------------+--------------------------+--------------------------------------+---------------+\n" +
-                        "|     Name    |                  Id                  |                User Id               |       Creation Date      |            Data Policy Id            | Used Capacity |\n" +
-                        "+-------------+--------------------------------------+--------------------------------------+--------------------------+--------------------------------------+---------------+\n" +
-                        "| jktwocopies | c5ed6a28-1499-432d-85e5-e0b2d866ec65 | c3eb82a5-574a-4a54-9083-60894866ea5f | 2016-09-22T23:09:31.000Z | c3bdbfc5-57e3-4dea-afb4-86ace65017fa | 132096040     |\n" +
-                        "+-------------+--------------------------------------+--------------------------------------+--------------------------+--------------------------------------+---------------+\n\n" +
-                        "+--------------------+--------+----------------+--------------------------+------------------------------------+\n" +
-                        "|      File Name     |  Size  |      Owner     |       Last Modified      |                ETag                |\n" +
-                        "+--------------------+--------+----------------+--------------------------+------------------------------------+\n" +
-                        "| my-image.jpg       | 434234 | mtd@amazon.com | 2009-10-12T17:50:30.000Z | \"fba9dede5f27731c9771645a39863328\" |\n" +
-                        "| my-third-image.jpg |  64994 | mtd@amazon.com | 2009-10-12T17:50:30.000Z | \"1b2cf535f27731c974343645a3985328\" |\n" +
-                        "+--------------------+--------+----------------+--------------------------+------------------------------------+\n";
+                "|     Name    |                  Id                  |                User Id               |       Creation Date      |            Data Policy Id            | Used Capacity |\n" +
+                "+-------------+--------------------------------------+--------------------------------------+--------------------------+--------------------------------------+---------------+\n" +
+                "| jktwocopies | c5ed6a28-1499-432d-85e5-e0b2d866ec65 | c3eb82a5-574a-4a54-9083-60894866ea5f | 2016-09-22T23:09:31.000Z | c3bdbfc5-57e3-4dea-afb4-86ace65017fa | 132096040     |\n" +
+                "+-------------+--------------------------------------+--------------------------------------+--------------------------+--------------------------------------+---------------+\n\n" +
+                "+--------------------+--------+----------------+--------------------------+------------------------------------+\n" +
+                "|      File Name     |  Size  |      Owner     |       Last Modified      |                ETag                |\n" +
+                "+--------------------+--------+----------------+--------------------------+------------------------------------+\n" +
+                "| my-image.jpg       | 434234 | mtd@amazon.com | 2009-10-12T17:50:30.000Z | \"fba9dede5f27731c9771645a39863328\" |\n" +
+                "| my-third-image.jpg |  64994 | mtd@amazon.com | 2009-10-12T17:50:30.000Z | \"1b2cf535f27731c974343645a3985328\" |\n" +
+                "+--------------------+--------+----------------+--------------------------+------------------------------------+\n";
 
-        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_bucket", "-b", "bucketName"});
-        final String response = "<ListBucketResult>\n" +
+        final String packet = "<ListBucketResult>\n" +
                 "    <Name>bucket</Name>\n" +
                 "    <Prefix/>\n" +
                 "    <Marker/>\n" +
@@ -413,31 +382,21 @@ public class Ds3Cli_Test {
                 "<UserId>c3eb82a5-574a-4a54-9083-60894866ea5f</UserId>" +
                 "</Data>\n";
 
-        final Ds3Client client = mock(Ds3Client.class);
-        final WebResponse webResponse = mock(WebResponse.class);
-        final Headers headers = mock(Headers.class);
-        when(webResponse.getStatusCode()).thenReturn(200);
-        when(webResponse.getHeaders()).thenReturn(headers);
-        when(webResponse.getResponseStream()).thenReturn(IOUtils.toInputStream(response));
-        final GetBucketResponse getBucketResponse = new GetBucketResponse(webResponse);
-        when(client.getBucket(any(GetBucketRequest.class))).thenReturn(getBucketResponse);
+        final Bucket bucket = XmlOutput.fromXml(detailResponse, Bucket.class);
+        final ListBucketResult objects = XmlOutput.fromXml(packet, ListBucketResult.class);
+        final GetBucketResult getBucketResult = new GetBucketResult(bucket, objects.getObjects());
 
-        final WebResponse detailWebResponse = mock(WebResponse.class);
-        when(detailWebResponse.getStatusCode()).thenReturn(200);
-        when(detailWebResponse.getHeaders()).thenReturn(headers);
-        when(detailWebResponse.getResponseStream()).thenReturn(IOUtils.toInputStream(detailResponse));
-        final GetBucketSpectraS3Response getBucketDetailResponse = new GetBucketSpectraS3Response(detailWebResponse);
-        when(client.getBucketSpectraS3(any(GetBucketSpectraS3Request.class))).thenReturn(getBucketDetailResponse);
-
-        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, null), null);
-        command.init(args);
-        final CommandResponse result = command.render();
-        assertThat(result.getMessage(), is(expected));
-        assertThat(result.getReturnCode(), is(0));
+        final String result = view.render(getBucketResult);
+        assertThat(result, is(expected));
     }
 
     @Test
     public void getBucketJson() throws Exception {
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_bucket", "-b", "bucketName", "--output-format", "json"});
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
+        command.init(args);
+        assertTrue(command instanceof GetBucket);
+        final View view = command.getView();
 
         final String expected =
                 "  \"Data\" : {\n" +
@@ -521,8 +480,7 @@ public class Ds3Cli_Test {
                         "  \"Status\" : \"OK\"\n" +
                         "}";
 
-        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_bucket", "-b", "bucketName", "--output-format", "json"});
-        final String response = "<ListBucketResult><Contents><ETag>3d1bc5d88e795c5b23da7f812c073870</ETag><Key>YouDontKnowMe_295x166.jpg</Key><LastModified>2016-11-18T15:48:10.000Z</LastModified><Owner><DisplayName>jk</DisplayName><ID>5079e312-bcff-43c7-bd54-d8148af0a515</ID></Owner><Size>10634</Size><StorageClass/></Contents><Contents><ETag>ef751d03b7fe4fb2013be56c5a8da26e</ETag><Key>sky_bandana.jpg</Key><LastModified>2016-11-18T15:48:10.000Z</LastModified><Owner><DisplayName>jk</DisplayName><ID>5079e312-bcff-43c7-bd54-d8148af0a515</ID></Owner><Size>142164</Size><StorageClass/></Contents><Contents><ETag>a2750043425399804e83288f5f97d112</ETag><Key>sky_point,web.jpg</Key><LastModified>2016-11-18T15:48:10.000Z</LastModified><Owner><DisplayName>jk</DisplayName><ID>5079e312-bcff-43c7-bd54-d8148af0a515</ID></Owner><Size>17120</Size><StorageClass/></Contents><Contents><ETag>71e93f1026d0362aa0b7dccedf031d8c</ETag><Key>skylark,l5ct2.bmp</Key><LastModified>2016-11-18T15:48:10.000Z</LastModified><Owner><DisplayName>jk</DisplayName><ID>5079e312-bcff-43c7-bd54-d8148af0a515</ID></Owner><Size>921654</Size><StorageClass/></Contents><Contents><ETag>777fd3670853d4f197c52cfa6a21f773</ETag><Key>skylark--car 001.jpg</Key><LastModified>2016-11-18T15:48:10.000Z</LastModified><Owner><DisplayName>jk</DisplayName><ID>5079e312-bcff-43c7-bd54-d8148af0a515</ID></Owner><Size>391998</Size><StorageClass/></Contents><Contents><ETag>6dc0c5e59418d651777c8432e13e9539</ETag><Key>skylark004.jpg</Key><LastModified>2016-11-18T15:48:10.000Z</LastModified><Owner><DisplayName>jk</DisplayName><ID>5079e312-bcff-43c7-bd54-d8148af0a515</ID></Owner><Size>444664</Size><StorageClass/></Contents><CreationDate>2016-11-18T15:48:08.000Z</CreationDate><Delimiter/><IsTruncated>false</IsTruncated><Marker/><MaxKeys>1000</MaxKeys><Name>mountain</Name><NextMarker/><Prefix/></ListBucketResult>";
+        final String packet = "<ListBucketResult><Contents><ETag>3d1bc5d88e795c5b23da7f812c073870</ETag><Key>YouDontKnowMe_295x166.jpg</Key><LastModified>2016-11-18T15:48:10.000Z</LastModified><Owner><DisplayName>jk</DisplayName><ID>5079e312-bcff-43c7-bd54-d8148af0a515</ID></Owner><Size>10634</Size><StorageClass/></Contents><Contents><ETag>ef751d03b7fe4fb2013be56c5a8da26e</ETag><Key>sky_bandana.jpg</Key><LastModified>2016-11-18T15:48:10.000Z</LastModified><Owner><DisplayName>jk</DisplayName><ID>5079e312-bcff-43c7-bd54-d8148af0a515</ID></Owner><Size>142164</Size><StorageClass/></Contents><Contents><ETag>a2750043425399804e83288f5f97d112</ETag><Key>sky_point,web.jpg</Key><LastModified>2016-11-18T15:48:10.000Z</LastModified><Owner><DisplayName>jk</DisplayName><ID>5079e312-bcff-43c7-bd54-d8148af0a515</ID></Owner><Size>17120</Size><StorageClass/></Contents><Contents><ETag>71e93f1026d0362aa0b7dccedf031d8c</ETag><Key>skylark,l5ct2.bmp</Key><LastModified>2016-11-18T15:48:10.000Z</LastModified><Owner><DisplayName>jk</DisplayName><ID>5079e312-bcff-43c7-bd54-d8148af0a515</ID></Owner><Size>921654</Size><StorageClass/></Contents><Contents><ETag>777fd3670853d4f197c52cfa6a21f773</ETag><Key>skylark--car 001.jpg</Key><LastModified>2016-11-18T15:48:10.000Z</LastModified><Owner><DisplayName>jk</DisplayName><ID>5079e312-bcff-43c7-bd54-d8148af0a515</ID></Owner><Size>391998</Size><StorageClass/></Contents><Contents><ETag>6dc0c5e59418d651777c8432e13e9539</ETag><Key>skylark004.jpg</Key><LastModified>2016-11-18T15:48:10.000Z</LastModified><Owner><DisplayName>jk</DisplayName><ID>5079e312-bcff-43c7-bd54-d8148af0a515</ID></Owner><Size>444664</Size><StorageClass/></Contents><CreationDate>2016-11-18T15:48:08.000Z</CreationDate><Delimiter/><IsTruncated>false</IsTruncated><Marker/><MaxKeys>1000</MaxKeys><Name>mountain</Name><NextMarker/><Prefix/></ListBucketResult>";
 
         final String detailResponse = "<Data>" +
                 "<CreationDate>2016-11-18T15:48:08.000Z</CreationDate>" +
@@ -532,31 +490,21 @@ public class Ds3Cli_Test {
                 "<UserId>5079e312-bcff-43c7-bd54-d8148af0a515</UserId>" +
             "</Data>\n";
 
-        final Ds3Client client = mock(Ds3Client.class);
-        final WebResponse webResponse = mock(WebResponse.class);
-        final Headers headers = mock(Headers.class);
-        when(webResponse.getStatusCode()).thenReturn(200);
-        when(webResponse.getHeaders()).thenReturn(headers);
-        when(webResponse.getResponseStream()).thenReturn(IOUtils.toInputStream(response));
-        final GetBucketResponse getBucketResponse = new GetBucketResponse(webResponse);
-        when(client.getBucket(any(GetBucketRequest.class))).thenReturn(getBucketResponse);
+        final Bucket bucket = XmlOutput.fromXml(detailResponse, Bucket.class);
+        final ListBucketResult objects = XmlOutput.fromXml(packet, ListBucketResult.class);
+        final GetBucketResult getBucketResult = new GetBucketResult(bucket, objects.getObjects());
 
-        final WebResponse detailWebResponse = mock(WebResponse.class);
-        when(detailWebResponse.getStatusCode()).thenReturn(200);
-        when(detailWebResponse.getHeaders()).thenReturn(headers);
-        when(detailWebResponse.getResponseStream()).thenReturn(IOUtils.toInputStream(detailResponse));
-        final GetBucketSpectraS3Response getBucketDetailResponse = new GetBucketSpectraS3Response(detailWebResponse);
-        when(client.getBucketSpectraS3(any(GetBucketSpectraS3Request.class))).thenReturn(getBucketDetailResponse);
-
-        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, null), null);
-        command.init(args);
-        final CommandResponse result = command.render();
-        assertTrue(result.getMessage().endsWith(expected));
-        assertThat(result.getReturnCode(), is(0));
+        final String result = view.render(getBucketResult);
+        assertTrue(result.endsWith(expected));
     }
 
     @Test
     public void getBucketDetails() throws Exception {
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_bucket_details", "-b", "coffeehouse"});
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
+        command.init(args);
+        assertTrue(command instanceof GetBucketDetails);
+        final View view = command.getView();
 
         final String expected =
             "+-------------+--------------------------------------+--------------------------------------+--------------------------+--------------------------------------+---------------+\n" +
@@ -565,8 +513,7 @@ public class Ds3Cli_Test {
             "| coffeehouse | 25df1bcd-f4a3-4ba5-9a91-1b39bcf8f1b2 | 5079e312-bcff-43c7-bd54-d8148af0a515 | 2016-08-30T21:50:25.000Z | 8a5d5e56-8d54-4098-b790-6002730b3d96 | 349642821     |\n" +
             "+-------------+--------------------------------------+--------------------------------------+--------------------------+--------------------------------------+---------------+\n";
 
-        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_bucket_details", "-b", "coffeehouse"});
-        final String detailResponse = "<Data>" +
+        final String packet = "<Data>" +
                 "<CreationDate>2016-08-30T21:50:25.000Z</CreationDate>" +
                 "<DataPolicyId>8a5d5e56-8d54-4098-b790-6002730b3d96</DataPolicyId>" +
                 "<Id>25df1bcd-f4a3-4ba5-9a91-1b39bcf8f1b2</Id>" +
@@ -576,39 +523,21 @@ public class Ds3Cli_Test {
                 "<UserId>5079e312-bcff-43c7-bd54-d8148af0a515</UserId>" +
             "</Data>\n";
 
-        final Ds3Client client = mock(Ds3Client.class);
-        final Headers headers = mock(Headers.class);
-        final WebResponse detailWebResponse = mock(WebResponse.class);
-        when(detailWebResponse.getStatusCode()).thenReturn(200);
-        when(detailWebResponse.getHeaders()).thenReturn(headers);
-        when(detailWebResponse.getResponseStream()).thenReturn(IOUtils.toInputStream(detailResponse));
-        final GetBucketSpectraS3Response getBucketDetailResponse = new GetBucketSpectraS3Response(detailWebResponse);
-        when(client.getBucketSpectraS3(any(GetBucketSpectraS3Request.class))).thenReturn(getBucketDetailResponse);
-
-        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, null), null);
-        command.init(args);
-        final CommandResponse result = command.render();
-        assertThat(result.getMessage(), is(expected));
-        assertThat(result.getReturnCode(), is(0));
+        final Bucket bucket = XmlOutput.fromXml(packet, Bucket.class);
+        final GetBucketResult getBucketResult = new GetBucketResult(bucket, null);
+        final String result = view.render(getBucketResult);
+        assertThat(result, is(expected));
     }
 
     @Test
     public void putBucketView() throws Exception {
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "put_bucket", "-b", "bucketName"});
-        final Ds3Client client = mock(Ds3Client.class);
-        final WebResponse webResponse = mock(WebResponse.class);
-        final Headers headers = mock(Headers.class);
-        when(webResponse.getStatusCode()).thenReturn(200);
-        when(webResponse.getHeaders()).thenReturn(headers);
-
-        final PutBucketResponse response = new PutBucketResponse(webResponse);
-        when(client.putBucket(any(PutBucketRequest.class))).thenReturn(response);
-
-        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, null), null);
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
         command.init(args);
-        final CommandResponse result = command.render();
-        assertThat(result.getMessage(), is("Success: created bucket bucketName."));
-        assertThat(result.getReturnCode(), is(0));
+        assertTrue(command instanceof PutBucket);
+        final View view = command.getView();
+        final String result = view.render(new DefaultResult("Success: created bucket bucketName."));
+        assertThat(result, is("Success: created bucket bucketName."));
     }
 
     @Test
@@ -617,20 +546,12 @@ public class Ds3Cli_Test {
                 "  \"Message\" : \"Success: created bucket bucketName.\"\n" +
                 "}";
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "put_bucket", "-b", "bucketName", "--output-format", "json"});
-        final Ds3Client client = mock(Ds3Client.class);
-        final WebResponse webResponse = mock(WebResponse.class);
-        final Headers headers = mock(Headers.class);
-        when(webResponse.getStatusCode()).thenReturn(200);
-        when(webResponse.getHeaders()).thenReturn(headers);
-
-        final PutBucketResponse response = new PutBucketResponse(webResponse);
-        when(client.putBucket(any(PutBucketRequest.class))).thenReturn(response);
-
-        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, null), null);
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
         command.init(args);
-        final CommandResponse result = command.render();
-        assertTrue(result.getMessage().endsWith(expected));
-        assertThat(result.getReturnCode(), is(0));
+        assertTrue(command instanceof PutBucket);
+        final View view = command.getView();
+        final String result = view.render(new DefaultResult("Success: created bucket bucketName."));
+        assertTrue(result.endsWith(expected));
     }
 
     @Test
@@ -638,25 +559,18 @@ public class Ds3Cli_Test {
         final String jobId = "42b61136-9221-474b-a509-d716d8c554cd";
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!",
                 "-a", "access", "-c", "put_job", "-i", jobId, "--priority", "LOW"});
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
+        command.init(args);
+        assertTrue(command instanceof PutJob);
+        final View view = command.getView();
 
         final String expected = "Success: Modified job with job id '" + jobId + "' with priority LOW.";
-        final String response = "<MasterObjectList BucketName=\"test_modify_job\" CachedSizeInBytes=\"0\" ChunkClientProcessingOrderGuarantee=\"IN_ORDER\" CompletedSizeInBytes=\"0\" JobId=\"42b61136-9221-474b-a509-d716d8c554cd\" OriginalSizeInBytes=\"2\" Priority=\"HIGH\" RequestType=\"PUT\" StartDate=\"2015-09-23T20:25:26.000Z\" Status=\"IN_PROGRESS\" UserId=\"c2581493-058c-40d7-a3a1-9a50b20d6d3b\" UserName=\"spectra\" WriteOptimization=\"CAPACITY\"><Nodes><Node EndPoint=\"192.168.56.101\" HttpPort=\"8080\" Id=\"477097a1-5326-11e5-b859-0800271a68bf\"/></Nodes><Objects ChunkId=\"a1004507-24d7-43c8-bdba-19faae3dc349\" ChunkNumber=\"0\"><Object InCache=\"false\" Length=\"2\" Name=\"test\" Offset=\"0\"/></Objects></MasterObjectList>";
+        final String packet = "<MasterObjectList BucketName=\"test_modify_job\" CachedSizeInBytes=\"0\" ChunkClientProcessingOrderGuarantee=\"IN_ORDER\" CompletedSizeInBytes=\"0\" JobId=\"42b61136-9221-474b-a509-d716d8c554cd\" OriginalSizeInBytes=\"2\" Priority=\"HIGH\" RequestType=\"PUT\" StartDate=\"2015-09-23T20:25:26.000Z\" Status=\"IN_PROGRESS\" UserId=\"c2581493-058c-40d7-a3a1-9a50b20d6d3b\" UserName=\"spectra\" WriteOptimization=\"CAPACITY\"><Nodes><Node EndPoint=\"192.168.56.101\" HttpPort=\"8080\" Id=\"477097a1-5326-11e5-b859-0800271a68bf\"/></Nodes><Objects ChunkId=\"a1004507-24d7-43c8-bdba-19faae3dc349\" ChunkNumber=\"0\"><Object InCache=\"false\" Length=\"2\" Name=\"test\" Offset=\"0\"/></Objects></MasterObjectList>";
 
-        final Ds3Client client = mock(Ds3Client.class);
-        final WebResponse webResponse = mock(WebResponse.class);
-        final Headers headers = mock(Headers.class);
-        when(webResponse.getStatusCode()).thenReturn(200);
-        when(webResponse.getHeaders()).thenReturn(headers);
-        when(webResponse.getResponseStream()).thenReturn(IOUtils.toInputStream(response));
-        final ModifyJobSpectraS3Response modifyJobResponse = new ModifyJobSpectraS3Response(webResponse);
-        when(client.modifyJobSpectraS3(any(ModifyJobSpectraS3Request.class))).thenReturn(modifyJobResponse);
-
-        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, null), null);
-        command.init(args);
-        final CommandResponse result = command.render();
-        assertThat(result.getMessage(), is(expected));
-        assertThat(result.getReturnCode(), is(0));
+        final String result = view.render(new DefaultResult("Success: Modified job with job id '" + jobId + "' with priority LOW."));
+        assertThat(result, is(expected));
     }
+
 
     @Test
     public void putJobJson() throws Exception {
@@ -664,43 +578,54 @@ public class Ds3Cli_Test {
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!",
                 "-a", "access", "-c", "put_job", "-i", jobId, "--priority", "LOW", "--output-format", "json"});
 
-        final String expected = "\"Message\" : \"Success: Modified job with job id '" + jobId + "' with priority LOW.\"\n}";
-        final String response = "<MasterObjectList BucketName=\"test_modify_job\" CachedSizeInBytes=\"0\" ChunkClientProcessingOrderGuarantee=\"IN_ORDER\" CompletedSizeInBytes=\"0\" JobId=\"42b61136-9221-474b-a509-d716d8c554cd\" OriginalSizeInBytes=\"2\" Priority=\"HIGH\" RequestType=\"PUT\" StartDate=\"2015-09-23T20:25:26.000Z\" Status=\"IN_PROGRESS\" UserId=\"c2581493-058c-40d7-a3a1-9a50b20d6d3b\" UserName=\"spectra\" WriteOptimization=\"CAPACITY\"><Nodes><Node EndPoint=\"192.168.56.101\" HttpPort=\"8080\" Id=\"477097a1-5326-11e5-b859-0800271a68bf\"/></Nodes><Objects ChunkId=\"a1004507-24d7-43c8-bdba-19faae3dc349\" ChunkNumber=\"0\"><Object InCache=\"false\" Length=\"2\" Name=\"test\" Offset=\"0\"/></Objects></MasterObjectList>";
-
-        final Ds3Client client = mock(Ds3Client.class);
-        final WebResponse webResponse = mock(WebResponse.class);
-        final Headers headers = mock(Headers.class);
-        when(webResponse.getStatusCode()).thenReturn(200);
-        when(webResponse.getHeaders()).thenReturn(headers);
-        when(webResponse.getResponseStream()).thenReturn(IOUtils.toInputStream(response));
-        final ModifyJobSpectraS3Response modifyJobResponse = new ModifyJobSpectraS3Response(webResponse);
-        when(client.modifyJobSpectraS3(any(ModifyJobSpectraS3Request.class))).thenReturn(modifyJobResponse);
-
-        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, null), null);
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
         command.init(args);
-        final CommandResponse result = command.render();
-        assertTrue(result.getMessage().endsWith(expected));
-        assertThat(result.getReturnCode(), is(0));
+        assertTrue(command instanceof PutJob);
+        final View view = command.getView();
+
+        final String expected = "\"Message\" : \"Success: Modified job with job id '" + jobId + "' with priority LOW.\"\n}";
+        final String packet = "<MasterObjectList BucketName=\"test_modify_job\" CachedSizeInBytes=\"0\" ChunkClientProcessingOrderGuarantee=\"IN_ORDER\" CompletedSizeInBytes=\"0\" JobId=\"42b61136-9221-474b-a509-d716d8c554cd\" OriginalSizeInBytes=\"2\" Priority=\"HIGH\" RequestType=\"PUT\" StartDate=\"2015-09-23T20:25:26.000Z\" Status=\"IN_PROGRESS\" UserId=\"c2581493-058c-40d7-a3a1-9a50b20d6d3b\" UserName=\"spectra\" WriteOptimization=\"CAPACITY\"><Nodes><Node EndPoint=\"192.168.56.101\" HttpPort=\"8080\" Id=\"477097a1-5326-11e5-b859-0800271a68bf\"/></Nodes><Objects ChunkId=\"a1004507-24d7-43c8-bdba-19faae3dc349\" ChunkNumber=\"0\"><Object InCache=\"false\" Length=\"2\" Name=\"test\" Offset=\"0\"/></Objects></MasterObjectList>";
+
+        final String result = view.render(new DefaultResult("Success: Modified job with job id '" + jobId + "' with priority LOW."));
+        assertTrue(result.endsWith(expected));
     }
 
     @Test
     public void putObject() throws Exception {
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "put_object", "-b", "bucketName", "-o", "obj.txt"});
-        final Ds3ClientHelpers helpers = mock(Ds3ClientHelpers.class);
-        final Ds3ClientHelpers.Job mockedPutJob = mock(Ds3ClientHelpers.Job.class);
-        final FileSystemProvider mockedFileSystemProvider = mock(FileSystemProvider.class);
-        when(mockedFileSystemProvider.exists(any(Path.class))).thenReturn(true);
-        when(mockedFileSystemProvider.isRegularFile(any(Path.class))).thenReturn(true);
-        when(mockedFileSystemProvider.size(any(Path.class))).thenReturn(100L);
-        when(helpers.startWriteJob(eq("bucketName"), (Iterable<Ds3Object>) isNotNull(), any(WriteJobOptions.class))).thenReturn(mockedPutJob);
-        when(mockedPutJob.withMetadata((Ds3ClientHelpers.MetadataAccess) isNotNull())).thenReturn(mockedPutJob);
-        when(mockedPutJob.withMaxParallelRequests(any(int.class))).thenReturn(mockedPutJob);
-
-        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(null, helpers), mockedFileSystemProvider);
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
         command.init(args);
-        final CommandResponse result = command.render();
-        assertThat(result.getMessage(), is("Success: Finished writing file to ds3 appliance."));
-        assertThat(result.getReturnCode(), is(0));
+        assertTrue(command instanceof PutObject);
+        final View view = command.getView();
+        final String result = view.render(new DefaultResult("Success: Finished writing file to ds3 appliance."));
+        assertThat(result, is("Success: Finished writing file to ds3 appliance."));
+    }
+
+    @Test
+    public void SystemInformation() throws Exception {
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "system_information"});
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
+        command.init(args);
+        assertTrue(command instanceof com.spectralogic.ds3cli.command.SystemInformation);
+        final View view = command.getView();
+
+        final String expected = "Build Number: 3.2.0.1265736, API Version: B4B5971D3212E6A69BD5300A110EF4CE.D2310B9D28A697E538DF032C21D2A8BA, Serial Number: 5003048001dbd7b3";
+
+        final String packet = "<Data>" +
+                "<ApiVersion>B4B5971D3212E6A69BD5300A110EF4CE.D2310B9D28A697E538DF032C21D2A8BA</ApiVersion>" +
+                "<BackendActivated>false</BackendActivated>" +
+                "<BuildInformation><Branch>//redline/main</Branch>" +
+                "<Revision>1265736</Revision>" +
+                "<Version>3.2.0</Version>" +
+                "</BuildInformation>" +
+                "<InstanceId>58ab9fbc-3bce-4d4d-8fa5-7b4c8876ce56</InstanceId>" +
+                "<Now>1485294219767</Now><SerialNumber>5003048001dbd7b3</SerialNumber>" +
+                "</Data>";
+
+        com.spectralogic.ds3client.models.SystemInformation sysInfo = XmlOutput.fromXml(packet, SystemInformation.class);
+        final BuildInformation buildInfo = sysInfo.getBuildInformation();
+        final String result = view.render(new DefaultResult(String.format("Build Number: %s.%s, API Version: %s, Serial Number: %s", buildInfo.getVersion(), buildInfo.getRevision(), sysInfo.getApiVersion(), sysInfo.getSerialNumber())));
+        assertThat(result, is(expected));
     }
 
     @Test
@@ -714,7 +639,7 @@ public class Ds3Cli_Test {
         final Iterable<Contents> retObj = Lists.newArrayList(c);
         when(helpers.listObjects(eq("bucketName"))).thenReturn(retObj);
         when(helpers.startWriteJob(eq("bucketName"), (Iterable<Ds3Object>) isNotNull(), any(WriteJobOptions.class))).thenReturn(mockedPutJob);
-        when(mockedPutJob.withMetadata((Ds3ClientHelpers.MetadataAccess) isNotNull())).thenReturn(mockedPutJob);
+        when(mockedPutJob.withMetadata((MetadataAccess) isNotNull())).thenReturn(mockedPutJob);
         when(mockedPutJob.withMaxParallelRequests(any(int.class))).thenReturn(mockedPutJob);
 
         final FileSystemProvider mockedFileSystemProvider = mock(FileSystemProvider.class);
@@ -738,58 +663,6 @@ public class Ds3Cli_Test {
         assertThat(result.getReturnCode(), is(0));
     }
 
-    @Test
-    public void putObjectWithSyncNotSupportedVersion() throws Exception {
-        final String expected = "Failed: The sync command is not supported with your version of BlackPearl.";
-
-        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "put_object", "-b", "bucketName", "-o", "obj.txt", "--sync"});
-        final Ds3Client client = mock(Ds3Client.class);
-
-        final BuildInformation buildInformation = mock(BuildInformation.class);
-        when(buildInformation.getVersion()).thenReturn("1.2.0");
-
-        final SystemInformation systemInformation = mock(SystemInformation.class);
-        when(systemInformation.getBuildInformation()).thenReturn(buildInformation);
-
-        final GetSystemInformationSpectraS3Response systemInformationResponse = mock(GetSystemInformationSpectraS3Response.class);
-        when(systemInformationResponse.getSystemInformationResult()).thenReturn(systemInformation);
-
-        when(client.getSystemInformationSpectraS3(any(GetSystemInformationSpectraS3Request.class))).thenReturn(systemInformationResponse);
-
-        final Ds3ClientHelpers helpers = mock(Ds3ClientHelpers.class);
-
-        final FileSystemProvider mockedFileSystemProvider = mock(FileSystemProvider.class);
-        when(mockedFileSystemProvider.exists(any(Path.class))).thenReturn(true);
-        when(mockedFileSystemProvider.isRegularFile(any(Path.class))).thenReturn(true);
-        when(mockedFileSystemProvider.size(any(Path.class))).thenReturn(100L);
-
-        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, helpers), mockedFileSystemProvider);
-        command.init(args);
-        final CommandResponse result = command.render();
-        assertThat(result.getMessage(), is(expected));
-    }
-
-    @Test
-    public void putObjectJson() throws Exception {
-        final String expected = "\"Status\" : \"OK\",\n  \"Message\" : \"Success: Finished writing file to ds3 appliance.\"\n}";
-
-        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "put_object", "-b", "bucketName", "-o", "obj.txt", "--output-format", "json"});
-        final Ds3ClientHelpers helpers = mock(Ds3ClientHelpers.class);
-        final Ds3ClientHelpers.Job mockedPutJob = mock(Ds3ClientHelpers.Job.class);
-        final FileSystemProvider mockedFileSystemProvider = mock(FileSystemProvider.class);
-        when(mockedFileSystemProvider.exists(any(Path.class))).thenReturn(true);
-        when(mockedFileSystemProvider.isRegularFile(any(Path.class))).thenReturn(true);
-        when(mockedFileSystemProvider.size(any(Path.class))).thenReturn(100L);
-        when(helpers.startWriteJob(eq("bucketName"), (Iterable<Ds3Object>) isNotNull(), any(WriteJobOptions.class))).thenReturn(mockedPutJob);
-        when(mockedPutJob.withMetadata((Ds3ClientHelpers.MetadataAccess) isNotNull())).thenReturn(mockedPutJob);
-        when(mockedPutJob.withMaxParallelRequests(any(int.class))).thenReturn(mockedPutJob);
-
-        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(null, helpers), mockedFileSystemProvider);
-        command.init(args);
-        final CommandResponse result = command.render();
-        assertTrue(result.getMessage().endsWith(expected));
-        assertThat(result.getReturnCode(), is(0));
-    }
 
     @Test
     public void getObject() throws Exception {
@@ -900,25 +773,18 @@ public class Ds3Cli_Test {
         final String jobId = "aa5df0cc-b03a-4cb9-b69d-56e7367e917f";
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!",
                 "-a", "access", "-c", "get_job", "-i", jobId});
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
+        command.init(args);
+        assertTrue(command instanceof GetJob);
+        final View view = command.getView();
 
         final String expected = "JobId: " + jobId + " | Status: COMPLETED | Bucket: bucket | Type: GET | Priority: HIGH | User Name: spectra | Creation Date: 2015-09-28T17:30:43.000Z | Total Size: 32 | Total Transferred: 0";
-        final String response = "<MasterObjectList BucketName=\"bucket\" CachedSizeInBytes=\"0\" ChunkClientProcessingOrderGuarantee=\"NONE\" CompletedSizeInBytes=\"0\" JobId=\"aa5df0cc-b03a-4cb9-b69d-56e7367e917f\" OriginalSizeInBytes=\"32\" Priority=\"HIGH\" RequestType=\"GET\" StartDate=\"2015-09-28T17:30:43.000Z\" Status=\"COMPLETED\" UserId=\"c2581493-058c-40d7-a3a1-9a50b20d6d3b\" UserName=\"spectra\" WriteOptimization=\"CAPACITY\"></MasterObjectList>";
+        final String packet = "<MasterObjectList BucketName=\"bucket\" CachedSizeInBytes=\"0\" ChunkClientProcessingOrderGuarantee=\"NONE\" CompletedSizeInBytes=\"0\" JobId=\"aa5df0cc-b03a-4cb9-b69d-56e7367e917f\" OriginalSizeInBytes=\"32\" Priority=\"HIGH\" RequestType=\"GET\" StartDate=\"2015-09-28T17:30:43.000Z\" Status=\"COMPLETED\" UserId=\"c2581493-058c-40d7-a3a1-9a50b20d6d3b\" UserName=\"spectra\" WriteOptimization=\"CAPACITY\"></MasterObjectList>";
 
-        final Ds3Client client = mock(Ds3Client.class);
-        final WebResponse webResponse = mock(WebResponse.class);
-        final Headers headers = mock(Headers.class);
-        when(webResponse.getStatusCode()).thenReturn(200);
-        when(webResponse.getHeaders()).thenReturn(headers);
-        when(webResponse.getResponseStream()).thenReturn(IOUtils.toInputStream(response));
-        final GetJobSpectraS3Response getJobResponse = new GetJobSpectraS3Response(webResponse);
-        when(client.getJobSpectraS3(any(GetJobSpectraS3Request.class))).thenReturn(getJobResponse);
-
-        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand())
-                .withProvider(new Ds3ProviderImpl(client, null), null);
-        command.init(args);
-        final CommandResponse result = command.render();
-        assertThat(result.getMessage(), is(expected));
-        assertThat(result.getReturnCode(), is(0));
+        final MasterObjectList objects = XmlOutput.fromXml(packet, MasterObjectList.class);
+        final GetJobResult getJobResult = new GetJobResult(objects);
+        final String result = view.render(getJobResult);
+        assertThat(result, is(expected));
     }
 
     @Test
@@ -926,6 +792,10 @@ public class Ds3Cli_Test {
         final String jobId = "aa5df0cc-b03a-4cb9-b69d-56e7367e917f";
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!",
                 "-a", "access", "-c", "get_job", "-i", jobId, "--output-format", "json"});
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
+        command.init(args);
+        assertTrue(command instanceof GetJob);
+        final View view = command.getView();
 
         final String expected = "\"Data\" : {\n" +
                 "    \"result\" : {\n" +
@@ -952,23 +822,12 @@ public class Ds3Cli_Test {
                 "  \"Status\" : \"OK\"\n" +
                 "}";
 
-        final String response = "<MasterObjectList BucketName=\"bucket\" CachedSizeInBytes=\"0\" ChunkClientProcessingOrderGuarantee=\"NONE\" CompletedSizeInBytes=\"0\" JobId=\"aa5df0cc-b03a-4cb9-b69d-56e7367e917f\" OriginalSizeInBytes=\"32\" Priority=\"HIGH\" RequestType=\"GET\" StartDate=\"2015-09-28T17:30:43.000Z\" Status=\"COMPLETED\" UserId=\"c2581493-058c-40d7-a3a1-9a50b20d6d3b\" UserName=\"spectra\" WriteOptimization=\"CAPACITY\"></MasterObjectList>";
+        final String packet = "<MasterObjectList BucketName=\"bucket\" CachedSizeInBytes=\"0\" ChunkClientProcessingOrderGuarantee=\"NONE\" CompletedSizeInBytes=\"0\" JobId=\"aa5df0cc-b03a-4cb9-b69d-56e7367e917f\" OriginalSizeInBytes=\"32\" Priority=\"HIGH\" RequestType=\"GET\" StartDate=\"2015-09-28T17:30:43.000Z\" Status=\"COMPLETED\" UserId=\"c2581493-058c-40d7-a3a1-9a50b20d6d3b\" UserName=\"spectra\" WriteOptimization=\"CAPACITY\"></MasterObjectList>";
 
-        final Ds3Client client = mock(Ds3Client.class);
-        final WebResponse webResponse = mock(WebResponse.class);
-        final Headers headers = mock(Headers.class);
-        when(webResponse.getStatusCode()).thenReturn(200);
-        when(webResponse.getHeaders()).thenReturn(headers);
-        when(webResponse.getResponseStream()).thenReturn(IOUtils.toInputStream(response));
-        final GetJobSpectraS3Response getJobResponse = new GetJobSpectraS3Response(webResponse);
-        when(client.getJobSpectraS3(any(GetJobSpectraS3Request.class))).thenReturn(getJobResponse);
-
-        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand())
-                .withProvider(new Ds3ProviderImpl(client, null), null);
-        command.init(args);
-        final CommandResponse result = command.render();
-        assertThat(result.getMessage(), StringEndsWith.endsWith(expected));
-        assertThat(result.getReturnCode(), is(0));
+        final MasterObjectList objects = XmlOutput.fromXml(packet, MasterObjectList.class);
+        final GetJobResult getJobResult = new GetJobResult(objects);
+        final String result = view.render(getJobResult);
+        assertTrue(result.endsWith(expected));
     }
 
     @Test
@@ -1046,7 +905,7 @@ public class Ds3Cli_Test {
         when(mockedPutJob.getJobId()).thenReturn(jobId);
         final Iterable<Ds3Object> retObj = Lists.newArrayList(new Ds3Object("obj1.txt", 1245), new Ds3Object("obj2.txt", 12345));
         when(helpers.startWriteJob(eq("bucketName"), eq(retObj), any(WriteJobOptions.class))).thenReturn(mockedPutJob);
-        when(mockedPutJob.withMetadata((Ds3ClientHelpers.MetadataAccess) isNotNull())).thenReturn(mockedPutJob);
+        when(mockedPutJob.withMetadata((MetadataAccess) isNotNull())).thenReturn(mockedPutJob);
 
         PowerMockito.mockStatic(FileUtils.class);
         when(FileUtils.getObjectsToPut((Iterable<Path>)isNotNull(), any(Path.class), any(Boolean.class))).thenCallRealMethod();
@@ -1080,7 +939,7 @@ public class Ds3Cli_Test {
         when(mockedPutJob.getJobId()).thenReturn(jobId);
         final Iterable<Ds3Object> retObj = ImmutableList.of(new Ds3Object("obj1.txt", 1245), new Ds3Object("obj2.txt", 12345));
         when(helpers.startWriteJob(eq("bucketName"), eq(retObj), any(WriteJobOptions.class))).thenReturn(mockedPutJob);
-        when(mockedPutJob.withMetadata((Ds3ClientHelpers.MetadataAccess) isNotNull())).thenReturn(mockedPutJob);
+        when(mockedPutJob.withMetadata((MetadataAccess) isNotNull())).thenReturn(mockedPutJob);
 
         PowerMockito.mockStatic(FileUtils.class);
         when(FileUtils.getObjectsToPut((Iterable<Path>)isNotNull(), any(Path.class), any(Boolean.class))).thenCallRealMethod();
@@ -1110,7 +969,7 @@ public class Ds3Cli_Test {
         when(mockedPutJob.getJobId()).thenReturn(jobId);
         when(helpers.listObjectsForDirectory(any(Path.class))).thenReturn(retObj);
         when(helpers.startWriteJob(eq("bucketName"), eq(retObj), any(WriteJobOptions.class))).thenReturn(mockedPutJob);
-        when(mockedPutJob.withMetadata((Ds3ClientHelpers.MetadataAccess) isNotNull())).thenReturn(mockedPutJob);
+        when(mockedPutJob.withMetadata((MetadataAccess) isNotNull())).thenReturn(mockedPutJob);
 
         final Contents c1 = new Contents();
         c1.setKey("obj1.txt");
@@ -1209,7 +1068,7 @@ public class Ds3Cli_Test {
         when(FileUtils.getFileSize(eq(p2))).thenReturn(12345L);
 
         final UUID jobId = UUID.randomUUID();
-        when(mockedPutJob.withMetadata((Ds3ClientHelpers.MetadataAccess) isNotNull())).thenReturn(mockedPutJob);
+        when(mockedPutJob.withMetadata((MetadataAccess) isNotNull())).thenReturn(mockedPutJob);
         when(mockedPutJob.getJobId()).thenReturn(jobId);
         when(helpers.startWriteJob(eq("bucketName"), eq(retObj), any(WriteJobOptions.class))).thenReturn(mockedPutJob);
 
@@ -1226,21 +1085,14 @@ public class Ds3Cli_Test {
         final String expected = "Success: Deleted tape drive 'c2581493-058c-40d7-a3a1-9a50b20d6d3b'.";
 
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "delete_tape_drive", "-i", "c2581493-058c-40d7-a3a1-9a50b20d6d3b"});
-        final Ds3Client client = mock(Ds3Client.class);
-
-        final WebResponse webResponse = mock(WebResponse.class);
-        final Headers headers = mock(Headers.class);
-        when(webResponse.getStatusCode()).thenReturn(204);
-        when(webResponse.getHeaders()).thenReturn(headers);
-
-        final DeleteTapeDriveSpectraS3Response deleteTapeDriveResponse = new DeleteTapeDriveSpectraS3Response(webResponse);
-        when(client.deleteTapeDriveSpectraS3(any(DeleteTapeDriveSpectraS3Request.class))).thenReturn(deleteTapeDriveResponse);
-
-        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, null), null);
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
         command.init(args);
-        final CommandResponse result = command.render();
-        assertThat(result.getMessage(), is(expected));
-        assertThat(result.getReturnCode(), is(0));
+        assertTrue(command instanceof DeleteTapeDrive);
+        final View view = command.getView();
+
+        final String result = view.render(new DefaultResult("Success: Deleted tape drive 'c2581493-058c-40d7-a3a1-9a50b20d6d3b'."));
+
+        assertThat(result, is(expected));
     }
 
     @Test
@@ -1250,20 +1102,13 @@ public class Ds3Cli_Test {
                 "}";
 
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "delete_tape_drive", "-i", "c2581493-058c-40d7-a3a1-9a50b20d6d3b", "--output-format", "json"});
-        final Ds3Client client = mock(Ds3Client.class);
-        final WebResponse webResponse = mock(WebResponse.class);
-        final Headers headers = mock(Headers.class);
-        when(webResponse.getStatusCode()).thenReturn(204);
-        when(webResponse.getHeaders()).thenReturn(headers);
-
-        final DeleteTapeDriveSpectraS3Response deleteTapeDriveResponse = new DeleteTapeDriveSpectraS3Response(webResponse);
-        when(client.deleteTapeDriveSpectraS3(any(DeleteTapeDriveSpectraS3Request.class))).thenReturn(deleteTapeDriveResponse);
-
-        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, null), null);
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
         command.init(args);
-        final CommandResponse result = command.render();
-        assertTrue(result.getMessage().endsWith(expected));
-        assertThat(result.getReturnCode(), is(0));
+        assertTrue(command instanceof DeleteTapeDrive);
+        final View view = command.getView();
+
+        final String result = view.render(new DefaultResult("Success: Deleted tape drive 'c2581493-058c-40d7-a3a1-9a50b20d6d3b'."));
+        assertTrue(result.endsWith(expected));
     }
 
     @Test
@@ -1271,21 +1116,13 @@ public class Ds3Cli_Test {
         final String expected = "Success: Deleted tape partition 'someIdValue'.";
 
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "delete_tape_partition", "-i", "someIdValue"});
-        final Ds3Client client = mock(Ds3Client.class);
-
-        final WebResponse webResponse = mock(WebResponse.class);
-        final Headers headers = mock(Headers.class);
-        when(webResponse.getStatusCode()).thenReturn(204);
-        when(webResponse.getHeaders()).thenReturn(headers);
-
-        final DeleteTapePartitionSpectraS3Response deleteTapePartitionResponse = new DeleteTapePartitionSpectraS3Response(webResponse);
-        when(client.deleteTapePartitionSpectraS3(any(DeleteTapePartitionSpectraS3Request.class))).thenReturn(deleteTapePartitionResponse);
-
-        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, null), null);
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
         command.init(args);
-        final CommandResponse result = command.render();
-        assertThat(result.getMessage(), is(expected));
-        assertThat(result.getReturnCode(), is(0));
+        assertTrue(command instanceof DeleteTapePartition);
+        final View view = command.getView();
+
+        final String result = view.render(new DefaultResult("Success: Deleted tape partition 'someIdValue'."));
+        assertThat(result, is(expected));
     }
 
     @Test
@@ -1295,21 +1132,13 @@ public class Ds3Cli_Test {
                 "}";
 
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "delete_tape_partition", "-i", "someIdValue", "--output-format", "json"});
-
-        final Ds3Client client = mock(Ds3Client.class);
-        final WebResponse webResponse = mock(WebResponse.class);
-        final Headers headers = mock(Headers.class);
-        when(webResponse.getStatusCode()).thenReturn(204);
-        when(webResponse.getHeaders()).thenReturn(headers);
-
-        final DeleteTapePartitionSpectraS3Response deleteTapePartitionResponse = new DeleteTapePartitionSpectraS3Response(webResponse);
-        when(client.deleteTapePartitionSpectraS3(any(DeleteTapePartitionSpectraS3Request.class))).thenReturn(deleteTapePartitionResponse);
-
-        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, null), null);
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
         command.init(args);
-        final CommandResponse result = command.render();
-        assertTrue(result.getMessage().endsWith(expected));
-        assertThat(result.getReturnCode(), is(0));
+        assertTrue(command instanceof DeleteTapePartition);
+        final View view = command.getView();
+
+        final String result = view.render(new DefaultResult("Success: Deleted tape partition 'someIdValue'."));
+        assertTrue(result.endsWith(expected));
     }
 
     @Test
@@ -1375,7 +1204,7 @@ public class Ds3Cli_Test {
 
         PowerMockito.mockStatic(FileUtils.class);
         PowerMockito.mockStatic(Guard.class);
-        when(mockedPutJob.withMetadata((Ds3ClientHelpers.MetadataAccess) isNotNull())).thenReturn(mockedPutJob);
+        when(mockedPutJob.withMetadata((MetadataAccess) isNotNull())).thenReturn(mockedPutJob);
         when(FileUtils.getObjectsToPut((Iterable<Path>)isNotNull(), any(Path.class), any(Boolean.class))).thenCallRealMethod();
         when(FileUtils.listObjectsForDirectory(any(Path.class))).thenReturn(retPath);
         when(FileUtils.getFileName(any(Path.class), eq(p1))).thenReturn("obj1.txt");
@@ -1422,7 +1251,7 @@ public class Ds3Cli_Test {
         PowerMockito.mockStatic(FileUtils.class);
         PowerMockito.mockStatic(CliUtils.class);
         PowerMockito.mockStatic(Guard.class);
-        when(mockedPutJob.withMetadata((Ds3ClientHelpers.MetadataAccess) isNotNull())).thenReturn(mockedPutJob);
+        when(mockedPutJob.withMetadata((MetadataAccess) isNotNull())).thenReturn(mockedPutJob);
         when(FileUtils.getObjectsToPut((Iterable<Path>)isNotNull(), any(Path.class), any(Boolean.class))).thenCallRealMethod();
         when(FileUtils.listObjectsForDirectory(any(Path.class))).thenReturn(retPath);
         when(FileUtils.getFileName(any(Path.class), eq(p1))).thenReturn("obj1.txt");
@@ -1482,7 +1311,7 @@ public class Ds3Cli_Test {
             }
         });
         when(CliUtils.isPipe()).thenReturn(true);
-        when(mockedPutJob.withMetadata((Ds3ClientHelpers.MetadataAccess) isNotNull())).thenReturn(mockedPutJob);
+        when(mockedPutJob.withMetadata((MetadataAccess) isNotNull())).thenReturn(mockedPutJob);
         when(FileUtils.getPipedFilesFromStdin(any(FileSystemProvider.class))).thenReturn(retPath);
         when(FileUtils.getObjectsToPut((Iterable<Path>) isNotNull(), any(Path.class), any(Boolean.class))).thenCallRealMethod();
         when(FileUtils.getFileName(any(Path.class), eq(p1))).thenReturn(p1.toString());
@@ -1527,7 +1356,7 @@ public class Ds3Cli_Test {
             }
         });
 
-        when(mockedPutJob.withMetadata((Ds3ClientHelpers.MetadataAccess) isNotNull())).thenReturn(mockedPutJob);
+        when(mockedPutJob.withMetadata((MetadataAccess) isNotNull())).thenReturn(mockedPutJob);
         when(CliUtils.isPipe()).thenReturn(true);
         when(FileUtils.getPipedFilesFromStdin(any(FileSystemProvider.class))).thenReturn(retPath);
         when(FileUtils.getObjectsToPut((Iterable<Path>)isNotNull(), any(Path.class), any(Boolean.class))).thenCallRealMethod();
@@ -1650,33 +1479,20 @@ public class Ds3Cli_Test {
         final BulkObjectList bulkObjectList = new BulkObjectList();
         bulkObjectList.setObjects(Lists.newArrayList(testObject));
 
-        final Ds3Client client = mock(Ds3Client.class);
-        final WebResponse webResponse = mock(WebResponse.class);
-        final Headers headers = mock(Headers.class);
-        when(webResponse.getStatusCode()).thenReturn(200);
-        when(webResponse.getHeaders()).thenReturn(headers);
-        when(webResponse.getResponseStream()).thenReturn(IOUtils.toInputStream(XmlOutput.toXml(bulkObjectList), "utf-8"));
-
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_physical_placement", "-b", "bucketName", "-o", "testObject"});
-
-        final GetPhysicalPlacementForObjectsWithFullDetailsSpectraS3Response response = PowerMockito.spy(new GetPhysicalPlacementForObjectsWithFullDetailsSpectraS3Response(webResponse));
-        PowerMockito.doNothing().when(response, "processResponse");
-
-        when(response.getBulkObjectListResult()).thenReturn(bulkObjectList);
-        when(client.getPhysicalPlacementForObjectsWithFullDetailsSpectraS3(any(GetPhysicalPlacementForObjectsWithFullDetailsSpectraS3Request.class))).thenReturn(response);
-
-        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, null), null);
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
         command.init(args);
-        final CommandResponse result = command.render();
+        assertTrue(command instanceof GetPhysicalPlacement);
+        final View view = command.getView();
 
-        assertTrue(result.getMessage().contains("| Object Name | ID | In Cache | Length | Offset | Latest | Version |"));
-        assertTrue(result.getMessage().contains("| testObject  |    | Unknown  | 1024   | 0      | false  | 0       |"));
+        final String result = view.render(new GetPhysicalPlacementWithFullDetailsResult(bulkObjectList));
 
-        assertTrue(result.getMessage().contains("| Tape Bar Code |        State       | Type | Description |   Eject Label   |   Eject Location   |"));
-        assertTrue(result.getMessage().contains("| 121557L6      | PENDING_INSPECTION | LTO6 | N/A         | Tape1EjectLabel | Tape1EjectLocation |"));
-        assertTrue(result.getMessage().contains("| 421555L7      | PENDING_INSPECTION | LTO7 | N/A         | Tape2EjectLabel | Tape2EjectLocation |"));
+        assertTrue(result.contains("| Object Name | ID | In Cache | Length | Offset | Latest | Version |"));
+        assertTrue(result.contains("| testObject  |    | Unknown  | 1024   | 0      | false  | 0       |"));
 
-        assertThat(result.getReturnCode(), is(0));
+        assertTrue(result.contains("| Tape Bar Code |        State       | Type | Description |   Eject Label   |   Eject Location   |"));
+        assertTrue(result.contains("| 121557L6      | PENDING_INSPECTION | LTO6 | N/A         | Tape1EjectLabel | Tape1EjectLocation |"));
+        assertTrue(result.contains("| 421555L7      | PENDING_INSPECTION | LTO7 | N/A         | Tape2EjectLabel | Tape2EjectLocation |"));
     }
 
     @Test
@@ -1727,37 +1543,29 @@ public class Ds3Cli_Test {
         final BulkObjectList bulkObjectList = new BulkObjectList();
         bulkObjectList.setObjects(Lists.newArrayList(testObject));
 
-        final Ds3Client client = mock(Ds3Client.class);
-        final WebResponse webResponse = mock(WebResponse.class);
-        final Headers headers = mock(Headers.class);
-        when(webResponse.getStatusCode()).thenReturn(200);
-        when(webResponse.getHeaders()).thenReturn(headers);
-        when(webResponse.getResponseStream()).thenReturn(IOUtils.toInputStream(XmlOutput.toXml(bulkObjectList), "utf-8"));
-
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_physical_placement", "-b", "bucketName", "-o", "testObject"});
-
-        final GetPhysicalPlacementForObjectsWithFullDetailsSpectraS3Response response = PowerMockito.spy(new GetPhysicalPlacementForObjectsWithFullDetailsSpectraS3Response(webResponse));
-        PowerMockito.doNothing().when(response, "processResponse");
-
-        when(response.getBulkObjectListResult()).thenReturn(bulkObjectList);
-        when(client.getPhysicalPlacementForObjectsWithFullDetailsSpectraS3(any(GetPhysicalPlacementForObjectsWithFullDetailsSpectraS3Request.class))).thenReturn(response);
-
-        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, null), null);
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
         command.init(args);
-        final CommandResponse result = command.render();
+        assertTrue(command instanceof GetPhysicalPlacement);
+        final View view = command.getView();
 
-        assertTrue(result.getMessage().contains("| Object Name | ID | In Cache | Length | Offset | Latest | Version |"));
-        assertTrue(result.getMessage().contains("| testObject  |    | Unknown  | 1024   | 0      | false  | 0       |"));
+        final String result = view.render(new GetPhysicalPlacementWithFullDetailsResult(bulkObjectList));
 
-        assertTrue(result.getMessage().contains("| Pool Name |                  ID                  | Bucket ID |  State | Health |   Type   | Partition ID |"));
-        assertTrue(result.getMessage().contains("| pool1     | " + pool1Id.toString() +            " |           | NORMAL | OK     | NEARLINE |              |"));
-        assertTrue(result.getMessage().contains("| pool2     | " + pool2Id.toString() +            " |           | NORMAL | OK     | NEARLINE |              |"));
+        assertTrue(result.contains("| Object Name | ID | In Cache | Length | Offset | Latest | Version |"));
+        assertTrue(result.contains("| testObject  |    | Unknown  | 1024   | 0      | false  | 0       |"));
 
-        assertThat(result.getReturnCode(), is(0));
+        assertTrue(result.contains("| Pool Name |                  ID                  | Bucket ID |  State | Health |   Type   | Partition ID |"));
+        assertTrue(result.contains("| pool1     | " + pool1Id.toString() +            " |           | NORMAL | OK     | NEARLINE |              |"));
+        assertTrue(result.contains("| pool2     | " + pool2Id.toString() +            " |           | NORMAL | OK     | NEARLINE |              |"));
     }
 
     @Test
     public void getDataPolicies() throws Exception {
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_data_policies"});
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
+        command.init(args);
+        assertTrue(command instanceof GetDataPolicies);
+        final View view = command.getView();
 
         final String expected = "+------+--------------------------+------------+---------------+-------------------------+------------------+-------------------+--------------------------+--------------------------+-----------------------------+--------------------------------------+--------------------+\n"
                 +"| Name |          Created         | Versioning | Checksum Type | End-to-End CRC Required | Blobbing Enabled | Default Blob Size | Default Get Job Priority | Default Put Job Priority | Default Verify Job Priority |                  Id                  | LTFS Object Naming |\n"
@@ -1765,8 +1573,7 @@ public class Ds3Cli_Test {
                 +"| fred | 2016-04-26T14:17:04.000Z |       NONE |           MD5 |                   false |            false |        1073741824 |                     HIGH |                   NORMAL |                         LOW | d3e6e795-fc85-4163-9d2f-4bc271d995d0 |               true |\n"
                 +"+------+--------------------------+------------+---------------+-------------------------+------------------+-------------------+--------------------------+--------------------------+-----------------------------+--------------------------------------+--------------------+\n";
 
-        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_data_policies"});
-        final String response = "<Data><DataPolicy>" +
+        final String packet = "<Data><DataPolicy>" +
                 "<BlobbingEnabled>false</BlobbingEnabled>" +
                 "<ChecksumType>MD5</ChecksumType>" +
                 "<CreationDate>2016-04-26T14:17:04.000Z</CreationDate>" +
@@ -1781,24 +1588,19 @@ public class Ds3Cli_Test {
                 "<RebuildPriority>LOW</RebuildPriority>" +
                 "<Versioning>NONE</Versioning></DataPolicy></Data>";
 
-        final Ds3Client client = mock(Ds3Client.class);
-        final WebResponse webResponse = mock(WebResponse.class);
-        final Headers headers = mock(Headers.class);
-        when(webResponse.getStatusCode()).thenReturn(200);
-        when(webResponse.getHeaders()).thenReturn(headers);
-        when(webResponse.getResponseStream()).thenReturn(IOUtils.toInputStream(response));
-        final GetDataPoliciesSpectraS3Response GetDataPoliciesResponse = new GetDataPoliciesSpectraS3Response(webResponse);
-        when(client.getDataPoliciesSpectraS3(any(GetDataPoliciesSpectraS3Request.class))).thenReturn(GetDataPoliciesResponse);
-
-        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, null), null);
-        command.init(args);
-        final CommandResponse result = command.render();
-        assertThat(result.getMessage(), is(expected));
-        assertThat(result.getReturnCode(), is(0));
+        final DataPolicyList policies = XmlOutput.fromXml(packet, DataPolicyList.class);
+        final GetDataPoliciesResult dataPoliciesResult = new GetDataPoliciesResult(policies);
+        final String result = view.render(dataPoliciesResult);
+        assertThat(result, is(expected));
     }
 
     @Test
     public void getDataPolicy() throws Exception {
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_data_policy", "-i", "fake"});
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
+        command.init(args);
+        assertTrue(command instanceof GetDataPolicy);
+        final View view = command.getView();
 
         final String expected = "+------+--------------------------+------------+---------------+-------------------------+------------------+-------------------+--------------------------+--------------------------+-----------------------------+--------------------------------------+--------------------+\n"
                 +"| Name |          Created         | Versioning | Checksum Type | End-to-End CRC Required | Blobbing Enabled | Default Blob Size | Default Get Job Priority | Default Put Job Priority | Default Verify Job Priority |                  Id                  | LTFS Object Naming |\n"
@@ -1806,8 +1608,7 @@ public class Ds3Cli_Test {
                 +"| fake | 2016-04-26T14:17:04.000Z |       NONE |           MD5 |                   false |            false |        1073741824 |                     HIGH |                   NORMAL |                         LOW | d3e6e795-fc85-4163-9d2f-4bc271d995d0 |               true |\n"
                 +"+------+--------------------------+------------+---------------+-------------------------+------------------+-------------------+--------------------------+--------------------------+-----------------------------+--------------------------------------+--------------------+\n";
 
-        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_data_policy", "-i", "fake"});
-        final String response = "<Data>" +
+        final String packet = "<Data>" +
                 "<BlobbingEnabled>false</BlobbingEnabled>" +
                 "<ChecksumType>MD5</ChecksumType>" +
                 "<CreationDate>2016-04-26T14:17:04.000Z</CreationDate>" +
@@ -1822,24 +1623,20 @@ public class Ds3Cli_Test {
                 "<RebuildPriority>LOW</RebuildPriority>" +
                 "<Versioning>NONE</Versioning></Data>";
 
-        final Ds3Client client = mock(Ds3Client.class);
-        final WebResponse webResponse = mock(WebResponse.class);
-        final Headers headers = mock(Headers.class);
-        when(webResponse.getStatusCode()).thenReturn(200);
-        when(webResponse.getHeaders()).thenReturn(headers);
-        when(webResponse.getResponseStream()).thenReturn(IOUtils.toInputStream(response));
-        final GetDataPolicySpectraS3Response GetDataPolicyResponse = new GetDataPolicySpectraS3Response(webResponse);
-        when(client.getDataPolicySpectraS3(any(GetDataPolicySpectraS3Request.class))).thenReturn(GetDataPolicyResponse);
-
-        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, null), null);
-        command.init(args);
-        final CommandResponse result = command.render();
-        assertThat(result.getMessage(), is(expected));
-        assertThat(result.getReturnCode(), is(0));
+        final DataPolicy policy = XmlOutput.fromXml(packet, DataPolicy.class);
+        final GetDataPoliciesResult dataPoliciesResult = new GetDataPoliciesResult(policy);
+        final String result = view.render(dataPoliciesResult);
+        assertThat(result, is(expected));
     }
 
     @Test
     public void modifyDataPolicy() throws Exception {
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "modify_data_policy", "-i", "fake",
+                "--modify-params",  "name:fred,blobbing_enabled:false,default_blob_size:1073741824,default_get_job_priority:HIGH,end_to_end_crc_required:false,rebuild_priority:LOW,versioning:NONE"});
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
+        command.init(args);
+        assertTrue(command instanceof ModifyDataPolicy);
+        final View view = command.getView();
 
         final String expected = "+------+--------------------------+------------+---------------+-------------------------+------------------+-------------------+--------------------------+--------------------------+-----------------------------+--------------------------------------+--------------------+\n"
                 +"| Name |          Created         | Versioning | Checksum Type | End-to-End CRC Required | Blobbing Enabled | Default Blob Size | Default Get Job Priority | Default Put Job Priority | Default Verify Job Priority |                  Id                  | LTFS Object Naming |\n"
@@ -1847,9 +1644,7 @@ public class Ds3Cli_Test {
                 +"| fred | 2016-04-26T14:17:04.000Z |       NONE |           MD5 |                   false |            false |        1073741824 |                     HIGH |                   NORMAL |                         LOW | d3e6e795-fc85-4163-9d2f-4bc271d995d0 |               true |\n"
                 +"+------+--------------------------+------------+---------------+-------------------------+------------------+-------------------+--------------------------+--------------------------+-----------------------------+--------------------------------------+--------------------+\n";
 
-        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "modify_data_policy", "-i", "fake",
-                "--modify-params",  "name:fred,blobbing_enabled:false,default_blob_size:1073741824,default_get_job_priority:HIGH,end_to_end_crc_required:false,rebuild_priority:LOW,versioning:NONE"});
-        final String response = "<Data>" +
+        final String packet = "<Data>" +
                 "<BlobbingEnabled>false</BlobbingEnabled>" +
                 "<ChecksumType>MD5</ChecksumType>" +
                 "<CreationDate>2016-04-26T14:17:04.000Z</CreationDate>" +
@@ -1865,84 +1660,21 @@ public class Ds3Cli_Test {
                 "<Versioning>NONE</Versioning>" +
                 "</Data>";
 
-        final Ds3Client client = mock(Ds3Client.class);
-
-        // mock client for "get" call
-        final WebResponse webResponse1 = mock(WebResponse.class);
-        final Headers headers1 = mock(Headers.class);
-        when(webResponse1.getStatusCode()).thenReturn(200);
-        when(webResponse1.getHeaders()).thenReturn(headers1);
-        when(webResponse1.getResponseStream()).thenReturn(IOUtils.toInputStream(response));
-        final GetDataPolicySpectraS3Response GetDataPolicyResponse = new GetDataPolicySpectraS3Response(webResponse1);
-
-        // mock client for "modofy" call
-        final WebResponse webResponse = mock(WebResponse.class);
-        final Headers headers = mock(Headers.class);
-        when(webResponse.getStatusCode()).thenReturn(200);
-        when(webResponse.getHeaders()).thenReturn(headers);
-        when(webResponse.getResponseStream()).thenReturn(IOUtils.toInputStream(response));
-
-        final ModifyDataPolicySpectraS3Response ModifyDataPolicyResponse = new ModifyDataPolicySpectraS3Response(webResponse);
-        when(client.modifyDataPolicySpectraS3(any(ModifyDataPolicySpectraS3Request.class))).thenReturn(ModifyDataPolicyResponse);
-        when(client.getDataPolicySpectraS3(any(GetDataPolicySpectraS3Request.class))).thenReturn(GetDataPolicyResponse);
-
-        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, null), null);
-        command.init(args);
-        final CommandResponse result = command.render();
-        assertThat(result.getMessage(), is(expected));
-        assertThat(result.getReturnCode(), is(0));
+        final DataPolicy policy = XmlOutput.fromXml(packet, DataPolicy.class);
+        final GetDataPoliciesResult dataPoliciesResult = new GetDataPoliciesResult(policy);
+        final String result = view.render(dataPoliciesResult);
+        assertThat(result, is(expected));
     }
 
     @Test
     public void modifyDataPolicyWithBadParam() throws Exception {
-
         final String expected = "Error (CommandException): Unrecognized Data Policy parameter: cat";
 
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "modify_data_policy", "-i", "fake",
                 "--modify-params",  "name:fred,blobbing_enabled:false,default_blob_size:1073741824,default_get_job_priority:HIGH,end_to_end_crc_required:false,rebuild_priority:LOW,versioning:NONE,cat:dog"});
-
-        // set up the mock to retrieve the policy to modify
-        final String response = "<Data>" +
-                "<BlobbingEnabled>false</BlobbingEnabled>" +
-                "<ChecksumType>MD5</ChecksumType>" +
-                "<CreationDate>2016-04-26T14:17:04.000Z</CreationDate>" +
-                "<DefaultBlobSize>1073741824</DefaultBlobSize>" +
-                "<DefaultGetJobPriority>HIGH</DefaultGetJobPriority>" +
-                "<DefaultPutJobPriority>NORMAL</DefaultPutJobPriority>" +
-                "<DefaultVerifyJobPriority>LOW</DefaultVerifyJobPriority>" +
-                "<EndToEndCrcRequired>false</EndToEndCrcRequired>" +
-                "<Id>d3e6e795-fc85-4163-9d2f-4bc271d995d0</Id>" +
-                "<LtfsObjectNamingAllowed>true</LtfsObjectNamingAllowed>" +
-                "<Name>fred</Name>" +
-                "<RebuildPriority>LOW</RebuildPriority>" +
-                "<Versioning>NONE</Versioning>" +
-                "</Data>";
-
-        final Ds3Client client = mock(Ds3Client.class);
-
-        // mock client for "get" call
-        final WebResponse webResponse1 = mock(WebResponse.class);
-        final Headers headers1 = mock(Headers.class);
-        when(webResponse1.getStatusCode()).thenReturn(200);
-        when(webResponse1.getHeaders()).thenReturn(headers1);
-        when(webResponse1.getResponseStream()).thenReturn(IOUtils.toInputStream(response));
-        final GetDataPolicySpectraS3Response GetDataPolicyResponse = new GetDataPolicySpectraS3Response(webResponse1);
-
-        // mock client for "modify" call
-        final WebResponse webResponse = mock(WebResponse.class);
-        final Headers headers = mock(Headers.class);
-        when(webResponse.getStatusCode()).thenReturn(200);
-        when(webResponse.getHeaders()).thenReturn(headers);
-        when(webResponse.getResponseStream()).thenReturn(IOUtils.toInputStream(response));
-
-        final ModifyDataPolicySpectraS3Response ModifyDataPolicyResponse = new ModifyDataPolicySpectraS3Response(webResponse);
-        when(client.modifyDataPolicySpectraS3(any(ModifyDataPolicySpectraS3Request.class))).thenReturn(ModifyDataPolicyResponse);
-        when(client.getDataPolicySpectraS3(any(GetDataPolicySpectraS3Request.class))).thenReturn(GetDataPolicyResponse);
-
         try {
-            final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, null), null);
+            final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
             command.init(args);
-            final CommandResponse result = command.render();
         } catch (final CommandException e) {
             // exception is expected -- test handler / formatter
             final String formattedException = ExceptionFormatter.format(e);
@@ -1952,6 +1684,11 @@ public class Ds3Cli_Test {
 
     @Test
     public void getUser() throws Exception {
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_user", "-i", "testguy"});
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
+        command.init(args);
+        assertTrue(command instanceof GetUser);
+        final View view = command.getView();
 
         final String expected = "+---------+------------+--------------------------------------+--------------------------------------+------------------+\n" +
                 "|   Name  | Secret Key |                  Id                  |        Default Data Policy Id        | Authorization Id |\n" +
@@ -1959,8 +1696,7 @@ public class Ds3Cli_Test {
                 "| testguy | QBVe7jAu   | a1e149b9-3dfa-49c2-b7d0-25e831932fff | a85aa599-7a58-4141-adbe-79bfd1d42e48 |     dGVzdGd1eQ== |\n" +
                 "+---------+------------+--------------------------------------+--------------------------------------+------------------+\n";
 
-        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_user", "-i", "testguy"});
-        final String response = "<Data>" +
+        final String packet = "<Data>" +
                 "<AuthId>dGVzdGd1eQ==</AuthId>" +
                 "<DefaultDataPolicyId>a85aa599-7a58-4141-adbe-79bfd1d42e48</DefaultDataPolicyId>" +
                 "<Id>a1e149b9-3dfa-49c2-b7d0-25e831932fff</Id>" +
@@ -1968,24 +1704,19 @@ public class Ds3Cli_Test {
                 "<SecretKey>QBVe7jAu</SecretKey>" +
                 "</Data>";
 
-        final Ds3Client client = mock(Ds3Client.class);
-        final WebResponse webResponse = mock(WebResponse.class);
-        final Headers headers = mock(Headers.class);
-        when(webResponse.getStatusCode()).thenReturn(200);
-        when(webResponse.getHeaders()).thenReturn(headers);
-        when(webResponse.getResponseStream()).thenReturn(IOUtils.toInputStream(response));
-        final GetUserSpectraS3Response GetUserResponse = new GetUserSpectraS3Response(webResponse);
-        when(client.getUserSpectraS3(any(GetUserSpectraS3Request.class))).thenReturn(GetUserResponse);
-
-        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, null), null);
-        command.init(args);
-        final CommandResponse result = command.render();
-        assertThat(result.getMessage(), is(expected));
-        assertThat(result.getReturnCode(), is(0));
+        final SpectraUser user = XmlOutput.fromXml(packet, SpectraUser.class);
+        final GetUsersResult usersResult = new GetUsersResult(user);
+        final String result = view.render(usersResult);
+        assertThat(result, is(expected));
     }
 
     @Test
     public void getUsers() throws Exception {
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_users"});
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
+        command.init(args);
+        assertTrue(command instanceof GetUsers);
+        final View view = command.getView();
 
         final String expected = "+---------+------------+--------------------------------------+--------------------------------------+------------------+\n" +
                 "|   Name  | Secret Key |                  Id                  |        Default Data Policy Id        | Authorization Id |\n" +
@@ -1995,8 +1726,7 @@ public class Ds3Cli_Test {
                 "| testguy | QBVe7jAu   | a1e149b9-3dfa-49c2-b7d0-25e831932fff | a85aa599-7a58-4141-adbe-79bfd1d42e48 |     dGVzdGd1eQ== |\n" +
                 "+---------+------------+--------------------------------------+--------------------------------------+------------------+\n";
 
-        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_users"});
-        final String response = "<Data>" +
+        final String packet = "<Data>" +
                 "<User><AuthId>ams=</AuthId>" +
                     "<DefaultDataPolicyId>d3e6e795-fc85-4163-9d2f-4bc271d995d0</DefaultDataPolicyId>" +
                     "<Id>0f4e6e4a-bc48-427d-820e-9c0a050064be</Id>" +
@@ -2014,24 +1744,20 @@ public class Ds3Cli_Test {
                     "<SecretKey>QBVe7jAu</SecretKey></User>" +
                 "</Data>";
 
-        final Ds3Client client = mock(Ds3Client.class);
-        final WebResponse webResponse = mock(WebResponse.class);
-        final Headers headers = mock(Headers.class);
-        when(webResponse.getStatusCode()).thenReturn(200);
-        when(webResponse.getHeaders()).thenReturn(headers);
-        when(webResponse.getResponseStream()).thenReturn(IOUtils.toInputStream(response));
-        final GetUsersSpectraS3Response GetUsersResponse = new GetUsersSpectraS3Response(webResponse);
-        when(client.getUsersSpectraS3(any(GetUsersSpectraS3Request.class))).thenReturn(GetUsersResponse);
-
-        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, null), null);
-        command.init(args);
-        final CommandResponse result = command.render();
-        assertThat(result.getMessage(), is(expected));
-        assertThat(result.getReturnCode(), is(0));
+        final SpectraUserList users = XmlOutput.fromXml(packet, SpectraUserList.class);
+        final GetUsersResult usersResult = new GetUsersResult(users);
+        final String result = view.render(usersResult);
+        assertThat(result, is(expected));
     }
 
     @Test
     public void modifyUser() throws Exception {
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "modify_user",
+                "-i", "testguy", "--modify-params",  "default_data_policy_id:a85aa599-7a58-4141-adbe-79bfd1d42e48"});
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
+        command.init(args);
+        assertTrue(command instanceof ModifyUser);
+        final View view = command.getView();
 
         final String expected = "+---------+------------+--------------------------------------+--------------------------------------+------------------+\n" +
                 "|   Name  | Secret Key |                  Id                  |        Default Data Policy Id        | Authorization Id |\n" +
@@ -2039,9 +1765,7 @@ public class Ds3Cli_Test {
                 "| testguy | QBVe7jAu   | a1e149b9-3dfa-49c2-b7d0-25e831932fff | a85aa599-7a58-4141-adbe-79bfd1d42e48 |     dGVzdGd1eQ== |\n" +
                 "+---------+------------+--------------------------------------+--------------------------------------+------------------+\n";
 
-        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "modify_user",
-                "-i", "testguy", "--modify-params",  "default_data_policy_id:a85aa599-7a58-4141-adbe-79bfd1d42e48"});
-        final String response = "<Data>" +
+        final String packet = "<Data>" +
                 "<AuthId>dGVzdGd1eQ==</AuthId>" +
                 "<DefaultDataPolicyId>a85aa599-7a58-4141-adbe-79bfd1d42e48</DefaultDataPolicyId>" +
                 "<Id>a1e149b9-3dfa-49c2-b7d0-25e831932fff</Id>" +
@@ -2049,59 +1773,44 @@ public class Ds3Cli_Test {
                 "<SecretKey>QBVe7jAu</SecretKey>" +
                 "</Data>";
 
-        final Ds3Client client = mock(Ds3Client.class);
-
-        // mock client for "modify" call
-        final WebResponse webResponse = mock(WebResponse.class);
-        final Headers headers = mock(Headers.class);
-        when(webResponse.getStatusCode()).thenReturn(200);
-        when(webResponse.getHeaders()).thenReturn(headers);
-        when(webResponse.getResponseStream()).thenReturn(IOUtils.toInputStream(response));
-
-        final ModifyUserSpectraS3Response ModifyUserResponse = new ModifyUserSpectraS3Response(webResponse);
-        when(client.modifyUserSpectraS3(any(ModifyUserSpectraS3Request.class))).thenReturn(ModifyUserResponse);
-
-        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, null), null);
-        command.init(args);
-        final CommandResponse result = command.render();
-        assertThat(result.getMessage(), is(expected));
-        assertThat(result.getReturnCode(), is(0));
+        final SpectraUser user = XmlOutput.fromXml(packet, SpectraUser.class);
+        final GetUsersResult usersResult = new GetUsersResult(user);
+        final String result = view.render(usersResult);
+        assertThat(result, is(expected));
     }
 
-    @Test(expected = FailedRequestException.class)
+    @Test
     public void getUserNonExisting() throws Exception {
-
-        final String expected = "Unknown user: nosuchuser";
-
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_user", "-i", "nosuchuser"});
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
+        command.init(args);
+        assertTrue(command instanceof GetUser);
+        final View view = command.getView();
 
-        final String response = "<Error>" +
+        final String expected = "Error (FailedRequestException): target entity not found.";
+
+        final String packet = "<Error>" +
                 "<Code>NotFound</Code>" +
                 "<HttpErrorCode>404</HttpErrorCode>" +
                 "<Message>interface com.spectralogic.s3.common.dao.domain.ds3.User not found via identifier / bean property value &apos;nosuchuser&apos;.</Message>" +
                 "<Resource>/_rest_/user/nosuchuser</Resource><ResourceId>578</ResourceId>" +
                 "</Error>";
-
-        final Ds3Client client = mock(Ds3Client.class);
-
-        // mock client for "get" call0
-        final WebResponse webResponse = mock(WebResponse.class);
-        final Headers headers = mock(Headers.class);
-        when(webResponse.getStatusCode()).thenReturn(404);
-        when(webResponse.getHeaders()).thenReturn(headers);
-        when(webResponse.getResponseStream()).thenReturn(IOUtils.toInputStream(response));
-
-        final GetUserSpectraS3Response GetUserResponse = new GetUserSpectraS3Response(webResponse);
-        when(client.getUserSpectraS3(any(GetUserSpectraS3Request.class))).thenReturn(GetUserResponse);
-
-        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, null), null);
-        command.init(args);
-        final CommandResponse result = command.render();
-        assertThat(result.getMessage(), is(expected));
+        final Error error = XmlOutput.fromXml(packet, Error.class);
+        final FailedRequestException exception
+                =  new FailedRequestException(toImmutableIntList(new int[]{200}), 404, error, "Unknown user: nosuchuser", "666");
+        final String result = new FailedRequestExceptionHandler().format(exception);
+        assertEquals(result, expected);
     }
 
     @Test
     public void getBlobsOnTape() throws Exception {
+        final String tapeId =  "7badec16-d6f2-4912-a120-dcfe9a6b4c3c";
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_objects_on_tape", "-i", tapeId});
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
+        command.init(args);
+        assertTrue(command instanceof GetObjectsOnTape);
+        final View view = command.getView();
+
 
         final String expected = "+-------------------------------------------------+-------------+-----------+--------------------------------------+\n" +
                 "|                       Name                      |    Bucket   |    Size   |                  Id                  |\n" +
@@ -2133,8 +1842,7 @@ public class Ds3Cli_Test {
                 "| coffeehouse/witchcraft.mp3                      | coffeehouse |   6409093 | 92a40cff-63a6-4520-81a9-80afa03a1973 |\n" +
                 "+-------------------------------------------------+-------------+-----------+--------------------------------------+\n";
 
-        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_objects_on_tape", "-i", "7badec16-d6f2-4912-a120-dcfe9a6b4c3c"});
-        final String response = "<Data>" +
+        final String packet = "<Data>" +
                 "<Object Bucket=\"coffeehouse\" Id=\"53452a07-699a-4c27-8de5-95aa0a431df1\" Latest=\"true\" Length=\"9\" Name=\"123456789.txt\" Offset=\"0\" Version=\"1\"/>" +
                 "<Object Bucket=\"coffeehouse\" Id=\"7989ad4a-47a5-41ac-8814-3746e4e20679\" Latest=\"true\" Length=\"9172\" Name=\"Always_295x166.jpg\" Offset=\"0\" Version=\"1\"/>" +
                 "<Object Bucket=\"coffeehouse\" Id=\"6649c2cb-6e83-4c58-9fb8-9b4aec8b014b\" Latest=\"true\" Length=\"29895\" Name=\"Chapter 9.docx\" Offset=\"0\" Version=\"1\"/>" +
@@ -2162,53 +1870,41 @@ public class Ds3Cli_Test {
                 "<Object Bucket=\"coffeehouse\" Id=\"92a40cff-63a6-4520-81a9-80afa03a1973\" Latest=\"true\" Length=\"6409093\" Name=\"coffeehouse/witchcraft.mp3\" Offset=\"0\" Version=\"1\"/>" +
                 "</Data>";
 
-        final Ds3Client client = mock(Ds3Client.class);
-        final WebResponse webResponse = mock(WebResponse.class);
-        final Headers headers = mock(Headers.class);
-        when(webResponse.getStatusCode()).thenReturn(200);
-        when(webResponse.getHeaders()).thenReturn(headers);
-        when(webResponse.getResponseStream()).thenReturn(IOUtils.toInputStream(response));
-        final GetBlobsOnTapeSpectraS3Response blobsResponse = new GetBlobsOnTapeSpectraS3Response(webResponse);
-        when(client.getBlobsOnTapeSpectraS3(any(GetBlobsOnTapeSpectraS3Request.class))).thenReturn(blobsResponse);
-
-        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, null), null);
-        command.init(args);
-        final CommandResponse result = command.render();
-        assertThat(result.getMessage(), is(expected));
-        assertThat(result.getReturnCode(), is(0));
+        final BulkObjectList blobs = XmlOutput.fromXml(packet, BulkObjectList.class);
+        final GetObjectsOnTapeResult blobsResult = new GetObjectsOnTapeResult(tapeId, blobs.getObjects());
+        final String result = view.render(blobsResult);
+        assertThat(result, is(expected));
     }
 
     @Test
     public void getBlobsOnTapeEmptyTape() throws Exception {
-
-        final String expected = "No objects were reported in tape 'a4d7cef1-80fa-4552-ad3f-4de716f515ea'";
-
-        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "ccess", "-c", "get_objects_on_tape", "-i", "a4d7cef1-80fa-4552-ad3f-4de716f515ea"});
-        final String response = "<Data></Data>";
-
-        final Ds3Client client = mock(Ds3Client.class);
-        final WebResponse webResponse = mock(WebResponse.class);
-        final Headers headers = mock(Headers.class);
-        when(webResponse.getStatusCode()).thenReturn(200);
-        when(webResponse.getHeaders()).thenReturn(headers);
-        when(webResponse.getResponseStream()).thenReturn(IOUtils.toInputStream(response));
-        final GetBlobsOnTapeSpectraS3Response blobsResponse = new GetBlobsOnTapeSpectraS3Response(webResponse);
-        when(client.getBlobsOnTapeSpectraS3(any(GetBlobsOnTapeSpectraS3Request.class))).thenReturn(blobsResponse);
-
-        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, null), null);
+        final String tapeId =  "a4d7cef1-80fa-4552-ad3f-4de716f515ea";
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "ccess", "-c", "get_objects_on_tape", "-i", tapeId});
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
         command.init(args);
-        final CommandResponse result = command.render();
-        assertThat(result.getMessage(), is(expected));
-        assertThat(result.getReturnCode(), is(0));
+        assertTrue(command instanceof GetObjectsOnTape);
+        final View view = command.getView();
+
+        final String expected = "No objects were reported in tape '" + tapeId + "'";
+        final String packet = "<Data></Data>";
+
+        final BulkObjectList blobs = XmlOutput.fromXml(packet, BulkObjectList.class);
+        final GetObjectsOnTapeResult blobsResult = new GetObjectsOnTapeResult(tapeId, blobs.getObjects());
+        final String result = view.render(blobsResult);
+        assertThat(result, is(expected));
     }
 
-    @Test(expected = FailedRequestException.class)
+    @Test
     public void getBlobsOnTapeMissingTape() throws Exception {
-
-        final String expected = "Unknown tape: b4d7cef1-80fa-4552-ad3f-4de716f515ea";
-
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_objects_on_tape", "-i", "b4d7cef1-80fa-4552-ad3f-4de716f515ea"});
-        final String response = "<Error>" +
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
+        command.init(args);
+        assertTrue(command instanceof GetObjectsOnTape);
+        final View view = command.getView();
+
+        final String expected = "Error (FailedRequestException): target entity not found.";
+
+        final String packet = "<Error>" +
                 "<Code>NotFound</Code>" +
                 "<HttpErrorCode>404</HttpErrorCode>" +
                 "<Message>NotFound[404]: interface com.spectralogic.s3.common.dao.domain.tape.Tape not found via identifier / bean property value &apos;b4d7cef1-80fa-4552-ad3f-4de716f515ea&apos;.</Message>" +
@@ -2216,24 +1912,20 @@ public class Ds3Cli_Test {
                 "<ResourceId>1984</ResourceId>" +
                 "</Error>";
 
-        final Ds3Client client = mock(Ds3Client.class);
-        final WebResponse webResponse = mock(WebResponse.class);
-        final Headers headers = mock(Headers.class);
-        when(webResponse.getStatusCode()).thenReturn(404);
-        when(webResponse.getHeaders()).thenReturn(headers);
-        when(webResponse.getResponseStream()).thenReturn(IOUtils.toInputStream(response));
-        final GetBlobsOnTapeSpectraS3Response blobsResponse = new GetBlobsOnTapeSpectraS3Response(webResponse);
-        when(client.getBlobsOnTapeSpectraS3(any(GetBlobsOnTapeSpectraS3Request.class))).thenReturn(blobsResponse);
-
-        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, null), null);
-        command.init(args);
-        final CommandResponse result = command.render();
-        assertThat(result.getMessage(), is(expected));
-        assertThat(result.getReturnCode(), is(0));
+        final Error error = XmlOutput.fromXml(packet, Error.class);
+        final FailedRequestException exception
+                =  new FailedRequestException(toImmutableIntList(new int[]{200}), 404, error, "Unknown tape: b4d7cef1-80fa-4552-ad3f-4de716f515ea", "666");
+        final String result = new FailedRequestExceptionHandler().format(exception);
+        assertEquals(result, expected);
     }
 
    @Test
     public void verifyBulkJob() throws Exception {
+       final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "verify_bulk_job", "-b", "coffeehouse" });
+       final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
+       command.init(args);
+       assertTrue(command instanceof VerifyBulkJob);
+       final View view = command.getView();
 
        final String expected =
                         "+-------+-------------------------------------------------+-----------+---------+\n" +
@@ -2266,9 +1958,8 @@ public class Ds3Cli_Test {
                         "| 0     | coffeehouse/witchcraft.mp3                      |   6409093 |       1 |\n" +
                         "+-------+-------------------------------------------------+-----------+---------+\n";
 
-        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "verify_bulk_job", "-b", "coffeehouse" });
 
-        final String response = "<MasterObjectList Aggregating=\"false\" BucketName=\"coffeehouse\" CachedSizeInBytes=\"0\" ChunkClientProcessingOrderGuarantee=\"NONE\" CompletedSizeInBytes=\"0\" EntirelyInCache=\"false\" JobId=\"e0db4a7e-9957-4cf6-81c5-d3c320f8d56d\" Naked=\"false\" Name=\"VERIFY by 192.168.20.19\" OriginalSizeInBytes=\"341376176\" Priority=\"LOW\" RequestType=\"VERIFY\" StartDate=\"2016-06-16T18:13:34.000Z\" Status=\"IN_PROGRESS\" UserId=\"67235923-f684-4621-a958-1815e0bbf895\" UserName=\"spectra\">" +
+        final String packet = "<MasterObjectList Aggregating=\"false\" BucketName=\"coffeehouse\" CachedSizeInBytes=\"0\" ChunkClientProcessingOrderGuarantee=\"NONE\" CompletedSizeInBytes=\"0\" EntirelyInCache=\"false\" JobId=\"e0db4a7e-9957-4cf6-81c5-d3c320f8d56d\" Naked=\"false\" Name=\"VERIFY by 192.168.20.19\" OriginalSizeInBytes=\"341376176\" Priority=\"LOW\" RequestType=\"VERIFY\" StartDate=\"2016-06-16T18:13:34.000Z\" Status=\"IN_PROGRESS\" UserId=\"67235923-f684-4621-a958-1815e0bbf895\" UserName=\"spectra\">" +
                 "<Nodes><Node EndPoint=\"10.1.20.88\" HttpPort=\"80\" HttpsPort=\"443\" Id=\"b272e757-31b0-11e6-948b-0007432b8090\"/></Nodes>" +
                 "<Objects ChunkId=\"db94b108-6d0e-4f46-993c-b2f459e4b88f\" ChunkNumber=\"0\" NodeId=\"b272e757-31b0-11e6-948b-0007432b8090\">" +
                     "<Object Id=\"53452a07-699a-4c27-8de5-95aa0a431df1\" InCache=\"true\" Latest=\"true\" Length=\"9\" Name=\"123456789.txt\" Offset=\"0\" Version=\"1\"/>" +
@@ -2299,39 +1990,23 @@ public class Ds3Cli_Test {
                 "</Objects>" +
             "</MasterObjectList>";
 
-        final Ds3ClientHelpers helpers = mock(Ds3ClientHelpers.class);
-
-        // just have helpers return something
-        final Contents cont1 = new Contents();
-        cont1.setKey("1234");
-        cont1.setSize(1234L);
-        final Iterable<Contents> retObj = Lists.newArrayList(cont1);
-        when(helpers.listObjects(eq("coffeehouse"), eq(""))).thenReturn(retObj);
-
-        final Ds3Client client = mock(Ds3Client.class);
-        final WebResponse webResponse = mock(WebResponse.class);
-        final Headers headers = mock(Headers.class);
-        when(webResponse.getStatusCode()).thenReturn(200);
-        when(webResponse.getHeaders()).thenReturn(headers);
-        when(webResponse.getResponseStream()).thenReturn(IOUtils.toInputStream(response));
-        final VerifyBulkJobSpectraS3Response verifyResponse = new VerifyBulkJobSpectraS3Response(webResponse);
-        when(client.verifyBulkJobSpectraS3(any(VerifyBulkJobSpectraS3Request.class))).thenReturn(verifyResponse);
-
-        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, helpers), null);
-        command.init(args);
-        final CommandResponse result = command.render();
-
-        assertThat(result.getMessage(), is(expected));
-        assertThat(result.getReturnCode(), is(0));
+       final MasterObjectList blobs = XmlOutput.fromXml(packet, MasterObjectList.class);
+       final VerifyBulkJobResult blobsResult = new VerifyBulkJobResult("tape", blobs.getObjects().iterator());
+       final String result = view.render(blobsResult);
+       assertThat(result, is(expected));
     }
 
-    @Test(expected = FailedRequestException.class)
+    @Test
     public void verifyBulkJobMissingBucket() throws Exception {
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "verify_bulk_job", "-b", "teahouse" });
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
+        command.init(args);
+        assertTrue(command instanceof VerifyBulkJob);
+        final View view = command.getView();
 
-        final String expected = "Cannot locate bucket: fredcoffeehouse";
+        final String expected = "Error (FailedRequestException): target entity not found.";
 
-        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_objects_on_tape", "-i", "b4d7cef1-80fa-4552-ad3f-4de716f515ea"});
-        final String response = "<Error>" +
+        final String packet = "<Error>" +
                 "<Code>NoSuchBucket</Code>" +
                 "<HttpErrorCode>404</HttpErrorCode>" +
                 "<Message>NoSuchBucket[404]: Bucket does not exist where SQL: name = &apos;fredcoffeehouse&apos;</Message>" +
@@ -2339,64 +2014,44 @@ public class Ds3Cli_Test {
                 "<ResourceId>2097</ResourceId>" +
                 "</Error>";
 
-        final Ds3Client client = mock(Ds3Client.class);
-        final WebResponse webResponse = mock(WebResponse.class);
-        final Headers headers = mock(Headers.class);
-        when(webResponse.getStatusCode()).thenReturn(404);
-        when(webResponse.getHeaders()).thenReturn(headers);
-        when(webResponse.getResponseStream()).thenReturn(IOUtils.toInputStream(response));
-        final VerifyBulkJobSpectraS3Response verifyResponse
-                = new VerifyBulkJobSpectraS3Response(webResponse);
-        when(client.verifyBulkJobSpectraS3(any(VerifyBulkJobSpectraS3Request.class))).thenReturn(verifyResponse);
-
-        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, null), null);
-        command.init(args);
-        final CommandResponse result = command.render();
-        assertThat(result.getMessage(), is(expected));
-        assertThat(result.getReturnCode(), is(0));
+        final Error error = XmlOutput.fromXml(packet, Error.class);
+        final FailedRequestException exception
+                =  new FailedRequestException(toImmutableIntList(new int[]{200}), 404, error, "Unknown tape: b4d7cef1-80fa-4552-ad3f-4de716f515ea", "666");
+        final String result = new FailedRequestExceptionHandler().format(exception);
+        assertEquals(expected, result);
     }
 
     @Test
     public void reclaimCache() throws Exception {
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "reclaim_cache"});
-        final Ds3Client client = mock(Ds3Client.class);
-        final WebResponse webResponse = mock(WebResponse.class);
-        final Headers headers = mock(Headers.class);
-        when(webResponse.getStatusCode()).thenReturn(204);
-        when(webResponse.getHeaders()).thenReturn(headers);
-
-        final ForceFullCacheReclaimSpectraS3Response cacheResponse = new ForceFullCacheReclaimSpectraS3Response(webResponse);
-        when(client.forceFullCacheReclaimSpectraS3(any(ForceFullCacheReclaimSpectraS3Request.class))).thenReturn(cacheResponse);
-
-        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, null), null);
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
         command.init(args);
-        final CommandResponse result = command.render();
-        assertThat(result.getMessage(), is("Success: Forced Reclaim of Cache"));
-        assertThat(result.getReturnCode(), is(0));
+        assertTrue(command instanceof ReclaimCache);
+        final View view = command.getView();
+
+        final String result = view.render(new DefaultResult("Success: Forced Reclaim of Cache"));
+        assertThat(result, is("Success: Forced Reclaim of Cache"));
     }
 
     @Test
     public void ejectStorageDomain() throws Exception {
-        final String expected
-                = "Scheduled Eject of Storage Domain 9ffa7e9c-6939-4808-996e-e42fcf8bacb5\nBucket: buckety\nEject label: 1234\nEject location: 5678";
         final Arguments args
                 = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a",
                 "access", "-c", "eject_storage_domain", "-i", "9ffa7e9c-6939-4808-996e-e42fcf8bacb5",
                 "--eject-label", "1234", "--eject-location", "5678", "-b", "buckety"});
-        final Ds3Client client = mock(Ds3Client.class);
-        final WebResponse webResponse = mock(WebResponse.class);
-        final Headers headers = mock(Headers.class);
-        when(webResponse.getStatusCode()).thenReturn(204);
-        when(webResponse.getHeaders()).thenReturn(headers);
-
-        final EjectStorageDomainSpectraS3Response ejectResponse = new EjectStorageDomainSpectraS3Response(webResponse);
-        when(client.ejectStorageDomainSpectraS3(any(EjectStorageDomainSpectraS3Request.class))).thenReturn(ejectResponse);
-
-        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, null), null);
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
         command.init(args);
-        final CommandResponse result = command.render();
-        assertThat(result.getMessage(), is(expected));
-        assertThat(result.getReturnCode(), is(0));
+        assertTrue(command instanceof EjectStorageDomain);
+        final View view = command.getView();
+
+        final String expected
+                = "Scheduled Eject of Storage Domain 9ffa7e9c-6939-4808-996e-e42fcf8bacb5\nBucket: buckety\nEject label: 1234\nEject location: 5678";
+
+        final String result = view.render(new DefaultResult("Scheduled Eject of Storage Domain 9ffa7e9c-6939-4808-996e-e42fcf8bacb5\n" +
+                "Bucket: buckety\n" +
+                "Eject label: 1234\n" +
+                "Eject location: 5678"));
+        assertThat(result, is(expected));
     }
 
     @Test(expected = MissingOptionException.class)
@@ -2405,15 +2060,18 @@ public class Ds3Cli_Test {
                 = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a",
                 "access", "-c", "eject_storage_domain", "-i", "9ffa7e9c-6939-4808-996e-e42fcf8bacb5",
                 "--eject-label", "1234", "--eject-location", "5678"});
-        final Ds3Client client = mock(Ds3Client.class);
-
-        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, null), null);
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
         command.init(args);
-        command.render();
     }
 
     @Test
     public void getStorageDomains() throws Exception {
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_storage_domains",
+                "--writeOptimization", "capacity"});
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
+        command.init(args);
+        assertTrue(command instanceof GetStorageDomains);
+        final View view = command.getView();
 
         final String expected =
             "+-----------------------+--------------------------------------+-------------+-------------------------+--------------------+\n" +
@@ -2425,50 +2083,38 @@ public class Ds3Cli_Test {
             "| smoke_test_sd         | f2903e2b-0f0d-430c-8176-b46076681823 | OBJECT_ID   |                         | CAPACITY           |\n" +
             "+-----------------------+--------------------------------------+-------------+-------------------------+--------------------+\n";
 
-        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_storage_domains",
-                "--writeOptimization", "capacity"});
-        final String response = "<Data>" +
+        final String packet = "<Data>" +
                 "<StorageDomain><AutoEjectMediaFullThreshold/><AutoEjectUponCron/><AutoEjectUponJobCancellation>false</AutoEjectUponJobCancellation><AutoEjectUponJobCompletion>false</AutoEjectUponJobCompletion><AutoEjectUponMediaFull>false</AutoEjectUponMediaFull><Id>a4420271-ab93-4446-8f03-7d2ba8f94529</Id><LtfsFileNaming>OBJECT_ID</LtfsFileNaming><MaxTapeFragmentationPercent>65</MaxTapeFragmentationPercent><MaximumAutoVerificationFrequencyInDays/><MediaEjectionAllowed>true</MediaEjectionAllowed><Name>Db Backup Second Copy</Name><SecureMediaAllocation>true</SecureMediaAllocation><VerifyPriorToAutoEject/><WriteOptimization>CAPACITY</WriteOptimization></StorageDomain>" +
                 "<StorageDomain><AutoEjectMediaFullThreshold/><AutoEjectUponCron/><AutoEjectUponJobCancellation>false</AutoEjectUponJobCancellation><AutoEjectUponJobCompletion>false</AutoEjectUponJobCompletion><AutoEjectUponMediaFull>false</AutoEjectUponMediaFull><Id>79bb4290-86c7-4aab-801d-392418591c7d</Id><LtfsFileNaming>OBJECT_ID</LtfsFileNaming><MaxTapeFragmentationPercent>65</MaxTapeFragmentationPercent><MaximumAutoVerificationFrequencyInDays/><MediaEjectionAllowed>true</MediaEjectionAllowed><Name>Tape Second Copy</Name><SecureMediaAllocation>false</SecureMediaAllocation><VerifyPriorToAutoEject/><WriteOptimization>CAPACITY</WriteOptimization></StorageDomain>" +
                 "<StorageDomain><AutoEjectMediaFullThreshold/><AutoEjectUponCron/><AutoEjectUponJobCancellation>false</AutoEjectUponJobCancellation><AutoEjectUponJobCompletion>false</AutoEjectUponJobCompletion><AutoEjectUponMediaFull>false</AutoEjectUponMediaFull><Id>d7751014-e2eb-4cbc-9613-cabb7907f60f</Id><LtfsFileNaming>OBJECT_ID</LtfsFileNaming><MaxTapeFragmentationPercent>65</MaxTapeFragmentationPercent><MaximumAutoVerificationFrequencyInDays/><MediaEjectionAllowed>false</MediaEjectionAllowed><Name>eject_test</Name><SecureMediaAllocation>false</SecureMediaAllocation><VerifyPriorToAutoEject/><WriteOptimization>CAPACITY</WriteOptimization></StorageDomain>" +
                 "<StorageDomain><AutoEjectMediaFullThreshold/><AutoEjectUponCron/><AutoEjectUponJobCancellation>false</AutoEjectUponJobCancellation><AutoEjectUponJobCompletion>false</AutoEjectUponJobCompletion><AutoEjectUponMediaFull>false</AutoEjectUponMediaFull><Id>f2903e2b-0f0d-430c-8176-b46076681823</Id><LtfsFileNaming>OBJECT_ID</LtfsFileNaming><MaxTapeFragmentationPercent>65</MaxTapeFragmentationPercent><MaximumAutoVerificationFrequencyInDays/><MediaEjectionAllowed>true</MediaEjectionAllowed><Name>smoke_test_sd</Name><SecureMediaAllocation>false</SecureMediaAllocation><VerifyPriorToAutoEject/><WriteOptimization>CAPACITY</WriteOptimization></StorageDomain>" +
                 "</Data>";
 
-        final Ds3Client client = mock(Ds3Client.class);
-
-        final WebResponse webResponse = mock(WebResponse.class);
-        final Headers headers = mock(Headers.class);
-        when(webResponse.getStatusCode()).thenReturn(200);
-        when(webResponse.getHeaders()).thenReturn(headers);
-        when(webResponse.getResponseStream()).thenReturn(IOUtils.toInputStream(response));
-
-        final GetStorageDomainsSpectraS3Response storageDomainResponse = new GetStorageDomainsSpectraS3Response(webResponse);
-        when(client.getStorageDomainsSpectraS3(any(GetStorageDomainsSpectraS3Request.class))).thenReturn(storageDomainResponse);
-
-        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, null), null);
-        command.init(args);
-        final CommandResponse result = command.render();
-        assertThat(result.getMessage(), is(expected));
-        assertThat(result.getReturnCode(), is(0));
+        final StorageDomainList domains = XmlOutput.fromXml(packet, StorageDomainList.class);
+        final GetStorageDomainsResult domainsResult = new GetStorageDomainsResult(domains);
+        final String result = view.render(domainsResult);
+        assertThat(result, is(expected));
     }
 
     @Test
     public void getTapes() throws Exception {
-        final String expectedString =
-                "+----------+--------------------------------------+--------+--------------------------+------------------------+--------------------------------------+----------------------------+---------------+-------------------+----------------+------------------+\n" +
-                        "| Bar Code |                  ID                  |  State |       Last Modified      | Available Raw Capacity |               BucketID               | Assigned to Storage Domain | Ejection Date | Ejection Location | Ejection Label | Ejection Pending |\n" +
-                        "+----------+--------------------------------------+--------+--------------------------+------------------------+--------------------------------------+----------------------------+---------------+-------------------+----------------+------------------+\n" +
-                        "| 121552L6 | 52741a53-24d5-4391-87a9-9cce703d7ed7 | NORMAL | 2016-06-29T20:24:35.000Z | 2408082046976          | N/A                                  | false                      | N/A           | N/A               | N/A            | N/A              |\n" +
-                        "| 121553L6 | e9e2e2c8-813b-4adf-9ed9-c6f788084656 | NORMAL | 2016-07-18T03:04:30.000Z | 2407684636672          | 5f02264b-b344-4bdd-88bd-7e87133bb0c9 | true                       | N/A           | N/A               | N/A            | N/A              |\n" +
-                        "| 121555L6 | 8cb037d1-39aa-4f42-b27c-acbdf8b4c3c7 | NORMAL | 2016-06-29T20:18:44.000Z | 2408082046976          | N/A                                  | false                      | N/A           | N/A               | N/A            | N/A              |\n" +
-                        "| 122104L6 | b16a8737-8801-4658-971c-c67d6ae44773 | NORMAL | 2016-07-18T03:07:26.000Z | 2407688830976          | 5f02264b-b344-4bdd-88bd-7e87133bb0c9 | true                       | N/A           | N/A               | N/A            | N/A              |\n" +
-                        "+----------+--------------------------------------+--------+--------------------------+------------------------+--------------------------------------+----------------------------+---------------+-------------------+----------------+------------------+\n";
-
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_tapes"});
-        final Ds3Client client = mock(Ds3Client.class);
-        final Headers headers = mock(Headers.class);
-        final WebResponse webResponse = mock(WebResponse.class);
-        final InputStream stream = IOUtils.toInputStream("<Data><Tape>" +
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
+        command.init(args);
+        assertTrue(command instanceof GetTapes);
+        final View view = command.getView();
+
+        final String expected =
+                "+----------+--------------------------------------+--------+--------------------------+------------------------+--------------------------------------+----------------------------+---------------+-------------------+----------------+------------------+\n" +
+                "| Bar Code |                  ID                  |  State |       Last Modified      | Available Raw Capacity |               BucketID               | Assigned to Storage Domain | Ejection Date | Ejection Location | Ejection Label | Ejection Pending |\n" +
+                "+----------+--------------------------------------+--------+--------------------------+------------------------+--------------------------------------+----------------------------+---------------+-------------------+----------------+------------------+\n" +
+                "| 121552L6 | 52741a53-24d5-4391-87a9-9cce703d7ed7 | NORMAL | 2016-06-29T20:24:35.000Z | 2408082046976          | N/A                                  | false                      | N/A           | N/A               | N/A            | N/A              |\n" +
+                "| 121553L6 | e9e2e2c8-813b-4adf-9ed9-c6f788084656 | NORMAL | 2016-07-18T03:04:30.000Z | 2407684636672          | 5f02264b-b344-4bdd-88bd-7e87133bb0c9 | true                       | N/A           | N/A               | N/A            | N/A              |\n" +
+                "| 121555L6 | 8cb037d1-39aa-4f42-b27c-acbdf8b4c3c7 | NORMAL | 2016-06-29T20:18:44.000Z | 2408082046976          | N/A                                  | false                      | N/A           | N/A               | N/A            | N/A              |\n" +
+                "| 122104L6 | b16a8737-8801-4658-971c-c67d6ae44773 | NORMAL | 2016-07-18T03:07:26.000Z | 2407688830976          | 5f02264b-b344-4bdd-88bd-7e87133bb0c9 | true                       | N/A           | N/A               | N/A            | N/A              |\n" +
+                "+----------+--------------------------------------+--------+--------------------------+------------------------+--------------------------------------+----------------------------+---------------+-------------------+----------------+------------------+\n";
+
+        final InputStream packet = IOUtils.toInputStream("<Data><Tape>" +
                 "<AssignedToStorageDomain>false</AssignedToStorageDomain>" +
                 "<AvailableRawCapacity>2408082046976</AvailableRawCapacity>" +
                 "<BarCode>121552L6</BarCode><BucketId/><DescriptionForIdentification/>" +
@@ -2525,35 +2171,28 @@ public class Ds3Cli_Test {
                 "<WriteProtected>false</WriteProtected>" +
                 "</Tape></Data>", "utf-8");
 
-        when(webResponse.getStatusCode()).thenReturn(200);
-        when(webResponse.getHeaders()).thenReturn(headers);
-        when(webResponse.getResponseStream()).thenReturn(stream);
-
-        final GetTapesSpectraS3Response tapesResponse = new GetTapesSpectraS3Response(webResponse);
-        when(client.getTapesSpectraS3(any(GetTapesSpectraS3Request.class))).thenReturn(tapesResponse);
-
-        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand())
-                .withProvider(new Ds3ProviderImpl(client, null), null);
-        command.init(args);
-        final CommandResponse result = command.render();
-        assertThat(result.getMessage(), is(expectedString));
-        assertThat(result.getReturnCode(), is(0));
+        final TapeList tapes = XmlOutput.fromXml(packet, TapeList.class);
+        final GetTapesResult domainsResult = new GetTapesResult(tapes);
+        final String result = view.render(domainsResult);
+        assertThat(result, is(expected));
     }
 
     @Test
     public void ejectTape() throws Exception {
-        final String expectedString =
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "eject_tape", "-i", "52741a53-24d5-4391-87a9-9cce703d7ed7"});
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
+        command.init(args);
+        assertTrue(command instanceof EjectTape);
+        final View view = command.getView();
+
+        final String expected =
                 "Tape Bar Code: 362449L5, ID: 190da533-a254-4fbd-ae71-c2aed0580448, Tape Type: LTO5, " +
                         "Serial Number: HP-G140314442, State: FORMAT_IN_PROGRESS, " +
                         "Partition Id 9bccaba8-440a-431f-9357-5a66c48d09f2, Available Space: 1424834428928, " +
                         "Full: false, Write Protected: false, " +
                         "Last Modified: 2017-01-19T22:16:09.000Z, Last Verification: N/A";
 
-        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "eject_tape", "-i", "52741a53-24d5-4391-87a9-9cce703d7ed7"});
-        final Ds3Client client = mock(Ds3Client.class);
-        final Headers headers = mock(Headers.class);
-        final WebResponse webResponse = mock(WebResponse.class);
-        final InputStream stream = IOUtils.toInputStream("<Data>" +
+        final InputStream packet = IOUtils.toInputStream("<Data>" +
                 "<AssignedToStorageDomain>false</AssignedToStorageDomain>" +
                 "<AvailableRawCapacity>1424834428928</AvailableRawCapacity>" +
                 "<BarCode>362449L5</BarCode><BucketId/>" +
@@ -2569,57 +2208,36 @@ public class Ds3Cli_Test {
                 "<Type>LTO5</Type><VerifyPending/><WriteProtected>false</WriteProtected>" +
                 "</Data>", "utf-8");
 
-        when(webResponse.getStatusCode()).thenReturn(200);
-        when(webResponse.getHeaders()).thenReturn(headers);
-        when(webResponse.getResponseStream()).thenReturn(stream);
-
-        final EjectTapeSpectraS3Response tapesResponse = new EjectTapeSpectraS3Response(webResponse);
-        when(client.ejectTapeSpectraS3(any(EjectTapeSpectraS3Request.class))).thenReturn(tapesResponse);
-
-        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand())
-                .withProvider(new Ds3ProviderImpl(client, null), null);
-        command.init(args);
-        final CommandResponse result = command.render();
-        assertThat(result.getMessage(), is(expectedString));
-        assertThat(result.getReturnCode(), is(0));
+        final Tape tape = XmlOutput.fromXml(packet, Tape.class);
+        final TapeResult domainsResult = new TapeResult(tape);
+        final String result = view.render(domainsResult);
+        assertThat(result, is(expected));
     }
 
     @Test
     public void headObject() throws Exception {
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "head_object", "-b", "bucketName", "-o", "ulysses.txt"});
-        final Ds3Client client = mock(Ds3Client.class);
-        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, null), null);
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
         command.init(args);
-        final WebResponse webResponse = mock(WebResponse.class);
-        final Headers headers = mock(Headers.class);
-
-        when(webResponse.getStatusCode()).thenReturn(200);
-        when(webResponse.getHeaders()).thenReturn(headers);
-
-        final HeadObjectResponse response = new HeadObjectResponse(webResponse);
-        when(client.headObject(any(HeadObjectRequest.class))).thenReturn(response);
-
-        final CommandResponse result = command.render();
-        assertThat(result.getReturnCode(), is(0));
+        assertTrue(command instanceof HeadObject);
     }
 
     @Test
     public void getCacheState() throws Exception {
-        final String expectedString =
-                "+-----------------------------------------+--------------------+---------------+----------------------+----------------+--------------+------------------------+-----------------+-----------------+--------------------------------------+--------------------------------------+\n" +
-                        "|                   Path                  | Available Capacity | Used Capacity | Unavailable Capacity | Total Capacity | Max Capacity | Auto Reclaim Threshold | Burst Threshold | Max Utilization |                  ID                  |                Node ID               |\n" +
-                        "+-----------------------------------------+--------------------+---------------+----------------------+----------------+--------------+------------------------+-----------------+-----------------+--------------------------------------+--------------------------------------+\n" +
-                        "| /usr/local/bluestorm/frontend/cachedir/ | 13652840915953     | 171154354395  | 0                    | 13823995270348 | N/A          | 0.82                   | 0.85            | 0.9             | a1c27433-74f2-11e6-8d1e-002590c31f18 | a1c27433-74f2-11e6-8d1e-002590c31f18 |\n" +
-                        "+-----------------------------------------+--------------------+---------------+----------------------+----------------+--------------+------------------------+-----------------+-----------------+--------------------------------------+--------------------------------------+\n";
-
         final Arguments args = new Arguments( new String[] {"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_cache_state"});
-        final Ds3Client client = mock(Ds3Client.class);
-        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, null), null);
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
         command.init(args);
+        assertTrue(command instanceof GetCacheState);
+        final View view = command.getView();
 
-        final WebResponse webResponse = mock(WebResponse.class);
+        final String expected =
+                "+-----------------------------------------+--------------------+---------------+----------------------+----------------+--------------+------------------------+-----------------+-----------------+--------------------------------------+--------------------------------------+\n" +
+                "|                   Path                  | Available Capacity | Used Capacity | Unavailable Capacity | Total Capacity | Max Capacity | Auto Reclaim Threshold | Burst Threshold | Max Utilization |                  ID                  |                Node ID               |\n" +
+                "+-----------------------------------------+--------------------+---------------+----------------------+----------------+--------------+------------------------+-----------------+-----------------+--------------------------------------+--------------------------------------+\n" +
+                "| /usr/local/bluestorm/frontend/cachedir/ | 13652840915953     | 171154354395  | 0                    | 13823995270348 | N/A          | 0.82                   | 0.85            | 0.9             | a1c27433-74f2-11e6-8d1e-002590c31f18 | a1c27433-74f2-11e6-8d1e-002590c31f18 |\n" +
+                "+-----------------------------------------+--------------------+---------------+----------------------+----------------+--------------+------------------------+-----------------+-----------------+--------------------------------------+--------------------------------------+\n";
 
-        final InputStream stream = IOUtils.toInputStream("<Data><Filesystems>" +
+        final InputStream packet = IOUtils.toInputStream("<Data><Filesystems>" +
                 "<AvailableCapacityInBytes>13652840915953</AvailableCapacityInBytes>" +
                 "<CacheFilesystem>" +
                 "<AutoReclaimInitiateThreshold>0.82</AutoReclaimInitiateThreshold>" +
@@ -2636,22 +2254,21 @@ public class Ds3Cli_Test {
                 "<UsedCapacityInBytes>171154354395</UsedCapacityInBytes>" +
                 "</Filesystems></Data>", "utf-8");
 
-        final Headers headers = mock(Headers.class);
-        when(webResponse.getStatusCode()).thenReturn(200);
-        when(webResponse.getHeaders()).thenReturn(headers);
-        when(webResponse.getResponseStream()).thenReturn(stream);
-
-        final GetCacheStateSpectraS3Response cacheStateResponse = new GetCacheStateSpectraS3Response(webResponse);
-
-        when(client.getCacheStateSpectraS3(any(GetCacheStateSpectraS3Request.class))).thenReturn(cacheStateResponse);
-        final CommandResponse result = command.render();
-        assertThat(result.getMessage(), is(expectedString));
-        assertThat(result.getReturnCode(), is(0));
+        final CacheInformation cacheInfo = XmlOutput.fromXml(packet, CacheInformation.class);
+        final GetCacheStateResult cacheResult = new GetCacheStateResult(cacheInfo.getFilesystems());
+        final String result = view.render(cacheResult);
+        assertThat(result, is(expected));
     }
 
     @Test
     public void getCacheStateJson() throws Exception {
-        final String expectedString =
+        final Arguments args = new Arguments( new String[] {"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_cache_state", "--output-format", "json"});
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
+        command.init(args);
+        assertTrue(command instanceof GetCacheState);
+        final View view = command.getView();
+
+        final String expected =
                 "  \"Data\" : [ {\n" +
                         "    \"AvailableCapacityInBytes\" : 13652840915953,\n" +
                         "    \"CacheFilesystem\" : {\n" +
@@ -2673,15 +2290,7 @@ public class Ds3Cli_Test {
                         "  \"Status\" : \"OK\"\n" +
                         "}";
 
-
-        final Arguments args = new Arguments( new String[] {"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_cache_state", "--output-format", "json"});
-        final Ds3Client client = mock(Ds3Client.class);
-        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, null), null);
-        command.init(args);
-
-        final WebResponse webResponse = mock(WebResponse.class);
-
-        final InputStream stream = IOUtils.toInputStream("<Data><Filesystems>" +
+        final InputStream packet = IOUtils.toInputStream("<Data><Filesystems>" +
                 "<AvailableCapacityInBytes>13652840915953</AvailableCapacityInBytes>" +
                 "<CacheFilesystem>" +
                 "<AutoReclaimInitiateThreshold>0.82</AutoReclaimInitiateThreshold>" +
@@ -2698,37 +2307,29 @@ public class Ds3Cli_Test {
                 "<UsedCapacityInBytes>171154354395</UsedCapacityInBytes>" +
                 "</Filesystems></Data>", "utf-8");
 
-        final Headers headers = mock(Headers.class);
-        when(webResponse.getStatusCode()).thenReturn(200);
-        when(webResponse.getHeaders()).thenReturn(headers);
-        when(webResponse.getResponseStream()).thenReturn(stream);
-
-        final GetCacheStateSpectraS3Response cacheStateResponse = new GetCacheStateSpectraS3Response(webResponse);
-
-        when(client.getCacheStateSpectraS3(any(GetCacheStateSpectraS3Request.class))).thenReturn(cacheStateResponse);
-        final CommandResponse result = command.render();
-        assertTrue(result.getMessage().endsWith(expectedString));
-        assertThat(result.getReturnCode(), is(0));
+        final CacheInformation cacheInfo = XmlOutput.fromXml(packet, CacheInformation.class);
+        final GetCacheStateResult cacheResult = new GetCacheStateResult(cacheInfo.getFilesystems());
+        final String result = view.render(cacheResult);
+        assertTrue(result.endsWith(expected));
     }
 
     @Test
     public void getCapacitySummary() throws Exception {
-        final String expectedString =
-                "+-------------+-----------+------+------+\n" +
-                        "|  Container  | Allocated | Used | Free |\n" +
-                        "+-------------+-----------+------+------+\n" +
-                        "| Pool        | 9         | 7    | 2    |\n" +
-                        "| Tape        | 8         | 5    | 3    |\n" +
-                        "+-------------+-----------+------+------+\n";
-
         final Arguments args = new Arguments( new String[] {"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_capacity_summary"});
-        final Ds3Client client = mock(Ds3Client.class);
-        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, null), null);
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
         command.init(args);
+        assertTrue(command instanceof GetCapacitySummary);
+        final View view = command.getView();
 
-        final WebResponse webResponse = mock(WebResponse.class);
+        final String expected =
+                "+-------------+-----------+------+------+\n" +
+                "|  Container  | Allocated | Used | Free |\n" +
+                "+-------------+-----------+------+------+\n" +
+                "| Pool        | 9         | 7    | 2    |\n" +
+                "| Tape        | 8         | 5    | 3    |\n" +
+                "+-------------+-----------+------+------+\n";
 
-        final InputStream stream = IOUtils.toInputStream("<Data>" +
+        final InputStream packet = IOUtils.toInputStream("<Data>" +
                 "<Pool>" +
                 "<PhysicalAllocated>9</PhysicalAllocated>" +
                 "<PhysicalAvailable>0</PhysicalAvailable>" +
@@ -2743,22 +2344,21 @@ public class Ds3Cli_Test {
                 "</Tape>" +
                 "</Data>", "utf-8");
 
-        final Headers headers = mock(Headers.class);
-        when(webResponse.getStatusCode()).thenReturn(200);
-        when(webResponse.getHeaders()).thenReturn(headers);
-        when(webResponse.getResponseStream()).thenReturn(stream);
-
-        final GetSystemCapacitySummarySpectraS3Response response = new GetSystemCapacitySummarySpectraS3Response(webResponse);
-
-        when(client.getSystemCapacitySummarySpectraS3(any(GetSystemCapacitySummarySpectraS3Request.class))).thenReturn(response);
-        final CommandResponse result = command.render();
-        assertThat(result.getMessage(), is(expectedString));
-        assertThat(result.getReturnCode(), is(0));
+        final CapacitySummaryContainer capInfo = XmlOutput.fromXml(packet, CapacitySummaryContainer.class);
+        final GetCapacitySummaryResult capResult = new GetCapacitySummaryResult(capInfo);
+        final String result = view.render(capResult);
+        assertThat(result, is(expected));
     }
 
     @Test
     public void getCapacitySummaryJson() throws Exception {
-        final String expectedString =
+        final Arguments args = new Arguments( new String[] {"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_capacity_summary", "--output-format", "json"});
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
+        command.init(args);
+        assertTrue(command instanceof GetCapacitySummary);
+        final View view = command.getView();
+
+        final String expected =
                 "  \"Data\" : {\n" +
                         "    \"Pool\" : {\n" +
                         "      \"PhysicalAllocated\" : 9,\n" +
@@ -2774,14 +2374,7 @@ public class Ds3Cli_Test {
                         "  \"Status\" : \"OK\"\n" +
                         "}";
 
-        final Arguments args = new Arguments( new String[] {"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_capacity_summary", "--output-format", "json"});
-        final Ds3Client client = mock(Ds3Client.class);
-        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, null), null);
-        command.init(args);
-
-        final WebResponse webResponse = mock(WebResponse.class);
-
-        final InputStream stream = IOUtils.toInputStream("<Data>" +
+        final InputStream packet = IOUtils.toInputStream("<Data>" +
                 "<Pool>" +
                 "<PhysicalAllocated>9</PhysicalAllocated>" +
                 "<PhysicalAvailable>0</PhysicalAvailable>" +
@@ -2796,36 +2389,28 @@ public class Ds3Cli_Test {
                 "</Tape>" +
                 "</Data>", "utf-8");
 
-        final Headers headers = mock(Headers.class);
-        when(webResponse.getStatusCode()).thenReturn(200);
-        when(webResponse.getHeaders()).thenReturn(headers);
-        when(webResponse.getResponseStream()).thenReturn(stream);
-
-        final GetSystemCapacitySummarySpectraS3Response response = new GetSystemCapacitySummarySpectraS3Response(webResponse);
-
-        when(client.getSystemCapacitySummarySpectraS3(any(GetSystemCapacitySummarySpectraS3Request.class))).thenReturn(response);
-        final CommandResponse result = command.render();
-        assertTrue(result.getMessage().endsWith(expectedString));
-        assertThat(result.getReturnCode(), is(0));
+        final CapacitySummaryContainer capInfo = XmlOutput.fromXml(packet, CapacitySummaryContainer.class);
+        final GetCapacitySummaryResult capResult = new GetCapacitySummaryResult(capInfo);
+        final String result = view.render(capResult);
+        assertTrue(result.endsWith(expected));
     }
 
     @Test
     public void getDataPathBackend() throws Exception {
-        final String expectedString =
-                "+-----------+--------------+--------------+---------------------+--------------------------------------+--------------------------+--------------------------+-----------------------------+----------------------------------+\n" +
-                        "| Activated | Auto Timeout | Auto Inspect | Conflict Resolution |                  ID                  |      Last Heartbeat      | Unavailable Media Policy | Unavailable Pool Retry Mins | Unavailable Partition Retry Mins |\n" +
-                        "+-----------+--------------+--------------+---------------------+--------------------------------------+--------------------------+--------------------------+-----------------------------+----------------------------------+\n" +
-                        "| true      | 30           | DEFAULT      | CANCEL              | 5d45ab7a-b83f-4dc1-95d5-a45b59e48718 | 2016-09-07T22:09:55.000Z | DISALLOW                 | 20                          | 20                               |\n" +
-                        "+-----------+--------------+--------------+---------------------+--------------------------------------+--------------------------+--------------------------+-----------------------------+----------------------------------+\n";
-
         final Arguments args = new Arguments( new String[] {"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_data_path_backend"});
-        final Ds3Client client = mock(Ds3Client.class);
-        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, null), null);
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
         command.init(args);
+        assertTrue(command instanceof GetDataPathBackend);
+        final View view = command.getView();
 
-        final WebResponse webResponse = mock(WebResponse.class);
+        final String expected =
+                "+-----------+--------------+--------------+---------------------+--------------------------------------+--------------------------+--------------------------+-----------------------------+----------------------------------+\n" +
+                "| Activated | Auto Timeout | Auto Inspect | Conflict Resolution |                  ID                  |      Last Heartbeat      | Unavailable Media Policy | Unavailable Pool Retry Mins | Unavailable Partition Retry Mins |\n" +
+                "+-----------+--------------+--------------+---------------------+--------------------------------------+--------------------------+--------------------------+-----------------------------+----------------------------------+\n" +
+                "| true      | 30           | DEFAULT      | CANCEL              | 5d45ab7a-b83f-4dc1-95d5-a45b59e48718 | 2016-09-07T22:09:55.000Z | DISALLOW                 | 20                          | 20                               |\n" +
+                "+-----------+--------------+--------------+---------------------+--------------------------------------+--------------------------+--------------------------+-----------------------------+----------------------------------+\n";
 
-        final InputStream stream = IOUtils.toInputStream("<Data>" +
+        final InputStream packet = IOUtils.toInputStream("<Data>" +
                 "<Activated>true</Activated>" +
                 "<AutoActivateTimeoutInMins>30</AutoActivateTimeoutInMins>" +
                 "<AutoInspect>DEFAULT</AutoInspect>" +
@@ -2839,22 +2424,21 @@ public class Ds3Cli_Test {
                 "<UnavailableTapePartitionMaxJobRetryInMins>20</UnavailableTapePartitionMaxJobRetryInMins>" +
                 "</Data>", "utf-8");
 
-        final Headers headers = mock(Headers.class);
-        when(webResponse.getStatusCode()).thenReturn(200);
-        when(webResponse.getHeaders()).thenReturn(headers);
-        when(webResponse.getResponseStream()).thenReturn(stream);
-
-        final GetDataPathBackendSpectraS3Response response = new GetDataPathBackendSpectraS3Response(webResponse);
-
-        when(client.getDataPathBackendSpectraS3(any(GetDataPathBackendSpectraS3Request.class))).thenReturn(response);
-        final CommandResponse result = command.render();
-        assertThat(result.getMessage(), is(expectedString));
-        assertThat(result.getReturnCode(), is(0));
+        final DataPathBackend backendInfo = XmlOutput.fromXml(packet, DataPathBackend.class);
+        final GetDataPathBackendResult backendResult = new GetDataPathBackendResult(backendInfo);
+        final String result = view.render(backendResult);
+        assertThat(result, is(expected));
     }
 
     @Test
     public void getDataPathBackendJson() throws Exception {
-        final String expectedString =
+        final Arguments args = new Arguments( new String[] {"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_data_path_backend", "--output-format", "json"});
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
+        command.init(args);
+        assertTrue(command instanceof GetDataPathBackend);
+        final View view = command.getView();
+
+        final String expected =
                 "  \"Data\" : {\n" +
                         "    \"Activated\" : true,\n" +
                         "    \"AutoActivateTimeoutInMins\" : 30,\n" +
@@ -2871,14 +2455,7 @@ public class Ds3Cli_Test {
                         "  \"Status\" : \"OK\"\n" +
                         "}";
 
-        final Arguments args = new Arguments( new String[] {"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_data_path_backend", "--output-format", "json"});
-        final Ds3Client client = mock(Ds3Client.class);
-        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, null), null);
-        command.init(args);
-
-        final WebResponse webResponse = mock(WebResponse.class);
-
-        final InputStream stream = IOUtils.toInputStream("<Data>" +
+        final InputStream packet = IOUtils.toInputStream("<Data>" +
                 "<Activated>true</Activated>" +
                 "<AutoActivateTimeoutInMins>30</AutoActivateTimeoutInMins>" +
                 "<AutoInspect>DEFAULT</AutoInspect>" +
@@ -2892,36 +2469,28 @@ public class Ds3Cli_Test {
                 "<UnavailableTapePartitionMaxJobRetryInMins>20</UnavailableTapePartitionMaxJobRetryInMins>" +
                 "</Data>", "utf-8");
 
-        final Headers headers = mock(Headers.class);
-        when(webResponse.getStatusCode()).thenReturn(200);
-        when(webResponse.getHeaders()).thenReturn(headers);
-        when(webResponse.getResponseStream()).thenReturn(stream);
-
-        final GetDataPathBackendSpectraS3Response response = new GetDataPathBackendSpectraS3Response(webResponse);
-
-        when(client.getDataPathBackendSpectraS3(any(GetDataPathBackendSpectraS3Request.class))).thenReturn(response);
-        final CommandResponse result = command.render();
-        assertTrue(result.getMessage().endsWith(expectedString));
-        assertThat(result.getReturnCode(), is(0));
+        final DataPathBackend backendInfo = XmlOutput.fromXml(packet, DataPathBackend.class);
+        final GetDataPathBackendResult backendResult = new GetDataPathBackendResult(backendInfo);
+        final String result = view.render(backendResult);
+        assertTrue(result.endsWith(expected));
     }
 
     @Test
     public void getJobs() throws Exception {
-        final String expectedString =
-                "+-------------+--------------------------------------+--------------------------+-----------+----------+-------------+\n" +
-                        "| Bucket Name |                Job Id                |       Creation Date      | User Name | Job Type |    Status   |\n" +
-                        "+-------------+--------------------------------------+--------------------------+-----------+----------+-------------+\n" +
-                        "| coffeehouse | 52dc72a9-7876-4024-9034-d2f6e886f7e7 | 2016-08-30T22:14:49.000Z | jk        | PUT      | IN_PROGRESS |\n" +
-                        "+-------------+--------------------------------------+--------------------------+-----------+----------+-------------+\n";
-
         final Arguments args = new Arguments( new String[] {"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_jobs"});
-        final Ds3Client client = mock(Ds3Client.class);
-        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, null), null);
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
         command.init(args);
+        assertTrue(command instanceof GetJobs);
+        final View view = command.getView();
 
-        final WebResponse webResponse = mock(WebResponse.class);
+        final String expected =
+                "+-------------+--------------------------------------+--------------------------+-----------+----------+-------------+\n" +
+                "| Bucket Name |                Job Id                |       Creation Date      | User Name | Job Type |    Status   |\n" +
+                "+-------------+--------------------------------------+--------------------------+-----------+----------+-------------+\n" +
+                "| coffeehouse | 52dc72a9-7876-4024-9034-d2f6e886f7e7 | 2016-08-30T22:14:49.000Z | jk        | PUT      | IN_PROGRESS |\n" +
+                "+-------------+--------------------------------------+--------------------------+-----------+----------+-------------+\n";
 
-        final InputStream stream = IOUtils.toInputStream("<Jobs>" +
+        final InputStream packet = IOUtils.toInputStream("<Jobs>" +
                 "<Job Aggregating=\"false\" BucketName=\"coffeehouse\" " +
                 "CachedSizeInBytes=\"343479386\" " +
                 "ChunkClientProcessingOrderGuarantee=\"IN_ORDER\" " +
@@ -2933,37 +2502,29 @@ public class Ds3Cli_Test {
                 "Status=\"IN_PROGRESS\" UserId=\"5079e312-bcff-43c7-bd54-d8148af0a515\" " +
                 "UserName=\"jk\"><Nodes/></Job></Jobs>", "utf-8");
 
-        final Headers headers = mock(Headers.class);
-        when(webResponse.getStatusCode()).thenReturn(200);
-        when(webResponse.getHeaders()).thenReturn(headers);
-        when(webResponse.getResponseStream()).thenReturn(stream);
-
-        final GetJobsSpectraS3Response response = new GetJobsSpectraS3Response(webResponse);
-
-        when(client.getJobsSpectraS3(any(GetJobsSpectraS3Request.class))).thenReturn(response);
-        final CommandResponse result = command.render();
-        assertThat(result.getMessage(), is(expectedString));
-        assertThat(result.getReturnCode(), is(0));
+        final JobList jobs = XmlOutput.fromXml(packet, JobList.class);
+        final GetJobsResult jobsResult = new GetJobsResult(jobs);
+        final String result = view.render(jobsResult);
+        assertThat(result, is(expected));
     }
 
     @Test
     public void getJobsWithCompleted() throws Exception {
-        final String expectedString =
-                "+-------------+--------------------------------------+--------------------------+-----------+----------+-------------+\n" +
-                        "| Bucket Name |                Job Id                |       Creation Date      | User Name | Job Type |    Status   |\n" +
-                        "+-------------+--------------------------------------+--------------------------+-----------+----------+-------------+\n" +
-                        "| coffeehouse | 52dc72a9-7876-4024-9034-d2f6e886f7e7 | 2016-08-30T22:14:49.000Z | jk        | PUT      | IN_PROGRESS |\n" +
-                        "| coffeehouse | 2e9cc564-95d4-4f25-abe2-acee0746b5a7 | 2016-08-30T21:55:09.000Z | jk        | PUT      | CANCELED    |\n" +
-                        "+-------------+--------------------------------------+--------------------------+-----------+----------+-------------+\n";
-
         final Arguments args = new Arguments( new String[] {"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_jobs", "--completed"});
-        final Ds3Client client = mock(Ds3Client.class);
-        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, null), null);
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
         command.init(args);
+        assertTrue(command instanceof GetJobs);
+        final View view = command.getView();
 
-        final WebResponse webResponse = mock(WebResponse.class);
+        final String expected =
+                "+-------------+--------------------------------------+--------------------------+-----------+----------+-------------+\n" +
+                "| Bucket Name |                Job Id                |       Creation Date      | User Name | Job Type |    Status   |\n" +
+                "+-------------+--------------------------------------+--------------------------+-----------+----------+-------------+\n" +
+                "| coffeehouse | 52dc72a9-7876-4024-9034-d2f6e886f7e7 | 2016-08-30T22:14:49.000Z | jk        | PUT      | IN_PROGRESS |\n" +
+                "| coffeehouse | 2e9cc564-95d4-4f25-abe2-acee0746b5a7 | 2016-08-30T21:55:09.000Z | jk        | PUT      | CANCELED    |\n" +
+                "+-------------+--------------------------------------+--------------------------+-----------+----------+-------------+\n";
 
-        final InputStream stream = IOUtils.toInputStream("<Jobs>" +
+        final InputStream packet = IOUtils.toInputStream("<Jobs>" +
                 "<Job Aggregating=\"false\" BucketName=\"coffeehouse\" " +
                 "CachedSizeInBytes=\"343479386\" " +
                 "ChunkClientProcessingOrderGuarantee=\"IN_ORDER\" " +
@@ -2986,23 +2547,21 @@ public class Ds3Cli_Test {
                 "UserName=\"jk\"><Nodes/></Job>" +
                 "</Jobs>", "utf-8");
 
-        final Headers headers = mock(Headers.class);
-        when(webResponse.getStatusCode()).thenReturn(200);
-        when(webResponse.getHeaders()).thenReturn(headers);
-        when(webResponse.getResponseStream()).thenReturn(stream);
-
-        final GetJobsSpectraS3Response response = new GetJobsSpectraS3Response(webResponse);
-
-        when(client.getJobsSpectraS3(any(GetJobsSpectraS3Request.class))).thenReturn(response);
-        final CommandResponse result = command.render();
-        assertThat(result.getMessage(), is(expectedString));
-        assertThat(result.getReturnCode(), is(0));
+        final JobList jobs = XmlOutput.fromXml(packet, JobList.class);
+        final GetJobsResult jobsResult = new GetJobsResult(jobs);
+        final String result = view.render(jobsResult);
+        assertThat(result, is(expected));
     }
 
     @Test
     public void getJobsJson() throws Exception {
+        final Arguments args = new Arguments( new String[] {"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_jobs", "--output-format", "json"});
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
+        command.init(args);
+        assertTrue(command instanceof GetJobs);
+        final View view = command.getView();
 
-        final String expectedString = "\"Data\" : {\n" +
+        final String expected = "\"Data\" : {\n" +
                 "    \"result\" : {\n" +
                 "      \"Job\" : [ {\n" +
                 "        \"aggregating\" : false,\n" +
@@ -3028,14 +2587,7 @@ public class Ds3Cli_Test {
                 "  \"Status\" : \"OK\"\n" +
                 "}";
 
-        final Arguments args = new Arguments( new String[] {"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_jobs", "--output-format", "json"});
-        final Ds3Client client = mock(Ds3Client.class);
-        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, null), null);
-        command.init(args);
-
-        final WebResponse webResponse = mock(WebResponse.class);
-
-        final InputStream stream = IOUtils.toInputStream("<Jobs>" +
+        final InputStream packet = IOUtils.toInputStream("<Jobs>" +
                 "<Job Aggregating=\"false\" BucketName=\"coffeehouse\" " +
                 "CachedSizeInBytes=\"343479386\" " +
                 "ChunkClientProcessingOrderGuarantee=\"IN_ORDER\" " +
@@ -3047,17 +2599,10 @@ public class Ds3Cli_Test {
                 "Status=\"IN_PROGRESS\" UserId=\"5079e312-bcff-43c7-bd54-d8148af0a515\" " +
                 "UserName=\"jk\"><Nodes/></Job></Jobs>", "utf-8");
 
-        final Headers headers = mock(Headers.class);
-        when(webResponse.getStatusCode()).thenReturn(200);
-        when(webResponse.getHeaders()).thenReturn(headers);
-        when(webResponse.getResponseStream()).thenReturn(stream);
-
-        final GetJobsSpectraS3Response response = new GetJobsSpectraS3Response(webResponse);
-
-        when(client.getJobsSpectraS3(any(GetJobsSpectraS3Request.class))).thenReturn(response);
-        final CommandResponse result = command.render();
-        assertTrue(result.getMessage().endsWith(expectedString));
-        assertThat(result.getReturnCode(), is(0));
+        final JobList jobs = XmlOutput.fromXml(packet, JobList.class);
+        final GetJobsResult jobsResult = new GetJobsResult(jobs);
+        final String result = view.render(jobsResult);
+        assertTrue(result.endsWith(expected));
     }
 
     /**
@@ -3253,5 +2798,4 @@ public class Ds3Cli_Test {
         command.init(args);
         final CommandResponse result = command.render();
     }
-
 }

@@ -24,6 +24,7 @@ import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3cli.util.MetadataUtils;
 import com.spectralogic.ds3cli.util.SyncUtils;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
+import com.spectralogic.ds3client.helpers.MetadataAccess;
 import com.spectralogic.ds3client.helpers.options.WriteJobOptions;
 import com.spectralogic.ds3client.models.Priority;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
@@ -122,7 +123,7 @@ public class PutObject extends CliCommand<DefaultResult> {
                 .withMaxParallelRequests(this.numberOfThreads);
 
         if (!Guard.isMapNullOrEmpty(metadata)) {
-            putJob.withMetadata(new Ds3ClientHelpers.MetadataAccess() {
+            putJob.withMetadata(new MetadataAccess() {
                 @Override
                 public Map<String, String> getMetadataValue(final String s) {
 

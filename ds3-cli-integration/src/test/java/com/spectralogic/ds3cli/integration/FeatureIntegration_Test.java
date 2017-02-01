@@ -220,7 +220,6 @@ public class FeatureIntegration_Test {
 
             final GetObjectResponse readResponse = client.getObject(new GetObjectRequest(bucketName, book, channel, readJob.getJobId(), 0));
             assertThat(readResponse, is(notNullValue()));
-            assertThat(readResponse.getStatusCode(), is(equalTo(200)));
 
             final Arguments args = new Arguments(new String[]{"--http", "-c", "get_job", "-i", readJob.getJobId().toString()});
             final CommandResponse getJobResponse = Util.command(client, args);
@@ -263,7 +262,6 @@ public class FeatureIntegration_Test {
 
             final GetObjectResponse readResponse = client.getObject(new GetObjectRequest(bucketName, book, channel, readJob.getJobId(), 0));
             assertThat(readResponse, is(notNullValue()));
-            assertThat(readResponse.getStatusCode(), is(equalTo(200)));
 
             final Arguments args = new Arguments(new String[]{"--http", "-c", "get_job", "-i", readJob.getJobId().toString(), "--output-format", "json"});
             final CommandResponse getJobResponse = Util.command(client, args);
