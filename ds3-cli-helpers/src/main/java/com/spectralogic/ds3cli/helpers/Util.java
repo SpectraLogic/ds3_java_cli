@@ -31,19 +31,19 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.Date;
 import java.util.regex.Pattern;
 
 final public class Util {
     public static final String RESOURCE_BASE_NAME = "./src/test/resources/books/";
     public static final String DOWNLOAD_BASE_NAME = "./output/";
+    public static final int TRANSER_RETRY_ATTEMPTS = 3;
 
     private Util() {
         //pass
     }
 
     public static CommandResponse command(final Ds3Client client, final Arguments args) throws Exception {
-        final Ds3Provider provider = new Ds3ProviderImpl(client, Ds3ClientHelpers.wrap(client));
+        final Ds3Provider provider = new Ds3ProviderImpl(client, Ds3ClientHelpers.wrap(client, TRANSER_RETRY_ATTEMPTS));
         final FileSystemProvider fileSystemProvider = new FileSystemProviderImpl();
         final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(provider, fileSystemProvider);
         command.init(args);
@@ -51,9 +51,7 @@ final public class Util {
     }
 
     public static CommandResponse command(final Ds3Client client, final String commandLine) throws Exception {
-        final Arguments args = new Arguments(commandLine.split(" "));
-        final CommandResponse response = command(client, args);
-        return response;
+        return command(client, new Arguments(commandLine.split(" ")));
     }
 
 
