@@ -1,4 +1,3 @@
-
 /*
  * ******************************************************************************
  *   Copyright 2014-2015 Spectra Logic Corporation. All Rights Reserved.
@@ -332,16 +331,16 @@ public class Ds3Cli_Test {
         // test output / view
         final String expected =
                 "+-------------+--------------------------------------+--------------------------------------+--------------------------+--------------------------------------+---------------+\n" +
-                        "|     Name    |                  Id                  |                User Id               |       Creation Date      |            Data Policy Id            | Used Capacity |\n" +
-                        "+-------------+--------------------------------------+--------------------------------------+--------------------------+--------------------------------------+---------------+\n" +
-                        "| jktwocopies | c5ed6a28-1499-432d-85e5-e0b2d866ec65 | c3eb82a5-574a-4a54-9083-60894866ea5f | 2016-09-22T23:09:31.000Z | c3bdbfc5-57e3-4dea-afb4-86ace65017fa | 132096040     |\n" +
-                        "+-------------+--------------------------------------+--------------------------------------+--------------------------+--------------------------------------+---------------+\n\n" +
-                        "+--------------------+--------+----------------+--------------------------+------------------------------------+\n" +
-                        "|      File Name     |  Size  |      Owner     |       Last Modified      |                ETag                |\n" +
-                        "+--------------------+--------+----------------+--------------------------+------------------------------------+\n" +
-                        "| my-image.jpg       | 434234 | mtd@amazon.com | 2009-10-12T17:50:30.000Z | \"fba9dede5f27731c9771645a39863328\" |\n" +
-                        "| my-third-image.jpg |  64994 | mtd@amazon.com | 2009-10-12T17:50:30.000Z | \"1b2cf535f27731c974343645a3985328\" |\n" +
-                        "+--------------------+--------+----------------+--------------------------+------------------------------------+\n";
+                "|     Name    |                  Id                  |                User Id               |       Creation Date      |            Data Policy Id            | Used Capacity |\n" +
+                "+-------------+--------------------------------------+--------------------------------------+--------------------------+--------------------------------------+---------------+\n" +
+                "| jktwocopies | c5ed6a28-1499-432d-85e5-e0b2d866ec65 | c3eb82a5-574a-4a54-9083-60894866ea5f | 2016-09-22T23:09:31.000Z | c3bdbfc5-57e3-4dea-afb4-86ace65017fa | 132096040     |\n" +
+                "+-------------+--------------------------------------+--------------------------------------+--------------------------+--------------------------------------+---------------+\n\n" +
+                "+--------------------+--------+----------------+--------------------------+------------------------------------+\n" +
+                "|      File Name     |  Size  |      Owner     |       Last Modified      |                ETag                |\n" +
+                "+--------------------+--------+----------------+--------------------------+------------------------------------+\n" +
+                "| my-image.jpg       | 434234 | mtd@amazon.com | 2009-10-12T17:50:30.000Z | \"fba9dede5f27731c9771645a39863328\" |\n" +
+                "| my-third-image.jpg |  64994 | mtd@amazon.com | 2009-10-12T17:50:30.000Z | \"1b2cf535f27731c974343645a3985328\" |\n" +
+                "+--------------------+--------+----------------+--------------------------+------------------------------------+\n";
 
         final String packet = "<ListBucketResult>\n" +
                 "    <Name>bucket</Name>\n" +
@@ -489,7 +488,7 @@ public class Ds3Cli_Test {
                 "<LastPreferredChunkSizeInBytes>19004340787</LastPreferredChunkSizeInBytes>" +
                 "<LogicalUsedCapacity>1928234</LogicalUsedCapacity><Name>mountain</Name>" +
                 "<UserId>5079e312-bcff-43c7-bd54-d8148af0a515</UserId>" +
-                "</Data>\n";
+            "</Data>\n";
 
         final Bucket bucket = XmlOutput.fromXml(detailResponse, Bucket.class);
         final ListBucketResult objects = XmlOutput.fromXml(packet, ListBucketResult.class);
@@ -508,11 +507,11 @@ public class Ds3Cli_Test {
         final View view = command.getView();
 
         final String expected =
-                "+-------------+--------------------------------------+--------------------------------------+--------------------------+--------------------------------------+---------------+\n" +
-                        "|     Name    |                  Id                  |                User Id               |       Creation Date      |            Data Policy Id            | Used Capacity |\n" +
-                        "+-------------+--------------------------------------+--------------------------------------+--------------------------+--------------------------------------+---------------+\n" +
-                        "| coffeehouse | 25df1bcd-f4a3-4ba5-9a91-1b39bcf8f1b2 | 5079e312-bcff-43c7-bd54-d8148af0a515 | 2016-08-30T21:50:25.000Z | 8a5d5e56-8d54-4098-b790-6002730b3d96 | 349642821     |\n" +
-                        "+-------------+--------------------------------------+--------------------------------------+--------------------------+--------------------------------------+---------------+\n";
+            "+-------------+--------------------------------------+--------------------------------------+--------------------------+--------------------------------------+---------------+\n" +
+            "|     Name    |                  Id                  |                User Id               |       Creation Date      |            Data Policy Id            | Used Capacity |\n" +
+            "+-------------+--------------------------------------+--------------------------------------+--------------------------+--------------------------------------+---------------+\n" +
+            "| coffeehouse | 25df1bcd-f4a3-4ba5-9a91-1b39bcf8f1b2 | 5079e312-bcff-43c7-bd54-d8148af0a515 | 2016-08-30T21:50:25.000Z | 8a5d5e56-8d54-4098-b790-6002730b3d96 | 349642821     |\n" +
+            "+-------------+--------------------------------------+--------------------------------------+--------------------------+--------------------------------------+---------------+\n";
 
         final String packet = "<Data>" +
                 "<CreationDate>2016-08-30T21:50:25.000Z</CreationDate>" +
@@ -522,7 +521,7 @@ public class Ds3Cli_Test {
                 "<LogicalUsedCapacity>349642821</LogicalUsedCapacity>" +
                 "<Name>coffeehouse</Name>" +
                 "<UserId>5079e312-bcff-43c7-bd54-d8148af0a515</UserId>" +
-                "</Data>\n";
+            "</Data>\n";
 
         final Bucket bucket = XmlOutput.fromXml(packet, Bucket.class);
         final GetBucketResult getBucketResult = new GetBucketResult(bucket, null);
@@ -571,7 +570,6 @@ public class Ds3Cli_Test {
         final String result = view.render(new DefaultResult("Success: Modified job with job id '" + jobId + "' with priority LOW."));
         assertThat(result, is(expected));
     }
-
 
     @Test
     public void putJobJson() throws Exception {
@@ -781,32 +779,11 @@ public class Ds3Cli_Test {
 
         final String expected = "JobId: " + jobId + " | Name: Good Job | Status: COMPLETED | Bucket: bucket | Type: GET | Priority: HIGH | User Name: spectra | Creation Date: 2015-09-28T17:30:43.000Z | Total Size: 32 | Total Transferred: 0";
         final String packet = "<MasterObjectList BucketName=\"bucket\" CachedSizeInBytes=\"0\" ChunkClientProcessingOrderGuarantee=\"NONE\" CompletedSizeInBytes=\"0\" JobId=\"aa5df0cc-b03a-4cb9-b69d-56e7367e917f\" OriginalSizeInBytes=\"32\" Priority=\"HIGH\" RequestType=\"GET\" StartDate=\"2015-09-28T17:30:43.000Z\" Status=\"COMPLETED\" UserId=\"c2581493-058c-40d7-a3a1-9a50b20d6d3b\" UserName=\"spectra\" WriteOptimization=\"CAPACITY\" Name=\"Good Job\"></MasterObjectList>";
-
+        
         final MasterObjectList objects = XmlOutput.fromXml(packet, MasterObjectList.class);
         final GetJobResult getJobResult = new GetJobResult(objects);
         final String result = view.render(getJobResult);
         assertThat(result, is(expected));
-    }
-
-    @Test
-    public void modifyJob() throws Exception {
-        final String jobId = "081bbb4f-fb42-4871-b3af-d5180f0c6569";
-        final String jobName = "Good Job";
-        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!",
-                "-a", "access", "-c", "modify_job", "-i", jobId, "--priority", "HIGH", "--job-name", jobName});
-        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
-        command.init(args);
-        assertTrue(command instanceof ModifyJob);
-        final View view = command.getView();
-
-        final String expected = "JobId: " + jobId + " | Name: " + jobName + " | Status: IN_PROGRESS | Bucket: coffeehouse | Type: PUT | Priority: HIGH | User Name: jk | Creation Date: 2016-12-01T18:51:09.000Z | Total Size: 343479386 | Total Transferred: 0";
-        final String packet = "<MasterObjectList Aggregating=\"false\" BucketName=\"coffeehouse\" CachedSizeInBytes=\"343479386\" ChunkClientProcessingOrderGuarantee=\"IN_ORDER\" CompletedSizeInBytes=\"0\" EntirelyInCache=\"true\" " +
-                "JobId=\"" + jobId + "\" Naked=\"false\" Name=\"" + jobName + "\" OriginalSizeInBytes=\"343479386\" Priority=\"HIGH\" RequestType=\"PUT\" StartDate=\"2016-12-01T18:51:09.000Z\" Status=\"IN_PROGRESS\" UserId=\"c1fdd654-5e00-4adf-a5d5-bafeba1bb237\" UserName=\"jk\"></MasterObjectList>";
-
-        final MasterObjectList objectList = XmlOutput.fromXml(packet, MasterObjectList.class);
-        final GetJobResult result = new GetJobResult(objectList);
-        final String output = view.render(result);
-        assertThat(output, is(expected));
     }
 
     @Test
@@ -850,6 +827,27 @@ public class Ds3Cli_Test {
         final GetJobResult getJobResult = new GetJobResult(objects);
         final String result = view.render(getJobResult);
         assertTrue(result.endsWith(expected));
+    }
+
+    @Test
+    public void modifyJob() throws Exception {
+        final String jobId = "081bbb4f-fb42-4871-b3af-d5180f0c6569";
+        final String jobName = "Good Job";
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!",
+                "-a", "access", "-c", "modify_job", "-i", jobId, "--priority", "HIGH", "--job-name", jobName});
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
+        command.init(args);
+        assertTrue(command instanceof ModifyJob);
+        final View view = command.getView();
+
+        final String expected = "JobId: " + jobId + " | Name: " + jobName + " | Status: IN_PROGRESS | Bucket: coffeehouse | Type: PUT | Priority: HIGH | User Name: jk | Creation Date: 2016-12-01T18:51:09.000Z | Total Size: 343479386 | Total Transferred: 0";
+        final String packet = "<MasterObjectList Aggregating=\"false\" BucketName=\"coffeehouse\" CachedSizeInBytes=\"343479386\" ChunkClientProcessingOrderGuarantee=\"IN_ORDER\" CompletedSizeInBytes=\"0\" EntirelyInCache=\"true\" " +
+                "JobId=\"" + jobId + "\" Naked=\"false\" Name=\"" + jobName + "\" OriginalSizeInBytes=\"343479386\" Priority=\"HIGH\" RequestType=\"PUT\" StartDate=\"2016-12-01T18:51:09.000Z\" Status=\"IN_PROGRESS\" UserId=\"c1fdd654-5e00-4adf-a5d5-bafeba1bb237\" UserName=\"jk\"></MasterObjectList>";
+
+        final MasterObjectList objectList = XmlOutput.fromXml(packet, MasterObjectList.class);
+        final GetJobResult result = new GetJobResult(objectList);
+        final String output = view.render(result);
+        assertThat(output, is(expected));
     }
 
     @Test
@@ -1750,20 +1748,20 @@ public class Ds3Cli_Test {
 
         final String packet = "<Data>" +
                 "<User><AuthId>ams=</AuthId>" +
-                "<DefaultDataPolicyId>d3e6e795-fc85-4163-9d2f-4bc271d995d0</DefaultDataPolicyId>" +
-                "<Id>0f4e6e4a-bc48-427d-820e-9c0a050064be</Id>" +
-                "<Name>jk</Name>" +
-                "<SecretKey>QRfhLkgU</SecretKey></User>" +
+                    "<DefaultDataPolicyId>d3e6e795-fc85-4163-9d2f-4bc271d995d0</DefaultDataPolicyId>" +
+                    "<Id>0f4e6e4a-bc48-427d-820e-9c0a050064be</Id>" +
+                    "<Name>jk</Name>" +
+                    "<SecretKey>QRfhLkgU</SecretKey></User>" +
                 "<User><AuthId>c3BlY3RyYQ==</AuthId>" +
-                "<DefaultDataPolicyId>d3e6e795-fc85-4163-9d2f-4bc271d995d0</DefaultDataPolicyId>" +
-                "<Id>dcea9717-4326-49bb-bc46-7150b1c515bd</Id>" +
-                "<Name>spectra</Name>" +
-                "<SecretKey>L28VgwAr</SecretKey></User>" +
+                    "<DefaultDataPolicyId>d3e6e795-fc85-4163-9d2f-4bc271d995d0</DefaultDataPolicyId>" +
+                    "<Id>dcea9717-4326-49bb-bc46-7150b1c515bd</Id>" +
+                    "<Name>spectra</Name>" +
+                    "<SecretKey>L28VgwAr</SecretKey></User>" +
                 "<User><AuthId>dGVzdGd1eQ==</AuthId>" +
-                "<DefaultDataPolicyId>a85aa599-7a58-4141-adbe-79bfd1d42e48</DefaultDataPolicyId>" +
-                "<Id>a1e149b9-3dfa-49c2-b7d0-25e831932fff</Id>" +
-                "<Name>testguy</Name>" +
-                "<SecretKey>QBVe7jAu</SecretKey></User>" +
+                    "<DefaultDataPolicyId>a85aa599-7a58-4141-adbe-79bfd1d42e48</DefaultDataPolicyId>" +
+                    "<Id>a1e149b9-3dfa-49c2-b7d0-25e831932fff</Id>" +
+                    "<Name>testguy</Name>" +
+                    "<SecretKey>QBVe7jAu</SecretKey></User>" +
                 "</Data>";
 
         final SpectraUserList users = XmlOutput.fromXml(packet, SpectraUserList.class);
@@ -1941,16 +1939,16 @@ public class Ds3Cli_Test {
         assertEquals(result, expected);
     }
 
-    @Test
+   @Test
     public void verifyBulkJob() throws Exception {
-        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "verify_bulk_job", "-b", "coffeehouse" });
-        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
-        command.init(args);
-        assertTrue(command instanceof VerifyBulkJob);
-        final View view = command.getView();
+       final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "verify_bulk_job", "-b", "coffeehouse" });
+       final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
+       command.init(args);
+       assertTrue(command instanceof VerifyBulkJob);
+       final View view = command.getView();
 
-        final String expected =
-                "+-------+-------------------------------------------------+-----------+---------+\n" +
+       final String expected =
+                        "+-------+-------------------------------------------------+-----------+---------+\n" +
                         "| Chunk |                       Name                      |    Size   | Version |\n" +
                         "+-------+-------------------------------------------------+-----------+---------+\n" +
                         "| 0     | 123456789.txt                                   |         9 |       1 |\n" +
@@ -1984,38 +1982,38 @@ public class Ds3Cli_Test {
         final String packet = "<MasterObjectList Aggregating=\"false\" BucketName=\"coffeehouse\" CachedSizeInBytes=\"0\" ChunkClientProcessingOrderGuarantee=\"NONE\" CompletedSizeInBytes=\"0\" EntirelyInCache=\"false\" JobId=\"e0db4a7e-9957-4cf6-81c5-d3c320f8d56d\" Naked=\"false\" Name=\"VERIFY by 192.168.20.19\" OriginalSizeInBytes=\"341376176\" Priority=\"LOW\" RequestType=\"VERIFY\" StartDate=\"2016-06-16T18:13:34.000Z\" Status=\"IN_PROGRESS\" UserId=\"67235923-f684-4621-a958-1815e0bbf895\" UserName=\"spectra\">" +
                 "<Nodes><Node EndPoint=\"10.1.20.88\" HttpPort=\"80\" HttpsPort=\"443\" Id=\"b272e757-31b0-11e6-948b-0007432b8090\"/></Nodes>" +
                 "<Objects ChunkId=\"db94b108-6d0e-4f46-993c-b2f459e4b88f\" ChunkNumber=\"0\" NodeId=\"b272e757-31b0-11e6-948b-0007432b8090\">" +
-                "<Object Id=\"53452a07-699a-4c27-8de5-95aa0a431df1\" InCache=\"true\" Latest=\"true\" Length=\"9\" Name=\"123456789.txt\" Offset=\"0\" Version=\"1\"/>" +
-                "<Object Id=\"7989ad4a-47a5-41ac-8814-3746e4e20679\" InCache=\"true\" Latest=\"true\" Length=\"9172\" Name=\"Always_295x166.jpg\" Offset=\"0\" Version=\"1\"/>" +
-                "<Object Id=\"6649c2cb-6e83-4c58-9fb8-9b4aec8b014b\" InCache=\"true\" Latest=\"true\" Length=\"29895\" Name=\"Chapter 9.docx\" Offset=\"0\" Version=\"1\"/>" +
-                "<Object Id=\"f725ef08-7e6f-4fe0-a256-798e561d878f\" InCache=\"true\" Latest=\"true\" Length=\"9114\" Name=\"RedRiverValley_295x166.jpg\" Offset=\"0\" Version=\"1\"/>" +
-                "<Object Id=\"dff0cbed-5b7f-480f-aa94-8adea7c59a3e\" InCache=\"true\" Latest=\"true\" Length=\"774741\" Name=\"Softphone Install.docx\" Offset=\"0\" Version=\"1\"/>" +
-                "<Object Id=\"ffd8266d-cdc5-4e49-81d4-d08314fcee5a\" InCache=\"true\" Latest=\"true\" Length=\"11059\" Name=\"ThinkingOutLoud_295x166.jpg\" Offset=\"0\" Version=\"1\"/>" +
-                "<Object Id=\"897b7e5b-59d8-4645-bc7a-f5c4b8154a0f\" InCache=\"true\" Latest=\"true\" Length=\"10724\" Name=\"UnforgetWonderful_295x166.jpg\" Offset=\"0\" Version=\"1\"/>" +
-                "<Object Id=\"7bb970d3-113f-413b-87d5-00b072059451\" InCache=\"true\" Latest=\"true\" Length=\"10634\" Name=\"YouDontKnowMe_295x166.jpg\" Offset=\"0\" Version=\"1\"/>" +
-                "<Object Id=\"1e293dc9-3257-4277-9c40-b50a6e63b71e\" InCache=\"true\" Latest=\"true\" Length=\"294056\" Name=\"beowulf.txt\" Offset=\"0\" Version=\"1\"/>" +
-                "<Object Id=\"d759f10d-05c6-498c-b4ce-2475027fbeae\" InCache=\"true\" Latest=\"true\" Length=\"3309717\" Name=\"coffeehouse/im_in_the_mood.mp3\" Offset=\"0\" Version=\"1\"/>" +
-                "<Object Id=\"d9b342ae-311c-4cbc-a000-75686c174471\" InCache=\"true\" Latest=\"true\" Length=\"45872985\" Name=\"coffeehouse/jk/ColumbinesGrow.m4a\" Offset=\"0\" Version=\"1\"/>" +
-                "<Object Id=\"c85fc175-116a-4bcf-a77a-5ea240a5de3a\" InCache=\"true\" Latest=\"true\" Length=\"5050747\" Name=\"coffeehouse/jk/ColumbinesGrow.mp3\" Offset=\"0\" Version=\"1\"/>" +
-                "<Object Id=\"b70bd4ab-90d2-41fd-83d2-572fb3d1c8ca\" InCache=\"true\" Latest=\"true\" Length=\"10528\" Name=\"coffeehouse/jk/Columbines_295x166.jpg\" Offset=\"0\" Version=\"1\"/>" +
-                "<Object Id=\"e4769cd2-3aa6-4628-887c-ad51768656c5\" InCache=\"true\" Latest=\"true\" Length=\"10396369\" Name=\"coffeehouse/jk/Misty_2015.m4a\" Offset=\"0\" Version=\"1\"/>" +
-                "<Object Id=\"9ffa7e9c-6939-4808-996e-e42fcf8bacb5\" InCache=\"true\" Latest=\"true\" Length=\"77080710\" Name=\"coffeehouse/jk/RedRiverValley.m4a\" Offset=\"0\" Version=\"1\"/>" +
-                "<Object Id=\"564a1bc1-33a0-41f3-af28-fbf79f331d0e\" InCache=\"true\" Latest=\"true\" Length=\"6363965\" Name=\"coffeehouse/jk/RedRiverValley.mp3\" Offset=\"0\" Version=\"1\"/>" +
-                "<Object Id=\"b2671db7-1a4a-4577-8419-f17ead63d321\" InCache=\"true\" Latest=\"true\" Length=\"10724\" Name=\"coffeehouse/jk/UnforgetWonderful_295x166.jpg\" Offset=\"0\" Version=\"1\"/>" +
-                "<Object Id=\"71807ee9-2db9-4145-b01d-3d2aaae37061\" InCache=\"true\" Latest=\"true\" Length=\"110054089\" Name=\"coffeehouse/jk/Unforgettable-WonderfulWorld.m4a\" Offset=\"0\" Version=\"1\"/>" +
-                "<Object Id=\"e50d5fc8-8fbf-4206-b495-05bb8be539ec\" InCache=\"true\" Latest=\"true\" Length=\"7520930\" Name=\"coffeehouse/jk/Unforgettable-WonderfulWorld.mp3\" Offset=\"0\" Version=\"1\"/>" +
-                "<Object Id=\"9156aab6-88fa-49b0-a0e1-c230d247957e\" InCache=\"true\" Latest=\"true\" Length=\"51272203\" Name=\"coffeehouse/jk/WhereOrWhen.m4a\" Offset=\"0\" Version=\"1\"/>" +
-                "<Object Id=\"0f5541b9-8c4d-4ed8-bd1d-9e62173bdf4a\" InCache=\"true\" Latest=\"true\" Length=\"5647581\" Name=\"coffeehouse/jk/WhereOrWhen.mp3\" Offset=\"0\" Version=\"1\"/>" +
-                "<Object Id=\"03b2e1c7-f80c-437a-912d-b09015dba484\" InCache=\"true\" Latest=\"true\" Length=\"11263\" Name=\"coffeehouse/jk/WhereOrWhen_295x166.jpg\" Offset=\"0\" Version=\"1\"/>" +
-                "<Object Id=\"667d94f6-b341-45f7-bd91-706af52d8e77\" InCache=\"true\" Latest=\"true\" Length=\"11207247\" Name=\"coffeehouse/jk/im_in_the_mood.m4a\" Offset=\"0\" Version=\"1\"/>" +
-                "<Object Id=\"f7f65e20-4ea2-4629-9c22-ddf9cbc76b99\" InCache=\"true\" Latest=\"true\" Length=\"8621\" Name=\"coffeehouse/jk/im_in_the_mood_200.jpg\" Offset=\"0\" Version=\"1\"/>" +
-                "<Object Id=\"92a40cff-63a6-4520-81a9-80afa03a1973\" InCache=\"true\" Latest=\"true\" Length=\"6409093\" Name=\"coffeehouse/witchcraft.mp3\" Offset=\"0\" Version=\"1\"/>" +
+                    "<Object Id=\"53452a07-699a-4c27-8de5-95aa0a431df1\" InCache=\"true\" Latest=\"true\" Length=\"9\" Name=\"123456789.txt\" Offset=\"0\" Version=\"1\"/>" +
+                    "<Object Id=\"7989ad4a-47a5-41ac-8814-3746e4e20679\" InCache=\"true\" Latest=\"true\" Length=\"9172\" Name=\"Always_295x166.jpg\" Offset=\"0\" Version=\"1\"/>" +
+                    "<Object Id=\"6649c2cb-6e83-4c58-9fb8-9b4aec8b014b\" InCache=\"true\" Latest=\"true\" Length=\"29895\" Name=\"Chapter 9.docx\" Offset=\"0\" Version=\"1\"/>" +
+                    "<Object Id=\"f725ef08-7e6f-4fe0-a256-798e561d878f\" InCache=\"true\" Latest=\"true\" Length=\"9114\" Name=\"RedRiverValley_295x166.jpg\" Offset=\"0\" Version=\"1\"/>" +
+                    "<Object Id=\"dff0cbed-5b7f-480f-aa94-8adea7c59a3e\" InCache=\"true\" Latest=\"true\" Length=\"774741\" Name=\"Softphone Install.docx\" Offset=\"0\" Version=\"1\"/>" +
+                    "<Object Id=\"ffd8266d-cdc5-4e49-81d4-d08314fcee5a\" InCache=\"true\" Latest=\"true\" Length=\"11059\" Name=\"ThinkingOutLoud_295x166.jpg\" Offset=\"0\" Version=\"1\"/>" +
+                    "<Object Id=\"897b7e5b-59d8-4645-bc7a-f5c4b8154a0f\" InCache=\"true\" Latest=\"true\" Length=\"10724\" Name=\"UnforgetWonderful_295x166.jpg\" Offset=\"0\" Version=\"1\"/>" +
+                    "<Object Id=\"7bb970d3-113f-413b-87d5-00b072059451\" InCache=\"true\" Latest=\"true\" Length=\"10634\" Name=\"YouDontKnowMe_295x166.jpg\" Offset=\"0\" Version=\"1\"/>" +
+                    "<Object Id=\"1e293dc9-3257-4277-9c40-b50a6e63b71e\" InCache=\"true\" Latest=\"true\" Length=\"294056\" Name=\"beowulf.txt\" Offset=\"0\" Version=\"1\"/>" +
+                    "<Object Id=\"d759f10d-05c6-498c-b4ce-2475027fbeae\" InCache=\"true\" Latest=\"true\" Length=\"3309717\" Name=\"coffeehouse/im_in_the_mood.mp3\" Offset=\"0\" Version=\"1\"/>" +
+                    "<Object Id=\"d9b342ae-311c-4cbc-a000-75686c174471\" InCache=\"true\" Latest=\"true\" Length=\"45872985\" Name=\"coffeehouse/jk/ColumbinesGrow.m4a\" Offset=\"0\" Version=\"1\"/>" +
+                    "<Object Id=\"c85fc175-116a-4bcf-a77a-5ea240a5de3a\" InCache=\"true\" Latest=\"true\" Length=\"5050747\" Name=\"coffeehouse/jk/ColumbinesGrow.mp3\" Offset=\"0\" Version=\"1\"/>" +
+                    "<Object Id=\"b70bd4ab-90d2-41fd-83d2-572fb3d1c8ca\" InCache=\"true\" Latest=\"true\" Length=\"10528\" Name=\"coffeehouse/jk/Columbines_295x166.jpg\" Offset=\"0\" Version=\"1\"/>" +
+                    "<Object Id=\"e4769cd2-3aa6-4628-887c-ad51768656c5\" InCache=\"true\" Latest=\"true\" Length=\"10396369\" Name=\"coffeehouse/jk/Misty_2015.m4a\" Offset=\"0\" Version=\"1\"/>" +
+                    "<Object Id=\"9ffa7e9c-6939-4808-996e-e42fcf8bacb5\" InCache=\"true\" Latest=\"true\" Length=\"77080710\" Name=\"coffeehouse/jk/RedRiverValley.m4a\" Offset=\"0\" Version=\"1\"/>" +
+                    "<Object Id=\"564a1bc1-33a0-41f3-af28-fbf79f331d0e\" InCache=\"true\" Latest=\"true\" Length=\"6363965\" Name=\"coffeehouse/jk/RedRiverValley.mp3\" Offset=\"0\" Version=\"1\"/>" +
+                    "<Object Id=\"b2671db7-1a4a-4577-8419-f17ead63d321\" InCache=\"true\" Latest=\"true\" Length=\"10724\" Name=\"coffeehouse/jk/UnforgetWonderful_295x166.jpg\" Offset=\"0\" Version=\"1\"/>" +
+                    "<Object Id=\"71807ee9-2db9-4145-b01d-3d2aaae37061\" InCache=\"true\" Latest=\"true\" Length=\"110054089\" Name=\"coffeehouse/jk/Unforgettable-WonderfulWorld.m4a\" Offset=\"0\" Version=\"1\"/>" +
+                    "<Object Id=\"e50d5fc8-8fbf-4206-b495-05bb8be539ec\" InCache=\"true\" Latest=\"true\" Length=\"7520930\" Name=\"coffeehouse/jk/Unforgettable-WonderfulWorld.mp3\" Offset=\"0\" Version=\"1\"/>" +
+                    "<Object Id=\"9156aab6-88fa-49b0-a0e1-c230d247957e\" InCache=\"true\" Latest=\"true\" Length=\"51272203\" Name=\"coffeehouse/jk/WhereOrWhen.m4a\" Offset=\"0\" Version=\"1\"/>" +
+                    "<Object Id=\"0f5541b9-8c4d-4ed8-bd1d-9e62173bdf4a\" InCache=\"true\" Latest=\"true\" Length=\"5647581\" Name=\"coffeehouse/jk/WhereOrWhen.mp3\" Offset=\"0\" Version=\"1\"/>" +
+                    "<Object Id=\"03b2e1c7-f80c-437a-912d-b09015dba484\" InCache=\"true\" Latest=\"true\" Length=\"11263\" Name=\"coffeehouse/jk/WhereOrWhen_295x166.jpg\" Offset=\"0\" Version=\"1\"/>" +
+                    "<Object Id=\"667d94f6-b341-45f7-bd91-706af52d8e77\" InCache=\"true\" Latest=\"true\" Length=\"11207247\" Name=\"coffeehouse/jk/im_in_the_mood.m4a\" Offset=\"0\" Version=\"1\"/>" +
+                    "<Object Id=\"f7f65e20-4ea2-4629-9c22-ddf9cbc76b99\" InCache=\"true\" Latest=\"true\" Length=\"8621\" Name=\"coffeehouse/jk/im_in_the_mood_200.jpg\" Offset=\"0\" Version=\"1\"/>" +
+                    "<Object Id=\"92a40cff-63a6-4520-81a9-80afa03a1973\" InCache=\"true\" Latest=\"true\" Length=\"6409093\" Name=\"coffeehouse/witchcraft.mp3\" Offset=\"0\" Version=\"1\"/>" +
                 "</Objects>" +
-                "</MasterObjectList>";
+            "</MasterObjectList>";
 
-        final MasterObjectList blobs = XmlOutput.fromXml(packet, MasterObjectList.class);
-        final VerifyBulkJobResult blobsResult = new VerifyBulkJobResult("tape", blobs.getObjects().iterator());
-        final String result = view.render(blobsResult);
-        assertThat(result, is(expected));
+       final MasterObjectList blobs = XmlOutput.fromXml(packet, MasterObjectList.class);
+       final VerifyBulkJobResult blobsResult = new VerifyBulkJobResult("tape", blobs.getObjects().iterator());
+       final String result = view.render(blobsResult);
+       assertThat(result, is(expected));
     }
 
     @Test
@@ -2096,14 +2094,14 @@ public class Ds3Cli_Test {
         final View view = command.getView();
 
         final String expected =
-                "+-----------------------+--------------------------------------+-------------+-------------------------+--------------------+\n" +
-                        "|          Name         |                  ID                  | LTFS Naming |          Flags          | Write Optimization |\n" +
-                        "+-----------------------+--------------------------------------+-------------+-------------------------+--------------------+\n" +
-                        "| Db Backup Second Copy | a4420271-ab93-4446-8f03-7d2ba8f94529 | OBJECT_ID   | Secure Media Allocation | CAPACITY           |\n" +
-                        "| Tape Second Copy      | 79bb4290-86c7-4aab-801d-392418591c7d | OBJECT_ID   |                         | CAPACITY           |\n" +
-                        "| eject_test            | d7751014-e2eb-4cbc-9613-cabb7907f60f | OBJECT_ID   |                         | CAPACITY           |\n" +
-                        "| smoke_test_sd         | f2903e2b-0f0d-430c-8176-b46076681823 | OBJECT_ID   |                         | CAPACITY           |\n" +
-                        "+-----------------------+--------------------------------------+-------------+-------------------------+--------------------+\n";
+            "+-----------------------+--------------------------------------+-------------+-------------------------+--------------------+\n" +
+            "|          Name         |                  ID                  | LTFS Naming |          Flags          | Write Optimization |\n" +
+            "+-----------------------+--------------------------------------+-------------+-------------------------+--------------------+\n" +
+            "| Db Backup Second Copy | a4420271-ab93-4446-8f03-7d2ba8f94529 | OBJECT_ID   | Secure Media Allocation | CAPACITY           |\n" +
+            "| Tape Second Copy      | 79bb4290-86c7-4aab-801d-392418591c7d | OBJECT_ID   |                         | CAPACITY           |\n" +
+            "| eject_test            | d7751014-e2eb-4cbc-9613-cabb7907f60f | OBJECT_ID   |                         | CAPACITY           |\n" +
+            "| smoke_test_sd         | f2903e2b-0f0d-430c-8176-b46076681823 | OBJECT_ID   |                         | CAPACITY           |\n" +
+            "+-----------------------+--------------------------------------+-------------+-------------------------+--------------------+\n";
 
         final String packet = "<Data>" +
                 "<StorageDomain><AutoEjectMediaFullThreshold/><AutoEjectUponCron/><AutoEjectUponJobCancellation>false</AutoEjectUponJobCancellation><AutoEjectUponJobCompletion>false</AutoEjectUponJobCompletion><AutoEjectUponMediaFull>false</AutoEjectUponMediaFull><Id>a4420271-ab93-4446-8f03-7d2ba8f94529</Id><LtfsFileNaming>OBJECT_ID</LtfsFileNaming><MaxTapeFragmentationPercent>65</MaxTapeFragmentationPercent><MaximumAutoVerificationFrequencyInDays/><MediaEjectionAllowed>true</MediaEjectionAllowed><Name>Db Backup Second Copy</Name><SecureMediaAllocation>true</SecureMediaAllocation><VerifyPriorToAutoEject/><WriteOptimization>CAPACITY</WriteOptimization></StorageDomain>" +
@@ -2128,13 +2126,13 @@ public class Ds3Cli_Test {
 
         final String expected =
                 "+----------+--------------------------------------+--------+--------------------------+------------------------+--------------------------------------+----------------------------+---------------+-------------------+----------------+------------------+\n" +
-                        "| Bar Code |                  ID                  |  State |       Last Modified      | Available Raw Capacity |               BucketID               | Assigned to Storage Domain | Ejection Date | Ejection Location | Ejection Label | Ejection Pending |\n" +
-                        "+----------+--------------------------------------+--------+--------------------------+------------------------+--------------------------------------+----------------------------+---------------+-------------------+----------------+------------------+\n" +
-                        "| 121552L6 | 52741a53-24d5-4391-87a9-9cce703d7ed7 | NORMAL | 2016-06-29T20:24:35.000Z | 2408082046976          | N/A                                  | false                      | N/A           | N/A               | N/A            | N/A              |\n" +
-                        "| 121553L6 | e9e2e2c8-813b-4adf-9ed9-c6f788084656 | NORMAL | 2016-07-18T03:04:30.000Z | 2407684636672          | 5f02264b-b344-4bdd-88bd-7e87133bb0c9 | true                       | N/A           | N/A               | N/A            | N/A              |\n" +
-                        "| 121555L6 | 8cb037d1-39aa-4f42-b27c-acbdf8b4c3c7 | NORMAL | 2016-06-29T20:18:44.000Z | 2408082046976          | N/A                                  | false                      | N/A           | N/A               | N/A            | N/A              |\n" +
-                        "| 122104L6 | b16a8737-8801-4658-971c-c67d6ae44773 | NORMAL | 2016-07-18T03:07:26.000Z | 2407688830976          | 5f02264b-b344-4bdd-88bd-7e87133bb0c9 | true                       | N/A           | N/A               | N/A            | N/A              |\n" +
-                        "+----------+--------------------------------------+--------+--------------------------+------------------------+--------------------------------------+----------------------------+---------------+-------------------+----------------+------------------+\n";
+                "| Bar Code |                  ID                  |  State |       Last Modified      | Available Raw Capacity |               BucketID               | Assigned to Storage Domain | Ejection Date | Ejection Location | Ejection Label | Ejection Pending |\n" +
+                "+----------+--------------------------------------+--------+--------------------------+------------------------+--------------------------------------+----------------------------+---------------+-------------------+----------------+------------------+\n" +
+                "| 121552L6 | 52741a53-24d5-4391-87a9-9cce703d7ed7 | NORMAL | 2016-06-29T20:24:35.000Z | 2408082046976          | N/A                                  | false                      | N/A           | N/A               | N/A            | N/A              |\n" +
+                "| 121553L6 | e9e2e2c8-813b-4adf-9ed9-c6f788084656 | NORMAL | 2016-07-18T03:04:30.000Z | 2407684636672          | 5f02264b-b344-4bdd-88bd-7e87133bb0c9 | true                       | N/A           | N/A               | N/A            | N/A              |\n" +
+                "| 121555L6 | 8cb037d1-39aa-4f42-b27c-acbdf8b4c3c7 | NORMAL | 2016-06-29T20:18:44.000Z | 2408082046976          | N/A                                  | false                      | N/A           | N/A               | N/A            | N/A              |\n" +
+                "| 122104L6 | b16a8737-8801-4658-971c-c67d6ae44773 | NORMAL | 2016-07-18T03:07:26.000Z | 2407688830976          | 5f02264b-b344-4bdd-88bd-7e87133bb0c9 | true                       | N/A           | N/A               | N/A            | N/A              |\n" +
+                "+----------+--------------------------------------+--------+--------------------------+------------------------+--------------------------------------+----------------------------+---------------+-------------------+----------------+------------------+\n";
 
         final InputStream packet = IOUtils.toInputStream("<Data><Tape>" +
                 "<AssignedToStorageDomain>false</AssignedToStorageDomain>" +
@@ -2254,10 +2252,10 @@ public class Ds3Cli_Test {
 
         final String expected =
                 "+-----------------------------------------+--------------------+---------------+----------------------+----------------+--------------+------------------------+-----------------+-----------------+--------------------------------------+--------------------------------------+\n" +
-                        "|                   Path                  | Available Capacity | Used Capacity | Unavailable Capacity | Total Capacity | Max Capacity | Auto Reclaim Threshold | Burst Threshold | Max Utilization |                  ID                  |                Node ID               |\n" +
-                        "+-----------------------------------------+--------------------+---------------+----------------------+----------------+--------------+------------------------+-----------------+-----------------+--------------------------------------+--------------------------------------+\n" +
-                        "| /usr/local/bluestorm/frontend/cachedir/ | 13652840915953     | 171154354395  | 0                    | 13823995270348 | N/A          | 0.82                   | 0.85            | 0.9             | a1c27433-74f2-11e6-8d1e-002590c31f18 | a1c27433-74f2-11e6-8d1e-002590c31f18 |\n" +
-                        "+-----------------------------------------+--------------------+---------------+----------------------+----------------+--------------+------------------------+-----------------+-----------------+--------------------------------------+--------------------------------------+\n";
+                "|                   Path                  | Available Capacity | Used Capacity | Unavailable Capacity | Total Capacity | Max Capacity | Auto Reclaim Threshold | Burst Threshold | Max Utilization |                  ID                  |                Node ID               |\n" +
+                "+-----------------------------------------+--------------------+---------------+----------------------+----------------+--------------+------------------------+-----------------+-----------------+--------------------------------------+--------------------------------------+\n" +
+                "| /usr/local/bluestorm/frontend/cachedir/ | 13652840915953     | 171154354395  | 0                    | 13823995270348 | N/A          | 0.82                   | 0.85            | 0.9             | a1c27433-74f2-11e6-8d1e-002590c31f18 | a1c27433-74f2-11e6-8d1e-002590c31f18 |\n" +
+                "+-----------------------------------------+--------------------+---------------+----------------------+----------------+--------------+------------------------+-----------------+-----------------+--------------------------------------+--------------------------------------+\n";
 
         final InputStream packet = IOUtils.toInputStream("<Data><Filesystems>" +
                 "<AvailableCapacityInBytes>13652840915953</AvailableCapacityInBytes>" +
@@ -2345,11 +2343,11 @@ public class Ds3Cli_Test {
 
         final String expected =
                 "+-------------+-----------+------+------+\n" +
-                        "|  Container  | Allocated | Used | Free |\n" +
-                        "+-------------+-----------+------+------+\n" +
-                        "| Pool        | 9         | 7    | 2    |\n" +
-                        "| Tape        | 8         | 5    | 3    |\n" +
-                        "+-------------+-----------+------+------+\n";
+                "|  Container  | Allocated | Used | Free |\n" +
+                "+-------------+-----------+------+------+\n" +
+                "| Pool        | 9         | 7    | 2    |\n" +
+                "| Tape        | 8         | 5    | 3    |\n" +
+                "+-------------+-----------+------+------+\n";
 
         final InputStream packet = IOUtils.toInputStream("<Data>" +
                 "<Pool>" +
@@ -2427,10 +2425,10 @@ public class Ds3Cli_Test {
 
         final String expected =
                 "+-----------+--------------+--------------+---------------------+--------------------------------------+--------------------------+--------------------------+-----------------------------+----------------------------------+\n" +
-                        "| Activated | Auto Timeout | Auto Inspect | Conflict Resolution |                  ID                  |      Last Heartbeat      | Unavailable Media Policy | Unavailable Pool Retry Mins | Unavailable Partition Retry Mins |\n" +
-                        "+-----------+--------------+--------------+---------------------+--------------------------------------+--------------------------+--------------------------+-----------------------------+----------------------------------+\n" +
-                        "| true      | 30           | DEFAULT      | CANCEL              | 5d45ab7a-b83f-4dc1-95d5-a45b59e48718 | 2016-09-07T22:09:55.000Z | DISALLOW                 | 20                          | 20                               |\n" +
-                        "+-----------+--------------+--------------+---------------------+--------------------------------------+--------------------------+--------------------------+-----------------------------+----------------------------------+\n";
+                "| Activated | Auto Timeout | Auto Inspect | Conflict Resolution |                  ID                  |      Last Heartbeat      | Unavailable Media Policy | Unavailable Pool Retry Mins | Unavailable Partition Retry Mins |\n" +
+                "+-----------+--------------+--------------+---------------------+--------------------------------------+--------------------------+--------------------------+-----------------------------+----------------------------------+\n" +
+                "| true      | 30           | DEFAULT      | CANCEL              | 5d45ab7a-b83f-4dc1-95d5-a45b59e48718 | 2016-09-07T22:09:55.000Z | DISALLOW                 | 20                          | 20                               |\n" +
+                "+-----------+--------------+--------------+---------------------+--------------------------------------+--------------------------+--------------------------+-----------------------------+----------------------------------+\n";
 
         final InputStream packet = IOUtils.toInputStream("<Data>" +
                 "<Activated>true</Activated>" +
@@ -2507,10 +2505,10 @@ public class Ds3Cli_Test {
 
         final String expected =
                 "+-------------+--------------------------------------+--------------------------+-----------+----------+-------------+\n" +
-                        "| Bucket Name |                Job Id                |       Creation Date      | User Name | Job Type |    Status   |\n" +
-                        "+-------------+--------------------------------------+--------------------------+-----------+----------+-------------+\n" +
-                        "| coffeehouse | 52dc72a9-7876-4024-9034-d2f6e886f7e7 | 2016-08-30T22:14:49.000Z | jk        | PUT      | IN_PROGRESS |\n" +
-                        "+-------------+--------------------------------------+--------------------------+-----------+----------+-------------+\n";
+                "| Bucket Name |                Job Id                |       Creation Date      | User Name | Job Type |    Status   |\n" +
+                "+-------------+--------------------------------------+--------------------------+-----------+----------+-------------+\n" +
+                "| coffeehouse | 52dc72a9-7876-4024-9034-d2f6e886f7e7 | 2016-08-30T22:14:49.000Z | jk        | PUT      | IN_PROGRESS |\n" +
+                "+-------------+--------------------------------------+--------------------------+-----------+----------+-------------+\n";
 
         final InputStream packet = IOUtils.toInputStream("<Jobs>" +
                 "<Job Aggregating=\"false\" BucketName=\"coffeehouse\" " +
@@ -2540,11 +2538,11 @@ public class Ds3Cli_Test {
 
         final String expected =
                 "+-------------+--------------------------------------+--------------------------+-----------+----------+-------------+\n" +
-                        "| Bucket Name |                Job Id                |       Creation Date      | User Name | Job Type |    Status   |\n" +
-                        "+-------------+--------------------------------------+--------------------------+-----------+----------+-------------+\n" +
-                        "| coffeehouse | 52dc72a9-7876-4024-9034-d2f6e886f7e7 | 2016-08-30T22:14:49.000Z | jk        | PUT      | IN_PROGRESS |\n" +
-                        "| coffeehouse | 2e9cc564-95d4-4f25-abe2-acee0746b5a7 | 2016-08-30T21:55:09.000Z | jk        | PUT      | CANCELED    |\n" +
-                        "+-------------+--------------------------------------+--------------------------+-----------+----------+-------------+\n";
+                "| Bucket Name |                Job Id                |       Creation Date      | User Name | Job Type |    Status   |\n" +
+                "+-------------+--------------------------------------+--------------------------+-----------+----------+-------------+\n" +
+                "| coffeehouse | 52dc72a9-7876-4024-9034-d2f6e886f7e7 | 2016-08-30T22:14:49.000Z | jk        | PUT      | IN_PROGRESS |\n" +
+                "| coffeehouse | 2e9cc564-95d4-4f25-abe2-acee0746b5a7 | 2016-08-30T21:55:09.000Z | jk        | PUT      | CANCELED    |\n" +
+                "+-------------+--------------------------------------+--------------------------+-----------+----------+-------------+\n";
 
         final InputStream packet = IOUtils.toInputStream("<Jobs>" +
                 "<Job Aggregating=\"false\" BucketName=\"coffeehouse\" " +
