@@ -144,20 +144,20 @@ public class Certification_Test_8 {
 
              // verify write
              OUT.insertLog("List bucket contents");
-             Iterator<Contents> objects = HELPERS.listObjects(bucketName).iterator();
+             final Iterator<Contents> objects = HELPERS.listObjects(bucketName).iterator();
              assertTrue(objects.hasNext());
-             String objectName = objects.next().getKey();
+             final String objectName = objects.next().getKey();
 
              // force to tape
              OUT.insertLog("Reclaim cache (force to tape)");
              final String reclaimCacheArgs = "--http -c reclaim_cache";
-             final CommandResponse reclaimResponse = OUT.runCommand(client, reclaimCacheArgs);
+             final CommandResponse reclaimResponse = Util.command(client, reclaimCacheArgs);
              assertThat(reclaimResponse.getReturnCode(), is(0));
 
              // Show persisted
              OUT.insertLog("Show as persisted");
              final String getPhysicalArgs = "--http -c get_physical_placement -b " + bucketName + " -o " + objectName;
-             OUT.runCommand(client, getPhysicalArgs);
+             Util.command(client, getPhysicalArgs);
 
              success = true;
 
@@ -184,7 +184,7 @@ public class Certification_Test_8 {
             final CommandResponse performanceResponse = CertificationUtil.putPerformanceFiles(client, bucketName,  numFiles, fileSize);
 
             final String listBucketArgs = "--http -c get_bucket -b " + bucketName;
-            final CommandResponse getBucketResponseAfterBulkPut =  OUT.runCommand(client, listBucketArgs);
+            final CommandResponse getBucketResponseAfterBulkPut =  Util.command(client, listBucketArgs);
             assertThat(getBucketResponseAfterBulkPut.getReturnCode(), is(0));
             success = true;
         } finally {
