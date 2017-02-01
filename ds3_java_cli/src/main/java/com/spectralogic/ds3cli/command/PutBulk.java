@@ -85,7 +85,6 @@ public class PutBulk extends CliCommand<PutBulkResult> {
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
-        // set up Options and parse
         processCommandOptions(requiredArgs, optionalArgs, args);
 
         this.bucketName = args.getBucket();
