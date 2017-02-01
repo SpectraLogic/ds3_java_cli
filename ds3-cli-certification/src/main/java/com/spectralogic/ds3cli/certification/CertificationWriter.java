@@ -1,6 +1,6 @@
 /*
  * ******************************************************************************
- *   Copyright 2014-2016 Spectra Logic Corporation. All Rights Reserved.
+ *   Copyright 2014-2017 Spectra Logic Corporation. All Rights Reserved.
  *   Licensed under the Apache License, Version 2.0 (the "License"). You may not use
  *   this file except in compliance with the License. A copy of the License is located at
  *
@@ -16,16 +16,10 @@
 package com.spectralogic.ds3cli.certification;
 
 import ch.qos.logback.classic.Logger;
-import com.spectralogic.ds3cli.Arguments;
-import com.spectralogic.ds3cli.CommandResponse;
-import com.spectralogic.ds3client.Ds3Client;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.util.Date;
-
-import static com.spectralogic.ds3cli.helpers.Util.command;
-
 
 public class CertificationWriter {
 
@@ -58,14 +52,16 @@ public class CertificationWriter {
         OUT.write(String.format("<p class=\"logentry\">%s</p>\n", message));
     }
 
-    public  void insertCommand(final String message ) throws IOException {
-        LOG.info(message);
-        OUT.write(String.format("<p class=\"commandline\"><strong>%s</strong></p>\n", message));
-    }
-
     public void insertPreformat(final String message ) throws IOException {
         LOG.info(message);
         OUT.write(String.format("<pre>%s</pre>\n", message));
+    }
+
+    public  void insertCommand(final String command, final String responseOutput) throws IOException {
+        LOG.info("{}: {}", command, responseOutput);
+        OUT.write(String.format("<p class=\"commandline\"><strong>Run command: %s</strong></p>\n", command));
+        insertLog("Command output: (" + (new Date().getTime() - currentTimeTag)/1000 + "sec)");
+        insertPreformat(responseOutput);
     }
 
     public void insertCommandOutput(final String title, final String output) throws IOException {
@@ -74,44 +70,22 @@ public class CertificationWriter {
     }
 
     public void insertPerformanceMetrics(
-        final long startTime,
-        final long curTime,
-        final long bytesTransferred,
-        final boolean isPutCommand) throws IOException {
-            final String messagePrefix = getMessagePrefix(isPutCommand);
-            final double elapsedTime = (curTime - startTime == 0)? 0.0: (curTime - startTime)/1000D;
-            final double megaBytesTransferred = convertBytesToMegaBytes(bytesTransferred);
+            final long startTime,
+            final long curTime,
+            final long bytesTransferred,
+            final boolean isPutCommand) throws IOException {
+        final String messagePrefix = isPutCommand ? "PUT" : "GET";
+        final double elapsedTime = (curTime - startTime == 0)? 0.0: (curTime - startTime)/1000D;
+        final double megaBytesTransferred = bytesTransferred/1024D/1024D;
+        final double mbps = megaBytesTransferred / elapsedTime;
 
-            insertLog(String.format("%s Transferred (%.03f MB), Time (%.03f sec)", messagePrefix, megaBytesTransferred, elapsedTime));
-        }
-
-    private static String getMessagePrefix(final boolean isPutCommand) {
-        if (isPutCommand) {
-            return  "PUT";
-        }
-        return  "GET";
+            insertLog(String.format("%s Transferred (%.03f MB), Time (%.03f sec), MB / Sec (%.03f)", messagePrefix, megaBytesTransferred, elapsedTime, mbps));
     }
 
-    private static double convertBytesToMegaBytes(final long bytes) {
-        return bytes/1024D/1024D;
-    }
-
-    public  void finishTest(final String testTitle, final boolean success)  throws IOException {
+    public void finishTest(final String testTitle, final boolean success)  throws IOException {
         LOG.info("COMPLETE TEST: {} ({})\n-----------------", testTitle, (success ? "Passed" : "Failed"));
         final String link = String.format("<a href=\"#%d\">Start of test</a>\n", currentTimeTag);
         OUT.write(String.format("<p class=\"endtest\"><strong>%s (%s)</strong> %s</p>\n", testTitle, (success ? "Passed" : "Failed"), link));
-    }
-
-    /**
-     * Run ds3-cli-helpers::Util.command with a cmd line string
-     */
-    public  CommandResponse runCommand(final Ds3Client client, final String commandLine ) throws Exception {
-        insertCommand("Run command: " + commandLine);
-        final Arguments args = new Arguments(commandLine.split(" "));
-        final CommandResponse response = command(client, args);
-        insertLog("Command output: (" + (new Date().getTime() - currentTimeTag)/1000 + "sec)");
-        insertPreformat(response.getMessage());
-        return response;
     }
 
     public void close() throws IOException {

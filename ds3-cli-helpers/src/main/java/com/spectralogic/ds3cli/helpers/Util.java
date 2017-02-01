@@ -31,6 +31,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.Date;
 import java.util.regex.Pattern;
 
 final public class Util {
@@ -48,6 +49,13 @@ final public class Util {
         command.init(args);
         return command.render();
     }
+
+    public static CommandResponse command(final Ds3Client client, final String commandLine) throws Exception {
+        final Arguments args = new Arguments(commandLine.split(" "));
+        final CommandResponse response = command(client, args);
+        return response;
+    }
+
 
     public static CommandResponse getBucket(final Ds3Client client, final String bucketName) throws Exception {
         final Arguments args = new Arguments(new String[]{"--http", "-c", "get_bucket", "-b", bucketName});

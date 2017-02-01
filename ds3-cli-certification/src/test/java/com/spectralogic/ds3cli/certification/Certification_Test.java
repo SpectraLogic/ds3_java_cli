@@ -109,16 +109,17 @@ public class Certification_Test {
         try {
             final String expectedCreateBucketMsg = "Success: created bucket " + bucketName + ".";
             OUT.insertLog("Create bucket");
-            final String createBucketArgs = "--http -c put_bucket -b " + bucketName;
-            final CommandResponse createBucketResponse = OUT.runCommand(client, createBucketArgs);
+            final String createBucketCmd = "--http -c put_bucket -b " + bucketName;
+            final CommandResponse createBucketResponse = Util.command(client, createBucketCmd);
+            OUT.insertCommand(createBucketCmd, createBucketResponse.getMessage());
             assertThat(createBucketResponse.getMessage(), is(expectedCreateBucketMsg));
 
             OUT.insertLog("List all buckets");
-            final String listBucketArgs = "--http -c get_service";
-            final CommandResponse listBucketResponse = OUT.runCommand(client, listBucketArgs);
+            final String listBucketCmd = "--http -c get_service";
+            final CommandResponse listBucketResponse = Util.command(client, listBucketCmd);
+            OUT.insertCommand(listBucketCmd, listBucketResponse.getMessage());
             assertThat(listBucketResponse.getMessage(), containsString(bucketName));
             success = true;
-
         } finally {
             OUT.finishTest(testDescription, success);
             Util.deleteBucket(client, bucketName);
@@ -135,7 +136,7 @@ public class Certification_Test {
         boolean success = false;
 
         try {
-            OUT.runCommand(invalid_client, "--http -c get_service");
+            Util.command(invalid_client, "--http -c get_service");
         } catch(final FailedRequestException e) {
             final String formattedException = FailedRequestExceptionHandler.format(e);
             OUT.insertPreformat(formattedException);
@@ -156,7 +157,7 @@ public class Certification_Test {
         OUT.startNewTest(testDescription);
         boolean success = false;
         try {
-            OUT.runCommand(invalid_client, "--http -c get_service");
+            Util.command(invalid_client, "--http -c get_service");
         } catch(final UnknownHostException uhe) {
             final String formattedException = ExceptionFormatter.format(uhe);
             final String expectedError = "UnknownHost";
@@ -177,7 +178,7 @@ public class Certification_Test {
         boolean success = false;
 
         try {
-            OUT.runCommand(client, "--http -c get_bucket -b " + bucketName);
+            Util.command(client, "--http -c get_bucket -b " + bucketName);
         } catch(final CommandException ce) {
             final String formattedException = ExceptionFormatter.format(ce);
             assertThat(formattedException, containsString("Error: Unknown bucket."));
@@ -197,7 +198,8 @@ public class Certification_Test {
         boolean success = false;
         try {
             // Create a bucket
-            final CommandResponse createBucketResponse = OUT.runCommand(client, "--http -c put_bucket -b " + bucketName);
+            final String createBucketCmd = "--http -c put_bucket -b " + bucketName;
+            final CommandResponse createBucketResponse = Util.command(client, createBucketCmd);
             assertThat(createBucketResponse.getReturnCode(), is(0));
 
             // Create a new user, and wrap it with a new client
@@ -209,7 +211,8 @@ public class Certification_Test {
             final Ds3Client invalid_client = Ds3ClientBuilder.create(endpoint, badCreds).withHttps(false).build();
 
             // Attempt to access the bucket with the new user, which should fail
-            OUT.runCommand(invalid_client, "--http -c get_bucket -b " + bucketName);
+            final String listBucketCmd = "--http -c get_bucket -b " + bucketName;
+            Util.command(invalid_client, listBucketCmd);
         } catch(final FailedRequestException e) {
             final String formattedException = FailedRequestExceptionHandler.format(e);
             final String expectedError = "permissions / authorization error";
@@ -232,16 +235,20 @@ public class Certification_Test {
         boolean success = false;
 
         try {
-            OUT.insertLog("Create bucket.");
-            final CommandResponse createBucketResponse = OUT.runCommand(client, "--http -c put_bucket -b " + bucketName);
+            final String createBucketCmd = "--http -c put_bucket -b " + bucketName;
+            final CommandResponse createBucketResponse = Util.command(client, createBucketCmd);
+            OUT.insertCommand(createBucketCmd, createBucketResponse.getMessage());
             assertThat(createBucketResponse.getReturnCode(), is(0));
 
-            OUT.insertLog("List bucket.");
-            final CommandResponse getBucketResponse = OUT.runCommand(client, "--http -c get_bucket -b " + bucketName);
+            final String getBucketCmd = "--http -c get_bucket -b " + bucketName;
+            final CommandResponse getBucketResponse = Util.command(client, getBucketCmd);
+            OUT.insertCommand(getBucketCmd, getBucketResponse.getMessage());
             assertThat(getBucketResponse.getReturnCode(), is(0));
 
             OUT.insertLog("Get non-extant object");
-            OUT.runCommand(client, "--http -c get_object -o not_there -b " + bucketName);
+            final String getNonExtantObject = "--http -c get_object -o not_there -b " + bucketName;
+            final CommandResponse getNonExtandObjectResponse = Util.command(client, getNonExtantObject);
+            OUT.insertCommand(getNonExtantObject, getNonExtandObjectResponse.getMessage());
 
         } catch(final FailedRequestException fre) {
             final String formattedException = FailedRequestExceptionHandler.format(fre);
@@ -290,6 +297,7 @@ public class Certification_Test {
      * 7.9: Test "cache full" by explicitly lowering cache pool size and do not allow cache to drain by quiescing any
      * tape partitions.
      */
+    /*
     @Test
     public void test_7_9_cache_full() throws Exception {
         final String testDescription = "7.9: Cache Full for Bulk PUT";
@@ -382,6 +390,7 @@ public class Certification_Test {
 
         OUT.finishTest(testDescription, true);
     }
+    */
 
 
     private static boolean testBulkPutAndBulkGetPerformance(
@@ -394,23 +403,30 @@ public class Certification_Test {
         try {
             // Start BULK_PUT
             OUT.insertLog("Create bucket.");
-            final CommandResponse createBucketResponse = OUT.runCommand(client, "--http -c put_bucket -b " + bucketName);
+            final String createBucketCmd = "--http -c put_bucket -b " + bucketName;
+            final CommandResponse createBucketResponse = Util.command(client, createBucketCmd);
+            OUT.insertCommand(createBucketCmd, createBucketResponse.getMessage());
             assertThat(createBucketResponse.getReturnCode(), is(0));
 
             OUT.insertLog("List bucket.");
-            final CommandResponse getBucketResponse = OUT.runCommand(client, "--http -c get_bucket -b " + bucketName);
+            final String listBucketCmd = "--http -c get_bucket -b " + bucketName;
+            final CommandResponse getBucketResponse = Util.command(client, listBucketCmd);
+            OUT.insertCommand(listBucketCmd, getBucketResponse.getMessage());
             assertThat(getBucketResponse.getReturnCode(), is(0));
 
             // Create temp files for BULK_PUT
             final Path bulkPutLocalTempDir = CertificationUtil.createTempFiles(bucketName, numFiles, fileSize);
 
             final long startPutTime = getCurrentTime();
-            final CommandResponse putBulkResponse = OUT.runCommand(client, "--http -c put_bulk -b " + bucketName + " -d "  + bulkPutLocalTempDir.toString());
+            final String putBulkCmd = "--http -c put_bulk -b " + bucketName + " -d "  + bulkPutLocalTempDir.toString();
+            final CommandResponse putBulkResponse = Util.command(client, putBulkCmd);
+            OUT.insertCommand(putBulkCmd, putBulkResponse.getMessage());
             final long endPutTime = getCurrentTime();
             assertThat(putBulkResponse.getReturnCode(), is(0));
             OUT.insertPerformanceMetrics(startPutTime, endPutTime, numFiles * fileSize, true);
 
-            final CommandResponse getBucketResponseAfterBulkPut = OUT.runCommand(client, "--http -c get_bucket -b " + bucketName);
+            final CommandResponse getBucketResponseAfterBulkPut = Util.command(client, listBucketCmd);
+            OUT.insertCommand(listBucketCmd, getBucketResponseAfterBulkPut.getMessage());
             assertThat(getBucketResponseAfterBulkPut.getReturnCode(), is(0));
 
             // Free up disk space
@@ -420,7 +436,9 @@ public class Certification_Test {
             final Path bulkGetLocalTempDir = Files.createTempDirectory(bucketName);
 
             final long startGetTime = getCurrentTime();
-            final CommandResponse getBulkResponse = OUT.runCommand(client, "--http -c get_bulk -b " + bucketName + "-d " + bulkGetLocalTempDir.toString() + "-nt 3");
+            final String getBulkCmd = "--http -c get_bulk -b " + bucketName + "-d " + bulkGetLocalTempDir.toString() + "-nt 3";
+            final CommandResponse getBulkResponse = Util.command(client, getBulkCmd);
+            OUT.insertCommand(getBulkCmd, getBucketResponse.getMessage());
             final long endGetTime = getCurrentTime();
             OUT.insertPerformanceMetrics(startPutTime, endPutTime, numFiles * fileSize, true);
             assertThat(getBulkResponse.getReturnCode(), is(0));
