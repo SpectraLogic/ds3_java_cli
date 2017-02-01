@@ -56,6 +56,7 @@ public final class Main {
     private final static String LOG_ARCHIVE_FILE_PATTERN =  "spectra%i.log";
     private final static String LOG_DIR = "./ds3logs/";
     private final static String LOG_FILE_NAME = "spectra.log";
+    private final static int TRANSFER_RETRY_ATTEMPTS = 3;
 
     // register exception handlers
     private final static Ds3ExceptionHandlerMapper EXCEPTION = Ds3ExceptionHandlerMapper.getInstance();
@@ -184,7 +185,7 @@ public final class Main {
                 System.exit(2);
             }
 
-            final Ds3Provider provider = new Ds3ProviderImpl(client, Ds3ClientHelpers.wrap(client));
+            final Ds3Provider provider = new Ds3ProviderImpl(client, Ds3ClientHelpers.wrap(client, TRANSFER_RETRY_ATTEMPTS));
             final FileSystemProvider fileSystemProvider = new FileSystemProviderImpl();
 
             // get command, parse args

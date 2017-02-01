@@ -51,7 +51,7 @@ import java.util.UUID;
 
 import static java.lang.Thread.sleep;
 import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.number.OrderingComparison.*;
+import static org.hamcrest.number.OrderingComparison.greaterThan;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeThat;
@@ -203,6 +203,7 @@ public class Certification_Test {
             assertThat(createBucketResponse.getReturnCode(), is(0));
 
             // Create a new user, and wrap it with a new client
+            OUT.insertLog("Create user " + NO_RIGHTS_USERNAME);
             final DelegateCreateUserSpectraS3Request createUserRequest = new DelegateCreateUserSpectraS3Request(NO_RIGHTS_USERNAME);
             final DelegateCreateUserSpectraS3Response createUserResponse = client.delegateCreateUserSpectraS3(createUserRequest);
             final String noRightsUserSecretKey = createUserResponse.getSpectraUserResult().getSecretKey();
@@ -297,7 +298,6 @@ public class Certification_Test {
      * 7.9: Test "cache full" by explicitly lowering cache pool size and do not allow cache to drain by quiescing any
      * tape partitions.
      */
-    /*
     @Test
     public void test_7_9_cache_full() throws Exception {
         final String testDescription = "7.9: Cache Full for Bulk PUT";
@@ -316,17 +316,21 @@ public class Certification_Test {
         // Quiesce Tape Partition
         try {
             // Must transition state from NO -> PENDING -> YES
+            OUT.insertLog("Modify all Tape Partitions to Quiesced.PENDING");
             client.modifyAllTapePartitionsSpectraS3(new ModifyAllTapePartitionsSpectraS3Request(Quiesced.PENDING));
+            OUT.insertLog("Modify all Tape Partitions to Quiesced.YES");
             client.modifyAllTapePartitionsSpectraS3(new ModifyAllTapePartitionsSpectraS3Request(Quiesced.YES));
         } catch (final FailedRequestException fre) {
             // Ignore Request failure if no tape partitions or they are already quiesced
         }
 
         // Find s3cachefilesystem ID
+        OUT.insertLog("Find CacheFilesystem UUID");
         final UUID cacheFsId = client.getCacheFilesystemsSpectraS3(new GetCacheFilesystemsSpectraS3Request()).getCacheFilesystemListResult().getCacheFilesystems().get(0).getId();
         final GetCacheFilesystemSpectraS3Request getCacheFs = new GetCacheFilesystemSpectraS3Request(cacheFsId.toString());
 
         // Lower s3cachefilesystem to 150GB
+        OUT.insertLog("Lower CacheFilesystem capacity to 150GB");
         final ModifyCacheFilesystemSpectraS3Request limitCacheFsRequest = new ModifyCacheFilesystemSpectraS3Request(cacheFsId.toString()).withMaxCapacityInBytes(cacheLimit);
         final ModifyCacheFilesystemSpectraS3Response limitCacheFsResponse = client.modifyCacheFilesystemSpectraS3(limitCacheFsRequest);
         assertThat(limitCacheFsResponse.getResponse().getStatusCode(), is(200));
@@ -334,14 +338,18 @@ public class Certification_Test {
         OUT.insertLog("Modify Cache Pool size to " +  cacheLimit + "status: " + limitCacheFsResponse.getResponse().getStatusCode());
 
         // Create bucket
-        final CommandResponse createBucketResponse = OUT.runCommand(client, "--http -c put_bucket -b" + bucketName);
+        final String createBucketCmd = "--http -c put_bucket -b" + bucketName;
+        final CommandResponse createBucketResponse = Util.command(client, createBucketCmd);
+        OUT.insertCommand(createBucketCmd, createBucketResponse.getMessage());
         assertThat(createBucketResponse.getReturnCode(), is(0));
 
         // Transfer 175 1GB files using JavaCLI methods
         final Path fillCacheFiles = CertificationUtil.createTempFiles("Cache_Full", numFiles, fileSize);
 
         try {
-            final CommandResponse putBulkResponse = OUT.runCommand(client, "--http -c put_bulk -b " + bucketName + " -d " + fillCacheFiles + " -nt 3");
+            final String putBulkCmd = "--http -c put_bulk -b " + bucketName + " -d " + fillCacheFiles + " -nt 3";
+            final CommandResponse putBulkResponse = Util.command(client, putBulkCmd);
+            OUT.insertCommand(putBulkCmd, putBulkResponse.getMessage());
             assertThat(putBulkResponse.getReturnCode(), is(0));
 
             // Wait for Cache full
@@ -349,7 +357,7 @@ public class Certification_Test {
             // expect to fail because job can't finish when cache fills and no tapes are available to offload to
             OUT.insertCommandOutput("Caught TooManyRedirectsException after BULK_PUT bigger than available cache: ", tmre.getMessage());
 
-            OUT.runCommand(client, "--http -c get_jobs --json");
+            Util.command(client, "--http -c get_jobs --json");
         }
 
         // Un-quiesce the tape partition to allow cache offload to tape
@@ -363,7 +371,6 @@ public class Certification_Test {
                 .stream()
                 .filter(job -> job.getBucketName().matches(bucketName))
                 .findFirst();
-        OUT.insertLog("");
         assertTrue(bulkJob.isPresent());
         final UUID jobId = bulkJob.get().getJobId();
         HELPERS.recoverWriteJob(jobId);
@@ -379,7 +386,7 @@ public class Certification_Test {
             }
         }
 
-        OUT.runCommand(client, "--http -c get_jobs --completed");
+        Util.command(client, "--http -c get_jobs --completed");
         //assertThat(allJobsResponse.getMessage(), containsString("cache_full"));
 
         // Reset cache size to max
@@ -390,7 +397,6 @@ public class Certification_Test {
 
         OUT.finishTest(testDescription, true);
     }
-    */
 
 
     private static boolean testBulkPutAndBulkGetPerformance(
@@ -415,8 +421,10 @@ public class Certification_Test {
             assertThat(getBucketResponse.getReturnCode(), is(0));
 
             // Create temp files for BULK_PUT
+            OUT.insertLog("Creating ");
             final Path bulkPutLocalTempDir = CertificationUtil.createTempFiles(bucketName, numFiles, fileSize);
 
+            OUT.insertLog("Bulk PUT from bucket " + bucketName);
             final long startPutTime = getCurrentTime();
             final String putBulkCmd = "--http -c put_bulk -b " + bucketName + " -d "  + bulkPutLocalTempDir.toString();
             final CommandResponse putBulkResponse = Util.command(client, putBulkCmd);
@@ -436,11 +444,12 @@ public class Certification_Test {
             final Path bulkGetLocalTempDir = Files.createTempDirectory(bucketName);
 
             final long startGetTime = getCurrentTime();
+            OUT.insertLog("Bulk GET from bucket " + bucketName);
             final String getBulkCmd = "--http -c get_bulk -b " + bucketName + "-d " + bulkGetLocalTempDir.toString() + "-nt 3";
             final CommandResponse getBulkResponse = Util.command(client, getBulkCmd);
             OUT.insertCommand(getBulkCmd, getBucketResponse.getMessage());
             final long endGetTime = getCurrentTime();
-            OUT.insertPerformanceMetrics(startPutTime, endPutTime, numFiles * fileSize, true);
+            OUT.insertPerformanceMetrics(startGetTime, endGetTime, numFiles * fileSize, true);
             assertThat(getBulkResponse.getReturnCode(), is(0));
             success = true;
 

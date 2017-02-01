@@ -42,6 +42,7 @@ public class CertificationUtil {
            final String prefix,
            final int numFiles,
            final long length) throws IOException {
+        LOG.info("Creating {} files of size {}...", numFiles, length);
        final Path tempDir = Files.createTempDirectory(prefix);
        for(int fileNum = 0; fileNum < numFiles; fileNum++) {
            final File tempFile = new File(tempDir.toString(), prefix + "_" + fileNum);
@@ -62,13 +63,13 @@ public class CertificationUtil {
     }
 
     public static SpectraUser createUser(final Ds3Client client, final String username) throws IOException {
-        DelegateCreateUserSpectraS3Response response
+        final DelegateCreateUserSpectraS3Response response
                 =  client.delegateCreateUserSpectraS3(new DelegateCreateUserSpectraS3Request(username));
         return response.getSpectraUserResult();
     }
 
     public static boolean deleteUser(final Ds3Client client, final String username) throws IOException {
-        DelegateDeleteUserSpectraS3Response response
+        final DelegateDeleteUserSpectraS3Response response
                 =  client.delegateDeleteUserSpectraS3(new DelegateDeleteUserSpectraS3Request(username));
         return (response.getStatusCode() == 200);
     }
