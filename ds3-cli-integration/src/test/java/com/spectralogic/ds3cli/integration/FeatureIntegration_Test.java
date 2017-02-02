@@ -224,11 +224,12 @@ public class FeatureIntegration_Test {
             final Arguments args = new Arguments(new String[]{"--http", "-c", "get_job", "-i", readJob.getJobId().toString()});
             final CommandResponse getJobResponse = Util.command(client, args);
 
-            final String expectedBeginning = "JobId: " + readJob.getJobId() + " | Status: COMPLETED | Bucket: " + bucketName
-                    + " | Type: GET | Priority: HIGH |";
-            final String expectedEnding = " | Total Size: " + objSize + " | Total Transferred: " ;//TODO add objSize when testing using BP 1.2 is not relevant anymore
+            final String expectedBeginning = "JobId: " + readJob.getJobId() + " | Name: ";
+            final String expectedMiddle = "Status: COMPLETED | Bucket: " + bucketName + " | Type: GET | Priority:";
+            final String expectedEnding = " | Total Size: " + objSize + " | Total Transferred: " ;
 
             assertTrue(getJobResponse.getMessage().startsWith(expectedBeginning));
+            assertTrue(getJobResponse.getMessage().contains(expectedMiddle));
             assertTrue(getJobResponse.getMessage().contains(expectedEnding));
         } finally {
             Util.deleteBucket(client, bucketName);
