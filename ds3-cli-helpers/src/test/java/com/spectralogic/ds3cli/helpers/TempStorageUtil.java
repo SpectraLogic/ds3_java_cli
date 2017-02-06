@@ -17,14 +17,17 @@ package com.spectralogic.ds3cli.helpers;
 
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.spectrads3.*;
-import com.spectralogic.ds3client.models.ChecksumType;
-import com.spectralogic.ds3client.models.PoolType;
-import com.spectralogic.ds3client.models.VersioningLevel;
+import com.spectralogic.ds3client.models.*;
 
 import java.io.IOException;
+import java.util.Optional;
 import java.util.UUID;
 
 import static com.spectralogic.ds3cli.helpers.ABMTestHelper.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.number.OrderingComparison.greaterThan;
+import static org.junit.Assume.assumeThat;
+import static org.junit.Assume.assumeTrue;
 
 /**
  * This is a testing utility designed for creating a temporary data policy, storage domain,
@@ -36,6 +39,7 @@ public class TempStorageUtil {
     private static final String DATA_POLICY_NAME = "_dp";
     private static final String STORAGE_DOMAIN_NAME = "_sd";
     private static final String POOL_PARTITION_NAME = "_pp";
+    private static final String PREFERRED_DATA_POLICY_NAME = "Single Copy on Tape";
 
     /**
      * Sets up a temporary data policy with a temporary storage domain and partition
@@ -108,6 +112,27 @@ public class TempStorageUtil {
         client.modifyUserSpectraS3(new ModifyUserSpectraS3Request("spectra")
                 .withDefaultDataPolicyId(dataPolicyResponse.getDataPolicyResult().getId()));
         return dataPolicyResponse.getDataPolicyResult().getId();
+    }
+
+    /**
+     * Verifies that a valid TapePartition is available, then set to the default "spectra" user Data Policy.
+     */
+    public static void verifyAvailableTapePartition(final Ds3Client client) throws IOException {
+        final GetTapePartitionsWithFullDetailsSpectraS3Response getTapePartitionsResponse = client.getTapePartitionsWithFullDetailsSpectraS3(new GetTapePartitionsWithFullDetailsSpectraS3Request());
+        assumeThat(getTapePartitionsResponse.getNamedDetailedTapePartitionListResult().getNamedDetailedTapePartitions().size(), is(greaterThan(0)));
+
+        final GetStorageDomainMembersSpectraS3Response getStorageDomainMembersResponse = client.getStorageDomainMembersSpectraS3(new GetStorageDomainMembersSpectraS3Request());
+        assumeThat(getStorageDomainMembersResponse.getStorageDomainMemberListResult().getStorageDomainMembers().size(), is(greaterThan(0)));
+
+        final GetDataPoliciesSpectraS3Response getDataPoliciesResponse = client.getDataPoliciesSpectraS3(new GetDataPoliciesSpectraS3Request());
+        final Optional<DataPolicy> optionalSingleTapeDataPolicy = getDataPoliciesResponse.getDataPolicyListResult().getDataPolicies().stream().filter(dp -> dp.getName().equals(PREFERRED_DATA_POLICY_NAME)).findFirst();
+        assumeTrue(optionalSingleTapeDataPolicy.isPresent());
+        if (optionalSingleTapeDataPolicy.isPresent()) {
+            final DataPolicy singleTapeDp = optionalSingleTapeDataPolicy.get();
+
+            client.modifyUserSpectraS3(new ModifyUserSpectraS3Request("spectra")
+                    .withDefaultDataPolicyId(singleTapeDp.getId()));
+        }
     }
 }
 

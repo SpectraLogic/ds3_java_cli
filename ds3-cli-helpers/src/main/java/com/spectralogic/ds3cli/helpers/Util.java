@@ -36,7 +36,7 @@ import java.util.regex.Pattern;
 final public class Util {
     public static final String RESOURCE_BASE_NAME = "./src/test/resources/books/";
     public static final String DOWNLOAD_BASE_NAME = "./output/";
-    public static final int TRANSER_RETRY_ATTEMPTS = 3;
+    private static final int TRANSER_RETRY_ATTEMPTS = 5;
 
     private Util() {
         //pass

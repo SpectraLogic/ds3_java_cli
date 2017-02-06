@@ -20,19 +20,17 @@ import ch.qos.logback.classic.Logger;
 import com.spectralogic.ds3cli.CommandResponse;
 import com.spectralogic.ds3cli.exceptions.*;
 import com.spectralogic.ds3cli.helpers.Util;
-import com.spectralogic.ds3cli.helpers.TempStorageIds;
-import com.spectralogic.ds3cli.helpers.TempStorageUtil;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.Ds3ClientBuilder;
 import com.spectralogic.ds3client.commands.spectrads3.*;
+import com.spectralogic.ds3client.exceptions.Ds3NoMoreRetriesException;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
-import com.spectralogic.ds3client.models.ChecksumType;
+import com.spectralogic.ds3client.helpers.FileObjectPutter;
 import com.spectralogic.ds3client.models.Job;
 import com.spectralogic.ds3client.models.JobStatus;
 import com.spectralogic.ds3client.models.Quiesced;
 import com.spectralogic.ds3client.models.common.Credentials;
 import com.spectralogic.ds3client.networking.FailedRequestException;
-import com.spectralogic.ds3client.networking.TooManyRedirectsException;
 import org.apache.commons.io.FileUtils;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -49,6 +47,7 @@ import java.util.Date;
 import java.util.Optional;
 import java.util.UUID;
 
+import static com.spectralogic.ds3cli.helpers.TempStorageUtil.verifyAvailableTapePartition;
 import static java.lang.Thread.sleep;
 import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.number.OrderingComparison.greaterThan;
@@ -67,13 +66,9 @@ import static org.junit.Assume.assumeThat;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING) // Order only matters for manually verifying the results
 public class Certification_Test {
     private static final Logger LOG = (Logger) LoggerFactory.getLogger(Certification_Test.class);
-    private static final Ds3Client client = Ds3ClientBuilder.fromEnv().withHttps(false).build();
-    private static final Ds3ClientHelpers HELPERS = Ds3ClientHelpers.wrap(client, 1); // Limit retries on transfers
-    private static final String TEST_ENV_NAME = "JavaCLI_Certification_Test";
+    private static final Ds3Client client = Ds3ClientBuilder.fromEnv().withHttps(false).withRedirectRetries(1).build();
     private static final String NO_RIGHTS_USERNAME = "no_rights_user";
     private static final Long GB_BYTES = 1073741824L;
-    private static TempStorageIds envStorageIds;
-    private static UUID envDataPolicyId;
     private static CertificationWriter OUT;
 
     private final static Ds3ExceptionHandlerMapper EXCEPTION = Ds3ExceptionHandlerMapper.getInstance();
@@ -85,16 +80,16 @@ public class Certification_Test {
     @BeforeClass
     public static void startup() throws IOException {
         LOG.setLevel(Level.INFO);
-        envDataPolicyId = TempStorageUtil.setupDataPolicy(TEST_ENV_NAME, false, ChecksumType.Type.MD5, client);
-        envStorageIds = TempStorageUtil.setup(TEST_ENV_NAME, envDataPolicyId, client);
+
 
         final String fileName = Certification_Test.class.getSimpleName() + "_" + new Date().getTime();
         OUT = new CertificationWriter(fileName);
+
+        verifyAvailableTapePartition(client);
     }
 
     @AfterClass
     public static void teardown() throws IOException {
-        TempStorageUtil.teardown(TEST_ENV_NAME, envStorageIds, client);
         client.close();
         OUT.close();
     }
@@ -333,7 +328,7 @@ public class Certification_Test {
         OUT.insertLog("Lower CacheFilesystem capacity to 150GB");
         final ModifyCacheFilesystemSpectraS3Request limitCacheFsRequest = new ModifyCacheFilesystemSpectraS3Request(cacheFsId.toString()).withMaxCapacityInBytes(cacheLimit);
         final ModifyCacheFilesystemSpectraS3Response limitCacheFsResponse = client.modifyCacheFilesystemSpectraS3(limitCacheFsRequest);
-        assertThat(limitCacheFsResponse.getResponse().getStatusCode(), is(200));
+        assertThat(limitCacheFsResponse.getStatusCode(), is(200));
         assertThat(client.getCacheFilesystemSpectraS3(getCacheFs).getCacheFilesystemResult().getMaxCapacityInBytes(), is(cacheLimit));
         OUT.insertLog("Modify Cache Pool size to " +  cacheLimit + "status: " + limitCacheFsResponse.getResponse().getStatusCode());
 
@@ -353,17 +348,21 @@ public class Certification_Test {
             assertThat(putBulkResponse.getReturnCode(), is(0));
 
             // Wait for Cache full
-        } catch (final TooManyRedirectsException tmre) {
+        } catch (final Ds3NoMoreRetriesException noMoreRetriesException) {
             // expect to fail because job can't finish when cache fills and no tapes are available to offload to
-            OUT.insertCommandOutput("Caught TooManyRedirectsException after BULK_PUT bigger than available cache: ", tmre.getMessage());
+            OUT.insertCommandOutput("Caught Ds3NoMoreRetriesException after BULK_PUT bigger than available cache: ", noMoreRetriesException.getMessage());
 
-            Util.command(client, "--http -c get_jobs --json");
+            final String getJobsCmd = "--http -c get_jobs";
+            final CommandResponse getJobsResponse = Util.command(client, getJobsCmd);
+            OUT.insertCommand(getJobsCmd, getJobsResponse.getMessage());
         }
 
         // Un-quiesce the tape partition to allow cache offload to tape
         final ModifyAllTapePartitionsSpectraS3Response unQuiesceAllTapePartitionsResponse = client.modifyAllTapePartitionsSpectraS3(new ModifyAllTapePartitionsSpectraS3Request(Quiesced.NO));
-        //assertThat(unQuiesceAllTapePartitionsResponse.getResponse().getStatusCode(), is(0));
-        OUT.insertCommandOutput("Unquiesce Tape Partition status: ", Integer.toString(unQuiesceAllTapePartitionsResponse.getResponse().getStatusCode()));
+        OUT.insertLog("Unquiesce Tape Partition status: " + unQuiesceAllTapePartitionsResponse.getResponse().getStatusCode());
+        assertThat(unQuiesceAllTapePartitionsResponse.getResponse().getStatusCode(), is(204));
+        OUT.insertLog("Sleeping 10 minutes while TapePartition comes online...");
+        sleep(600 * 1000); // sleep 10 minutes to allow for tape inventory
 
         // Resume the job
         final GetJobsSpectraS3Response allJobs = client.getJobsSpectraS3(new GetJobsSpectraS3Request());
@@ -373,12 +372,15 @@ public class Certification_Test {
                 .findFirst();
         assertTrue(bulkJob.isPresent());
         final UUID jobId = bulkJob.get().getJobId();
-        HELPERS.recoverWriteJob(jobId);
+        final Ds3ClientHelpers.Job recoverJob = Ds3ClientHelpers.wrap(client, 3).recoverWriteJob(jobId);
+        recoverJob.transfer(new FileObjectPutter(fillCacheFiles));
+
 
         // Verify Job finishes
         int retries = 0;
         final int max_retries = 12;
         while (JobStatus.IN_PROGRESS == client.getJobSpectraS3(new GetJobSpectraS3Request(jobId)).getMasterObjectListResult().getStatus()) {
+            LOG.info("Sleeping 5 minutes while waiting for job to finish...");
             sleep(300 * 1000); // sleep 5 minutes
             if (++retries > max_retries) {
                 OUT.insertLog("Timed out after an hour waiting for cache to drain and job to finish.");
@@ -386,14 +388,14 @@ public class Certification_Test {
             }
         }
 
-        Util.command(client, "--http -c get_jobs --completed");
-        //assertThat(allJobsResponse.getMessage(), containsString("cache_full"));
+        final CommandResponse completedJobs = Util.command(client, "--http -c get_jobs --completed");
+        OUT.insertCommandOutput("Completed Jobs: ", completedJobs.getMessage());
+        assertThat(completedJobs.getMessage(), containsString(bucketName));
 
         // Reset cache size to max
-        final ModifyCacheFilesystemSpectraS3Response resetCacheFsResponse = client.modifyCacheFilesystemSpectraS3(new ModifyCacheFilesystemSpectraS3Request(cacheFsId.toString()).withMaxCapacityInBytes(0L));
-        OUT.insertCommandOutput("ModifyCacheFileSystem back to max capacity: ", resetCacheFsResponse.getCacheFilesystemResult().getMaxCapacityInBytes().toString());
-        //assertThat(client.modifyCacheFilesystemSpectraS3(resetCacheFs).getResponse().getStatusCode(), is(0));
-        //assertThat(client.getCacheFilesystemSpectraS3(getCacheFs).getCacheFilesystemResult().getMaxCapacityInBytes(), is(0L));
+        final ModifyCacheFilesystemSpectraS3Response resetCacheFsResponse = client.modifyCacheFilesystemSpectraS3(new ModifyCacheFilesystemSpectraS3Request(cacheFsId.toString()).withMaxCapacityInBytes(null));
+        OUT.insertLog("ModifyCacheFileSystem back to max capacity: " + resetCacheFsResponse.getCacheFilesystemResult().getMaxCapacityInBytes().toString());
+        assertThat(resetCacheFsResponse.getStatusCode(), is(200));
 
         OUT.finishTest(testDescription, true);
     }
@@ -465,3 +467,4 @@ public class Certification_Test {
         return System.currentTimeMillis();
     }
 }
+
