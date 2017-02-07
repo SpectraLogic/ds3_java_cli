@@ -1,6 +1,6 @@
 /*
  * ******************************************************************************
- *   Copyright 2014-2016 Spectra Logic Corporation. All Rights Reserved.
+ *   Copyright 2014-2017 Spectra Logic Corporation. All Rights Reserved.
  *   Licensed under the Apache License, Version 2.0 (the "License"). You may not use
  *   this file except in compliance with the License. A copy of the License is located at
  *
@@ -16,7 +16,10 @@
 package com.spectralogic.ds3cli.helpers;
 
 import com.google.common.collect.ImmutableList;
-import com.spectralogic.ds3cli.*;
+import com.spectralogic.ds3cli.Arguments;
+import com.spectralogic.ds3cli.CommandResponse;
+import com.spectralogic.ds3cli.Ds3ProviderImpl;
+import com.spectralogic.ds3cli.FileSystemProviderImpl;
 import com.spectralogic.ds3cli.command.CliCommand;
 import com.spectralogic.ds3cli.command.CliCommandFactory;
 import com.spectralogic.ds3cli.util.Ds3Provider;
@@ -27,10 +30,12 @@ import com.spectralogic.ds3client.commands.spectrads3.GetSystemInformationSpectr
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.Date;
 import java.util.regex.Pattern;
 
 final public class Util {
@@ -41,6 +46,7 @@ final public class Util {
     private Util() {
         //pass
     }
+
 
     public static CommandResponse command(final Ds3Client client, final Arguments args) throws Exception {
         final Ds3Provider provider = new Ds3ProviderImpl(client, Ds3ClientHelpers.wrap(client, TRANSER_RETRY_ATTEMPTS));
@@ -53,7 +59,6 @@ final public class Util {
     public static CommandResponse command(final Ds3Client client, final String commandLine) throws Exception {
         return command(client, new Arguments(commandLine.split(" ")));
     }
-
 
     public static CommandResponse getBucket(final Ds3Client client, final String bucketName) throws Exception {
         final Arguments args = new Arguments(new String[]{"--http", "-c", "get_bucket", "-b", bucketName});
@@ -84,6 +89,18 @@ final public class Util {
                         "-d", localDirectory,
                         "-nt", "3"});
         return command(client, args);
+    }
+
+    public static CommandResponse putPerformanceFiles(final Ds3Client client, final String bucketName, final int fileCount, final long fileSize) throws Exception {
+        final Arguments args = new Arguments(
+                new String[]{
+                        "--http",
+                        "-c", "performance",
+                        "-b", bucketName,
+                        "-n", Integer.toString(fileCount),
+                        "-s", Long.toString(fileSize),
+                        "--do-not-delete" });
+        return Util.command(client, args);
     }
 
     public static CommandResponse getBulk(final Ds3Client client, final String bucketName, final String localDirectory) throws Exception {
@@ -126,6 +143,10 @@ final public class Util {
 
     public static void deleteLocalFile(final String fileName) throws IOException {
         Files.deleteIfExists(Paths.get(DOWNLOAD_BASE_NAME + fileName));
+    }
+
+    public static Iterable<String> readLocalFile(final String fileName) throws IOException {
+        return Files.readAllLines(Paths.get(DOWNLOAD_BASE_NAME + fileName), Charset.forName("utf-8"));
     }
 
     public static void copyFile(final String fileName, final String from, final String to) throws IOException {

@@ -16,10 +16,18 @@
 package com.spectralogic.ds3cli.certification;
 
 import ch.qos.logback.classic.Logger;
+import com.spectralogic.ds3cli.Arguments;
+import com.spectralogic.ds3cli.CommandResponse;
+import com.spectralogic.ds3cli.util.Constants;
+import com.spectralogic.ds3client.Ds3Client;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.util.Date;
+import java.util.ResourceBundle;
+
+import static com.spectralogic.ds3cli.helpers.Util.command;
+
 
 public class CertificationWriter {
 
@@ -29,25 +37,28 @@ public class CertificationWriter {
     private final OutputStreamWriter OUT;
     private long currentTimeTag = 0L;
 
-    public CertificationWriter(final String title) throws IOException {
-        OUT = new OutputStreamWriter(new FileOutputStream(title + EXT), "UTF-8");
-        writeHeader(title);
+    public CertificationWriter(final String fileName) throws IOException {
+        OUT = new OutputStreamWriter(new FileOutputStream(fileName + EXT), "UTF-8");
+        LOG.info("NEW FILE: {}", fileName);
+        writeHeader();
     }
 
-    public  void writeHeader(final String title) throws IOException {
-        LOG.info("NEW FILE: {}", title);
-        OUT.write(String.format("<html><head><title>%s</title></head>\n", title));
-        OUT.write(String.format("<body class=\"testbody\"><h1 class=\"maintitle\">%s</h1>\n", title));
+    public void writeHeader() throws IOException {
+        final ResourceBundle bundle = ResourceBundle.getBundle("com.spectralogic.ds3cli.certification.writer");
+        final String css = bundle.getString("CSS");
+        final String pageTitle = bundle.getString("TITLE") + " " + Constants.DATE_FORMAT.format(new Date());
+        OUT.write(String.format("<html><head><title>%s</title>\n<style type=\"text/css\">%s</style>\n</head>\n", pageTitle, css));
+        OUT.write(String.format("<body class=\"testbody\"><h1 class=\"maintitle\">%s</h1>\n", pageTitle));
     }
 
-    public  void startNewTest(final String testTitle ) throws IOException {
+    public void startNewTest(final String testTitle ) throws IOException {
         currentTimeTag = new Date().getTime();
         LOG.info("-----------------\nSTART TEST: {}", testTitle);
         OUT.write(String.format("<a name=\"%d\" />\n", currentTimeTag));
         OUT.write(String.format("<h2 class=\"testtitle\">%s</h2>\n", testTitle));
     }
 
-    public  void insertLog(final String message ) throws IOException {
+    public void insertLog(final String message ) throws IOException {
         LOG.info(message);
         OUT.write(String.format("<p class=\"logentry\">%s</p>\n", message));
     }
@@ -57,16 +68,11 @@ public class CertificationWriter {
         OUT.write(String.format("<pre>%s</pre>\n", message));
     }
 
-    public  void insertCommand(final String command, final String responseOutput) throws IOException {
+    public void insertCommand(final String command, final String responseOutput) throws IOException {
         LOG.info("{}: {}", command, responseOutput);
         OUT.write(String.format("<p class=\"commandline\"><strong>Run command: %s</strong></p>\n", command));
         insertLog("Command output: (" + (new Date().getTime() - currentTimeTag)/1000 + "sec)");
         insertPreformat(responseOutput);
-    }
-
-    public void insertCommandOutput(final String title, final String output) throws IOException {
-        insertLog(title);
-        insertPreformat(output);
     }
 
     public void insertPerformanceMetrics(

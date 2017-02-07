@@ -1,6 +1,6 @@
 /*
  * *****************************************************************************
- *   Copyright 2014-2016 Spectra Logic Corporation. All Rights Reserved.
+ *   Copyright 2014-2017 Spectra Logic Corporation. All Rights Reserved.
  *   Licensed under the Apache License, Version 2.0 (the "License"). You may not use
  *   this file except in compliance with the License. A copy of the License is located at
  *
@@ -28,7 +28,6 @@ import java.util.regex.Pattern;
 public final class CliUtils {
 
     private final static String QUOTE = Pattern.quote(".");
-
     public final static String MINIMUM_VERSION_SUPPORTED = "1.2";
 
     public static boolean isVersionSupported(final Ds3Client client) throws IOException {
@@ -85,5 +84,4 @@ public final class CliUtils {
     public static String getBuildDate(final Properties properties) {
         return properties.get("build.date").toString();
     }
-
 }

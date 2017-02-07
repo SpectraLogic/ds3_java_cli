@@ -42,8 +42,8 @@ public class GetJobView extends TableView<GetJobResult> {
 
         /// DATE_FORMAT is used before initTable() -- Set UTC
         final String returnString = String.format(
-                "JobId: %s | Status: %s | Bucket: %s | Type: %s | Priority: %s | User Name: %s | Creation Date: %s | Total Size: %s | Total Transferred: %s",
-                nullGuardToString(mol.getJobId()), nullGuardToString(mol.getStatus()), nullGuard(mol.getBucketName()),
+                "JobId: %s | Name: %s | Status: %s | Bucket: %s | Type: %s | Priority: %s | User Name: %s | Creation Date: %s | Total Size: %s | Total Transferred: %s",
+                nullGuardToString(mol.getJobId()), nullGuardToString(mol.getName()), nullGuardToString(mol.getStatus()), nullGuard(mol.getBucketName()),
                 nullGuardToString(mol.getRequestType()), nullGuardToString(mol.getPriority()), nullGuardToString(mol.getUserName()),
                 nullGuardFromDate(mol.getStartDate(), DATE_FORMAT), nullGuardToString(mol.getOriginalSizeInBytes()),
                 nullGuardToString(mol.getCompletedSizeInBytes()));

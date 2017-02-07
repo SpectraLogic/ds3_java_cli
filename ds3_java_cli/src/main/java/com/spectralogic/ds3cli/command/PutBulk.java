@@ -28,6 +28,7 @@ import com.spectralogic.ds3cli.models.PutBulkResult;
 import com.spectralogic.ds3cli.util.*;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.helpers.FileObjectPutter;
+import com.spectralogic.ds3client.helpers.MetadataAccess;
 import com.spectralogic.ds3client.helpers.options.WriteJobOptions;
 import com.spectralogic.ds3client.models.Contents;
 import com.spectralogic.ds3client.models.Priority;
@@ -81,9 +82,9 @@ public class PutBulk extends CliCommand<PutBulkResult> {
     public PutBulk() {
     }
 
+
     @Override
     public CliCommand init(final Arguments args) throws Exception {
-        // set up Options and parse
         processCommandOptions(requiredArgs, optionalArgs, args);
 
         this.bucketName = args.getBucket();
@@ -295,7 +296,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
                 !Guard.isStringNullOrEmpty(args.getPrefix());   //-p
     }
 
-    static class PrefixedFileObjectPutter implements Ds3ClientHelpers.ObjectChannelBuilder, Ds3ClientHelpers.MetadataAccess {
+    static class PrefixedFileObjectPutter implements Ds3ClientHelpers.ObjectChannelBuilder, MetadataAccess {
 
         final private LoggingFileObjectPutter objectPutter;
         final private String prefix;
@@ -392,7 +393,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
     /**
      * Returns a channel and metadata for files that have been piped in via stdin
      */
-    static class PipeFileObjectPutter implements Ds3ClientHelpers.ObjectChannelBuilder, Ds3ClientHelpers.MetadataAccess {
+    static class PipeFileObjectPutter implements Ds3ClientHelpers.ObjectChannelBuilder, MetadataAccess {
 
         private final ImmutableMap<String, String> mapNormalizedObjectNameToObjectName;
 

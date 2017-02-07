@@ -151,6 +151,31 @@ public class FeatureIntegration_Test {
     }
 
     @Test
+    public void getPartialObject() throws Exception {
+        final String bucketName = "test_get_partial_object";
+        try {
+            final String expectedRestore = "Gutenberg EBook";
+            final String expectedResponse = "SUCCESS: Finished downloading object.  The object was written to: "
+                    + SterilizeString.osSpecificPath(Util.DOWNLOAD_BASE_NAME) + "beowulf.txt";
+
+            Util.createBucket(client, bucketName);
+            Util.loadBookTestData(client, bucketName);
+
+            final Arguments args = new Arguments(new String[]{"--http", "-c", "get_object", "-b", bucketName,
+                    "--range-offset", "15", "--range-length", "15",
+                    "-o", "beowulf.txt", "-d", Util.DOWNLOAD_BASE_NAME});
+            final CommandResponse response = Util.command(client, args);
+            assertThat(response.getMessage(), is(expectedResponse));
+
+            // get the right section?
+            assertEquals(expectedRestore, Util.readLocalFile("beowulf.txt").iterator().next());
+        } finally {
+            Util.deleteBucket(client, bucketName);
+            Util.deleteLocalFile("beowulf.txt");
+        }
+    }
+
+    @Test
     public void getObjectJson() throws Exception {
         final String bucketName = "test_get_object_json";
         try {
@@ -197,16 +222,16 @@ public class FeatureIntegration_Test {
 
             final GetObjectResponse readResponse = client.getObject(new GetObjectRequest(bucketName, book, channel, readJob.getJobId(), 0));
             assertThat(readResponse, is(notNullValue()));
-            assertThat(readResponse.getStatusCode(), is(equalTo(200)));
 
             final Arguments args = new Arguments(new String[]{"--http", "-c", "get_job", "-i", readJob.getJobId().toString()});
             final CommandResponse getJobResponse = Util.command(client, args);
 
-            final String expectedBeginning = "JobId: " + readJob.getJobId() + " | Status: COMPLETED | Bucket: " + bucketName
-                    + " | Type: GET | Priority: HIGH |";
-            final String expectedEnding = " | Total Size: " + objSize + " | Total Transferred: " ;//TODO add objSize when testing using BP 1.2 is not relevant anymore
+            final String expectedBeginning = "JobId: " + readJob.getJobId() + " | Name: ";
+            final String expectedMiddle = "Status: COMPLETED | Bucket: " + bucketName + " | Type: GET | Priority:";
+            final String expectedEnding = " | Total Size: " + objSize + " | Total Transferred: " ;
 
             assertTrue(getJobResponse.getMessage().startsWith(expectedBeginning));
+            assertTrue(getJobResponse.getMessage().contains(expectedMiddle));
             assertTrue(getJobResponse.getMessage().contains(expectedEnding));
         } finally {
             Util.deleteBucket(client, bucketName);
@@ -240,7 +265,6 @@ public class FeatureIntegration_Test {
 
             final GetObjectResponse readResponse = client.getObject(new GetObjectRequest(bucketName, book, channel, readJob.getJobId(), 0));
             assertThat(readResponse, is(notNullValue()));
-            assertThat(readResponse.getStatusCode(), is(equalTo(200)));
 
             final Arguments args = new Arguments(new String[]{"--http", "-c", "get_job", "-i", readJob.getJobId().toString(), "--output-format", "json"});
             final CommandResponse getJobResponse = Util.command(client, args);

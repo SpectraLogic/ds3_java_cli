@@ -17,19 +17,17 @@ package com.spectralogic.ds3cli.command;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.spectralogic.ds3cli.ArgumentFactory;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.DefaultResult;
 import com.spectralogic.ds3cli.util.MemoryObjectChannelBuilder;
+import com.spectralogic.ds3cli.util.PerformanceListener;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.DeleteBucketRequest;
 import com.spectralogic.ds3client.commands.DeleteObjectRequest;
 import com.spectralogic.ds3client.commands.PutBucketRequest;
-import com.spectralogic.ds3client.helpers.DataTransferredListener;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
-import com.spectralogic.ds3client.helpers.ObjectCompletedListener;
 import com.spectralogic.ds3client.models.Contents;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.networking.FailedRequestException;
@@ -149,63 +147,6 @@ public class Performance extends CliCommand<DefaultResult> {
 
         client.deleteBucket(new DeleteBucketRequest(bucketName));
     }
-
-    private class PerformanceListener implements DataTransferredListener, ObjectCompletedListener {
-        private final long startTime;
-        private final int totalNumberOfFiles;
-        private final long numberOfMB;
-        private final boolean isPutCommand;
-        private long totalByteTransferred = 0;
-        private int numberOfFiles = 0;
-        private double highestMbps = 0.0;
-        private double time;
-        private long content;
-        private double mbps;
-
-        public PerformanceListener(final long startTime, final int totalNumberOfFiles, final long numberOfMB, final boolean isPutCommand) {
-            this.startTime = startTime;
-            this.totalNumberOfFiles = totalNumberOfFiles;
-            this.numberOfMB = numberOfMB;
-            this.isPutCommand = isPutCommand;
-        }
-
-        @Override
-        public void dataTransferred(final long size) {
-
-            final long currentTime = System.currentTimeMillis();
-            synchronized (this) {
-                totalByteTransferred += size;
-                time = currentTime - this.startTime == 0 ? 1.0 : (currentTime - this.startTime) / 1000D;
-                content = totalByteTransferred / 1024L / 1024L;
-                mbps = content / time;
-                if (mbps > highestMbps) highestMbps = mbps;
-            }
-            printStatistics();
-        }
-
-        @Override
-        public void objectCompleted(final String s) {
-            synchronized (this) {
-                numberOfFiles += 1;
-            }
-            printStatistics();
-        }
-
-        private void printStatistics() {
-            final String messagePrefix;
-            if (isPutCommand) {
-                messagePrefix = "Putting";
-            }
-            else {
-                messagePrefix = "Getting";
-            }
-
-
-            System.out.print(String.format("\r%s Statistics: (%d/%d MB), files (%d/%d completed), Time (%.03f sec), MBps (%.03f), Highest MBps (%.03f)",
-                    messagePrefix, content, numberOfMB, numberOfFiles, totalNumberOfFiles, time, mbps, highestMbps));
-        }
-    }
-
 }
 
 

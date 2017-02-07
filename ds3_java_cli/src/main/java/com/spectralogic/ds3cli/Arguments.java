@@ -383,6 +383,10 @@ public class Arguments {
 
     public String GetEjectLocation() {return this.getOptionValue(EJECT_LOCATION.getLongOpt()); }
 
+    public String getRangeOffset() {return this.getOptionValue(RANGE_OFFSET.getLongOpt()); }
+
+    public String getRangeLength() {return this.getOptionValue(RANGE_LENGTH.getLongOpt()); }
+
 }
 
 
