@@ -779,7 +779,7 @@ public class Ds3Cli_Test {
 
         final String expected = "JobId: " + jobId + " | Name: Good Job | Status: COMPLETED | Bucket: bucket | Type: GET | Priority: HIGH | User Name: spectra | Creation Date: 2015-09-28T17:30:43.000Z | Total Size: 32 | Total Transferred: 0";
         final String packet = "<MasterObjectList BucketName=\"bucket\" CachedSizeInBytes=\"0\" ChunkClientProcessingOrderGuarantee=\"NONE\" CompletedSizeInBytes=\"0\" JobId=\"aa5df0cc-b03a-4cb9-b69d-56e7367e917f\" OriginalSizeInBytes=\"32\" Priority=\"HIGH\" RequestType=\"GET\" StartDate=\"2015-09-28T17:30:43.000Z\" Status=\"COMPLETED\" UserId=\"c2581493-058c-40d7-a3a1-9a50b20d6d3b\" UserName=\"spectra\" WriteOptimization=\"CAPACITY\" Name=\"Good Job\"></MasterObjectList>";
-        
+
         final MasterObjectList objects = XmlOutput.fromXml(packet, MasterObjectList.class);
         final GetJobResult getJobResult = new GetJobResult(objects);
         final String result = view.render(getJobResult);
@@ -2754,7 +2754,7 @@ public class Ds3Cli_Test {
 
     @Test
     public void getDetailedObjectsPhysicalNoPhysical() throws Exception {
-        final String expectedString = "No speciifed objects have physical placement";
+        final String expectedString = "No specified objects have physical placement";
         final Arguments args = new Arguments( new String[] {"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_detailed_objects_physical", "-b", "jktwocopies", "--filter-params", "largerthan:1000000"});
         final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
         command.init(args);
