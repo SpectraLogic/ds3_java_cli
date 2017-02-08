@@ -63,6 +63,7 @@ public class CertificationUtil {
         try {
             return client.getUserSpectraS3(new GetUserSpectraS3Request(username)).getSpectraUserResult().getSecretKey();
         } catch (final Exception e) {
+            LOG.info("Could not get Secret Key fro User {}", username);
             return "";
         }
     }

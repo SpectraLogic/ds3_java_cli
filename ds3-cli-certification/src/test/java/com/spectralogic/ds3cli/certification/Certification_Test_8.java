@@ -67,9 +67,7 @@ public class Certification_Test_8 {
     private static UUID envDataPolicyId;
     private static CertificationWriter OUT;
 
-// TODO: YEAH, I test over VPN, a gig is a K until done
-//    private static final Long GB_BYTES = 1073741824L;
-    private static final Long GB_BYTES = 1024L;
+    private static final Long GB_BYTES = 1073741824L;
 
     private final static Ds3ExceptionHandlerMapper EXCEPTION = Ds3ExceptionHandlerMapper.getInstance();
     static {
@@ -139,8 +137,8 @@ public class Certification_Test_8 {
             assertThat(listNewContentsResponse.getReturnCode(), is(0));
 
             success = true;
-        } catch (final Exception wtf) {
-            LOG.info("Exception: {}", wtf.getMessage(), wtf);
+        } catch (final Exception e) {
+            LOG.info("Exception: {}", e.getMessage(), e);
         } finally {
             // undo versioning
             Util.command(client, "--http -c modify_data_policy --modify-params versioning:NONE -i " + envDataPolicyId);
@@ -229,6 +227,8 @@ public class Certification_Test_8 {
             assertTrue(modifyJobResponse.getMessage().contains("| Priority: URGENT |"));
             success = true;
 
+        } catch (final Exception e) {
+            LOG.info("Exception in {}", testDescription, e );
         } finally {
             OUT.finishTest(testDescription, success);
             CertificationUtil.deleteJob(client, jobId);
@@ -337,6 +337,8 @@ public class Certification_Test_8 {
             // now log the run
             final CommandResponse getPhysicalPlacementAfterResponse = Util.command(client, getPhysicalPlacementCmd);
             OUT.insertCommand(getPhysicalPlacementCmd, getPhysicalPlacementAfterResponse.getMessage());
+        } catch (final Exception e) {
+            LOG.info("Exception in {}", testDescription, e );
         } finally {
             OUT.finishTest(testDescription, success);
             Util.deleteBucket(client, bucketName);
@@ -350,7 +352,7 @@ public class Certification_Test_8 {
     @Test
     public void test_8_7_large_list() throws Exception {
         final String testDescription = "8.7: Large List";
-        final Integer numFiles = 5;
+        final Integer numFiles = 500;
         final Long fileSize = 1L;
         final String bucketName = CertificationUtil.getBucketName(testDescription);
 
@@ -365,6 +367,8 @@ public class Certification_Test_8 {
             OUT.insertCommand(listBucketArgs, getBucketResponseAfterBulkPut.getMessage());
             assertThat(getBucketResponseAfterBulkPut.getReturnCode(), is(0));
             success = true;
+        } catch (final Exception e) {
+            LOG.info("Exception in {}", testDescription, e );
         } finally {
             OUT.finishTest(testDescription, success);
             Util.deleteBucket(client, bucketName);
