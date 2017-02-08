@@ -27,7 +27,6 @@ import com.spectralogic.ds3client.exceptions.Ds3NoMoreRetriesException;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.helpers.FileObjectPutter;
 import com.spectralogic.ds3client.models.Job;
-import com.spectralogic.ds3client.models.JobStatus;
 import com.spectralogic.ds3client.models.Quiesced;
 import com.spectralogic.ds3client.models.common.Credentials;
 import com.spectralogic.ds3client.networking.FailedRequestException;
@@ -47,13 +46,15 @@ import java.util.Date;
 import java.util.Optional;
 import java.util.UUID;
 
+import static com.spectralogic.ds3cli.certification.CertificationUtil.waitForJobComplete;
+import static com.spectralogic.ds3cli.certification.CertificationUtil.waitForTapePartitionQuiescedState;
 import static com.spectralogic.ds3cli.helpers.TempStorageUtil.verifyAvailableTapePartition;
-import static java.lang.Thread.sleep;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.number.OrderingComparison.greaterThan;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeThat;
 
 
@@ -81,7 +82,6 @@ public class Certification_Test {
     @BeforeClass
     public static void startup() throws IOException {
         LOG.setLevel(Level.INFO);
-
 
         final String fileName = Certification_Test.class.getSimpleName() + "_" + new Date().getTime();
         OUT = new CertificationWriter(fileName);
@@ -292,7 +292,7 @@ public class Certification_Test {
 
     /**
      * 7.9: Test "cache full" by explicitly lowering cache pool size and do not allow cache to drain by quiescing any
-     * tape partitions.
+     * tape partitions, and then resume after unquiescing tape partitions to allow the job to finish.
      */
     @Test
     public void test_7_9_cache_full() throws Exception {
@@ -302,10 +302,11 @@ public class Certification_Test {
         final long fileSize = GB_BYTES;
         final long cacheLimit = 150 * GB_BYTES;
 
-        //*** Assume there is a valid Tape Partition ***
+        // Assume there is a valid Tape Partition
         final GetTapePartitionsSpectraS3Request getTapePartitions = new GetTapePartitionsSpectraS3Request();
         final GetTapePartitionsSpectraS3Response getTapePartitionsResponse= client.getTapePartitionsSpectraS3(getTapePartitions);
         assumeThat(getTapePartitionsResponse.getTapePartitionListResult().getTapePartitions().size(), is(greaterThan(0)));
+        final UUID tapePartitionId = getTapePartitionsResponse.getTapePartitionListResult().getTapePartitions().get(0).getId();
 
         OUT.startNewTest(testDescription);
 
@@ -316,8 +317,10 @@ public class Certification_Test {
             client.modifyAllTapePartitionsSpectraS3(new ModifyAllTapePartitionsSpectraS3Request(Quiesced.PENDING));
             OUT.insertLog("Modify all Tape Partitions to Quiesced.YES");
             client.modifyAllTapePartitionsSpectraS3(new ModifyAllTapePartitionsSpectraS3Request(Quiesced.YES));
+            waitForTapePartitionQuiescedState(client, tapePartitionId, Quiesced.YES);
         } catch (final FailedRequestException fre) {
-            // Ignore Request failure if no tape partitions or they are already quiesced
+            // Ignore Request failure if tape partitions are already quiesced
+            LOG.info("Failed to Quiesce tape partitions: {}", fre.getMessage());
         }
 
         // Find s3cachefilesystem ID
@@ -325,7 +328,7 @@ public class Certification_Test {
         final UUID cacheFsId = client.getCacheFilesystemsSpectraS3(new GetCacheFilesystemsSpectraS3Request()).getCacheFilesystemListResult().getCacheFilesystems().get(0).getId();
         final GetCacheFilesystemSpectraS3Request getCacheFs = new GetCacheFilesystemSpectraS3Request(cacheFsId.toString());
 
-        // Lower s3cachefilesystem to 150GB
+        // Lower s3cachefilesystem max capacity to 150GB
         OUT.insertLog("Lower CacheFilesystem capacity to 150GB");
         final ModifyCacheFilesystemSpectraS3Request limitCacheFsRequest = new ModifyCacheFilesystemSpectraS3Request(cacheFsId.toString()).withMaxCapacityInBytes(cacheLimit);
         final ModifyCacheFilesystemSpectraS3Response limitCacheFsResponse = client.modifyCacheFilesystemSpectraS3(limitCacheFsRequest);
@@ -360,9 +363,10 @@ public class Certification_Test {
         // Un-quiesce the tape partition to allow cache offload to tape
         final ModifyAllTapePartitionsSpectraS3Response unQuiesceAllTapePartitionsResponse = client.modifyAllTapePartitionsSpectraS3(new ModifyAllTapePartitionsSpectraS3Request(Quiesced.NO));
         OUT.insertLog("Unquiesce Tape Partition status: " + unQuiesceAllTapePartitionsResponse);
-        //assertThat(unQuiesceAllTapePartitionsResponse.getStatusCode(), is(204));
-        OUT.insertLog("Sleeping 10 minutes while TapePartition comes online...");
-        sleep(600 * 1000); // sleep 10 minutes to allow for tape inventory
+        if (!waitForTapePartitionQuiescedState(client, tapePartitionId, Quiesced.NO)) {
+            OUT.insertLog("Timed out after an hour waiting for cache to drain and job to finish.");
+            fail("Timed out waiting for TapePartition " + tapePartitionId + " Quiesced State to change to Quiesced.NO");
+        }
 
         // Resume the job
         final GetJobsSpectraS3Response allJobs = client.getJobsSpectraS3(new GetJobsSpectraS3Request());
@@ -376,15 +380,9 @@ public class Certification_Test {
         recoverJob.transfer(new FileObjectPutter(fillCacheFiles));
 
         // Verify Job finishes
-        int retries = 0;
-        final int max_retries = 12;
-        while (JobStatus.IN_PROGRESS == client.getJobSpectraS3(new GetJobSpectraS3Request(jobId)).getMasterObjectListResult().getStatus()) {
-            LOG.info("Sleeping 5 minutes while waiting for job to finish...");
-            sleep(300 * 1000); // sleep 5 minutes
-            if (++retries > max_retries) {
-                OUT.insertLog("Timed out after an hour waiting for cache to drain and job to finish.");
-                break;
-            }
+        if (!waitForJobComplete(client, jobId)) {
+            OUT.insertLog("Timed out after an hour waiting for cache to drain and job to finish.");
+            fail("Timed out waiting for PUT job " + jobId.toString() + " State to change to Complete.");
         }
 
         final CommandResponse completedJobs = Util.command(client, "--http -c get_jobs --completed");
@@ -394,11 +392,10 @@ public class Certification_Test {
         // Reset cache size to max
         final ModifyCacheFilesystemSpectraS3Response resetCacheFsResponse = client.modifyCacheFilesystemSpectraS3(new ModifyCacheFilesystemSpectraS3Request(cacheFsId.toString()).withMaxCapacityInBytes(null));
         OUT.insertLog("ModifyCacheFileSystem back to max capacity: " + resetCacheFsResponse.getCacheFilesystemResult().getMaxCapacityInBytes().toString());
-        //assertThat(resetCacheFsResponse.getStatusCode(), is(200));
+        assertThat(resetCacheFsResponse.getCacheFilesystemResult().getMaxCapacityInBytes(), is(greaterThan(cacheLimit)));
 
         OUT.finishTest(testDescription, true);
     }
-
 
     private static boolean testBulkPutAndBulkGetPerformance(
             final String testDescription,

@@ -16,20 +16,14 @@
 package com.spectralogic.ds3cli.certification;
 
 import com.google.common.collect.Lists;
-import com.spectralogic.ds3cli.Arguments;
-import com.spectralogic.ds3cli.CommandResponse;
-import com.spectralogic.ds3cli.Ds3ProviderImpl;
-import com.spectralogic.ds3cli.FileSystemProviderImpl;
-import com.spectralogic.ds3cli.command.CliCommand;
-import com.spectralogic.ds3cli.command.CliCommandFactory;
 import com.spectralogic.ds3cli.helpers.Util;
-import com.spectralogic.ds3cli.util.Ds3Provider;
-import com.spectralogic.ds3cli.util.FileSystemProvider;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.spectrads3.*;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.helpers.options.WriteJobOptions;
+import com.spectralogic.ds3client.models.JobStatus;
 import com.spectralogic.ds3client.models.Priority;
+import com.spectralogic.ds3client.models.Quiesced;
 import com.spectralogic.ds3client.models.SpectraUser;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import org.slf4j.LoggerFactory;
@@ -37,6 +31,9 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.UUID;
+
+import static java.lang.Thread.sleep;
 
 
 public class CertificationUtil {
@@ -117,4 +114,34 @@ public class CertificationUtil {
         return "test_" + testName.replaceAll("[ !,.:;<>&]+", "_");
     }
 
+    public static boolean waitForTapePartitionQuiescedState(
+            final Ds3Client client,
+            final UUID tapePartitionId,
+            final Quiesced quiescedState) throws InterruptedException, IOException {
+        int retries = 0;
+        final int max_retries = 12;
+        while (quiescedState == client.getTapePartitionSpectraS3(new GetTapePartitionSpectraS3Request(tapePartitionId.toString())).getTapePartitionResult().getQuiesced()) {
+            LOG.info("Sleeping 5 minutes while waiting for tape partition {} to change to Quiesced state {}...", tapePartitionId, quiescedState);
+            sleep(300 * 1000); // sleep 5 minutes
+            if (++retries > max_retries) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public static boolean waitForJobComplete(
+            final Ds3Client client,
+            final UUID jobId) throws InterruptedException, IOException {
+        int retries = 0;
+        final int max_retries = 12;
+        while (JobStatus.IN_PROGRESS == client.getJobSpectraS3(new GetJobSpectraS3Request(jobId)).getMasterObjectListResult().getStatus()) {
+            LOG.info("Sleeping 5 minutes while waiting for job to finish...");
+            sleep(300 * 1000); // sleep 5 minutes
+            if (++retries > max_retries) {
+                return false;
+            }
+        }
+        return true;
+    }
 }

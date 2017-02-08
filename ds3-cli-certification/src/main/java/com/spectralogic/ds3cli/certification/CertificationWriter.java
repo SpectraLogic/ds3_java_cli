@@ -85,7 +85,7 @@ public class CertificationWriter {
         final double megaBytesTransferred = bytesTransferred/1024D/1024D;
         final double mbps = megaBytesTransferred / elapsedTime;
 
-            insertLog(String.format("%s Transferred (%.03f MB), Time (%.03f sec), MB / Sec (%.03f)", messagePrefix, megaBytesTransferred, elapsedTime, mbps));
+        insertLog(String.format("%s Transferred (%.03f MB), Time (%.03f sec), MB / Sec (%.03f)", messagePrefix, megaBytesTransferred, elapsedTime, mbps));
     }
 
     public void finishTest(final String testTitle, final boolean success)  throws IOException {
