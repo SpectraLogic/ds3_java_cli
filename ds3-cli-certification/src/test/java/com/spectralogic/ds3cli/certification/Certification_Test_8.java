@@ -23,7 +23,6 @@ import com.spectralogic.ds3cli.exceptions.*;
 import com.spectralogic.ds3cli.helpers.TempStorageIds;
 import com.spectralogic.ds3cli.helpers.TempStorageUtil;
 import com.spectralogic.ds3cli.helpers.Util;
-import com.spectralogic.ds3cli.util.CliUtils;
 import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.Ds3ClientBuilder;
@@ -35,9 +34,10 @@ import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.networking.FailedRequestException;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.FixMethodOrder;
 import org.junit.Test;
+import org.junit.runners.MethodSorters;
 import org.mockito.cglib.core.CollectionUtils;
-import org.mockito.cglib.core.Predicate;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
@@ -57,12 +57,13 @@ import static org.junit.Assert.assertTrue;
  *   https://developer.spectralogic.com/certification/
  *   https://developer.spectralogic.com/test-plan/
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING) // Order only matters for manually verifying the results
 public class Certification_Test_8 {
 
     private static final Logger LOG =  (Logger) LoggerFactory.getLogger(Certification_Test_8.class);
     private static final Ds3Client client = Ds3ClientBuilder.fromEnv().withHttps(false).build();
     private static final Ds3ClientHelpers HELPERS = Ds3ClientHelpers.wrap(client);
-    private static final String TEST_ENV_NAME = "JavaCLI_Certification_Test_Section8";
+    private static final String TEST_ENV_NAME = "JavaCLI_Certification_Test_Section_8";
     private static TempStorageIds envStorageIds;
     private static UUID envDataPolicyId;
     private static CertificationWriter OUT;
@@ -123,7 +124,7 @@ public class Certification_Test_8 {
             OUT.insertCommand(getBucketCmd, listInitialContentsResponse.getMessage());
             assertThat(listInitialContentsResponse.getReturnCode(), is(0));
 
-            // make new object half size, clobber pervious
+            // make new object half size, clobber previous
             OUT.insertLog("Put new object of same name but half sixe");
             bulkPutLocalTempDir = CertificationUtil.createTempFiles(bucketName, numFiles, fileSize / 2);
             final String putNewVersionCmd = "--http --force -c put_bulk -b " + bucketName + " -d " + bulkPutLocalTempDir.toString();
@@ -182,7 +183,7 @@ public class Certification_Test_8 {
             assertThat(getPartialResponse.getReturnCode(), is(0));
 
             // check file size
-            final List<Path> filesToPut = FileUtils.listObjectsForDirectory(bulkPutLocalTempDir);;
+            final List<Path> filesToPut = FileUtils.listObjectsForDirectory(bulkPutLocalTempDir);
             final PutBulk.ObjectsToPut objectsToPut = FileUtils.getObjectsToPut(filesToPut, bulkPutLocalTempDir, true);
             final Ds3Object obj = objectsToPut.getDs3Objects().get(0);
             assertTrue(obj.getSize() < 150);
@@ -211,7 +212,11 @@ public class Certification_Test_8 {
         OUT.startNewTest(testDescription);
         OUT.insertLog("Start Bulk Job with single object, priority LOW");
         try {
-            jobId = CertificationUtil.putBadObject(client, bucketName, Priority.LOW);
+            //create the Bucket
+            Util.createBucket(client, bucketName);
+
+            //create PUT job but don't start transfer
+            jobId = CertificationUtil.createPutJob(client, bucketName, Priority.LOW);
 
             // show starting ("LOW");
             final String getJobCmd = "--http -c get_job -i " + jobId;
@@ -361,6 +366,7 @@ public class Certification_Test_8 {
         try {
             // Put 500 files into bucket
             final CommandResponse performanceResponse = Util.putPerformanceFiles(client, bucketName,  numFiles, fileSize);
+            assertThat(performanceResponse.getReturnCode(), is(0));
 
             final String listBucketArgs = "--http -c get_bucket -b " + bucketName;
             final CommandResponse getBucketResponseAfterBulkPut =  Util.command(client, listBucketArgs);

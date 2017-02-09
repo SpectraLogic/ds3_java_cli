@@ -66,8 +66,8 @@ import static org.junit.Assume.assumeThat;
  *   https://developer.spectralogic.com/test-plan/
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING) // Order only matters for manually verifying the results
-public class Certification_Test {
-    private static final Logger LOG = (Logger) LoggerFactory.getLogger(Certification_Test.class);
+public class Certification_Test_7 {
+    private static final Logger LOG = (Logger) LoggerFactory.getLogger(Certification_Test_7.class);
     private static final Ds3Client client = Ds3ClientBuilder.fromEnv().withHttps(false).withRedirectRetries(1).build();
     private static final String NO_RIGHTS_USERNAME = "no_rights_user";
     private static final Long GB_BYTES = 1073741824L;
@@ -83,7 +83,7 @@ public class Certification_Test {
     public static void startup() throws IOException {
         LOG.setLevel(Level.INFO);
 
-        final String fileName = Certification_Test.class.getSimpleName() + "_" + new Date().getTime();
+        final String fileName = Certification_Test_7.class.getSimpleName() + "_" + new Date().getTime();
         OUT = new CertificationWriter(fileName);
 
         verifyAvailableTapePartition(client);
@@ -200,9 +200,8 @@ public class Certification_Test {
 
             // Create a new user, and wrap it with a new client
             OUT.insertLog("Create user " + NO_RIGHTS_USERNAME);
-            final DelegateCreateUserSpectraS3Request createUserRequest = new DelegateCreateUserSpectraS3Request(NO_RIGHTS_USERNAME);
-            final DelegateCreateUserSpectraS3Response createUserResponse = client.delegateCreateUserSpectraS3(createUserRequest);
-            final String noRightsUserSecretKey = createUserResponse.getSpectraUserResult().getSecretKey();
+            CertificationUtil.createUser(client, NO_RIGHTS_USERNAME);
+            final String noRightsUserSecretKey = CertificationUtil.getUserSecretKey(client, NO_RIGHTS_USERNAME);
             final Credentials badCreds = new Credentials(NO_RIGHTS_USERNAME, noRightsUserSecretKey);
             final String endpoint = System.getenv("DS3_ENDPOINT");
             final Ds3Client invalid_client = Ds3ClientBuilder.create(endpoint, badCreds).withHttps(false).build();
@@ -220,7 +219,7 @@ public class Certification_Test {
         } finally {
             OUT.finishTest(testDescription, success);
             Util.deleteBucket(client, bucketName);
-            client.delegateDeleteUserSpectraS3(new DelegateDeleteUserSpectraS3Request(NO_RIGHTS_USERNAME));
+            CertificationUtil.deleteUser(client, NO_RIGHTS_USERNAME);
         }
     }
 
@@ -443,7 +442,7 @@ public class Certification_Test {
 
             final long startGetTime = getCurrentTime();
             OUT.insertLog("Bulk GET from bucket " + bucketName);
-            final String getBulkCmd = "--http -c get_bulk -b " + bucketName + "-d " + bulkGetLocalTempDir.toString() + "-nt 3";
+            final String getBulkCmd = "--http -c get_bulk -b " + bucketName + " -d " + bulkGetLocalTempDir.toString() + " -nt 3";
             final CommandResponse getBulkResponse = Util.command(client, getBulkCmd);
             OUT.insertCommand(getBulkCmd, getBucketResponse.getMessage());
             final long endGetTime = getCurrentTime();

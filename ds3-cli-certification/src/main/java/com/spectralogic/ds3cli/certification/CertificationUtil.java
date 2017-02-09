@@ -16,11 +16,8 @@
 package com.spectralogic.ds3cli.certification;
 
 import com.google.common.collect.Lists;
-import com.spectralogic.ds3cli.helpers.Util;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.spectrads3.*;
-import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
-import com.spectralogic.ds3client.helpers.options.WriteJobOptions;
 import com.spectralogic.ds3client.models.JobStatus;
 import com.spectralogic.ds3client.models.Priority;
 import com.spectralogic.ds3client.models.Quiesced;
@@ -75,22 +72,15 @@ public class CertificationUtil {
         client.delegateDeleteUserSpectraS3(new DelegateDeleteUserSpectraS3Request(username));
     }
 
-    public static String putBadObject(final Ds3Client client, final String bucketName, final Priority priority) throws Exception {
-        final Integer numFiles = 6;
+    public static String createPutJob(final Ds3Client client, final String bucketName, final Priority priority) throws Exception {
         final Long fileSize = 1024L;
-        final Ds3ClientHelpers helpers = Ds3ClientHelpers.wrap(client);
 
-        //create the Bucket
-        Util.createBucket(client, bucketName);
-
-        // create a local file
-        final Path path = createTempFiles(bucketName, numFiles, fileSize);
-        final WriteJobOptions writeJobOptions = WriteJobOptions.create().withPriority(priority);
-
-        // put it at wrong size (job will stick around)
-        final Ds3Object ds3Obj = new Ds3Object(path.toString() + "\\" + bucketName + "_0", fileSize * 2);
-        final Ds3ClientHelpers.Job putJob = helpers.startWriteJob(bucketName, Lists.newArrayList(ds3Obj), writeJobOptions);
-        return putJob.getJobId().toString();
+        final Ds3Object ds3Obj = new Ds3Object(bucketName + "_0", fileSize);
+        final PutBulkJobSpectraS3Response putBulkResponse = client.putBulkJobSpectraS3(
+                new PutBulkJobSpectraS3Request(
+                        bucketName,
+                        Lists.newArrayList(ds3Obj)).withPriority(priority));
+        return putBulkResponse.getMasterObjectList().getJobId().toString();
     }
 
     public static void deleteJob(final Ds3Client client, final String jobId) {
