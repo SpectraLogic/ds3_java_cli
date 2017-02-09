@@ -125,7 +125,7 @@ public class Certification_Test_8 {
             assertThat(listInitialContentsResponse.getReturnCode(), is(0));
 
             // make new object half size, clobber previous
-            OUT.insertLog("Put new object of same name but half sixe");
+            OUT.insertLog("Put new object of same name but half size");
             bulkPutLocalTempDir = CertificationUtil.createTempFiles(bucketName, numFiles, fileSize / 2);
             final String putNewVersionCmd = "--http --force -c put_bulk -b " + bucketName + " -d " + bulkPutLocalTempDir.toString();
             final CommandResponse putNewVersionResponse = Util.command(client, putNewVersionCmd);
@@ -141,10 +141,12 @@ public class Certification_Test_8 {
         } catch (final Exception e) {
             LOG.info("Exception: {}", e.getMessage(), e);
         } finally {
+            Util.deleteBucket(client, bucketName);
+
             // undo versioning
             Util.command(client, "--http -c modify_data_policy --modify-params versioning:NONE -i " + envDataPolicyId);
+
             OUT.finishTest(testDescription, success);
-            Util.deleteBucket(client, bucketName);
             assertTrue(success);
         }
     }
