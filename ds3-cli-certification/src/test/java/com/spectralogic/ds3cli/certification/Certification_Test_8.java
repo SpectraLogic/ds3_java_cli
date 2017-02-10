@@ -44,10 +44,15 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
 
+import static com.spectralogic.ds3cli.certification.CertificationUtil.ensureTapePartitionQuiescedState;
+import static com.spectralogic.ds3cli.certification.CertificationUtil.getValidTapePartition;
 import static junit.framework.TestCase.assertFalse;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.junit.Assume.assumeThat;
 
 
 /**
@@ -296,12 +301,23 @@ public class Certification_Test_8 {
     public void test_8_6_fully_persisted() throws Exception {
         final String testDescription = "8.6: Show Fully Persisted";
         final Integer numFiles = 6;
-        final Long fileSize = 1L * GB_BYTES; // converted to GB in performance
+        final Long fileSize = GB_BYTES;
         final String bucketName = CertificationUtil.getBucketName(testDescription);
         boolean success = false;
 
         OUT.startNewTest(testDescription);
         try {
+            // Assume there is a valid Tape Partition
+            final UUID tapePartitionId = getValidTapePartition(client);
+            assumeThat(tapePartitionId, is(notNullValue()));
+
+            // Un-quiesce the tape partition to allow cache offload to tape
+            if (!ensureTapePartitionQuiescedState(client, tapePartitionId, Quiesced.NO)) {
+                final String tapePartitionStateChangeErrorMsg = "Timed out waiting for TapePartition " + tapePartitionId + " Quiesced State to change to Quiesced.NO";
+                OUT.insertLog(tapePartitionStateChangeErrorMsg);
+                fail(tapePartitionStateChangeErrorMsg);
+            }
+
             // Put files into bucket
             // Create temp files for BULK_PUT
             final Path bulkPutLocalTempDir = CertificationUtil.createTempFiles(bucketName, numFiles, fileSize);
@@ -341,6 +357,7 @@ public class Certification_Test_8 {
                 success = (!physicalResponse.getMessage().startsWith("No specified objects"));
                 LOG.info("Retry GetPhysicalPlacement Count = " +  i + ";  success = " + success);
             }
+
             // now log the run
             final CommandResponse getPhysicalPlacementAfterResponse = Util.command(client, getPhysicalPlacementCmd);
             OUT.insertCommand(getPhysicalPlacementCmd, getPhysicalPlacementAfterResponse.getMessage());

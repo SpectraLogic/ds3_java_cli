@@ -18,11 +18,13 @@ package com.spectralogic.ds3cli.certification;
 import com.google.common.collect.Lists;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.spectrads3.*;
+import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.models.JobStatus;
 import com.spectralogic.ds3client.models.Priority;
 import com.spectralogic.ds3client.models.Quiesced;
 import com.spectralogic.ds3client.models.SpectraUser;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
+import com.spectralogic.ds3client.networking.FailedRequestException;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
@@ -104,13 +106,19 @@ public class CertificationUtil {
         return "test_" + testName.replaceAll("[ !,.:;<>&]+", "_");
     }
 
+    public static UUID getValidTapePartition(final Ds3Client client) throws IOException {
+        final GetTapePartitionsSpectraS3Request getTapePartitions = new GetTapePartitionsSpectraS3Request();
+        final GetTapePartitionsSpectraS3Response getTapePartitionsResponse = client.getTapePartitionsSpectraS3(getTapePartitions);
+        return getTapePartitionsResponse.getTapePartitionListResult().getTapePartitions().get(0).getId();
+    }
+
     public static boolean waitForTapePartitionQuiescedState(
             final Ds3Client client,
             final UUID tapePartitionId,
             final Quiesced quiescedState) throws InterruptedException, IOException {
         int retries = 0;
         final int max_retries = 12;
-        while (quiescedState == client.getTapePartitionSpectraS3(new GetTapePartitionSpectraS3Request(tapePartitionId.toString())).getTapePartitionResult().getQuiesced()) {
+        while (quiescedState != client.getTapePartitionSpectraS3(new GetTapePartitionSpectraS3Request(tapePartitionId.toString())).getTapePartitionResult().getQuiesced()) {
             LOG.info("Sleeping 5 minutes while waiting for tape partition {} to change to Quiesced state {}...", tapePartitionId, quiescedState);
             sleep(300 * 1000); // sleep 5 minutes
             if (++retries > max_retries) {
@@ -118,6 +126,29 @@ public class CertificationUtil {
             }
         }
         return true;
+    }
+
+    public static boolean ensureTapePartitionQuiescedState(
+            final Ds3Client client,
+            final UUID tapePartitionId,
+            final Quiesced desiredState) throws IOException, InterruptedException {
+        if (desiredState == client.getTapePartitionSpectraS3(new GetTapePartitionSpectraS3Request(tapePartitionId.toString())).getTapePartitionResult().getQuiesced()) {
+            return true;
+        }
+
+        try {
+            if (desiredState == Quiesced.NO) {
+                client.modifyAllTapePartitionsSpectraS3(new ModifyAllTapePartitionsSpectraS3Request(Quiesced.NO));
+            } else {
+                // Must transition state from NO -> PENDING -> YES
+                client.modifyAllTapePartitionsSpectraS3(new ModifyAllTapePartitionsSpectraS3Request(Quiesced.PENDING));
+                client.modifyAllTapePartitionsSpectraS3(new ModifyAllTapePartitionsSpectraS3Request(Quiesced.YES));
+            }
+        } catch (final FailedRequestException fre) {
+            // Ignore Request failure if tape partitions are already quiesced
+            LOG.info("Failed to modify TapePartition {} to Quiesce state: {}", tapePartitionId, fre.getMessage());
+        }
+        return waitForTapePartitionQuiescedState(client, tapePartitionId, desiredState);
     }
 
     public static boolean waitForJobComplete(

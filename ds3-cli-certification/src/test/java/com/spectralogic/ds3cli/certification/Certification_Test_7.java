@@ -46,11 +46,11 @@ import java.util.Date;
 import java.util.Optional;
 import java.util.UUID;
 
-import static com.spectralogic.ds3cli.certification.CertificationUtil.waitForJobComplete;
-import static com.spectralogic.ds3cli.certification.CertificationUtil.waitForTapePartitionQuiescedState;
+import static com.spectralogic.ds3cli.certification.CertificationUtil.*;
 import static com.spectralogic.ds3cli.helpers.TempStorageUtil.verifyAvailableTapePartition;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.number.OrderingComparison.greaterThan;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -302,25 +302,14 @@ public class Certification_Test_7 {
         final long cacheLimit = 150 * GB_BYTES;
 
         // Assume there is a valid Tape Partition
-        final GetTapePartitionsSpectraS3Request getTapePartitions = new GetTapePartitionsSpectraS3Request();
-        final GetTapePartitionsSpectraS3Response getTapePartitionsResponse= client.getTapePartitionsSpectraS3(getTapePartitions);
-        assumeThat(getTapePartitionsResponse.getTapePartitionListResult().getTapePartitions().size(), is(greaterThan(0)));
-        final UUID tapePartitionId = getTapePartitionsResponse.getTapePartitionListResult().getTapePartitions().get(0).getId();
+        final UUID tapePartitionId = getValidTapePartition(client);
+        assumeThat(tapePartitionId, is(notNullValue()));
 
         OUT.startNewTest(testDescription);
 
         // Quiesce Tape Partition
-        try {
-            // Must transition state from NO -> PENDING -> YES
-            OUT.insertLog("Modify all Tape Partitions to Quiesced.PENDING");
-            client.modifyAllTapePartitionsSpectraS3(new ModifyAllTapePartitionsSpectraS3Request(Quiesced.PENDING));
-            OUT.insertLog("Modify all Tape Partitions to Quiesced.YES");
-            client.modifyAllTapePartitionsSpectraS3(new ModifyAllTapePartitionsSpectraS3Request(Quiesced.YES));
-            waitForTapePartitionQuiescedState(client, tapePartitionId, Quiesced.YES);
-        } catch (final FailedRequestException fre) {
-            // Ignore Request failure if tape partitions are already quiesced
-            LOG.info("Failed to Quiesce tape partitions: {}", fre.getMessage());
-        }
+        OUT.insertLog("Modify TapePartition " + tapePartitionId.toString() + " to Quiesced.PENDING and then Quiesced.YES...");
+        assertTrue(ensureTapePartitionQuiescedState(client, tapePartitionId, Quiesced.YES));
 
         // Find s3cachefilesystem ID
         OUT.insertLog("Find CacheFilesystem UUID");
@@ -328,7 +317,7 @@ public class Certification_Test_7 {
         final GetCacheFilesystemSpectraS3Request getCacheFs = new GetCacheFilesystemSpectraS3Request(cacheFsId.toString());
 
         // Lower s3cachefilesystem max capacity to 150GB
-        OUT.insertLog("Lower CacheFilesystem capacity to 150GB");
+        OUT.insertLog("Lower CacheFilesystem " + getCacheFs.toString() + "capacity to 150GB");
         final ModifyCacheFilesystemSpectraS3Request limitCacheFsRequest = new ModifyCacheFilesystemSpectraS3Request(cacheFsId.toString()).withMaxCapacityInBytes(cacheLimit);
         final ModifyCacheFilesystemSpectraS3Response limitCacheFsResponse = client.modifyCacheFilesystemSpectraS3(limitCacheFsRequest);
         assertThat(client.getCacheFilesystemSpectraS3(getCacheFs).getCacheFilesystemResult().getMaxCapacityInBytes(), is(cacheLimit));
@@ -360,11 +349,10 @@ public class Certification_Test_7 {
         }
 
         // Un-quiesce the tape partition to allow cache offload to tape
-        final ModifyAllTapePartitionsSpectraS3Response unQuiesceAllTapePartitionsResponse = client.modifyAllTapePartitionsSpectraS3(new ModifyAllTapePartitionsSpectraS3Request(Quiesced.NO));
-        OUT.insertLog("Unquiesce Tape Partition status: " + unQuiesceAllTapePartitionsResponse);
-        if (!waitForTapePartitionQuiescedState(client, tapePartitionId, Quiesced.NO)) {
-            OUT.insertLog("Timed out after an hour waiting for cache to drain and job to finish.");
-            fail("Timed out waiting for TapePartition " + tapePartitionId + " Quiesced State to change to Quiesced.NO");
+        if (!ensureTapePartitionQuiescedState(client, tapePartitionId, Quiesced.NO)) {
+            final String tapePartitionStateChangeErrorMsg = "Timed out waiting for TapePartition " + tapePartitionId + " Quiesced State to change to Quiesced.NO";
+            OUT.insertLog(tapePartitionStateChangeErrorMsg);
+            fail(tapePartitionStateChangeErrorMsg);
         }
 
         // Resume the job
@@ -380,8 +368,9 @@ public class Certification_Test_7 {
 
         // Verify Job finishes
         if (!waitForJobComplete(client, jobId)) {
-            OUT.insertLog("Timed out after an hour waiting for cache to drain and job to finish.");
-            fail("Timed out waiting for PUT job " + jobId.toString() + " State to change to Complete.");
+            final String jobFinishErrorMsg = "Timed out waiting for PUT job " + jobId.toString() + " State to change to Complete.";
+            OUT.insertLog(jobFinishErrorMsg);
+            fail(jobFinishErrorMsg);
         }
 
         final CommandResponse completedJobs = Util.command(client, "--http -c get_jobs --completed");
