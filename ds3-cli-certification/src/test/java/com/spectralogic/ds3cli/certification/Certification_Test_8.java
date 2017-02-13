@@ -26,6 +26,8 @@ import com.spectralogic.ds3cli.helpers.Util;
 import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.Ds3ClientBuilder;
+import com.spectralogic.ds3client.commands.spectrads3.GetJobsSpectraS3Request;
+import com.spectralogic.ds3client.commands.spectrads3.GetJobsSpectraS3Response;
 import com.spectralogic.ds3client.commands.spectrads3.GetTapesSpectraS3Request;
 import com.spectralogic.ds3client.commands.spectrads3.GetTapesSpectraS3Response;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
@@ -46,6 +48,7 @@ import java.util.*;
 
 import static com.spectralogic.ds3cli.certification.CertificationUtil.ensureTapePartitionQuiescedState;
 import static com.spectralogic.ds3cli.certification.CertificationUtil.getValidTapePartition;
+import static com.spectralogic.ds3cli.certification.CertificationUtil.waitForJobComplete;
 import static junit.framework.TestCase.assertFalse;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -347,18 +350,22 @@ public class Certification_Test_8 {
             assertThat(reclaimResponse.getReturnCode(), is(0));
 
             // Show persisted
-            final int MAX_POLL_RETRIES = 50;
-            final int RETRY_MILLISECOND = 10000;
-            OUT.insertLog("Show as persisted");
-            LOG.info("Poll get_detailed_objects_physical to block until it is written to tape.");
-            for (int i = 0; i < MAX_POLL_RETRIES && !success; i++) {
-                Thread.sleep(RETRY_MILLISECOND);
-                final CommandResponse physicalResponse = Util.command(client, getPhysicalPlacementCmd);
-                success = (!physicalResponse.getMessage().startsWith("No specified objects"));
-                LOG.info("Retry GetPhysicalPlacement Count = " +  i + ";  success = " + success);
+            final GetJobsSpectraS3Response allJobs = client.getJobsSpectraS3(new GetJobsSpectraS3Request());
+            final Optional<Job> bulkJob = allJobs.getJobListResult().getJobs()
+                    .stream()
+                    .filter(job -> job.getBucketName().matches(bucketName))
+                    .findFirst();
+            assertTrue(bulkJob.isPresent());
+            final UUID jobId = bulkJob.get().getJobId();
+
+            // Verify Job finishes
+            if (!waitForJobComplete(client, jobId)) {
+                final String jobFinishErrorMsg = "Timed out waiting for PUT job " + jobId.toString() + " State to change to Complete.";
+                OUT.insertLog(jobFinishErrorMsg);
+                fail(jobFinishErrorMsg);
             }
 
-            // now log the run
+            OUT.insertLog("Show fully persisted");
             final CommandResponse getPhysicalPlacementAfterResponse = Util.command(client, getPhysicalPlacementCmd);
             OUT.insertCommand(getPhysicalPlacementCmd, getPhysicalPlacementAfterResponse.getMessage());
         } catch (final Exception e) {
