@@ -107,8 +107,7 @@ public class CertificationUtil {
     }
 
     public static UUID getValidTapePartition(final Ds3Client client) throws IOException {
-        final GetTapePartitionsSpectraS3Request getTapePartitions = new GetTapePartitionsSpectraS3Request();
-        final GetTapePartitionsSpectraS3Response getTapePartitionsResponse = client.getTapePartitionsSpectraS3(getTapePartitions);
+        final GetTapePartitionsSpectraS3Response getTapePartitionsResponse = client.getTapePartitionsSpectraS3(new GetTapePartitionsSpectraS3Request());
         return getTapePartitionsResponse.getTapePartitionListResult().getTapePartitions().get(0).getId();
     }
 
@@ -164,5 +163,9 @@ public class CertificationUtil {
             }
         }
         return true;
+    }
+
+    public static long getCurrentTime() {
+        return System.currentTimeMillis();
     }
 }

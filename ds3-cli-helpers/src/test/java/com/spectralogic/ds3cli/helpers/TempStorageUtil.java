@@ -117,7 +117,7 @@ public class TempStorageUtil {
     /**
      * Verifies that a valid TapePartition is available, then set to the default "spectra" user Data Policy.
      */
-    public static void verifyAvailableTapePartition(final Ds3Client client) throws IOException {
+    public static UUID verifyAvailableTapePartition(final Ds3Client client) throws IOException {
         final GetTapePartitionsWithFullDetailsSpectraS3Response getTapePartitionsResponse = client.getTapePartitionsWithFullDetailsSpectraS3(new GetTapePartitionsWithFullDetailsSpectraS3Request());
         assumeThat(getTapePartitionsResponse.getNamedDetailedTapePartitionListResult().getNamedDetailedTapePartitions().size(), is(greaterThan(0)));
 
@@ -127,12 +127,12 @@ public class TempStorageUtil {
         final GetDataPoliciesSpectraS3Response getDataPoliciesResponse = client.getDataPoliciesSpectraS3(new GetDataPoliciesSpectraS3Request());
         final Optional<DataPolicy> optionalSingleTapeDataPolicy = getDataPoliciesResponse.getDataPolicyListResult().getDataPolicies().stream().filter(dp -> dp.getName().equals(PREFERRED_DATA_POLICY_NAME)).findFirst();
         assumeTrue(optionalSingleTapeDataPolicy.isPresent());
-        if (optionalSingleTapeDataPolicy.isPresent()) {
-            final DataPolicy singleTapeDp = optionalSingleTapeDataPolicy.get();
+        final DataPolicy singleTapeDp = optionalSingleTapeDataPolicy.get();
 
-            client.modifyUserSpectraS3(new ModifyUserSpectraS3Request("spectra")
-                    .withDefaultDataPolicyId(singleTapeDp.getId()));
-        }
+        client.modifyUserSpectraS3(new ModifyUserSpectraS3Request("spectra")
+                .withDefaultDataPolicyId(singleTapeDp.getId()));
+
+        return singleTapeDp.getId();
     }
 }
 
