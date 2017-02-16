@@ -376,16 +376,19 @@ public class Certification_Test {
         assertTrue(ensureTapePartitionQuiescedState(client, tapePartitionId, Quiesced.YES));
 
         // Find s3cachefilesystem ID
-        OUT.insertLog("Find CacheFilesystem UUID");
-        final UUID cacheFsId = client.getCacheFilesystemsSpectraS3(new GetCacheFilesystemsSpectraS3Request()).getCacheFilesystemListResult().getCacheFilesystems().get(0).getId();
-        final GetCacheFilesystemSpectraS3Request getCacheFs = new GetCacheFilesystemSpectraS3Request(cacheFsId.toString());
+        OUT.insertLog("Find CacheFilesystem UUID & MaxCapacity");
+        final CacheFilesystem cacheFs = client.getCacheFilesystemsSpectraS3(new GetCacheFilesystemsSpectraS3Request()).getCacheFilesystemListResult().getCacheFilesystems().get(0);
+        assertThat(cacheFs, is(notNullValue()));
+
+        final UUID cacheFsId = cacheFs.getId();
+        final long cacheFsMaxCapacity = cacheFs.getMaxCapacityInBytes();
 
         try {
             // Lower s3cachefilesystem max capacity to 150GB
-            OUT.insertLog("Lower CacheFilesystem " + getCacheFs.toString() + "capacity to 150GB");
-            final ModifyCacheFilesystemSpectraS3Request limitCacheFsRequest = new ModifyCacheFilesystemSpectraS3Request(cacheFsId.toString()).withMaxCapacityInBytes(cacheLimit);
-            final ModifyCacheFilesystemSpectraS3Response limitCacheFsResponse = client.modifyCacheFilesystemSpectraS3(limitCacheFsRequest);
-            assertThat(client.getCacheFilesystemSpectraS3(getCacheFs).getCacheFilesystemResult().getMaxCapacityInBytes(), is(cacheLimit));
+            OUT.insertLog("Lower CacheFilesystem " + cacheFsId.toString() + " capacity to 150GB");
+            final ModifyCacheFilesystemSpectraS3Response limitCacheFsResponse = client.modifyCacheFilesystemSpectraS3(
+                    new ModifyCacheFilesystemSpectraS3Request(cacheFsId.toString()).withMaxCapacityInBytes(cacheLimit));
+            assertThat(limitCacheFsResponse.getCacheFilesystemResult().getMaxCapacityInBytes(), is(cacheLimit));
             OUT.insertLog("Modify Cache Pool size to " +  cacheLimit + "status: " + limitCacheFsResponse.getCacheFilesystemResult());
 
             // Create bucket
@@ -450,7 +453,8 @@ public class Certification_Test {
             Util.deleteBucket(client, bucketName);
 
             // Reset cache size to max
-            final ModifyCacheFilesystemSpectraS3Response resetCacheFsResponse = client.modifyCacheFilesystemSpectraS3(new ModifyCacheFilesystemSpectraS3Request(cacheFsId.toString()).withMaxCapacityInBytes(null));
+            final ModifyCacheFilesystemSpectraS3Response resetCacheFsResponse = client.modifyCacheFilesystemSpectraS3(
+                    new ModifyCacheFilesystemSpectraS3Request(cacheFsId.toString()).withMaxCapacityInBytes(cacheFsMaxCapacity));
             OUT.insertLog("ModifyCacheFileSystem back to max capacity: " + resetCacheFsResponse.getCacheFilesystemResult().getMaxCapacityInBytes().toString());
             assertThat(resetCacheFsResponse.getCacheFilesystemResult().getMaxCapacityInBytes(), is(greaterThan(cacheLimit)));
         }
