@@ -364,6 +364,7 @@ public class Certification_Test {
         final long fileSize = GB_BYTES;
         final long cacheLimit = 150 * GB_BYTES;
         boolean success = false;
+        Path fillCacheFiles = null;
 
         // Assume there is a valid Tape Partition
         final UUID tapePartitionId = getValidTapePartition(client);
@@ -377,11 +378,9 @@ public class Certification_Test {
 
         // Find s3cachefilesystem ID
         OUT.insertLog("Find CacheFilesystem UUID & MaxCapacity");
-        final CacheFilesystem cacheFs = client.getCacheFilesystemsSpectraS3(new GetCacheFilesystemsSpectraS3Request()).getCacheFilesystemListResult().getCacheFilesystems().get(0);
-        assertThat(cacheFs, is(notNullValue()));
-
-        final UUID cacheFsId = cacheFs.getId();
-        final long cacheFsMaxCapacity = cacheFs.getMaxCapacityInBytes();
+        final UUID cacheFsId = client.getCacheFilesystemsSpectraS3(
+                new GetCacheFilesystemsSpectraS3Request()).getCacheFilesystemListResult().getCacheFilesystems().get(0).getId();
+        assertThat(cacheFsId, is(notNullValue()));
 
         try {
             // Lower s3cachefilesystem max capacity to 150GB
@@ -389,7 +388,7 @@ public class Certification_Test {
             final ModifyCacheFilesystemSpectraS3Response limitCacheFsResponse = client.modifyCacheFilesystemSpectraS3(
                     new ModifyCacheFilesystemSpectraS3Request(cacheFsId.toString()).withMaxCapacityInBytes(cacheLimit));
             assertThat(limitCacheFsResponse.getCacheFilesystemResult().getMaxCapacityInBytes(), is(cacheLimit));
-            OUT.insertLog("Modify Cache Pool size to " +  cacheLimit + "status: " + limitCacheFsResponse.getCacheFilesystemResult());
+            OUT.insertLog("ModifyCacheFilesystem size to " +  cacheLimit + " status: " + limitCacheFsResponse.getCacheFilesystemResult());
 
             // Create bucket
             final String createBucketCmd = "--http -c put_bucket -b" + bucketName;
@@ -398,7 +397,7 @@ public class Certification_Test {
             assertThat(createBucketResponse.getReturnCode(), is(0));
 
             // Transfer 175 1GB files using JavaCLI methods
-            final Path fillCacheFiles = CertificationUtil.createTempFiles("Cache_Full", numFiles, fileSize);
+            fillCacheFiles = CertificationUtil.createTempFiles("Cache_Full", numFiles, fileSize);
 
             try {
                 final String putBulkCmd = "--http -c put_bulk -b " + bucketName + " -d " + fillCacheFiles + " -nt 3";
@@ -433,7 +432,7 @@ public class Certification_Test {
             final UUID jobId = bulkJob.get().getJobId();
 
             final Ds3Client recoverJobClient = Ds3ClientBuilder.fromEnv().withHttps(false).withRedirectRetries(5).build();
-            final Ds3ClientHelpers.Job recoverJob = Ds3ClientHelpers.wrap(recoverJobClient, 5).recoverWriteJob(jobId);
+            final Ds3ClientHelpers.Job recoverJob = Ds3ClientHelpers.wrap(recoverJobClient, -1, 5).recoverWriteJob(jobId);
             recoverJob.transfer(new FileObjectPutter(fillCacheFiles));
 
             // Verify Job finishes
@@ -447,16 +446,19 @@ public class Certification_Test {
             OUT.insertCommand("Completed Jobs: ", completedJobs.getMessage());
             assertThat(completedJobs.getMessage(), containsString(bucketName));
 
-
             success = true;
         } finally {
+            if (fillCacheFiles != null) {
+                // Free up disk space
+                FileUtils.forceDelete(fillCacheFiles.toFile());
+            }
+
             Util.deleteBucket(client, bucketName);
 
             // Reset cache size to max
             final ModifyCacheFilesystemSpectraS3Response resetCacheFsResponse = client.modifyCacheFilesystemSpectraS3(
-                    new ModifyCacheFilesystemSpectraS3Request(cacheFsId.toString()).withMaxCapacityInBytes(cacheFsMaxCapacity));
-            OUT.insertLog("ModifyCacheFileSystem back to max capacity: " + resetCacheFsResponse.getCacheFilesystemResult().getMaxCapacityInBytes().toString());
-            assertThat(resetCacheFsResponse.getCacheFilesystemResult().getMaxCapacityInBytes(), is(greaterThan(cacheLimit)));
+                    new CertificationModifyCacheFilesystemSpectraS3Request(cacheFsId.toString()).withUnsetMaxCapacityInBytes());
+            OUT.insertLog("ModifyCacheFileSystem back to max capacity status: " + resetCacheFsResponse.getCacheFilesystemResult());
         }
 
         OUT.finishTest(testDescription, success);
@@ -488,6 +490,9 @@ public class Certification_Test {
             OUT.insertCommand(putInitialCmd, putInitialResponse.getMessage());
             assertThat(putInitialResponse.getReturnCode(), is(0));
 
+            // Free up disk space
+            FileUtils.forceDelete(bulkPutLocalTempDir.toFile());
+
             OUT.insertLog("List bucket contents");
             final String getBucketCmd = "--http -c get_bucket -b " + bucketName;
             final CommandResponse listInitialContentsResponse = Util.command(client, getBucketCmd);
@@ -501,6 +506,9 @@ public class Certification_Test {
             final CommandResponse putNewVersionResponse = Util.command(client, putNewVersionCmd);
             OUT.insertCommand(putNewVersionCmd, putNewVersionResponse.getMessage());
             assertThat(putNewVersionResponse.getReturnCode(), is(0));
+
+            // Free up disk space
+            FileUtils.forceDelete(bulkPutLocalTempDir.toFile());
 
             OUT.insertLog("List bucket contents (half size)");
             final CommandResponse listNewContentsResponse = Util.command(client, getBucketCmd);
@@ -540,6 +548,9 @@ public class Certification_Test {
             final CommandResponse putBulkResponse = Util.command(client, putBulkCmd);
             OUT.insertCommand(putBulkCmd, putBulkResponse.getMessage());
             assertThat(putBulkResponse.getReturnCode(), is(0));
+
+            // Free up disk space
+            FileUtils.forceDelete(bulkPutLocalTempDir.toFile());
 
             // verify write
             OUT.insertLog("List bucket " + bucketName + "contents");
