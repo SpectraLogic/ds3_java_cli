@@ -21,7 +21,6 @@ import com.spectralogic.ds3cli.CommandResponse;
 import com.spectralogic.ds3cli.helpers.Util;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.spectrads3.*;
-import com.spectralogic.ds3client.models.JobStatus;
 import com.spectralogic.ds3client.models.Priority;
 import com.spectralogic.ds3client.models.Quiesced;
 import com.spectralogic.ds3client.models.SpectraUser;
@@ -162,7 +161,7 @@ public final class CertificationUtil {
         final int pollingInterval = 5 * 60 * 1000;
         final Predicate<String> predicate = new Predicate<String>() {
             @Override
-            public boolean apply(@Nullable String input) {
+            public boolean apply(@Nullable final String input) {
                 return input.contains("\"status\" : \"COMPLETED\"");
             }
         };
@@ -177,7 +176,7 @@ public final class CertificationUtil {
         final int pollingInterval = 10000;
         final Predicate<String> predicate = new Predicate<String>() {
             @Override
-            public boolean apply(@Nullable String input) {
+            public boolean apply(@Nullable final String input) {
                 return !input.contains("No specified objects");
             }
         };

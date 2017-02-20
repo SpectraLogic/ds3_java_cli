@@ -525,12 +525,12 @@ public class Certification_Test {
             final Collection<Tape> normalTapes
                     = Collections2.filter(response.getTapeListResult().getTapes(), new Predicate<Tape>() {
                 @Override
-                public boolean apply(@Nullable Tape tape) {
+                public boolean apply(@Nullable final Tape tape) {
                     return (tape.getState() == TapeState.NORMAL || tape.getState() == TapeState.FOREIGN);
                 }
             });
             assertFalse(normalTapes.isEmpty());
-            barcode = ((Tape) normalTapes.iterator().next()).getBarCode();
+            barcode = normalTapes.iterator().next().getBarCode();
 
             OUT.insertLog("Eject tape: " + barcode);
             // Eject
@@ -608,7 +608,7 @@ public class Certification_Test {
             // Poll until all Show persisted
             OUT.insertLog("Show as persisted");
             LOG.info("Poll get_detailed_objects_physical to block until it is written to tape.");
-            CertificationUtil.waitForPhysicalWrite(client, bucketName);
+            success = CertificationUtil.waitForPhysicalWrite(client, bucketName);
 
             // now log the run
             final CommandResponse getPhysicalPlacementAfterResponse = Util.command(client, getPhysicalPlacementCmd);

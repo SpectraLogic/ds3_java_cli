@@ -45,19 +45,19 @@ public class CertificationWriter implements Closeable {
         OUT.write(String.format("<body class=\"testbody\"><h1 class=\"maintitle\">%s</h1>\n", pageTitle));
     }
 
-    public void startNewTest(final String testTitle ) throws IOException {
+    public void startNewTest(final String testTitle) throws IOException {
         currentTimeTag = new Date().getTime();
         LOG.info("-----------------\nSTART TEST: {}", testTitle);
         OUT.write(String.format("<a name=\"%d\" />\n", currentTimeTag));
         OUT.write(String.format("<h2 class=\"testtitle\">%s</h2>\n", testTitle));
     }
 
-    public void insertLog(final String message ) throws IOException {
+    public void insertLog(final String message) throws IOException {
         LOG.info(message);
         OUT.write(String.format("<p class=\"logentry\">%s</p>\n", message));
     }
 
-    public void insertPreformat(final String message ) throws IOException {
+    public void insertPreformat(final String message) throws IOException {
         LOG.info(message);
         OUT.write(String.format("<pre>%s</pre>\n", message));
     }
