@@ -46,8 +46,8 @@ public final class ABMTestHelper {
             final String dataPolicyName,
             final VersioningLevel versioningLevel,
             final ChecksumType.Type checksumType,
-            final Boolean endToEndCrcRequired,
-            final Boolean alwaysForceJobCreation,
+            final boolean endToEndCrcRequired,
+            final boolean alwaysForceJobCreation,
             final Ds3Client client) throws IOException {
         //Check if data policy already exists
         try {
@@ -57,19 +57,15 @@ public final class ABMTestHelper {
             //Pass: expected data policy to not exist
         }
 
-        final PutDataPolicySpectraS3Request request = new PutDataPolicySpectraS3Request(dataPolicyName);
+        final PutDataPolicySpectraS3Request request = new PutDataPolicySpectraS3Request(dataPolicyName)
+                .withEndToEndCrcRequired(endToEndCrcRequired)
+                .withAlwaysForcePutJobCreation(alwaysForceJobCreation);
 
         if (checksumType != null) {
             request.withChecksumType(checksumType);
         }
         if (versioningLevel != null) {
             request.withVersioning(versioningLevel);
-        }
-        if (endToEndCrcRequired != null) {
-            request.withEndToEndCrcRequired(endToEndCrcRequired);
-        }
-        if (alwaysForceJobCreation != null) {
-            request.withAlwaysForcePutJobCreation(alwaysForceJobCreation);
         }
 
         return client.putDataPolicySpectraS3(request);

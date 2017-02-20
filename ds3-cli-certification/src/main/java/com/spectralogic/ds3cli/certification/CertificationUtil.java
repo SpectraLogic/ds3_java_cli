@@ -18,13 +18,13 @@ package com.spectralogic.ds3cli.certification;
 import com.google.common.collect.Lists;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.spectrads3.*;
-import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.models.JobStatus;
 import com.spectralogic.ds3client.models.Priority;
 import com.spectralogic.ds3client.models.Quiesced;
 import com.spectralogic.ds3client.models.SpectraUser;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.networking.FailedRequestException;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
@@ -35,9 +35,9 @@ import java.util.UUID;
 import static java.lang.Thread.sleep;
 
 
-public class CertificationUtil {
+public final class CertificationUtil {
 
-    private static final ch.qos.logback.classic.Logger LOG =  (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(CertificationUtil.class);
+    private static final Logger LOG =  LoggerFactory.getLogger(CertificationUtil.class);
 
     public static Path createTempFiles(
            final String prefix,
@@ -47,10 +47,10 @@ public class CertificationUtil {
         final Path tempDir = Files.createTempDirectory(prefix);
         for(int fileNum = 0; fileNum < numFiles; fileNum++) {
             final File tempFile = new File(tempDir.toString(), prefix + "_" + fileNum);
-            final RandomAccessFile raf = new RandomAccessFile(tempFile, "rw");
-            raf.seek(length);
-            raf.writeBytes("end of RandomAccessFile.");
-            raf.close();
+            try (final RandomAccessFile raf = new RandomAccessFile(tempFile, "rw")) {
+                raf.seek(length);
+                raf.writeBytes("end of RandomAccessFile.");
+            }
         }
         return tempDir;
     }
@@ -59,7 +59,7 @@ public class CertificationUtil {
         try {
             return client.getUserSpectraS3(new GetUserSpectraS3Request(username)).getSpectraUserResult().getSecretKey();
         } catch (final Exception e) {
-            LOG.info("Could not get Secret Key fro User {}", username);
+            LOG.error("Could not get Secret Key for User " + username, e);
             return "";
         }
     }
@@ -90,7 +90,7 @@ public class CertificationUtil {
             final CancelJobSpectraS3Request request = new CancelJobSpectraS3Request(jobId);
             client.cancelJobSpectraS3(request);
         } catch (final IOException ex) {
-            LOG.info("Could not delete job Id {}", jobId);
+            LOG.error("Could not delete job Id " + jobId, ex);
         }
     }
 
@@ -98,7 +98,7 @@ public class CertificationUtil {
         try {
             client.cancelEjectTapeSpectraS3(new CancelEjectTapeSpectraS3Request(barcode));
         } catch (final IOException e) {
-            LOG.info("Failed cancel eject tape, barcode {}", barcode);
+            LOG.error("Failed cancel eject tape, barcode " + barcode, e);
         }
     }
 
@@ -145,7 +145,7 @@ public class CertificationUtil {
             }
         } catch (final FailedRequestException fre) {
             // Ignore Request failure if tape partitions are already quiesced
-            LOG.info("Failed to modify TapePartition {} to Quiesce state: {}", tapePartitionId, fre.getMessage());
+            LOG.info("Failed to modify TapePartition " + tapePartitionId + " to Quiesce state " + desiredState.toString() + "\n", fre);
         }
         return waitForTapePartitionQuiescedState(client, tapePartitionId, desiredState);
     }

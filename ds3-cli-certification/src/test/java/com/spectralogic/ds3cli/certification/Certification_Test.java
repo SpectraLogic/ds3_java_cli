@@ -15,8 +15,6 @@
 
 package com.spectralogic.ds3cli.certification;
 
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.Logger;
 import com.spectralogic.ds3cli.CommandResponse;
 import com.spectralogic.ds3cli.command.PutBulk;
 import com.spectralogic.ds3cli.exceptions.*;
@@ -24,9 +22,7 @@ import com.spectralogic.ds3cli.helpers.Util;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.Ds3ClientBuilder;
 import com.spectralogic.ds3client.commands.spectrads3.*;
-import com.spectralogic.ds3client.exceptions.Ds3NoMoreRetriesException;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
-import com.spectralogic.ds3client.helpers.FileObjectPutter;
 import com.spectralogic.ds3client.models.*;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.models.common.Credentials;
@@ -38,6 +34,7 @@ import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 import org.mockito.cglib.core.CollectionUtils;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
@@ -53,7 +50,6 @@ import static com.spectralogic.ds3cli.helpers.TempStorageUtil.verifyAvailableTap
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.number.OrderingComparison.greaterThan;
 import static org.junit.Assert.*;
 import static org.junit.Assume.assumeThat;
 
@@ -66,8 +62,10 @@ import static org.junit.Assume.assumeThat;
  *   https://developer.spectralogic.com/test-plan/
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING) // Order only matters for manually verifying the results
+
+
 public class Certification_Test {
-    private static final Logger LOG = (Logger) LoggerFactory.getLogger(Certification_Test.class);
+    private static final Logger LOG = LoggerFactory.getLogger(Certification_Test.class);
     private static final Ds3Client client = Ds3ClientBuilder.fromEnv().withHttps(false).withRedirectRetries(1).build();
     private static final String NO_RIGHTS_USERNAME = "no_rights_user";
     private static final Long GB_BYTES = 1073741824L;
@@ -82,10 +80,9 @@ public class Certification_Test {
 
     @BeforeClass
     public static void startup() throws IOException {
-        LOG.setLevel(Level.INFO);
-
         final String fileName = Certification_Test.class.getSimpleName() + "_" + new Date().getTime();
         OUT = new CertificationWriter(fileName);
+        OUT.writeHeader();
 
         envDataPolicyId = verifyAvailableTapePartition(client);
     }
@@ -353,118 +350,6 @@ public class Certification_Test {
     }
 
     /**
-     * 7.9: Test "cache full" by explicitly lowering cache pool size and do not allow cache to drain by quiescing any
-     * tape partitions, and then resume after unquiescing tape partitions to allow the job to finish.
-     */
-    @Test
-    public void test_7_9_cache_full() throws Exception {
-        final String testDescription = "7.9: Cache Full for Bulk PUT";
-        final String bucketName = CertificationUtil.getBucketName(testDescription);
-        final int numFiles = 175;
-        final long fileSize = GB_BYTES;
-        final long cacheLimit = 150 * GB_BYTES;
-        boolean success = false;
-        Path fillCacheFiles = null;
-
-        // Assume there is a valid Tape Partition
-        final UUID tapePartitionId = getValidTapePartition(client);
-        assumeThat(tapePartitionId, is(notNullValue()));
-
-        OUT.startNewTest(testDescription);
-
-        // Quiesce Tape Partition
-        OUT.insertLog("Modify TapePartition " + tapePartitionId.toString() + " to Quiesced.PENDING and then Quiesced.YES...");
-        assertTrue(ensureTapePartitionQuiescedState(client, tapePartitionId, Quiesced.YES));
-
-        // Find s3cachefilesystem ID
-        OUT.insertLog("Find CacheFilesystem UUID & MaxCapacity");
-        final UUID cacheFsId = client.getCacheFilesystemsSpectraS3(
-                new GetCacheFilesystemsSpectraS3Request()).getCacheFilesystemListResult().getCacheFilesystems().get(0).getId();
-        assertThat(cacheFsId, is(notNullValue()));
-
-        try {
-            // Lower s3cachefilesystem max capacity to 150GB
-            OUT.insertLog("Lower CacheFilesystem " + cacheFsId.toString() + " capacity to 150GB");
-            final ModifyCacheFilesystemSpectraS3Response limitCacheFsResponse = client.modifyCacheFilesystemSpectraS3(
-                    new ModifyCacheFilesystemSpectraS3Request(cacheFsId.toString()).withMaxCapacityInBytes(cacheLimit));
-            assertThat(limitCacheFsResponse.getCacheFilesystemResult().getMaxCapacityInBytes(), is(cacheLimit));
-            OUT.insertLog("ModifyCacheFilesystem size to " +  cacheLimit + " status: " + limitCacheFsResponse.getCacheFilesystemResult());
-
-            // Create bucket
-            final String createBucketCmd = "--http -c put_bucket -b" + bucketName;
-            final CommandResponse createBucketResponse = Util.command(client, createBucketCmd);
-            OUT.insertCommand(createBucketCmd, createBucketResponse.getMessage());
-            assertThat(createBucketResponse.getReturnCode(), is(0));
-
-            // Transfer 175 1GB files using JavaCLI methods
-            fillCacheFiles = CertificationUtil.createTempFiles("Cache_Full", numFiles, fileSize);
-
-            try {
-                final String putBulkCmd = "--http -c put_bulk -b " + bucketName + " -d " + fillCacheFiles + " -nt 3";
-                final CommandResponse putBulkResponse = Util.command(client, putBulkCmd);
-                OUT.insertCommand(putBulkCmd, putBulkResponse.getMessage());
-                assertThat(putBulkResponse.getReturnCode(), is(0));
-
-                // Wait for Cache full
-            } catch (final Ds3NoMoreRetriesException noMoreRetriesException) {
-                // expect to fail because job can't finish when cache fills and no tapes are available to offload to
-                OUT.insertLog("Caught Ds3NoMoreRetriesException after BULK_PUT bigger than available cache: " + noMoreRetriesException.getMessage());
-
-                final String getJobsCmd = "--http -c get_jobs";
-                final CommandResponse getJobsResponse = Util.command(client, getJobsCmd);
-                OUT.insertCommand(getJobsCmd, getJobsResponse.getMessage());
-            }
-
-            // Un-quiesce the tape partition to allow cache offload to tape
-            if (!ensureTapePartitionQuiescedState(client, tapePartitionId, Quiesced.NO)) {
-                final String tapePartitionStateChangeErrorMsg = "Timed out waiting for TapePartition " + tapePartitionId + " Quiesced State to change to Quiesced.NO";
-                OUT.insertLog(tapePartitionStateChangeErrorMsg);
-                fail(tapePartitionStateChangeErrorMsg);
-            }
-
-            // Resume the job
-            final GetJobsSpectraS3Response allJobs = client.getJobsSpectraS3(new GetJobsSpectraS3Request());
-            final Optional<Job> bulkJob = allJobs.getJobListResult().getJobs()
-                    .stream()
-                    .filter(job -> job.getBucketName().matches(bucketName))
-                    .findFirst();
-            assertTrue(bulkJob.isPresent());
-            final UUID jobId = bulkJob.get().getJobId();
-
-            final Ds3Client recoverJobClient = Ds3ClientBuilder.fromEnv().withHttps(false).withRedirectRetries(5).build();
-            final Ds3ClientHelpers.Job recoverJob = Ds3ClientHelpers.wrap(recoverJobClient, -1, 5).recoverWriteJob(jobId);
-            recoverJob.transfer(new FileObjectPutter(fillCacheFiles));
-
-            // Verify Job finishes
-            if (!waitForJobComplete(recoverJobClient, jobId)) {
-                final String jobFinishErrorMsg = "Timed out waiting for PUT job " + jobId.toString() + " State to change to Complete.";
-                OUT.insertLog(jobFinishErrorMsg);
-                fail(jobFinishErrorMsg);
-            }
-
-            final CommandResponse completedJobs = Util.command(client, "--http -c get_jobs --completed");
-            OUT.insertCommand("Completed Jobs: ", completedJobs.getMessage());
-            assertThat(completedJobs.getMessage(), containsString(bucketName));
-
-            success = true;
-        } finally {
-            if (fillCacheFiles != null) {
-                // Free up disk space
-                FileUtils.forceDelete(fillCacheFiles.toFile());
-            }
-
-            Util.deleteBucket(client, bucketName);
-
-            // Reset cache size to max
-            final ModifyCacheFilesystemSpectraS3Response resetCacheFsResponse = client.modifyCacheFilesystemSpectraS3(
-                    new CertificationModifyCacheFilesystemSpectraS3Request(cacheFsId.toString()).withUnsetMaxCapacityInBytes());
-            OUT.insertLog("ModifyCacheFileSystem back to max capacity status: " + resetCacheFsResponse.getCacheFilesystemResult());
-        }
-
-        OUT.finishTest(testDescription, success);
-    }
-
-    /**
      * 8.1:	Versioning
      */
     @Test
@@ -517,7 +402,7 @@ public class Certification_Test {
 
             success = true;
         } catch (final Exception e) {
-            LOG.info("Exception: {}", e.getMessage(), e);
+            LOG.error("Failed " + testDescription + "\n", e);
         } finally {
             Util.deleteBucket(client, bucketName);
 
@@ -574,7 +459,7 @@ public class Certification_Test {
             success = true;
 
         } catch (final Exception e) {
-            LOG.info("Exception in {}", testDescription, e );
+            LOG.error("Failed " + testDescription + "\n", e);
         } finally {
             OUT.finishTest(testDescription, success);
             Util.deleteBucket(client, bucketName);
@@ -616,7 +501,7 @@ public class Certification_Test {
             success = true;
 
         } catch (final Exception e) {
-            LOG.info("Exception in {}", testDescription, e );
+            LOG.error("Failed " + testDescription + "\n", e);
         } finally {
             OUT.finishTest(testDescription, success);
             CertificationUtil.deleteJob(client, jobId);
@@ -662,7 +547,7 @@ public class Certification_Test {
             assertTrue(postEjectResponse.getMessage().contains(ejectLocation));
             success = true;
         } catch (final Exception e) {
-            LOG.info("Exception in {}", testDescription, e );
+            LOG.error("Failed " + testDescription + "\n", e);
         } finally {
             CertificationUtil.cancelTapeEject(client, barcode);
             OUT.finishTest(testDescription, success);
@@ -743,7 +628,7 @@ public class Certification_Test {
             final CommandResponse getPhysicalPlacementAfterResponse = Util.command(client, getPhysicalPlacementCmd);
             OUT.insertCommand(getPhysicalPlacementCmd, getPhysicalPlacementAfterResponse.getMessage());
         } catch (final Exception e) {
-            LOG.info("Exception in {}", testDescription, e );
+            LOG.error("Failed " + testDescription + "\n", e);
         } finally {
             OUT.finishTest(testDescription, success);
             Util.deleteBucket(client, bucketName);
@@ -773,7 +658,7 @@ public class Certification_Test {
             assertThat(getBucketResponseAfterBulkPut.getReturnCode(), is(0));
             success = true;
         } catch (final Exception e) {
-            LOG.info("Exception in {}", testDescription, e );
+            LOG.error("Failed " + testDescription + "\n", e);
         } finally {
             OUT.finishTest(testDescription, success);
             Util.deleteBucket(client, bucketName);

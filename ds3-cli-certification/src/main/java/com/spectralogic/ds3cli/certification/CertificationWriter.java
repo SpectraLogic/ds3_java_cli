@@ -15,24 +15,19 @@
 
 package com.spectralogic.ds3cli.certification;
 
-import ch.qos.logback.classic.Logger;
-import com.spectralogic.ds3cli.Arguments;
-import com.spectralogic.ds3cli.CommandResponse;
 import com.spectralogic.ds3cli.util.Constants;
-import com.spectralogic.ds3client.Ds3Client;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.util.Date;
 import java.util.ResourceBundle;
 
-import static com.spectralogic.ds3cli.helpers.Util.command;
 
-
-public class CertificationWriter {
+public class CertificationWriter implements Closeable {
 
     private static final String EXT = ".html";
-    private static final Logger LOG =  (Logger) LoggerFactory.getLogger(CertificationWriter.class);
+    private static final Logger LOG = LoggerFactory.getLogger(CertificationWriter.class);
 
     private final OutputStreamWriter OUT;
     private long currentTimeTag = 0L;
@@ -40,7 +35,6 @@ public class CertificationWriter {
     public CertificationWriter(final String fileName) throws IOException {
         OUT = new OutputStreamWriter(new FileOutputStream(fileName + EXT), "UTF-8");
         LOG.info("NEW FILE: {}", fileName);
-        writeHeader();
     }
 
     public void writeHeader() throws IOException {
