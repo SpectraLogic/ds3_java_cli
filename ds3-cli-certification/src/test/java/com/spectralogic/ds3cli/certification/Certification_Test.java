@@ -15,6 +15,9 @@
 
 package com.spectralogic.ds3cli.certification;
 
+import com.google.common.base.Predicate;
+import com.google.common.collect.Collections2;
+import com.google.common.collect.Iterables;
 import com.spectralogic.ds3cli.CommandResponse;
 import com.spectralogic.ds3cli.command.PutBulk;
 import com.spectralogic.ds3cli.exceptions.*;
@@ -33,20 +36,19 @@ import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
-import org.mockito.cglib.core.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 
-import static com.spectralogic.ds3cli.util.FileUtils.listObjectsForDirectory;
-import static com.spectralogic.ds3cli.util.FileUtils.getObjectsToPut;
 import static com.spectralogic.ds3cli.certification.CertificationUtil.*;
 import static com.spectralogic.ds3cli.helpers.TempStorageUtil.verifyAvailableTapePartition;
+import static junit.framework.TestCase.assertFalse;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -67,15 +69,16 @@ import static org.junit.Assume.assumeThat;
 public class Certification_Test {
     private static final Logger LOG = LoggerFactory.getLogger(Certification_Test.class);
     private static final Ds3Client client = Ds3ClientBuilder.fromEnv().withHttps(false).withRedirectRetries(1).build();
+    private static final Ds3ClientHelpers HELPERS = Ds3ClientHelpers.wrap(client);
     private static final String NO_RIGHTS_USERNAME = "no_rights_user";
-    private static final Long GB_BYTES = 1073741824L;
+    private static final Long GB_IN_BYTES = 1073741824L;
     private static CertificationWriter OUT;
     private static UUID envDataPolicyId;
 
-    private final static Ds3ExceptionHandlerMapper EXCEPTION = Ds3ExceptionHandlerMapper.getInstance();
+    private final static Ds3ExceptionHandlerMapper EXCEPTION_MAPPER = Ds3ExceptionHandlerMapper.getInstance();
     static {
-        EXCEPTION.addHandler(FailedRequestException.class, new FailedRequestExceptionHandler());
-        EXCEPTION.addHandler(RuntimeException.class, new RuntimeExceptionHandler());
+        EXCEPTION_MAPPER.addHandler(FailedRequestException.class, new FailedRequestExceptionHandler());
+        EXCEPTION_MAPPER.addHandler(RuntimeException.class, new RuntimeExceptionHandler());
     }
 
     @BeforeClass
@@ -264,7 +267,7 @@ public class Certification_Test {
     @Test
     public void test_7_5_and_6_bulk_performance_3x110GB() throws Exception {
         final Integer numFiles = 3;
-        final Long fileSize = 110 * GB_BYTES;
+        final Long fileSize = 110 * GB_IN_BYTES;
         final String testDescription = "7.5 & 7.6: Bulk Performance 3x110GB";
         final String bucketName = CertificationUtil.getBucketName(testDescription);
         OUT.startNewTest(testDescription);
@@ -279,7 +282,7 @@ public class Certification_Test {
     @Test
     public void test_7_7_and_8_bulk_performance_250x1GB() throws Exception {
         final Integer numFiles = 250;
-        final Long fileSize = GB_BYTES;
+        final Long fileSize = GB_IN_BYTES;
         final String testDescription = "7.7 & 7.8: Bulk Performance 250X1GB";
         final String bucketName = CertificationUtil.getBucketName(testDescription);
         OUT.startNewTest(testDescription);
@@ -375,9 +378,6 @@ public class Certification_Test {
             OUT.insertCommand(putInitialCmd, putInitialResponse.getMessage());
             assertThat(putInitialResponse.getReturnCode(), is(0));
 
-            // Free up disk space
-            FileUtils.forceDelete(bulkPutLocalTempDir.toFile());
-
             OUT.insertLog("List bucket contents");
             final String getBucketCmd = "--http -c get_bucket -b " + bucketName;
             final CommandResponse listInitialContentsResponse = Util.command(client, getBucketCmd);
@@ -392,9 +392,6 @@ public class Certification_Test {
             OUT.insertCommand(putNewVersionCmd, putNewVersionResponse.getMessage());
             assertThat(putNewVersionResponse.getReturnCode(), is(0));
 
-            // Free up disk space
-            FileUtils.forceDelete(bulkPutLocalTempDir.toFile());
-
             OUT.insertLog("List bucket contents (half size)");
             final CommandResponse listNewContentsResponse = Util.command(client, getBucketCmd);
             OUT.insertCommand(getBucketCmd, listNewContentsResponse.getMessage());
@@ -402,7 +399,7 @@ public class Certification_Test {
 
             success = true;
         } catch (final Exception e) {
-            LOG.error("Failed " + testDescription + "\n", e);
+            LOG.info("Exception: {}", e.getMessage(), e);
         } finally {
             Util.deleteBucket(client, bucketName);
 
@@ -410,7 +407,7 @@ public class Certification_Test {
             Util.command(client, "--http -c modify_data_policy --modify-params versioning:NONE -i " + envDataPolicyId);
 
             OUT.finishTest(testDescription, success);
-            assertTrue(success);
+            assertTrue(testDescription + " did not complete", success);
         }
     }
 
@@ -434,14 +431,11 @@ public class Certification_Test {
             OUT.insertCommand(putBulkCmd, putBulkResponse.getMessage());
             assertThat(putBulkResponse.getReturnCode(), is(0));
 
-            // Free up disk space
-            FileUtils.forceDelete(bulkPutLocalTempDir.toFile());
-
             // verify write
             OUT.insertLog("List bucket " + bucketName + "contents");
-            final Iterator<Contents> objects = Ds3ClientHelpers.wrap(client).listObjects(bucketName).iterator();
-            assertTrue(objects.hasNext());
-            final String objectName = objects.next().getKey();
+            final Iterable<Contents> objects = HELPERS.listObjects(bucketName);
+            assertFalse(Iterables.isEmpty(objects));
+            final String objectName = objects.iterator().next().getKey();
             OUT.insertPreformat(objectName);
 
             // restore first 100 bytes
@@ -451,19 +445,19 @@ public class Certification_Test {
             assertThat(getPartialResponse.getReturnCode(), is(0));
 
             // check file size
-            final List<Path> filesToPut = listObjectsForDirectory(bulkPutLocalTempDir);
-            final PutBulk.ObjectsToPut objectsToPut = getObjectsToPut(filesToPut, bulkPutLocalTempDir, true);
+            final List<Path> filesToPut = com.spectralogic.ds3cli.util.FileUtils.listObjectsForDirectory(bulkPutLocalTempDir);
+            final PutBulk.ObjectsToPut objectsToPut = com.spectralogic.ds3cli.util.FileUtils.getObjectsToPut(filesToPut, bulkPutLocalTempDir, true);
             final Ds3Object obj = objectsToPut.getDs3Objects().get(0);
             assertTrue(obj.getSize() < 150);
             OUT.insertLog(obj.getName()  + " size: " + Long.toString(obj.getSize()));
             success = true;
 
         } catch (final Exception e) {
-            LOG.error("Failed " + testDescription + "\n", e);
+            LOG.error("Exception in " + testDescription, e );
         } finally {
             OUT.finishTest(testDescription, success);
             Util.deleteBucket(client, bucketName);
-            assertTrue(success);
+            assertTrue(testDescription + " did not complete", success);
         }
     }
 
@@ -501,12 +495,12 @@ public class Certification_Test {
             success = true;
 
         } catch (final Exception e) {
-            LOG.error("Failed " + testDescription + "\n", e);
+            LOG.error("Exception in " + testDescription, e );
         } finally {
             OUT.finishTest(testDescription, success);
             CertificationUtil.deleteJob(client, jobId);
             Util.deleteBucket(client, bucketName);
-            assertTrue(success);
+            assertTrue(testDescription + " did not complete", success);
         }
     }
 
@@ -528,9 +522,13 @@ public class Certification_Test {
             // Get a normal tape
             final GetTapesSpectraS3Response response = client.getTapesSpectraS3(new GetTapesSpectraS3Request());
 
-            final Collection normalTapes = CollectionUtils.filter(response.getTapeListResult().getTapes(),
-                    tape -> ((Tape) tape).getState() == TapeState.NORMAL
-                            || ((Tape) tape).getState() == TapeState.FOREIGN);
+            final Collection<Tape> normalTapes
+                    = Collections2.filter(response.getTapeListResult().getTapes(), new Predicate<Tape>() {
+                @Override
+                public boolean apply(@Nullable Tape tape) {
+                    return (tape.getState() == TapeState.NORMAL || tape.getState() == TapeState.FOREIGN);
+                }
+            });
             assertFalse(normalTapes.isEmpty());
             barcode = ((Tape) normalTapes.iterator().next()).getBarCode();
 
@@ -547,11 +545,11 @@ public class Certification_Test {
             assertTrue(postEjectResponse.getMessage().contains(ejectLocation));
             success = true;
         } catch (final Exception e) {
-            LOG.error("Failed " + testDescription + "\n", e);
+            LOG.error("Exception in " + testDescription, e );
         } finally {
             CertificationUtil.cancelTapeEject(client, barcode);
             OUT.finishTest(testDescription, success);
-            assertTrue(success);
+            assertTrue(testDescription + " did not complete", success);
         }
     }
 
@@ -562,7 +560,7 @@ public class Certification_Test {
     public void test_8_6_fully_persisted() throws Exception {
         final String testDescription = "8.6: Show Fully Persisted";
         final Integer numFiles = 6;
-        final Long fileSize = GB_BYTES;
+        final Long fileSize = 1 * GB_IN_BYTES;
         final String bucketName = CertificationUtil.getBucketName(testDescription);
         boolean success = false;
 
@@ -589,9 +587,9 @@ public class Certification_Test {
 
             // verify write
             OUT.insertLog("List bucket " + bucketName + "contents");
-            final Iterator<Contents> objects = Ds3ClientHelpers.wrap(client).listObjects(bucketName).iterator();
-            assertTrue(objects.hasNext());
-            final String objectName = objects.next().getKey();
+            final Iterable<Contents> objects = HELPERS.listObjects(bucketName);
+            assertFalse(Iterables.isEmpty(objects));
+            final String objectName = objects.iterator().next().getKey();
             OUT.insertPreformat(objectName);
 
             // Show not persisted
@@ -607,31 +605,20 @@ public class Certification_Test {
             OUT.insertCommand(reclaimCacheArgs, reclaimResponse.getMessage());
             assertThat(reclaimResponse.getReturnCode(), is(0));
 
-            // Show persisted
-            final GetJobsSpectraS3Response allJobs = client.getJobsSpectraS3(new GetJobsSpectraS3Request());
-            final Optional<Job> bulkJob = allJobs.getJobListResult().getJobs()
-                    .stream()
-                    .filter(job -> job.getBucketName().matches(bucketName))
-                    .findFirst();
-            assertTrue(bulkJob.isPresent());
-            final UUID jobId = bulkJob.get().getJobId();
+            // Poll until all Show persisted
+            OUT.insertLog("Show as persisted");
+            LOG.info("Poll get_detailed_objects_physical to block until it is written to tape.");
+            CertificationUtil.waitForPhysicalWrite(client, bucketName);
 
-            // Verify Job finishes
-            success = waitForJobComplete(client, jobId);
-            if (!success) {
-                final String jobFinishErrorMsg = "Timed out waiting for PUT job " + jobId.toString() + " State to change to Complete.";
-                OUT.insertLog(jobFinishErrorMsg);
-                fail(jobFinishErrorMsg);
-            }
-
-            OUT.insertLog("Show fully persisted");
+            // now log the run
             final CommandResponse getPhysicalPlacementAfterResponse = Util.command(client, getPhysicalPlacementCmd);
             OUT.insertCommand(getPhysicalPlacementCmd, getPhysicalPlacementAfterResponse.getMessage());
         } catch (final Exception e) {
-            LOG.error("Failed " + testDescription + "\n", e);
+            LOG.error("Exception in " + testDescription, e );
         } finally {
             OUT.finishTest(testDescription, success);
             Util.deleteBucket(client, bucketName);
+            assertTrue(testDescription + " did not complete", success);
         }
     }
 
@@ -641,8 +628,8 @@ public class Certification_Test {
     @Test
     public void test_8_7_large_list() throws Exception {
         final String testDescription = "8.7: Large List";
-        final Integer numFiles = 500;
-        final Long fileSize = 1L;
+        final int numFiles = 500;
+        final long fileSize = 1L;
         final String bucketName = CertificationUtil.getBucketName(testDescription);
 
         OUT.startNewTest(testDescription);
@@ -658,11 +645,13 @@ public class Certification_Test {
             assertThat(getBucketResponseAfterBulkPut.getReturnCode(), is(0));
             success = true;
         } catch (final Exception e) {
-            LOG.error("Failed " + testDescription + "\n", e);
+            LOG.error("Exception in " + testDescription, e );
         } finally {
             OUT.finishTest(testDescription, success);
             Util.deleteBucket(client, bucketName);
+            assertTrue(testDescription + " did not complete", success);
         }
     }
+
 }
 

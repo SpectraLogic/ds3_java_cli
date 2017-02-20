@@ -15,7 +15,10 @@
 
 package com.spectralogic.ds3cli.certification;
 
+import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
+import com.spectralogic.ds3cli.CommandResponse;
+import com.spectralogic.ds3cli.helpers.Util;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.spectrads3.*;
 import com.spectralogic.ds3client.models.JobStatus;
@@ -27,6 +30,7 @@ import com.spectralogic.ds3client.networking.FailedRequestException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -152,17 +156,49 @@ public final class CertificationUtil {
 
     public static boolean waitForJobComplete(
             final Ds3Client client,
-            final UUID jobId) throws InterruptedException, IOException {
-        int retries = 0;
-        final int max_retries = 12;
-        while (JobStatus.IN_PROGRESS == client.getJobSpectraS3(new GetJobSpectraS3Request(jobId)).getMasterObjectListResult().getStatus()) {
-            LOG.info("Sleeping 5 minutes while waiting for job to finish...");
-            sleep(300 * 1000); // sleep 5 minutes
-            if (++retries > max_retries) {
-                return false;
+            final UUID jobId) throws Exception {
+        final String getJobCmd = "--http --output-format json -c get_job -i " + jobId.toString();
+        final int maxRetries = 512;
+        final int pollingInterval = 5 * 60 * 1000;
+        final Predicate<String> predicate = new Predicate<String>() {
+            @Override
+            public boolean apply(@Nullable String input) {
+                return input.contains("\"status\" : \"COMPLETED\"");
             }
+        };
+        return waitForMessage(client, getJobCmd, predicate, maxRetries, pollingInterval);
+    }
+
+    public static boolean waitForPhysicalWrite(
+            final Ds3Client client,
+            final String bucketName) throws Exception {
+        final String getPhysicalPlacementCmd = "--http -c get_detailed_objects_physical -b " + bucketName;
+        final int maxRetries = 50;
+        final int pollingInterval = 10000;
+        final Predicate<String> predicate = new Predicate<String>() {
+            @Override
+            public boolean apply(@Nullable String input) {
+                return !input.contains("No specified objects");
+            }
+        };
+        return waitForMessage(client, getPhysicalPlacementCmd, predicate, maxRetries, pollingInterval);
+    }
+
+    public static boolean waitForMessage(
+            final Ds3Client client,
+            final String commandArguments,
+            final Predicate<String> expectedContains,
+            final int maxRetries,
+            final long pollingInterval) throws Exception {
+        for (int i = 0; i < maxRetries; i++) {
+            Thread.sleep(pollingInterval);
+            final CommandResponse physicalResponse = Util.command(client, commandArguments);
+            if (expectedContains.apply(physicalResponse.getMessage())) {
+                return true;
+            }
+            LOG.info("Retry Count = " + i + ";  success = false");
         }
-        return true;
+        return false;
     }
 
     public static long getCurrentTime() {
