@@ -1,6 +1,6 @@
 /*
  * *****************************************************************************
- *   Copyright 2014-2016 Spectra Logic Corporation. All Rights Reserved.
+ *   Copyright 2014-2017 Spectra Logic Corporation. All Rights Reserved.
  *   Licensed under the Apache License, Version 2.0 (the "License"). You may not use
  *   this file except in compliance with the License. A copy of the License is located at
  *
@@ -19,38 +19,44 @@ import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
-import com.spectralogic.ds3cli.models.GetTapeResult;
-import com.spectralogic.ds3cli.views.cli.GetTapeView;
+import com.spectralogic.ds3cli.models.GetPoolsResult;
+import com.spectralogic.ds3cli.views.cli.GetPoolsView;
 import com.spectralogic.ds3cli.views.json.DataView;
-import com.spectralogic.ds3client.commands.spectrads3.GetTapeSpectraS3Request;
+import com.spectralogic.ds3client.commands.spectrads3.CancelVerifyPoolSpectraS3Request;
+import com.spectralogic.ds3client.commands.spectrads3.CancelVerifyPoolSpectraS3Response;
 import org.apache.commons.cli.Option;
 
 import static com.spectralogic.ds3cli.ArgumentFactory.ID;
 
-public class GetTape extends CliCommand<GetTapeResult> {
+
+public class CancelVerifyPool extends CliCommand<GetPoolsResult> {
 
     private final static ImmutableList<Option> requiredArgs = ImmutableList.of(ID);
 
-    private String jobId;
+    private String id;
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
         processCommandOptions(requiredArgs, EMPTY_LIST, args);
-
-        this.jobId = args.getId();
+        args.parseCommandLine();
+        this.id = args.getId();
+        this.viewType = args.getOutputFormat();
         return this;
     }
 
     @Override
-    public GetTapeResult call() throws Exception {
-        return new GetTapeResult(getClient().getTapeSpectraS3(new GetTapeSpectraS3Request(jobId)).getTapeResult());
+    public GetPoolsResult call() throws Exception {
+        final CancelVerifyPoolSpectraS3Response response
+                = getClient().cancelVerifyPoolSpectraS3(new CancelVerifyPoolSpectraS3Request(this.id));
+        return new GetPoolsResult(response.getPoolResult());
     }
 
     @Override
-    public View<GetTapeResult> getView() {
+    public View<GetPoolsResult> getView() {
         if (viewType == ViewType.JSON) {
             return new DataView<>();
         }
-        return new GetTapeView();
+        return new GetPoolsView();
     }
+
 }

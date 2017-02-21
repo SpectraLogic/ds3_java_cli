@@ -17,10 +17,10 @@ package com.spectralogic.ds3cli.models;
 
 import com.spectralogic.ds3client.models.Tape;
 
-public class TapeResult implements Result<Tape> {
+public class GetTapeResult implements Result<Tape> {
     private final Tape tape;
 
-    public TapeResult(final Tape tape) {
+    public GetTapeResult(final Tape tape) {
         this.tape = tape;
     }
 
