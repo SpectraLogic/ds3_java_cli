@@ -120,6 +120,7 @@ public class Certification_Test {
         } finally {
             OUT.finishTest(testDescription, success);
             Util.deleteBucket(client, bucketName);
+            assertTrue(testDescription + " did not complete", success);
         }
     }
 
@@ -142,6 +143,7 @@ public class Certification_Test {
             success = true;
         } finally {
             OUT.finishTest(testDescription, success);
+            assertTrue(testDescription + " did not complete", success);
         }
     }
 
@@ -164,6 +166,7 @@ public class Certification_Test {
             success = true;
         } finally {
             OUT.finishTest(testDescription, success);
+            assertTrue(testDescription + " did not complete", success);
         }
     }
 
@@ -184,6 +187,7 @@ public class Certification_Test {
             success = true;
         } finally {
             OUT.finishTest(testDescription, success);
+            assertTrue(testDescription + " did not complete", success);
         }
     }
 
@@ -221,6 +225,7 @@ public class Certification_Test {
             OUT.finishTest(testDescription, success);
             Util.deleteBucket(client, bucketName);
             CertificationUtil.deleteUser(client, NO_RIGHTS_USERNAME);
+            assertTrue(testDescription + " did not complete", success);
         }
     }
 
@@ -257,6 +262,7 @@ public class Certification_Test {
         } finally {
             OUT.finishTest(testDescription, success);
             Util.deleteBucket(client, bucketName);
+            assertTrue(testDescription + " did not complete", success);
         }
     }
 
@@ -273,6 +279,7 @@ public class Certification_Test {
         OUT.startNewTest(testDescription);
         final boolean success = testBulkPutAndBulkGetPerformance(bucketName, numFiles, fileSize);
         OUT.finishTest(testDescription, success);
+        assertTrue(testDescription + " did not complete", success);
     }
 
     /**
@@ -288,6 +295,7 @@ public class Certification_Test {
         OUT.startNewTest(testDescription);
         final boolean success = testBulkPutAndBulkGetPerformance(bucketName, numFiles, fileSize);
         OUT.finishTest(testDescription, success);
+        assertTrue(testDescription + " did not complete", success);
     }
 
     private static boolean testBulkPutAndBulkGetPerformance(
