@@ -1,6 +1,6 @@
 /*
  * *****************************************************************************
- *   Copyright 2014-2016 Spectra Logic Corporation. All Rights Reserved.
+ *   Copyright 2014-2017 Spectra Logic Corporation. All Rights Reserved.
  *   Licensed under the Apache License, Version 2.0 (the "License"). You may not use
  *   this file except in compliance with the License. A copy of the License is located at
  *
@@ -25,10 +25,7 @@ import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3cli.util.MemoryObjectChannelBuilder;
 import com.spectralogic.ds3cli.util.MetadataUtils;
 import com.spectralogic.ds3cli.util.SyncUtils;
-import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
-import com.spectralogic.ds3client.helpers.FileObjectGetter;
-import com.spectralogic.ds3client.helpers.FolderNameFilter;
-import com.spectralogic.ds3client.helpers.MetadataReceivedListener;
+import com.spectralogic.ds3client.helpers.*;
 import com.spectralogic.ds3client.helpers.options.ReadJobOptions;
 import com.spectralogic.ds3client.helpers.pagination.GetBucketLoaderFactory;
 import com.spectralogic.ds3client.models.Contents;
@@ -54,17 +51,18 @@ public class GetBulk extends CliCommand<DefaultResult> {
 
     private final static Logger LOG = LoggerFactory.getLogger(GetBulk.class);
 
-    private final static int DEFAULT_BUFFER_SIZE = 1024 * 1024;
-    private final static long DEFAULT_FILE_SIZE = 1024L;
+    protected final static int DEFAULT_BUFFER_SIZE = 1024 * 1024;
+    protected final static long DEFAULT_FILE_SIZE = 1024L;
 
-    private String bucketName;
-    private String directory;
-    private Path outputPath;
-    private ImmutableList<String> prefixes;
-    private Priority priority;
-    private boolean sync;
-    private boolean discard;
-    private int numberOfThreads;
+    protected String bucketName;
+    protected String directory;
+    protected Path outputPath;
+    protected ImmutableList<String> prefixes;
+    protected Priority priority;
+    protected boolean sync;
+    protected boolean discard;
+    protected int numberOfThreads;
+    protected Arguments arguments;
 
     public static final Option PREFIXES = Option.builder("p").hasArgs().argName("prefixes")
             .desc("get only objects whose names start with prefix  "
@@ -80,7 +78,13 @@ public class GetBulk extends CliCommand<DefaultResult> {
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
+        // keep a copy of argumnets to reconstruct command line for recovery
+        this.arguments = args;
         processCommandOptions(requiredArgs, optionalArgs, args);
+        return populateFromArguments(args);
+    }
+
+    protected CliCommand populateFromArguments(final Arguments args) throws Exception {
         this.bucketName = args.getBucket();
         this.priority = args.getPriority();
         this.numberOfThreads = args.getNumberOfThreads();
@@ -138,7 +142,7 @@ public class GetBulk extends CliCommand<DefaultResult> {
         return new DefaultResult(this.restoreSome(getter));
     }
 
-    private String restoreSome(final Ds3ClientHelpers.ObjectChannelBuilder getter) throws IOException, XmlProcessingException {
+    protected String restoreSome(final Ds3ClientHelpers.ObjectChannelBuilder getter) throws JobRecoveryException, IOException, XmlProcessingException {
         final Ds3ClientHelpers helper = getClientHelpers();
 
         final Iterable<Contents> prefixMatches;
@@ -168,6 +172,11 @@ public class GetBulk extends CliCommand<DefaultResult> {
         job.withMaxParallelRequests(this.numberOfThreads);
         final LoggingFileObjectGetter loggingFileObjectGetter = new LoggingFileObjectGetter(getter, this.outputPath);
         job.attachMetadataReceivedListener(loggingFileObjectGetter);
+
+        // provide recovery command in case of failure
+        printRecoveryCommand(job.getJobId());
+
+        // start transfer
         job.transfer(loggingFileObjectGetter);
 
         // Success -- build the response
@@ -182,13 +191,17 @@ public class GetBulk extends CliCommand<DefaultResult> {
         return response.toString();
     }
 
-    private String restoreAll(final Ds3ClientHelpers.ObjectChannelBuilder getter) throws XmlProcessingException, IOException {
+    protected String restoreAll(final Ds3ClientHelpers.ObjectChannelBuilder getter) throws JobRecoveryException, XmlProcessingException, IOException {
         final Ds3ClientHelpers helper = getClientHelpers();
         final Ds3ClientHelpers.Job job = helper.startReadAllJob(this.bucketName,
                 ReadJobOptions.create().withPriority(this.priority));
         job.withMaxParallelRequests(this.numberOfThreads);
         final LoggingFileObjectGetter loggingFileObjectGetter = new LoggingFileObjectGetter(getter, this.outputPath);
         job.attachMetadataReceivedListener(loggingFileObjectGetter);
+        // provide recovery command in case of failure
+        printRecoveryCommand(job.getJobId());
+
+        // start transfer
         job.transfer(loggingFileObjectGetter);
 
         if (this.discard) {
@@ -198,7 +211,7 @@ public class GetBulk extends CliCommand<DefaultResult> {
         }
     }
 
-    private Iterable<Contents> filterContents(final Iterable<Contents> contents, final Path outputPath) throws IOException {
+    protected Iterable<Contents> filterContents(final Iterable<Contents> contents, final Path outputPath) throws IOException {
         final Iterable<Path> localFiles = FileUtils.listObjectsForDirectory(outputPath);
         final Map<String, Path> mapLocalFiles = new HashMap<>();
         for (final Path localFile : localFiles) {
@@ -220,7 +233,7 @@ public class GetBulk extends CliCommand<DefaultResult> {
         return filteredContents;
     }
 
-    class LoggingFileObjectGetter implements Ds3ClientHelpers.ObjectChannelBuilder, MetadataReceivedListener {
+    protected class LoggingFileObjectGetter implements Ds3ClientHelpers.ObjectChannelBuilder, MetadataReceivedListener {
 
         final private Ds3ClientHelpers.ObjectChannelBuilder objectGetter;
         final private Path outputPath;
@@ -243,7 +256,7 @@ public class GetBulk extends CliCommand<DefaultResult> {
         }
     }
 
-    private Iterable<Contents> getObjectsByPrefix() {
+    protected Iterable<Contents> getObjectsByPrefix() {
         Iterable<Contents> allPrefixMatches = Collections.emptyList();
         for (final String prefix : prefixes) {
             final Iterable<Contents> prefixMatch = new LazyIterable<>(
@@ -251,6 +264,26 @@ public class GetBulk extends CliCommand<DefaultResult> {
             allPrefixMatches = Iterables.concat(allPrefixMatches, prefixMatch);
         }
         return allPrefixMatches;
+    }
+
+    protected void printRecoveryCommand(final UUID jobId) {
+        broadcast("To restart this job in case of failure:\n");
+        boolean appendId = true;
+        final String idOption = "-" + ID.getOpt();
+        for (final String arg : arguments.getAllArgs()) {
+            if (arg.equals(idOption)) {
+                // only add the id arg on put_bulk, it wil be in the list on recoveroes
+                appendId = false;
+            }
+            if (arg.equals("get_bulk")) {
+                broadcast("recover_get_bulk ");
+            } else {
+                broadcast(arg + " ");
+            }
+        }
+        if (appendId) {
+            broadcast(idOption + " " + jobId.toString() + "\n");
+        }
     }
 
 }

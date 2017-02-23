@@ -1,6 +1,6 @@
 /*
  * *****************************************************************************
- *   Copyright 2014-2016 Spectra Logic Corporation. All Rights Reserved.
+ *   Copyright 2014-2017 Spectra Logic Corporation. All Rights Reserved.
  *   Licensed under the Apache License, Version 2.0 (the "License"). You may not use
  *   this file except in compliance with the License. A copy of the License is located at
  *
@@ -28,6 +28,7 @@ import com.spectralogic.ds3cli.models.PutBulkResult;
 import com.spectralogic.ds3cli.util.*;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.helpers.FileObjectPutter;
+import com.spectralogic.ds3client.helpers.JobRecoveryException;
 import com.spectralogic.ds3client.helpers.MetadataAccess;
 import com.spectralogic.ds3client.helpers.options.WriteJobOptions;
 import com.spectralogic.ds3client.models.Contents;
@@ -49,12 +50,13 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.Map;
+import java.util.UUID;
 
 import static com.spectralogic.ds3cli.ArgumentFactory.*;
 
 public class PutBulk extends CliCommand<PutBulkResult> {
 
-    private final static Logger LOG = LoggerFactory.getLogger(PutBulk.class);
+    private  final static Logger LOG = LoggerFactory.getLogger(PutBulk.class);
 
     private final static ImmutableList<Option> requiredArgs = ImmutableList.of(BUCKET);
     private final static ImmutableList<Option> optionalArgs
@@ -63,29 +65,35 @@ public class PutBulk extends CliCommand<PutBulkResult> {
             SYNC, FORCE, NUMBER_OF_THREADS, IGNORE_ERRORS,
             IGNORE_NAMING_CONFLICTS, DIRECTORY);
 
-    private String bucketName;
-    private Path inputDirectory;
-    private String prefix;
-    private boolean checksum;
-    private Priority priority;
-    private WriteOptimization writeOptimization;
-    private boolean sync;
-    private boolean force;
-    private int numberOfThreads;
-    private boolean ignoreErrors;
-    private boolean pipe;
-    private ImmutableList<Path> pipedFiles;
-    private ImmutableMap<String, String> mapNormalizedObjectNameToObjectName = null;
-    private boolean followSymlinks;
-    private boolean ignoreNamingConflicts;
+    protected String bucketName;
+    protected Path inputDirectory;
+    protected String prefix;
+    protected boolean checksum;
+    protected Priority priority;
+    protected WriteOptimization writeOptimization;
+    protected boolean sync;
+    protected boolean force;
+    protected int numberOfThreads;
+    protected boolean ignoreErrors;
+    protected boolean pipe;
+    protected ImmutableList<Path> pipedFiles;
+    protected ImmutableMap<String, String> mapNormalizedObjectNameToObjectName = null;
+    protected boolean followSymlinks;
+    protected boolean ignoreNamingConflicts;
+    protected Arguments arguments;
 
     public PutBulk() {
     }
 
-
     @Override
     public CliCommand init(final Arguments args) throws Exception {
+        // keep a copy of argumnets to reconstruct command line for recovery
+        this.arguments = args;
         processCommandOptions(requiredArgs, optionalArgs, args);
+        return populateFromArguments(args);
+    }
+
+    protected CliCommand populateFromArguments(final Arguments args) throws Exception {
 
         this.bucketName = args.getBucket();
         this.pipe = CliUtils.isPipe();
@@ -165,7 +173,8 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         return this.transfer(helpers, ds3Objects, objectsToPut.getDs3IgnoredObjects());
     }
 
-    private PutBulkResult transfer(final Ds3ClientHelpers helpers, final Iterable<Ds3Object> ds3Objects, final ImmutableList<IgnoreFile> ds3IgnoredObjects) throws IOException, XmlProcessingException {
+    protected PutBulkResult transfer(final Ds3ClientHelpers helpers, final Iterable<Ds3Object> ds3Objects, final ImmutableList<IgnoreFile> ds3IgnoredObjects)
+            throws JobRecoveryException, IOException, XmlProcessingException {
         final WriteJobOptions writeJobOptions = WriteJobOptions.create()
                 .withPriority(this.priority)
                 .withWriteOptimization(this.writeOptimization)
@@ -174,6 +183,8 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         final Ds3ClientHelpers.Job job = helpers.startWriteJob(this.bucketName, ds3Objects,
                 writeJobOptions);
                 job.withMaxParallelRequests(this.numberOfThreads);
+
+        printRecoveryCommand(job.getJobId());
 
         if (this.checksum) {
             throw new RuntimeException("Checksum calculation is not currently supported."); //TODO
@@ -201,7 +212,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         return new PutBulkResult(resultMessage, ds3IgnoredObjects);
     }
 
-    private void appendPrefix(final Iterable<Ds3Object> ds3Objects) {
+    protected void appendPrefix(final Iterable<Ds3Object> ds3Objects) {
         if (this.pipe || this.prefix == null) return;
 
         LOG.info("Pre-appending {} to all object names", this.prefix);
@@ -210,7 +221,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         }
     }
 
-    private ImmutableMap<String, String> getNormalizedObjectNameToObjectName(final ImmutableList<Path> pipedFiles) {
+    protected ImmutableMap<String, String> getNormalizedObjectNameToObjectName(final ImmutableList<Path> pipedFiles) {
         final ImmutableMap.Builder<String, String> map = ImmutableMap.builder();
         for (final Path file : pipedFiles) {
             map.put(FileUtils.normalizeObjectName(file.toString()), file.toString());
@@ -227,7 +238,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         return new com.spectralogic.ds3cli.views.cli.PutBulkView();
     }
     
-    private static class SyncFilter implements FilteringIterable.FilterFunction<Path> {
+    protected static class SyncFilter implements FilteringIterable.FilterFunction<Path> {
 
         private final String prefix;
         private final Path inputDirectory;
@@ -270,7 +281,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         }
     }
 
-    private Iterable<Path> getFilesToPut() throws IOException {
+    protected Iterable<Path> getFilesToPut() throws IOException {
         final Iterable<Path> filesToPut;
         if (this.pipe) {
             filesToPut = this.pipedFiles;
@@ -410,6 +421,26 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         public Map<String, String> getMetadataValue(final String s) {
             final Path path = Paths.get(this.mapNormalizedObjectNameToObjectName.get(s));
             return MetadataUtils.getMetadataValues(path);
+        }
+    }
+
+    protected void printRecoveryCommand(final UUID jobId) {
+        broadcast("To restart this job in case of failure:\n");
+        boolean appendId = true;
+        final String idOption = "-" + ID.getOpt();
+        for (final String arg : arguments.getAllArgs()) {
+            if (arg.equals(idOption)) {
+                // only add the id arg on put_bulk, it wil be in the list on recoveroes
+                appendId = false;
+            }
+            if (arg.equals("put_bulk")) {
+                broadcast("recover_put_bulk ");
+            } else {
+                broadcast(arg + " ");
+            }
+        }
+        if (appendId) {
+            broadcast(idOption + " " + jobId.toString() + "\n");
         }
     }
 }

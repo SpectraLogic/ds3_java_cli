@@ -31,12 +31,11 @@ import com.google.common.base.Joiner;
 import com.spectralogic.ds3cli.command.CliCommand;
 import com.spectralogic.ds3cli.command.CliCommandFactory;
 import com.spectralogic.ds3cli.exceptions.*;
-import com.spectralogic.ds3cli.util.CliUtils;
-import com.spectralogic.ds3cli.util.Ds3Provider;
-import com.spectralogic.ds3cli.util.FileSystemProvider;
+import com.spectralogic.ds3cli.util.*;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.networking.FailedRequestException;
+import com.spectralogic.ds3client.utils.*;
 import org.apache.commons.cli.MissingOptionException;
 import org.slf4j.LoggerFactory;
 
@@ -141,6 +140,9 @@ public final class Main {
     }
 
     public static void main(final String[] args) {
+        // recovery ;listerers
+        final CommandListener bufferListener = new CommandListenerImpl();
+        final CommandListener streamListener = new CommandListenerStream(System.out);
 
         try {
             final Properties props = CliUtils.readProperties(PROPERTY_FILE);
@@ -177,7 +179,6 @@ public final class Main {
                 throw new BadArgumentException("Unknown command", e);
             }
 
-
             final Ds3Client client = ClientFactory.createClient(arguments);
             if (!CliUtils.isVersionSupported(client)) {
                 System.out.println(String.format("ERROR: Minimum Black Pearl supported is %s", CliUtils.MINIMUM_VERSION_SUPPORTED));
@@ -189,6 +190,8 @@ public final class Main {
 
             // get command, parse args
             final CliCommand command = CliCommandFactory.getCommandExecutor(arguments.getCommand()).withProvider(provider, fileSystemProvider);
+            command.registerListener(bufferListener);
+            command.registerListener(streamListener);
             command.init(arguments);
 
             final CommandResponse response = command.render();
@@ -196,6 +199,10 @@ public final class Main {
             System.exit(response.getReturnCode());
         } catch (final Exception e) {
             EXCEPTION.handleException(e);
+            final String recoveryString = bufferListener.toString();
+            if (!com.spectralogic.ds3client.utils.Guard.isStringNullOrEmpty(recoveryString)) {
+                System.out.println(recoveryString);
+            }
             System.exit(2);
         }
     }

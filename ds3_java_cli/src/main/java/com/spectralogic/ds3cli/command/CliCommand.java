@@ -22,6 +22,7 @@ import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.exceptions.BadArgumentException;
 import com.spectralogic.ds3cli.models.Result;
 import com.spectralogic.ds3cli.util.CommandHelpText;
+import com.spectralogic.ds3cli.util.CommandListener;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileSystemProvider;
 import com.spectralogic.ds3cli.views.cli.DefaultView;
@@ -31,6 +32,7 @@ import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.ParseException;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -38,6 +40,7 @@ import java.util.concurrent.Callable;
 public abstract class CliCommand<T extends Result> implements Callable<T> {
 
     protected final static List<Option> EMPTY_LIST = Collections.emptyList();
+    protected final List<CommandListener> listeners = new ArrayList<CommandListener>();
 
     private Ds3Provider ds3Provider;
     private FileSystemProvider fileSystemProvider;
@@ -186,6 +189,16 @@ public abstract class CliCommand<T extends Result> implements Callable<T> {
             + String.format("OS: {%s}\n", System.getProperty("os.name"))
             + String.format("OS Arch: {%s}\n", System.getProperty("os.arch"))
             + String.format("OS Version: {%s}\n", System.getProperty("os.version"));
+    }
+
+    public void registerListener(final CommandListener listen) {
+        listeners.add(listen);
+    }
+
+    protected void broadcast(final String message) {
+        for (final CommandListener listener : listeners) {
+            listener.append(message);
+        }
     }
 
 }
