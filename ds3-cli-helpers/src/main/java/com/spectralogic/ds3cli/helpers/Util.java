@@ -1,6 +1,6 @@
 /*
  * ******************************************************************************
- *   Copyright 2014-2015 Spectra Logic Corporation. All Rights Reserved.
+ *   Copyright 2014-2017 Spectra Logic Corporation. All Rights Reserved.
  *   Licensed under the Apache License, Version 2.0 (the "License"). You may not use
  *   this file except in compliance with the License. A copy of the License is located at
  *
@@ -13,10 +13,13 @@
  * ****************************************************************************
  */
 
-package com.spectralogic.ds3cli.integration;
+package com.spectralogic.ds3cli.helpers;
 
 import com.google.common.collect.ImmutableList;
-import com.spectralogic.ds3cli.*;
+import com.spectralogic.ds3cli.Arguments;
+import com.spectralogic.ds3cli.CommandResponse;
+import com.spectralogic.ds3cli.Ds3ProviderImpl;
+import com.spectralogic.ds3cli.FileSystemProviderImpl;
 import com.spectralogic.ds3cli.command.CliCommand;
 import com.spectralogic.ds3cli.command.CliCommandFactory;
 import com.spectralogic.ds3cli.util.Ds3Provider;
@@ -34,20 +37,36 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.regex.Pattern;
 
-public class Util {
+public final class Util {
     public static final String RESOURCE_BASE_NAME = "./src/test/resources/books/";
     public static final String DOWNLOAD_BASE_NAME = "./output/";
+    private static final int TRANSER_RETRY_ATTEMPTS = 5;
 
     private Util() {
         //pass
     }
 
+
     public static CommandResponse command(final Ds3Client client, final Arguments args) throws Exception {
-        final Ds3Provider provider = new Ds3ProviderImpl(client, Ds3ClientHelpers.wrap(client));
+        final Ds3Provider provider = new Ds3ProviderImpl(client, Ds3ClientHelpers.wrap(client, TRANSER_RETRY_ATTEMPTS));
         final FileSystemProvider fileSystemProvider = new FileSystemProviderImpl();
         final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(provider, fileSystemProvider);
         command.init(args);
         return command.render();
+    }
+
+    public static CommandResponse command(final Ds3Client client, final String commandLine) throws Exception {
+        return command(client, new Arguments(commandLine.split(" ")));
+    }
+
+    public static CommandResponse getBucket(final Ds3Client client, final String bucketName) throws Exception {
+        final Arguments args = new Arguments(new String[]{"--http", "-c", "get_bucket", "-b", bucketName});
+        return command(client, args);
+    }
+
+    public static CommandResponse getService(final Ds3Client client) throws Exception {
+        final Arguments args = new Arguments(new String[]{"--http", "-c", "get_service"});
+        return command(client, args);
     }
 
     public static CommandResponse createBucket(final Ds3Client client, final String bucketName) throws Exception {
@@ -57,6 +76,62 @@ public class Util {
 
     public static CommandResponse deleteBucket(final Ds3Client client, final String bucketName) throws Exception {
         final Arguments args = new Arguments(new String[]{"--http", "-c", "delete_bucket", "-b", bucketName, "--force"});
+        return command(client, args);
+    }
+
+    public static CommandResponse putBulk(final Ds3Client client, final String bucketName, final String localDirectory) throws Exception {
+        final Arguments args = new Arguments(
+                new String[]{
+                        "--http",
+                        "-c", "put_bulk",
+                        "-b", bucketName,
+                        "-d", localDirectory,
+                        "-nt", "3"});
+        return command(client, args);
+    }
+
+    public static CommandResponse putPerformanceFiles(final Ds3Client client, final String bucketName, final int fileCount, final long fileSize) throws Exception {
+        final Arguments args = new Arguments(
+                new String[]{
+                        "--http",
+                        "-c", "performance",
+                        "-b", bucketName,
+                        "-n", Integer.toString(fileCount),
+                        "-s", Long.toString(fileSize),
+                        "--do-not-delete" });
+        return Util.command(client, args);
+    }
+
+    public static CommandResponse getBulk(final Ds3Client client, final String bucketName, final String localDirectory) throws Exception {
+        final Arguments args = new Arguments(
+                new String[]{
+                        "--http",
+                        "-c", "get_bulk",
+                        "-b", bucketName,
+                        "-d", localDirectory,
+                        "-nt", "3"});
+        return command(client, args);
+    }
+
+    public static CommandResponse getJobs(final Ds3Client client) throws Exception {
+        final Arguments args = new Arguments(
+                new String[]{
+                        "--http",
+                        "-c", "get_jobs"});
+        return command(client, args);
+    }
+
+    public static CommandResponse getCompletedJobs(final Ds3Client client) throws Exception {
+        final Arguments args = new Arguments(
+                new String[]{
+                        "--http",
+                        "-c", "get_jobs",
+                        "--completed"});
+        return command(client, args);
+    }
+
+    public static CommandResponse getObject(final Ds3Client client, final String bucketName, final String objectName) throws Exception {
+        final Arguments args = new Arguments(new String[]{"--http", "-c", "get_object", "-b", bucketName, "-o", objectName});
         return command(client, args);
     }
 

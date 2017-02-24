@@ -1,0 +1,7 @@
+configurations {
+    testOutput
+}
+
+dependencies {
+    testOutput sourceSets.test.output
+}

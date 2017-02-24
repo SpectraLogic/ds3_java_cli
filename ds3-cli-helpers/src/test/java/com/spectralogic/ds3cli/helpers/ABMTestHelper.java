@@ -1,6 +1,6 @@
 /*
  * ******************************************************************************
- *   Copyright 2014-2016 Spectra Logic Corporation. All Rights Reserved.
+ *   Copyright 2014-2017 Spectra Logic Corporation. All Rights Reserved.
  *   Licensed under the Apache License, Version 2.0 (the "License"). You may not use
  *   this file except in compliance with the License. A copy of the License is located at
  *
@@ -13,7 +13,7 @@
  * ****************************************************************************
  */
 
-package com.spectralogic.ds3cli.integration.test.helpers;
+package com.spectralogic.ds3cli.helpers;
 
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.spectrads3.*;
@@ -31,37 +31,23 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 /**
- * This class provides utilities for testing the ABM commands
+ * This class provides utilities for ABM commands
  */
 public final class ABMTestHelper {
 
     final private static Logger LOG = LoggerFactory.getLogger(ABMTestHelper.class);
 
     /**
-     * Creates a data policy with the specified name and versioning level, if a
+     * Creates a data policy with the specified name and options if a
      * policy with the same name does not currently exist. If a policy already
      * exists with the specified name, an error is thrown.
      */
-    public static PutDataPolicySpectraS3Response createDataPolicyWithVersioning(
-            final String dataPolicyName,
-            final VersioningLevel versioningLevel,
-            final Ds3Client client) throws IOException {
-        return createDataPolicyWithVersioningAndCrcRequired(
-                dataPolicyName,
-                versioningLevel,
-                null,
-                client);
-    }
-
-    /**
-     * Creates a data policy with the specified name and versioning level and checksum, if a
-     * policy with the same name does not currently exist. If a policy already
-     * exists with the specified name, an error is thrown.
-     */
-    public static PutDataPolicySpectraS3Response createDataPolicyWithVersioningAndCrcRequired(
+    public static PutDataPolicySpectraS3Response createDataPolicy(
             final String dataPolicyName,
             final VersioningLevel versioningLevel,
             final ChecksumType.Type checksumType,
+            final boolean endToEndCrcRequired,
+            final boolean alwaysForceJobCreation,
             final Ds3Client client) throws IOException {
         //Check if data policy already exists
         try {
@@ -71,18 +57,18 @@ public final class ABMTestHelper {
             //Pass: expected data policy to not exist
         }
 
-        if (checksumType == null) {
-            //Create the data policy with versioning
-            return client.putDataPolicySpectraS3(new PutDataPolicySpectraS3Request(dataPolicyName)
-                    .withVersioning(versioningLevel));
-                    // TODO 3.2: .withAlwaysForcePutJobCreation(true));
+        final PutDataPolicySpectraS3Request request = new PutDataPolicySpectraS3Request(dataPolicyName)
+                .withEndToEndCrcRequired(endToEndCrcRequired)
+                .withAlwaysForcePutJobCreation(alwaysForceJobCreation);
+
+        if (checksumType != null) {
+            request.withChecksumType(checksumType);
         }
-        //Create the data policy with versioning and checksum
-        return client.putDataPolicySpectraS3(new PutDataPolicySpectraS3Request(dataPolicyName)
-                .withVersioning(versioningLevel)
-                .withEndToEndCrcRequired(true)
-                .withChecksumType(checksumType));
-                // TODO 3.2: .withAlwaysForcePutJobCreation(true));
+        if (versioningLevel != null) {
+            request.withVersioning(versioningLevel);
+        }
+
+        return client.putDataPolicySpectraS3(request);
     }
 
     /**
@@ -430,8 +416,10 @@ public final class ABMTestHelper {
      * Gets the cached size in bytes for the job UUID provided every 500 milliseconds
      * and returns when greater than zero, or fails after timeoutSeconds.
      */
-    public static void waitForJobCachedSizeToBeMoreThanZero(final UUID jobId
-            , final Ds3Client client, final int timeoutSeconds) throws Exception {
+    public static void waitForJobCachedSizeToBeMoreThanZero(
+            final UUID jobId,
+            final Ds3Client client,
+            final int timeoutSeconds) throws Exception {
 
         long cachedSize = 0;
         int cycles = 0;

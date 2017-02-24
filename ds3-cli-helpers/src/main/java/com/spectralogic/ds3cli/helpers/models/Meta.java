@@ -1,6 +1,6 @@
 /*
  * ******************************************************************************
- *   Copyright 2014-2015 Spectra Logic Corporation. All Rights Reserved.
+ *   Copyright 2014-2016 Spectra Logic Corporation. All Rights Reserved.
  *   Licensed under the Apache License, Version 2.0 (the "License"). You may not use
  *   this file except in compliance with the License. A copy of the License is located at
  *
@@ -13,24 +13,21 @@
  * ****************************************************************************
  */
 
-package com.spectralogic.ds3cli.integration;
+package com.spectralogic.ds3cli.helpers.models;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.guava.GuavaModule;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.io.IOException;
+public class Meta {
+    @JsonProperty("Date")
+    private final String date;
 
-public final class JsonMapper {
-
-    private static final ObjectMapper mapper;
-
-    static {
-        mapper = new ObjectMapper().registerModule(new GuavaModule());
+    @JsonCreator
+    public Meta(@JsonProperty("Date") final String date) {
+        this.date = date;
     }
 
-    private JsonMapper() {}
-
-    public static<T> T toModel(final String jsonBody, final Class<T> clazz) throws IOException {
-        return mapper.readValue(jsonBody, clazz);
+    public String getDate() {
+        return date;
     }
 }
