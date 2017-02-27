@@ -1,6 +1,6 @@
 /*
  * ******************************************************************************
- *   Copyright 2014-2015 Spectra Logic Corporation. All Rights Reserved.
+ *   Copyright 2014-2016 Spectra Logic Corporation. All Rights Reserved.
  *   Licensed under the Apache License, Version 2.0 (the "License"). You may not use
  *   this file except in compliance with the License. A copy of the License is located at
  *
@@ -20,10 +20,12 @@ import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Lists;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.CommandResponse;
-import com.spectralogic.ds3cli.integration.models.HeadObject;
-import com.spectralogic.ds3cli.integration.models.JobResponse;
-import com.spectralogic.ds3cli.integration.test.helpers.TempStorageIds;
-import com.spectralogic.ds3cli.integration.test.helpers.TempStorageUtil;
+import com.spectralogic.ds3cli.helpers.JsonMapper;
+import com.spectralogic.ds3cli.helpers.TempStorageIds;
+import com.spectralogic.ds3cli.helpers.TempStorageUtil;
+import com.spectralogic.ds3cli.helpers.Util;
+import com.spectralogic.ds3cli.helpers.models.HeadObject;
+import com.spectralogic.ds3cli.helpers.models.JobResponse;
 import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3cli.util.SterilizeString;
 import com.spectralogic.ds3client.Ds3Client;
@@ -299,8 +301,8 @@ public class FeatureIntegration_Test {
         final String objectName = "beowulf.txt";
         try {
             // For a Get with sync, the local file needs to be older than the server copy
-            Util.copyFile(objectName, Util.RESOURCE_BASE_NAME, Util.DOWNLOAD_BASE_NAME);
-            final File file = new File(Util.DOWNLOAD_BASE_NAME + File.separator + objectName);
+            Util.copyFile(objectName, Util.RESOURCE_BASE_NAME, Util.RESOURCE_BASE_NAME);
+            final File file = new File(Util.RESOURCE_BASE_NAME + File.separator + objectName);
             final DateTime modTime = new DateTime().minusHours(1);
             file.setLastModified(modTime.getMillis());
 
@@ -308,7 +310,7 @@ public class FeatureIntegration_Test {
             Util.loadBookTestData(client, bucketName);
 
             final Arguments args = new Arguments(new String[]{"--http", "-c", "get_object", "-b", bucketName,
-                    "-o", objectName, "-d", Util.DOWNLOAD_BASE_NAME, "--sync"});
+                    "-o", objectName, "-d", Util.RESOURCE_BASE_NAME, "--sync"});
             final CommandResponse response = Util.command(client, args);
             assertThat(response.getMessage(), is("SUCCESS: Finished syncing object."));
         } finally {

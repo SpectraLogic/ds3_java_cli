@@ -51,7 +51,7 @@ public class DetailedObjectsPhysicalView extends TableView<GetDetailedObjectsRes
     protected String renderTable() {
         final String[][] tableContents =  formatTableContents();
         if (tableContents.length == 0) {
-            return "No speciifed objects have physical placement";
+            return "No specified objects have physical placement";
         }
         return ASCIITable.getInstance().getTable(getHeaders(),tableContents);
     }

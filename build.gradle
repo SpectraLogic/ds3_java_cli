@@ -1,6 +1,6 @@
 /*
  * ******************************************************************************
- *   Copyright 2014 Spectra Logic Corporation. All Rights Reserved.
+ *   Copyright 2014-2017 Spectra Logic Corporation. All Rights Reserved.
  *   Licensed under the Apache License, Version 2.0 (the "License"). You may not use
  *   this file except in compliance with the License. A copy of the License is located at
  *
@@ -49,9 +49,24 @@ subprojects {
     }
 }
 
-project(':ds3-cli-integration') {
+project(':ds3-cli-helpers') {
     dependencies {
         compile project(':ds3_java_cli')
+    }
+}
+
+project(':ds3-cli-integration') {
+    dependencies {
+        testCompile project(':ds3-cli-helpers')
+        testCompile project(path: ':ds3-cli-helpers', configuration: 'testOutput')
+    }
+}
+
+project(':ds3-cli-certification') {
+    dependencies {
+        compile project(':ds3-cli-helpers')
+        testCompile project(':ds3-cli-helpers')
+        testCompile project(path: ':ds3-cli-helpers', configuration: 'testOutput')
     }
 }
 
