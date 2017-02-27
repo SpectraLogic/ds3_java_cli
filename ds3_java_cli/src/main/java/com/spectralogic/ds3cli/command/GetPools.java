@@ -27,6 +27,7 @@ import com.spectralogic.ds3cli.views.json.DataView;
 import com.spectralogic.ds3client.commands.spectrads3.GetPoolsSpectraS3Request;
 import com.spectralogic.ds3client.models.PoolHealth;
 import com.spectralogic.ds3client.models.PoolState;
+import com.spectralogic.ds3client.models.PoolType;
 import com.spectralogic.ds3client.utils.Guard;
 import org.apache.commons.cli.Option;
 
@@ -51,12 +52,19 @@ public class GetPools extends CliCommand<GetPoolsResult> {
             .hasArg(true)
             .build();
 
-    private final static ImmutableList<Option> optionalArgs = ImmutableList.of(POOL_NAME, BUCKET, POOL_HEALTH, POOL_STATE);
+    public static final Option POOL_TYPE = Option.builder().
+            longOpt("type")
+            .desc("Filter by pool type.  Possible values: [" + CliUtils.printEnumOptions(PoolType.values()) + "]")
+            .hasArg(true)
+            .build();
+
+    private final static ImmutableList<Option> optionalArgs = ImmutableList.of(POOL_NAME, BUCKET, POOL_HEALTH, POOL_STATE, POOL_TYPE);
 
     private String bucketName;
     private String poolName;
     private PoolState poolState;
     private PoolHealth poolHealth;
+    private PoolType poolType;
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
@@ -82,6 +90,15 @@ public class GetPools extends CliCommand<GetPoolsResult> {
         } catch (final IllegalArgumentException e) {
             throw new BadArgumentException("Unknown pool health: " + healthString, e);
         }
+
+        final String typeString = args.getOptionValue(POOL_TYPE.getLongOpt());
+        try {
+            if (!Guard.isStringNullOrEmpty(typeString)) {
+                this.poolType =  PoolType.valueOf(typeString.toUpperCase());
+            }
+        } catch (final IllegalArgumentException e) {
+            throw new BadArgumentException("Unknown pool type: " + typeString, e);
+        }
         return this;
     }
 
@@ -101,6 +118,10 @@ public class GetPools extends CliCommand<GetPoolsResult> {
         if (poolHealth != null) {
             request.withHealth(poolHealth);
         }
+        if (poolType != null) {
+            request.withType(poolType);
+        }
+
         return new GetPoolsResult(getClient().getPoolsSpectraS3(request).getPoolListResult());
     }
 

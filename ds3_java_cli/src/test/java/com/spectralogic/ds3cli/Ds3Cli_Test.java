@@ -2934,7 +2934,15 @@ public class Ds3Cli_Test {
         assertThat(result, is(expected));
     }
 
-    @Test
+    @Test (expected = BadArgumentException.class)
+    public void getPoolsBadType() throws Exception {
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_pools", "--type", "carpool"});
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
+        command.init(args);
+    }
+
+
+        @Test
     public void getPools() throws Exception {
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_pools"});
         final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
