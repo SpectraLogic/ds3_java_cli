@@ -128,14 +128,12 @@ public class TempStorageUtil {
         assumeThat(getStorageDomainMembersResponse.getStorageDomainMemberListResult().getStorageDomainMembers().size(), is(greaterThan(0)));
 
         final GetDataPoliciesSpectraS3Response getDataPoliciesResponse = client.getDataPoliciesSpectraS3(new GetDataPoliciesSpectraS3Request());
-        final Iterable<DataPolicy> policyList  = getDataPoliciesResponse.getDataPolicyListResult().getDataPolicies();
-        Predicate<DataPolicy> predicate = new Predicate<DataPolicy>() {
-            @Override
-            public boolean apply(@Nullable DataPolicy input) {
-                return input.getName().equals(PREFERRED_DATA_POLICY_NAME);
-            }
-        };
-        final Iterable<DataPolicy> preferredPolicies = Iterables.filter(policyList, predicate);
+        final Iterable<DataPolicy> preferredPolicies =
+                Iterables.filter(getDataPoliciesResponse.getDataPolicyListResult().getDataPolicies(), new Predicate<DataPolicy>() {
+                    @Override
+                    public boolean apply(@Nullable DataPolicy input) {
+                        return input.getName().equals(PREFERRED_DATA_POLICY_NAME);
+                    };});
         assumeTrue(preferredPolicies.iterator().hasNext());
         final DataPolicy singleTapeDp = preferredPolicies.iterator().next();
 
