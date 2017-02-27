@@ -2895,6 +2895,100 @@ public class Ds3Cli_Test {
     }
 
     @Test
+    public void getPool() throws Exception {
+        final UUID poolId = UUID.fromString("7e2780c0-e447-4294-a9e0-e53324a1c79a");
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_pool", "-i", poolId.toString()});
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
+        command.init(args);
+        assertTrue(command instanceof GetPool);
+        final View view = command.getView();
+
+        final String expected =
+            "+-----------------------------------+--------------------------------------+--------+---------------+-----------+--------------------------------------+----------------------------+--------------------------+-------------------+\n" +
+            "|                Pool               |                  ID                  |  Type  |    Capacity   | Bucket Id |             Partition Id             | Assigned to Storage Domain |       Last Modified      | Last Verification |\n" +
+            "+-----------------------------------+--------------------------------------+--------+---------------+-----------+--------------------------------------+----------------------------+--------------------------+-------------------+\n" +
+            "| Online_Disk_1_7044231287698570181 | 7e2780c0-e447-4294-a9e0-e53324a1c79a | ONLINE | 3430686763316 | N/A       | 1982c83f-ee80-434f-ae5b-19415faa5b01 | true                       | 2017-02-27T10:42:34.000Z | N/A               |\n" +
+            "+-----------------------------------+--------------------------------------+--------+---------------+-----------+--------------------------------------+----------------------------+--------------------------+-------------------+\n";
+
+        final InputStream packet = IOUtils.toInputStream("<Data>" +
+                "<Pool>" +
+                "<AssignedToStorageDomain>true</AssignedToStorageDomain>" +
+                "<AvailableCapacity>3430686763316</AvailableCapacity><BucketId/>" +
+                "<Guid>7044231287698570181</Guid><Health>OK</Health>" +
+                "<Id>7e2780c0-e447-4294-a9e0-e53324a1c79a</Id>" +
+                "<LastAccessed>2017-02-27T10:42:34.000Z</LastAccessed>" +
+                "<LastModified>2017-02-27T10:42:34.000Z</LastModified><LastVerified/>" +
+                "<Mountpoint>/pool/Online_Disk_1_7044231287698570181/vol/data/ds3</Mountpoint>" +
+                "<Name>Online_Disk_1_7044231287698570181</Name>" +
+                "<PartitionId>1982c83f-ee80-434f-ae5b-19415faa5b01</PartitionId>" +
+                "<PoweredOn>true</PoweredOn><Quiesced>NO</Quiesced>" +
+                "<ReservedCapacity>386117455052</ReservedCapacity><State>NORMAL</State>" +
+                "<StorageDomainId>896dcbf3-66a6-4f4f-a163-0210c6e0ab4b</StorageDomainId>" +
+                "<TotalCapacity>3861174550528</TotalCapacity><Type>ONLINE</Type>" +
+                "<UsedCapacity>44370332160</UsedCapacity></Pool>" +
+                "</Data>", "utf-8");
+
+        final PoolList pools = XmlOutput.fromXml(packet, PoolList.class);
+        final GetPoolsResult getPoolsResult = new GetPoolsResult(pools);
+        final String result = view.render(getPoolsResult);
+        assertThat(result, is(expected));
+    }
+
+    @Test
+    public void getPools() throws Exception {
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_pools"});
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
+        command.init(args);
+        assertTrue(command instanceof GetPools);
+        final View view = command.getView();
+
+        final String expected =
+            "+------------------------------------+--------------------------------------+----------+-----------------+-----------+--------------------------------------+----------------------------+--------------------------+-------------------+\n" +
+            "|                Pool                |                  ID                  |   Type   |     Capacity    | Bucket Id |             Partition Id             | Assigned to Storage Domain |       Last Modified      | Last Verification |\n" +
+            "+------------------------------------+--------------------------------------+----------+-----------------+-----------+--------------------------------------+----------------------------+--------------------------+-------------------+\n" +
+            "| Arctic_Blue_1_13867492206260533141 | e00a14f9-3da6-45b2-9d4d-6cef130b57bf | NEARLINE | 127096541946535 | N/A       | fa827f71-b9a7-451a-98cf-c3392bad9323 | true                       | 2017-02-27T10:42:06.000Z | N/A               |\n" +
+            "| Online_Disk_1_7044231287698570181  | 7e2780c0-e447-4294-a9e0-e53324a1c79a | ONLINE   | 3430686763316   | N/A       | 1982c83f-ee80-434f-ae5b-19415faa5b01 | true                       | 2017-02-27T10:42:34.000Z | N/A               |\n" +
+            "+------------------------------------+--------------------------------------+----------+-----------------+-----------+--------------------------------------+----------------------------+--------------------------+-------------------+\n";
+
+        final InputStream packet = IOUtils.toInputStream("<Data>" +
+                "<Pool>" +
+                "<AssignedToStorageDomain>true</AssignedToStorageDomain>" +
+                "<AvailableCapacity>127096541946535</AvailableCapacity>" +
+                "<BucketId/><Guid>13867492206260533141</Guid><Health>OK</Health>" +
+                "<Id>e00a14f9-3da6-45b2-9d4d-6cef130b57bf</Id><LastAccessed>2017-02-27T10:42:06.000Z</LastAccessed>" +
+                "<LastModified>2017-02-27T10:42:06.000Z</LastModified><LastVerified/>" +
+                "<Mountpoint>/pool/Arctic_Blue_1_13867492206260533141/vol/data/ds3</Mountpoint>" +
+                "<Name>Arctic_Blue_1_13867492206260533141</Name>" +
+                "<PartitionId>fa827f71-b9a7-451a-98cf-c3392bad9323</PartitionId>" +
+                "<PoweredOn>true</PoweredOn><Quiesced>NO</Quiesced>" +
+                "<ReservedCapacity>14209583782297</ReservedCapacity>" +
+                "<State>NORMAL</State><StorageDomainId>8253863e-8818-4677-8e6b-60b1d398dd1e</StorageDomainId>" +
+                "<TotalCapacity>142095837822976</TotalCapacity><Type>NEARLINE</Type>" +
+                "<UsedCapacity>789712094144</UsedCapacity></Pool>" +
+                "<Pool>" +
+                "<AssignedToStorageDomain>true</AssignedToStorageDomain>" +
+                "<AvailableCapacity>3430686763316</AvailableCapacity><BucketId/>" +
+                "<Guid>7044231287698570181</Guid><Health>OK</Health>" +
+                "<Id>7e2780c0-e447-4294-a9e0-e53324a1c79a</Id>" +
+                "<LastAccessed>2017-02-27T10:42:34.000Z</LastAccessed>" +
+                "<LastModified>2017-02-27T10:42:34.000Z</LastModified><LastVerified/>" +
+                "<Mountpoint>/pool/Online_Disk_1_7044231287698570181/vol/data/ds3</Mountpoint>" +
+                "<Name>Online_Disk_1_7044231287698570181</Name>" +
+                "<PartitionId>1982c83f-ee80-434f-ae5b-19415faa5b01</PartitionId>" +
+                "<PoweredOn>true</PoweredOn><Quiesced>NO</Quiesced>" +
+                "<ReservedCapacity>386117455052</ReservedCapacity><State>NORMAL</State>" +
+                "<StorageDomainId>896dcbf3-66a6-4f4f-a163-0210c6e0ab4b</StorageDomainId>" +
+                "<TotalCapacity>3861174550528</TotalCapacity><Type>ONLINE</Type>" +
+                "<UsedCapacity>44370332160</UsedCapacity></Pool>" +
+                "</Data>", "utf-8");
+
+        final PoolList pools = XmlOutput.fromXml(packet, PoolList.class);
+        final GetPoolsResult getPoolsResult = new GetPoolsResult(pools);
+        final String result = view.render(getPoolsResult);
+        assertThat(result, is(expected));
+    }
+
+    @Test
     public void cancelVerifyAllPools() throws Exception {
         final Arguments args = new Arguments( new String[] {"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "cancel_verify_all_pools"});
         final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());

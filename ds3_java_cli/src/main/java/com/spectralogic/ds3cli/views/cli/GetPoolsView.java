@@ -25,6 +25,7 @@ import com.spectralogic.ds3client.models.Pool;
 import com.spectralogic.ds3client.models.SpectraUser;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import static com.spectralogic.ds3cli.util.Constants.DATE_FORMAT;
@@ -49,8 +50,10 @@ public class GetPoolsView extends TableView<GetPoolsResult> {
         protected String[][] formatTableContents() {
             final List<String[]> contents = new ArrayList<>();
 
-            while(this.poolIterator.iterator().hasNext()) {
-                final Pool content = this.poolIterator.iterator().next();
+            final Iterator<Pool> pools = this.poolIterator.iterator();
+
+            while(pools.hasNext()) {
+                final Pool content = pools.next();
                 final String[] arrayEntry = new String[this.columnCount];
                 arrayEntry[0] = nullGuardToString(content.getName());
                 arrayEntry[1] = nullGuardToString(content.getId());
