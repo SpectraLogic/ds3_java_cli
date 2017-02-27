@@ -22,13 +22,12 @@ import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.DefaultResult;
 import com.spectralogic.ds3cli.util.MemoryObjectChannelBuilder;
+import com.spectralogic.ds3cli.util.PerformanceListener;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.DeleteBucketRequest;
 import com.spectralogic.ds3client.commands.DeleteObjectRequest;
 import com.spectralogic.ds3client.commands.PutBucketRequest;
-import com.spectralogic.ds3client.helpers.DataTransferredListener;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
-import com.spectralogic.ds3client.helpers.ObjectCompletedListener;
 import com.spectralogic.ds3client.models.Contents;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.networking.FailedRequestException;
@@ -43,6 +42,13 @@ import static com.spectralogic.ds3cli.ArgumentFactory.*;
 
 public class Performance extends CliCommand<DefaultResult> {
 
+    private final static Option DO_NOT_DELETE = Option.builder()
+            .longOpt("do-not-delete")
+            .desc("Leave files on the applicance")
+            .hasArg(false)
+            .build();
+    private final static ImmutableList<Option> optionalArgs
+            = ImmutableList.of(DO_NOT_DELETE);
     private final static ImmutableList<Option> requiredArgs
             = ImmutableList.of(BUCKET, NUMBER_OF_FILES, SIZE_OF_FILES);
 
@@ -58,7 +64,7 @@ public class Performance extends CliCommand<DefaultResult> {
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
-        processCommandOptions(requiredArgs, EMPTY_LIST, args);
+        processCommandOptions(requiredArgs, optionalArgs, args);
 
         this.viewType = ViewType.CLI;
         bucketName = args.getBucket();
@@ -66,6 +72,7 @@ public class Performance extends CliCommand<DefaultResult> {
         sizeOfFiles = args.getSizeOfFiles();
         bufferSize = args.getBufferSize();
         this.numberOfThreads = args.getNumberOfThreads();
+        this.doNotDelete = args.optionExists(DO_NOT_DELETE.getLongOpt());
         return this;
     }
 
@@ -73,7 +80,7 @@ public class Performance extends CliCommand<DefaultResult> {
     public DefaultResult call() throws Exception {
         final Ds3ClientHelpers helpers = Ds3ClientHelpers.wrap(getClient());
         final int numberOfFiles = Integer.valueOf(this.numberOfFiles);
-        final long sizeOfFiles = Integer.valueOf(this.sizeOfFiles);
+        final long sizeOfFiles = Long.valueOf(this.sizeOfFiles);
 
         try {
             try {
@@ -140,63 +147,6 @@ public class Performance extends CliCommand<DefaultResult> {
 
         client.deleteBucket(new DeleteBucketRequest(bucketName));
     }
-
-    private class PerformanceListener implements DataTransferredListener, ObjectCompletedListener {
-        private final long startTime;
-        private final int totalNumberOfFiles;
-        private final long numberOfMB;
-        private final boolean isPutCommand;
-        private long totalByteTransferred = 0;
-        private int numberOfFiles = 0;
-        private double highestMbps = 0.0;
-        private double time;
-        private long content;
-        private double mbps;
-
-        public PerformanceListener(final long startTime, final int totalNumberOfFiles, final long numberOfMB, final boolean isPutCommand) {
-            this.startTime = startTime;
-            this.totalNumberOfFiles = totalNumberOfFiles;
-            this.numberOfMB = numberOfMB;
-            this.isPutCommand = isPutCommand;
-        }
-
-        @Override
-        public void dataTransferred(final long size) {
-
-            final long currentTime = System.currentTimeMillis();
-            synchronized (this) {
-                totalByteTransferred += size;
-                time = currentTime - this.startTime == 0 ? 1.0 : (currentTime - this.startTime) / 1000D;
-                content = totalByteTransferred / 1024L / 1024L;
-                mbps = content / time;
-                if (mbps > highestMbps) highestMbps = mbps;
-            }
-            printStatistics();
-        }
-
-        @Override
-        public void objectCompleted(final String s) {
-            synchronized (this) {
-                numberOfFiles += 1;
-            }
-            printStatistics();
-        }
-
-        private void printStatistics() {
-            final String messagePrefix;
-            if (isPutCommand) {
-                messagePrefix = "Putting";
-            }
-            else {
-                messagePrefix = "Getting";
-            }
-
-
-            System.out.print(String.format("\r%s Statistics: (%d/%d MB), files (%d/%d completed), Time (%.03f sec), MBps (%.03f), Highest MBps (%.03f)",
-                    messagePrefix, content, numberOfMB, numberOfFiles, totalNumberOfFiles, time, mbps, highestMbps));
-        }
-    }
-
 }
 
 

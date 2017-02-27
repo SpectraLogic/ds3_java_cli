@@ -31,7 +31,7 @@ public class FailedRequestExceptionHandler  implements Ds3ExceptionHandler<Faile
     }
 
     // provide more descriptive message based on status code (Jira JAVACLI-125)
-    public String format(final FailedRequestException e) {
+    public static String format(final FailedRequestException e) {
         final int statusCode = e.getStatusCode();
         final StringBuilder description = new StringBuilder("Error (FailedRequestException): ");
         if (statusCode == 500 || statusCode == 502) {
