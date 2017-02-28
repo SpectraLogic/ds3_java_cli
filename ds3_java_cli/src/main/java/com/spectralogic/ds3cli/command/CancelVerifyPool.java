@@ -19,11 +19,13 @@ import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
+import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.GetPoolsResult;
 import com.spectralogic.ds3cli.views.cli.GetPoolsView;
 import com.spectralogic.ds3cli.views.json.DataView;
 import com.spectralogic.ds3client.commands.spectrads3.CancelVerifyPoolSpectraS3Request;
 import com.spectralogic.ds3client.commands.spectrads3.CancelVerifyPoolSpectraS3Response;
+import com.spectralogic.ds3client.networking.FailedRequestException;
 import org.apache.commons.cli.Option;
 
 import static com.spectralogic.ds3cli.ArgumentFactory.ID;
@@ -46,9 +48,17 @@ public class CancelVerifyPool extends CliCommand<GetPoolsResult> {
 
     @Override
     public GetPoolsResult call() throws Exception {
-        final CancelVerifyPoolSpectraS3Response response
-                = getClient().cancelVerifyPoolSpectraS3(new CancelVerifyPoolSpectraS3Request(this.id));
+        try {
+            final CancelVerifyPoolSpectraS3Response response
+                    = getClient().cancelVerifyPoolSpectraS3(new CancelVerifyPoolSpectraS3Request(this.id));
+
         return new GetPoolsResult(response.getPoolResult());
+        } catch (final FailedRequestException e) {
+            if (e.getStatusCode() == 409) {
+                throw new CommandException("Conflict (409) verify " + id + " cannot be cancelled.", e);
+            }
+            throw e;
+        }
     }
 
     @Override
