@@ -139,7 +139,7 @@ public class GetPhysicalPlacementWithFullDetailsView  implements View<GetPhysica
 
         for (int i = 0; i < tapesList.size(); i ++) {
             final Tape tape = tapesList.get(i);
-            final String[] tapePlacementArray = new String[getS3TargetPlacementHeaders().length];
+            final String[] tapePlacementArray = new String[getTapesPlacementHeaders().length];
             tapePlacementArray[0] = nullGuard(tape.getBarCode());
             tapePlacementArray[1] = nullGuardToString(tape.getState());
             tapePlacementArray[2] = nullGuardToString(tape.getType());
