@@ -19,7 +19,7 @@ import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
-import com.spectralogic.ds3cli.models.TapeResult;
+import com.spectralogic.ds3cli.models.GetTapeResult;
 import com.spectralogic.ds3cli.views.cli.GetTapeView;
 import com.spectralogic.ds3cli.views.json.DataView;
 import com.spectralogic.ds3client.commands.spectrads3.EjectTapeSpectraS3Request;
@@ -27,11 +27,9 @@ import com.spectralogic.ds3client.commands.spectrads3.EjectTapeSpectraS3Response
 import com.spectralogic.ds3client.utils.Guard;
 import org.apache.commons.cli.Option;
 
-import java.util.UUID;
-
 import static com.spectralogic.ds3cli.ArgumentFactory.*;
 
-public class EjectTape extends CliCommand<TapeResult> {
+public class EjectTape extends CliCommand<GetTapeResult> {
 
     private final static ImmutableList<Option> requiredArgs = ImmutableList.of(ID);
     private final static ImmutableList<Option> optionalArgs = ImmutableList.of(EJECT_LABEL, EJECT_LOCATION);
@@ -54,7 +52,7 @@ public class EjectTape extends CliCommand<TapeResult> {
     }
 
     @Override
-    public TapeResult call() throws Exception {
+    public GetTapeResult call() throws Exception {
 
         final EjectTapeSpectraS3Request request = new EjectTapeSpectraS3Request(id);
         if (!Guard.isStringNullOrEmpty(ejectLabel)) {
@@ -66,11 +64,11 @@ public class EjectTape extends CliCommand<TapeResult> {
 
         final EjectTapeSpectraS3Response response = this.getClient().ejectTapeSpectraS3(request);
 
-        return new TapeResult(response.getTapeResult());
+        return new GetTapeResult(response.getTapeResult());
     }
 
     @Override
-    public View<TapeResult> getView() {
+    public View<GetTapeResult> getView() {
         if (viewType == ViewType.JSON) {
             return new DataView<>();
         }

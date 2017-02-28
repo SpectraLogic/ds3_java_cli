@@ -1,6 +1,6 @@
 /*
  * *****************************************************************************
- *   Copyright 2014-2016 Spectra Logic Corporation. All Rights Reserved.
+ *   Copyright 2014-2017 Spectra Logic Corporation. All Rights Reserved.
  *   Licensed under the Apache License, Version 2.0 (the "License"). You may not use
  *   this file except in compliance with the License. A copy of the License is located at
  *
@@ -17,8 +17,7 @@ package com.spectralogic.ds3cli.views.cli;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.spectralogic.ds3cli.View;
-import com.spectralogic.ds3cli.models.TapeResult;
-import com.spectralogic.ds3cli.util.Guard;
+import com.spectralogic.ds3cli.models.GetTapeResult;
 import com.spectralogic.ds3client.models.Tape;
 
 import static com.spectralogic.ds3cli.util.Constants.DATE_FORMAT;
@@ -26,9 +25,9 @@ import static com.spectralogic.ds3cli.util.Guard.nullGuard;
 import static com.spectralogic.ds3cli.util.Guard.nullGuardFromDate;
 import static com.spectralogic.ds3cli.util.Guard.nullGuardToString;
 
-public class GetTapeView implements View<TapeResult> {
+public class GetTapeView implements View<GetTapeResult> {
     @Override
-    public String render(final TapeResult obj) throws JsonProcessingException {
+    public String render(final GetTapeResult obj) throws JsonProcessingException {
 
         final Tape tape = obj.getResult();
 
