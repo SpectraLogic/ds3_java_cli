@@ -168,14 +168,14 @@ public class GetPhysicalPlacementWithFullDetailsView  implements View<GetPhysica
 
         for (int i = 0; i < ds3TargetList.size(); i ++) {
             final Ds3Target target = ds3TargetList.get(i);
-            final String[] tapePlacementArray = new String[getDs3TargetPlacementHeaders().length];
-            tapePlacementArray[0] = nullGuard(target.getName());
-            tapePlacementArray[1] = nullGuardToString(target.getState());
-            tapePlacementArray[2] = nullGuardToString(target.getId());
-            tapePlacementArray[3] = nullGuardToString(target.getQuiesced());
-            tapePlacementArray[4] = nullGuard(target.getDataPathEndPoint());
+            final String[] placementArray = new String[getDs3TargetPlacementHeaders().length];
+            placementArray[0] = nullGuard(target.getName());
+            placementArray[1] = nullGuardToString(target.getState());
+            placementArray[2] = nullGuardToString(target.getId());
+            placementArray[3] = nullGuardToString(target.getQuiesced());
+            placementArray[4] = nullGuard(target.getDataPathEndPoint());
 
-            formatArray[i] = tapePlacementArray;
+            formatArray[i] = placementArray;
         }
         return formatArray;
     }
@@ -195,15 +195,15 @@ public class GetPhysicalPlacementWithFullDetailsView  implements View<GetPhysica
 
         for (int i = 0; i < s3TargetList.size(); i ++) {
             final S3Target target = s3TargetList.get(i);
-            final String[] tapePlacementArray = new String[getS3TargetPlacementHeaders().length];
-            tapePlacementArray[0] = nullGuard(target.getName());
-            tapePlacementArray[1] = nullGuardToString(target.getState());
-            tapePlacementArray[2] = nullGuardToString(target.getId());
-            tapePlacementArray[3] = nullGuardToString(target.getQuiesced());
-            tapePlacementArray[4] = nullGuardToString(target.getRegion());
-            tapePlacementArray[5] = nullGuard(target.getDataPathEndPoint());
+            final String[] placementArray = new String[getS3TargetPlacementHeaders().length];
+            placementArray[0] = nullGuard(target.getName());
+            placementArray[1] = nullGuardToString(target.getState());
+            placementArray[2] = nullGuardToString(target.getId());
+            placementArray[3] = nullGuardToString(target.getQuiesced());
+            placementArray[4] = nullGuardToString(target.getRegion());
+            placementArray[5] = nullGuard(target.getDataPathEndPoint());
 
-            formatArray[i] = tapePlacementArray;
+            formatArray[i] = placementArray;
         }
         return formatArray;
     }
@@ -224,13 +224,13 @@ public class GetPhysicalPlacementWithFullDetailsView  implements View<GetPhysica
 
         for (int i = 0; i < azureTargetList.size(); i ++) {
             final AzureTarget target = azureTargetList.get(i);
-            final String[] tapePlacementArray = new String[getAzureTargetPlacementHeaders().length];
-            tapePlacementArray[0] = nullGuard(target.getName());
-            tapePlacementArray[1] = nullGuardToString(target.getState());
-            tapePlacementArray[2] = nullGuardToString(target.getId());
-            tapePlacementArray[3] = nullGuardToString(target.getQuiesced());
+            final String[] placementArray = new String[getAzureTargetPlacementHeaders().length];
+            placementArray[0] = nullGuard(target.getName());
+            placementArray[1] = nullGuardToString(target.getState());
+            placementArray[2] = nullGuardToString(target.getId());
+            placementArray[3] = nullGuardToString(target.getQuiesced());
 
-            formatArray[i] = tapePlacementArray;
+            formatArray[i] = placementArray;
         }
         return formatArray;
     }
