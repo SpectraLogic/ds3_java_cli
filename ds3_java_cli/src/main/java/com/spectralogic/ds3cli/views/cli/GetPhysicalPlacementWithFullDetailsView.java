@@ -20,14 +20,13 @@ import com.bethecoder.ascii_table.ASCIITableHeader;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.models.GetPhysicalPlacementWithFullDetailsResult;
-import com.spectralogic.ds3client.models.BulkObject;
-import com.spectralogic.ds3client.models.BulkObjectList;
-import com.spectralogic.ds3client.models.Pool;
-import com.spectralogic.ds3client.models.Tape;
+import com.spectralogic.ds3client.models.*;
+import com.spectralogic.ds3client.utils.Guard;
 
 import java.util.List;
 
 import static com.spectralogic.ds3cli.util.Guard.nullGuard;
+import static com.spectralogic.ds3cli.util.Guard.nullGuardToString;
 
 public class GetPhysicalPlacementWithFullDetailsView  implements View<GetPhysicalPlacementWithFullDetailsResult> {
 
@@ -57,6 +56,16 @@ public class GetPhysicalPlacementWithFullDetailsView  implements View<GetPhysica
                 output = output.concat(ASCIITable.getInstance().getTable(getTapesPlacementHeaders(),
                         formatTapesPlacement(bulkObjectList.getObjects().get(index).getPhysicalPlacement().getTapes())));
             }
+
+            if (!Guard.isNullOrEmpty(bulkObjectList.getObjects().get(index).getPhysicalPlacement().getAzureTargets())) {
+                output = output.concat(ASCIITable.getInstance().getTable(getAzureTargetPlacementHeaders(),
+                        formatAzureTargetPlacement(bulkObjectList.getObjects().get(index).getPhysicalPlacement().getAzureTargets())));
+            }
+
+            if (!Guard.isNullOrEmpty(bulkObjectList.getObjects().get(index).getPhysicalPlacement().getS3Targets())) {
+                output = output.concat(ASCIITable.getInstance().getTable(getS3TargetPlacementHeaders(),
+                        formatS3TargetPlacement(bulkObjectList.getObjects().get(index).getPhysicalPlacement().getS3Targets())));
+            }
         }
 
         return output;
@@ -65,14 +74,14 @@ public class GetPhysicalPlacementWithFullDetailsView  implements View<GetPhysica
     private String[][] formatBulkObjectList(final BulkObject obj) {
         final String [][] formatArray = new String[1][];
 
-            final String[] bulkObjectArray = new String[7];
+            final String[] bulkObjectArray = new String[getBulkObjectHeaders().length];
             bulkObjectArray[0] = nullGuard(obj.getName());
-            bulkObjectArray[1] = nullGuard(obj.getId() != null ? obj.getId().toString() : "");
-            bulkObjectArray[2] = nullGuard(obj.getInCache() != null ? obj.getInCache().toString() : "Unknown");
-            bulkObjectArray[3] = nullGuard(Long.toString(obj.getLength()));
-            bulkObjectArray[4] = nullGuard(Long.toString(obj.getOffset()));
-            bulkObjectArray[5] = nullGuard(Boolean.toString(obj.getLatest()));
-            bulkObjectArray[6] = nullGuard(Long.toString(obj.getVersion()));
+            bulkObjectArray[1] = nullGuardToString(obj.getId(), "");
+            bulkObjectArray[2] = nullGuardToString(obj.getInCache(), "Unknown");
+            bulkObjectArray[3] = nullGuardToString(obj.getLength());
+            bulkObjectArray[4] = nullGuardToString(obj.getOffset());
+            bulkObjectArray[5] = nullGuardToString(obj.getLatest());
+            bulkObjectArray[6] = nullGuardToString(obj.getVersion());
             formatArray[0] = bulkObjectArray;
 
         return formatArray;
@@ -95,17 +104,16 @@ public class GetPhysicalPlacementWithFullDetailsView  implements View<GetPhysica
 
         for (int i = 0; i < poolsList.size(); i ++) {
             final Pool pool = poolsList.get(i);
-            final String[] poolPlacementArray = new String[7];
+            final String[] poolPlacementArray = new String[getPoolsPlacementHeaders().length];
             poolPlacementArray[0] = nullGuard(pool.getName());
-            poolPlacementArray[1] = nullGuard(pool.getId().toString());
-            poolPlacementArray[2] = nullGuard(pool.getBucketId() != null ? pool.getBucketId().toString() : "");
-            poolPlacementArray[3] = nullGuard(pool.getState().toString());
-            poolPlacementArray[4] = nullGuard(pool.getHealth().toString());
-            poolPlacementArray[5] = nullGuard(pool.getType().toString());
-            poolPlacementArray[6] = nullGuard(pool.getPartitionId() != null ? pool.getPartitionId().toString() : "");
+            poolPlacementArray[1] = nullGuardToString(pool.getId());
+            poolPlacementArray[2] = nullGuardToString(pool.getBucketId(), "");
+            poolPlacementArray[3] = nullGuardToString(pool.getState());
+            poolPlacementArray[4] = nullGuardToString(pool.getHealth());
+            poolPlacementArray[5] = nullGuardToString(pool.getType());
+            poolPlacementArray[6] = nullGuardToString(pool.getPartitionId(), "");
             formatArray[i] = poolPlacementArray;
         }
-
         return formatArray;
     }
 
@@ -126,17 +134,16 @@ public class GetPhysicalPlacementWithFullDetailsView  implements View<GetPhysica
 
         for (int i = 0; i < tapesList.size(); i ++) {
             final Tape tape = tapesList.get(i);
-            final String[] tapePlacementArray = new String[6];
+            final String[] tapePlacementArray = new String[getS3TargetPlacementHeaders().length];
             tapePlacementArray[0] = nullGuard(tape.getBarCode());
-            tapePlacementArray[1] = nullGuard(tape.getState().toString());
-            tapePlacementArray[2] = nullGuard(tape.getType().toString());
+            tapePlacementArray[1] = nullGuardToString(tape.getState());
+            tapePlacementArray[2] = nullGuardToString(tape.getType());
             tapePlacementArray[3] = nullGuard(tape.getDescriptionForIdentification());
             tapePlacementArray[4] = nullGuard(tape.getEjectLabel());
             tapePlacementArray[5] = nullGuard(tape.getEjectLocation());
 
             formatArray[i] = tapePlacementArray;
         }
-
         return formatArray;
     }
 
@@ -150,4 +157,59 @@ public class GetPhysicalPlacementWithFullDetailsView  implements View<GetPhysica
                 new ASCIITableHeader("Eject Location", ASCIITable.ALIGN_LEFT)
         };
     }
+
+    private String[][] formatS3TargetPlacement(final List<S3Target> s3TargetList) {
+        final String [][] formatArray = new String[s3TargetList.size()][];
+
+        for (int i = 0; i < s3TargetList.size(); i ++) {
+            final S3Target target = s3TargetList.get(i);
+            final String[] tapePlacementArray = new String[getS3TargetPlacementHeaders().length];
+            tapePlacementArray[0] = nullGuard(target.getName());
+            tapePlacementArray[1] = nullGuardToString(target.getState());
+            tapePlacementArray[2] = nullGuardToString(target.getId());
+            tapePlacementArray[3] = nullGuardToString(target.getQuiesced());
+            tapePlacementArray[4] = nullGuardToString(target.getRegion());
+            tapePlacementArray[5] = nullGuard(target.getDataPathEndPoint());
+
+            formatArray[i] = tapePlacementArray;
+        }
+        return formatArray;
+    }
+
+    private ASCIITableHeader[] getS3TargetPlacementHeaders() {
+        return new ASCIITableHeader[]{
+                new ASCIITableHeader("AWS S3 Name", ASCIITable.ALIGN_LEFT),
+                new ASCIITableHeader("State", ASCIITable.ALIGN_LEFT),
+                new ASCIITableHeader("Id", ASCIITable.ALIGN_LEFT),
+                new ASCIITableHeader("Quiesced", ASCIITable.ALIGN_LEFT),
+                new ASCIITableHeader("Region", ASCIITable.ALIGN_LEFT),
+                new ASCIITableHeader("Data Path Endpoint", ASCIITable.ALIGN_LEFT)
+        };
+    }
+
+    private String[][] formatAzureTargetPlacement(final List<AzureTarget> azureTargetList) {
+        final String [][] formatArray = new String[azureTargetList.size()][];
+
+        for (int i = 0; i < azureTargetList.size(); i ++) {
+            final AzureTarget target = azureTargetList.get(i);
+            final String[] tapePlacementArray = new String[getAzureTargetPlacementHeaders().length];
+            tapePlacementArray[0] = nullGuard(target.getName());
+            tapePlacementArray[1] = nullGuardToString(target.getState());
+            tapePlacementArray[2] = nullGuardToString(target.getId());
+            tapePlacementArray[3] = nullGuardToString(target.getQuiesced());
+
+            formatArray[i] = tapePlacementArray;
+        }
+        return formatArray;
+    }
+
+    private ASCIITableHeader[] getAzureTargetPlacementHeaders() {
+        return new ASCIITableHeader[]{
+                new ASCIITableHeader("Azure Name", ASCIITable.ALIGN_LEFT),
+                new ASCIITableHeader("State", ASCIITable.ALIGN_LEFT),
+                new ASCIITableHeader("Id", ASCIITable.ALIGN_LEFT),
+                new ASCIITableHeader("Quiesced", ASCIITable.ALIGN_LEFT),
+        };
+    }
+
 }

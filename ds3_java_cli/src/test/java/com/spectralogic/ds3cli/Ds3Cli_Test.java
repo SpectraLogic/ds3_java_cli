@@ -21,6 +21,7 @@ import com.spectralogic.ds3cli.command.*;
 import com.spectralogic.ds3cli.exceptions.*;
 import com.spectralogic.ds3cli.models.*;
 import com.spectralogic.ds3cli.util.*;
+import com.spectralogic.ds3cli.views.cli.GetPhysicalPlacementWithFullDetailsView;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.*;
 import com.spectralogic.ds3client.commands.spectrads3.*;
@@ -1577,6 +1578,82 @@ public class Ds3Cli_Test {
         assertTrue(result.contains("| Pool Name |                  ID                  | Bucket ID |  State | Health |   Type   | Partition ID |"));
         assertTrue(result.contains("| pool1     | " + pool1Id.toString() +            " |           | NORMAL | OK     | NEARLINE |              |"));
         assertTrue(result.contains("| pool2     | " + pool2Id.toString() +            " |           | NORMAL | OK     | NEARLINE |              |"));
+    }
+
+    @Test
+    public void testGetPhysicalPlacementOnCloud() throws Exception {
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_physical_placement", "-b", "bothclouds", "-o", "VBoxSVC.log"});
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
+        command.init(args);
+        assertTrue(command instanceof GetPhysicalPlacement);
+        final View view = command.getView();
+
+        final String expected = "+-------------+--------------------------------------+----------+--------+--------+--------+---------+\n" +
+                "| Object Name |                  ID                  | In Cache | Length | Offset | Latest | Version |\n" +
+                "+-------------+--------------------------------------+----------+--------+--------+--------+---------+\n" +
+                "| VBoxSVC.log | 809e1e66-13e7-4441-8eda-10b1ddb528ca | false    | 8611   | 0      | true   | 1       |\n" +
+                "+-------------+--------------------------------------+----------+--------+--------+--------+---------+\n" +
+                "+------------------------------------+--------------------------------------+-----------+--------+--------+----------+--------------------------------------+\n" +
+                "|              Pool Name             |                  ID                  | Bucket ID |  State | Health |   Type   |             Partition ID             |\n" +
+                "+------------------------------------+--------------------------------------+-----------+--------+--------+----------+--------------------------------------+\n" +
+                "| Arctic_Blue_1_13867492206260533141 | e00a14f9-3da6-45b2-9d4d-6cef130b57bf |           | NORMAL | OK     | NEARLINE | fa827f71-b9a7-451a-98cf-c3392bad9323 |\n" +
+                "+------------------------------------+--------------------------------------+-----------+--------+--------+----------+--------------------------------------+\n" +
+                "+------------+--------+--------------------------------------+----------+\n" +
+                "| Azure Name |  State |                  Id                  | Quiesced |\n" +
+                "+------------+--------+--------------------------------------+----------+\n" +
+                "| AZURE-SDE  | ONLINE | a8f37ddb-88a0-44b9-ac5b-964e4be714e8 | NO       |\n" +
+                "+------------+--------+--------------------------------------+----------+\n" +
+                "+-------------+--------+--------------------------------------+----------+-----------+--------------------+\n" +
+                "| AWS S3 Name |  State |                  Id                  | Quiesced |   Region  | Data Path Endpoint |\n" +
+                "+-------------+--------+--------------------------------------+----------+-----------+--------------------+\n" +
+                "| AWS         | ONLINE | c1df0be5-3a3d-445f-8d01-3e002bcaf4bc | NO       | US_WEST_2 | N/A                |\n" +
+                "+-------------+--------+--------------------------------------+----------+-----------+--------------------+\n";
+
+        final String packet = "<Data>" +
+                "<Object Bucket=\"bothclouds\" Id=\"809e1e66-13e7-4441-8eda-10b1ddb528ca\" InCache=\"false\" Latest=\"true\" Length=\"8611\" Name=\"VBoxSVC.log\" Offset=\"0\" Version=\"1\">" +
+                "<PhysicalPlacement>" +
+                "<AzureTargets>" +
+                "<AzureTarget><AccountKey>/h/NVMdssiwLKQBAGd+AGMFhDbesFTRziWQJw1eYjL5x9zvYInCLsxZO/SuMizasrULUEJccTD3fCuXH8OpE4Q==</AccountKey>" +
+                "<AccountName>blackpearlsandboxsde</AccountName>" +
+                "<AutoVerifyFrequencyInDays/>" +
+                "<CloudBucketPrefix>bp-sandbox-</CloudBucketPrefix>" +
+                "<CloudBucketSuffix>-2017-Jan</CloudBucketSuffix>" +
+                "<DefaultReadPreference>NEVER</DefaultReadPreference>" +
+                "<Https>true</Https><Id>a8f37ddb-88a0-44b9-ac5b-964e4be714e8</Id>" +
+                "<LastFullyVerified/><Name>AZURE-SDE</Name>" +
+                "<PermitGoingOutOfSync>false</PermitGoingOutOfSync>" +
+                "<Quiesced>NO</Quiesced><State>ONLINE</State>" +
+                "</AzureTarget></AzureTargets>" +
+                "<Ds3Targets/>" +
+                "<Pools><Pool><AssignedToStorageDomain>true</AssignedToStorageDomain>" +
+                "<AvailableCapacity>127096132854919</AvailableCapacity><BucketId/>" +
+                "<Guid>13867492206260533141</Guid><Health>OK</Health>" +
+                "<Id>e00a14f9-3da6-45b2-9d4d-6cef130b57bf</Id><LastAccessed>2017-02-28T11:34:56.000Z</LastAccessed>" +
+                "<LastModified>2017-02-28T11:34:56.000Z</LastModified><LastVerified/>" +
+                "<Mountpoint>/pool/Arctic_Blue_1_13867492206260533141/vol/data/ds3</Mountpoint>" +
+                "<Name>Arctic_Blue_1_13867492206260533141</Name>" +
+                "<PartitionId>fa827f71-b9a7-451a-98cf-c3392bad9323</PartitionId><PoweredOn>true</PoweredOn>" +
+                "<Quiesced>NO</Quiesced><ReservedCapacity>14209583782297</ReservedCapacity>" +
+                "<State>NORMAL</State><StorageDomainId>8253863e-8818-4677-8e6b-60b1d398dd1e</StorageDomainId>" +
+                "<TotalCapacity>142095837822976</TotalCapacity><Type>NEARLINE</Type>" +
+                "<UsedCapacity>790121185760</UsedCapacity></Pool></Pools>" +
+                "<S3Targets><S3Target>" +
+                "<AccessKey>AKIAJL4D4ZCCPSNANDVQ</AccessKey><AutoVerifyFrequencyInDays/>" +
+                "<CloudBucketPrefix>BP-sandbox</CloudBucketPrefix><CloudBucketSuffix>2017-jan</CloudBucketSuffix>" +
+                "<DataPathEndPoint/><DefaultReadPreference>NEVER</DefaultReadPreference>" +
+                "<Https>true</Https><Id>c1df0be5-3a3d-445f-8d01-3e002bcaf4bc</Id><LastFullyVerified/>" +
+                "<Name>AWS</Name><OfflineDataStagingWindowInTb>64</OfflineDataStagingWindowInTb>" +
+                "<PermitGoingOutOfSync>false</PermitGoingOutOfSync><ProxyDomain/>" +
+                "<ProxyHost/><ProxyPassword/><ProxyPort/><ProxyUsername/><Quiesced>NO</Quiesced>" +
+                "<Region>US_WEST_2</Region><SecretKey>fUVt/FDNDxqmN1H+nmj+/PCTOfNLetemQiQPkOw8</SecretKey>" +
+                "<StagedDataExpirationInDays>3</StagedDataExpirationInDays><State>ONLINE</State>" +
+                "</S3Target></S3Targets>" +
+                "<Tapes/></PhysicalPlacement></Object></Data>";
+
+        final BulkObjectList objectList = XmlOutput.fromXml(packet, BulkObjectList.class);
+        final GetPhysicalPlacementWithFullDetailsResult detailsResult = new GetPhysicalPlacementWithFullDetailsResult(objectList);
+        final String result = view.render(detailsResult);
+        assertThat(result, is(expected));
     }
 
     @Test
