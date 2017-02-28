@@ -34,14 +34,10 @@ import com.spectralogic.ds3client.models.Error;
 import com.spectralogic.ds3client.models.SystemInformation;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.networking.FailedRequestException;
-import com.spectralogic.ds3client.networking.Headers;
-import com.spectralogic.ds3client.networking.HttpVerb;
-import com.spectralogic.ds3client.networking.WebResponse;
 import com.spectralogic.ds3client.serializer.XmlOutput;
 import org.apache.commons.cli.MissingOptionException;
 import org.apache.commons.cli.UnrecognizedOptionException;
 import org.apache.commons.io.IOUtils;
-import org.hamcrest.core.StringEndsWith;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.invocation.InvocationOnMock;
@@ -65,9 +61,6 @@ import static org.junit.Assert.*;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-
-import com.spectralogic.ds3client.serializer.XmlOutput;
-import sun.security.krb5.Checksum;
 
 
 @PrepareForTest({CliUtils.class, SyncUtils.class, FileUtils.class, Guard.class, GetPhysicalPlacementForObjectsWithFullDetailsSpectraS3Response.class})
@@ -404,6 +397,7 @@ public class Ds3Cli_Test {
                         "    \"bucket\" : {\n" +
                         "      \"CreationDate\" : \"2016-11-18T15:48:08.000Z\",\n" +
                         "      \"DataPolicyId\" : \"8a5d5e56-8d54-4098-b790-6002730b3d96\",\n" +
+                        "      \"Empty\" : null,\n" +
                         "      \"Id\" : \"07cbc080-16ae-46ea-a275-ec8cb27e178c\",\n" +
                         "      \"LastPreferredChunkSizeInBytes\" : 19004340787,\n" +
                         "      \"LogicalUsedCapacity\" : 1928234,\n" +
@@ -2361,7 +2355,7 @@ public class Ds3Cli_Test {
                 "</Data>", "utf-8");
 
         final Tape tape = XmlOutput.fromXml(packet, Tape.class);
-        final TapeResult domainsResult = new TapeResult(tape);
+        final GetTapeResult domainsResult = new GetTapeResult(tape);
         final String result = view.render(domainsResult);
         assertThat(result, is(expected));
     }
@@ -2559,13 +2553,13 @@ public class Ds3Cli_Test {
                 "+-----------+--------------+--------------+---------------------+--------------------------------------+--------------------------+--------------------------+-----------------------------+----------------------------------+\n" +
                 "| Activated | Auto Timeout | Auto Inspect | Conflict Resolution |                  ID                  |      Last Heartbeat      | Unavailable Media Policy | Unavailable Pool Retry Mins | Unavailable Partition Retry Mins |\n" +
                 "+-----------+--------------+--------------+---------------------+--------------------------------------+--------------------------+--------------------------+-----------------------------+----------------------------------+\n" +
-                "| true      | 30           | DEFAULT      | CANCEL              | 5d45ab7a-b83f-4dc1-95d5-a45b59e48718 | 2016-09-07T22:09:55.000Z | DISALLOW                 | 20                          | 20                               |\n" +
+                "| true      | 30           | FULL         | CANCEL              | 5d45ab7a-b83f-4dc1-95d5-a45b59e48718 | 2016-09-07T22:09:55.000Z | DISALLOW                 | 20                          | 20                               |\n" +
                 "+-----------+--------------+--------------+---------------------+--------------------------------------+--------------------------+--------------------------+-----------------------------+----------------------------------+\n";
 
         final InputStream packet = IOUtils.toInputStream("<Data>" +
                 "<Activated>true</Activated>" +
                 "<AutoActivateTimeoutInMins>30</AutoActivateTimeoutInMins>" +
-                "<AutoInspect>DEFAULT</AutoInspect>" +
+                "<AutoInspect>FULL</AutoInspect>" +
                 "<DefaultImportConflictResolutionMode>CANCEL</DefaultImportConflictResolutionMode>" +
                 "<Id>5d45ab7a-b83f-4dc1-95d5-a45b59e48718</Id>" +
                 "<InstanceId>5d45ab7a-b83f-4dc1-95d5-a45b59e48718</InstanceId>" +
@@ -2594,8 +2588,10 @@ public class Ds3Cli_Test {
                 "  \"Data\" : {\n" +
                         "    \"Activated\" : true,\n" +
                         "    \"AutoActivateTimeoutInMins\" : 30,\n" +
-                        "    \"AutoInspect\" : \"DEFAULT\",\n" +
+                        "    \"AutoInspect\" : \"NEVER\",\n" +
                         "    \"DefaultImportConflictResolutionMode\" : \"CANCEL\",\n" +
+                        "    \"DefaultVerifyDataAfterImport\" : null,\n" +
+                        "    \"DefaultVerifyDataPriorToImport\" : false,\n" +
                         "    \"Id\" : \"5d45ab7a-b83f-4dc1-95d5-a45b59e48718\",\n" +
                         "    \"InstanceId\" : \"5d45ab7a-b83f-4dc1-95d5-a45b59e48718\",\n" +
                         "    \"LastHeartbeat\" : \"2016-09-07T22:09:55.000Z\",\n" +
@@ -2610,7 +2606,7 @@ public class Ds3Cli_Test {
         final InputStream packet = IOUtils.toInputStream("<Data>" +
                 "<Activated>true</Activated>" +
                 "<AutoActivateTimeoutInMins>30</AutoActivateTimeoutInMins>" +
-                "<AutoInspect>DEFAULT</AutoInspect>" +
+                "<AutoInspect>NEVER</AutoInspect>" +
                 "<DefaultImportConflictResolutionMode>CANCEL</DefaultImportConflictResolutionMode>" +
                 "<Id>5d45ab7a-b83f-4dc1-95d5-a45b59e48718</Id>" +
                 "<InstanceId>5d45ab7a-b83f-4dc1-95d5-a45b59e48718</InstanceId>" +
@@ -2950,4 +2946,212 @@ public class Ds3Cli_Test {
         command.init(args);
         final CommandResponse result = command.render();
     }
+
+    @Test
+    public void verifyTape() throws Exception {
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "verify_tape",  "-i",  "362449L5"});
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
+        command.init(args);
+        assertTrue(command instanceof VerifyTape);
+        final View view = command.getView();
+
+        final String expected =
+                "Tape Bar Code: 362449L5, ID: 48522c34-d569-4752-807e-58ddaad7c5e1, Tape Type: LTO5, " +
+                        "Serial Number: HP-G140314442, State: NORMAL, " +
+                        "Partition Id 2e705e0c-7608-4179-b794-de1f30059081, " +
+                        "Available Space: 1424981229568, Full: false, Write Protected: false, " +
+                        "Last Modified: 2017-02-21T21:37:31.000Z, Last Verification: N/A";
+
+        final InputStream packet = IOUtils.toInputStream("<Data>" +
+                "<AssignedToStorageDomain>true</AssignedToStorageDomain>" +
+                "<AvailableRawCapacity>1424981229568</AvailableRawCapacity>" +
+                "<BarCode>362449L5</BarCode><BucketId/><DescriptionForIdentification/><" +
+                "EjectDate/><EjectLabel/><EjectLocation/><EjectPending/><FullOfData>false</FullOfData>" +
+                "<Id>48522c34-d569-4752-807e-58ddaad7c5e1</Id><LastAccessed>2017-02-21T21:37:31.000Z</LastAccessed>" +
+                "<LastCheckpoint>3e828558-191e-4b05-9f90-52890a718a0c:3</LastCheckpoint>" +
+                "<LastModified>2017-02-21T21:37:31.000Z</LastModified><LastVerified/>" +
+                "<PartiallyVerifiedEndOfTape/><PartitionId>2e705e0c-7608-4179-b794-de1f30059081</PartitionId>" +
+                "<PreviousState/><SerialNumber>HP-G140314442</SerialNumber>" +
+                "<State>NORMAL</State><StorageDomainId>785c194c-1844-4f2a-8896-95f9418bbc4d</StorageDomainId>" +
+                "<TakeOwnershipPending>false</TakeOwnershipPending><TotalRawCapacity>1425000103936</TotalRawCapacity>" +
+                "<Type>LTO5</Type><VerifyPending/><WriteProtected>false</WriteProtected>" +
+                "</Data>", "utf-8");
+
+        final Tape tape = XmlOutput.fromXml(packet, Tape.class);
+        final GetTapeResult cancelVerifyResult = new GetTapeResult(tape);
+        final String result = view.render(cancelVerifyResult);
+        assertThat(result, is(expected));
+    }
+
+    @Test
+    public void cancelVerifyTape() throws Exception {
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "cancel_verify_tape",  "-i",  "362449L5"});
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
+        command.init(args);
+        assertTrue(command instanceof CancelVerifyTape);
+        final View view = command.getView();
+
+        final String expected =
+                "Tape Bar Code: 362449L5, ID: 48522c34-d569-4752-807e-58ddaad7c5e1, Tape Type: LTO5, " +
+                "Serial Number: HP-G140314442, State: NORMAL, " +
+                "Partition Id 2e705e0c-7608-4179-b794-de1f30059081, " +
+                "Available Space: 1424981229568, Full: false, Write Protected: false, " +
+                "Last Modified: 2017-02-21T21:37:31.000Z, Last Verification: N/A";
+
+        final InputStream packet = IOUtils.toInputStream("<Data>" +
+                "<AssignedToStorageDomain>true</AssignedToStorageDomain>" +
+                "<AvailableRawCapacity>1424981229568</AvailableRawCapacity>" +
+                "<BarCode>362449L5</BarCode><BucketId/><DescriptionForIdentification/><" +
+                "EjectDate/><EjectLabel/><EjectLocation/><EjectPending/><FullOfData>false</FullOfData>" +
+                "<Id>48522c34-d569-4752-807e-58ddaad7c5e1</Id><LastAccessed>2017-02-21T21:37:31.000Z</LastAccessed>" +
+                "<LastCheckpoint>3e828558-191e-4b05-9f90-52890a718a0c:3</LastCheckpoint>" +
+                "<LastModified>2017-02-21T21:37:31.000Z</LastModified><LastVerified/>" +
+                "<PartiallyVerifiedEndOfTape/><PartitionId>2e705e0c-7608-4179-b794-de1f30059081</PartitionId>" +
+                "<PreviousState/><SerialNumber>HP-G140314442</SerialNumber>" +
+                "<State>NORMAL</State><StorageDomainId>785c194c-1844-4f2a-8896-95f9418bbc4d</StorageDomainId>" +
+                "<TakeOwnershipPending>false</TakeOwnershipPending><TotalRawCapacity>1425000103936</TotalRawCapacity>" +
+                "<Type>LTO5</Type><VerifyPending/><WriteProtected>false</WriteProtected>" +
+                "</Data>", "utf-8");
+
+        final Tape tape = XmlOutput.fromXml(packet, Tape.class);
+        final GetTapeResult cancelVerifyResult = new GetTapeResult(tape);
+        final String result = view.render(cancelVerifyResult);
+        assertThat(result, is(expected));
+    }
+
+    @Test(expected = BadArgumentException.class)
+    public void getPoolsBadArgs() throws Exception {
+        final Arguments args = new Arguments( new String[] {"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_pools", "--state", "texas"});
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
+        command.init(args);
+    }
+
+    @Test
+    public void getPool() throws Exception {
+        final UUID poolId = UUID.fromString("7e2780c0-e447-4294-a9e0-e53324a1c79a");
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_pool", "-i", poolId.toString()});
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
+        command.init(args);
+        assertTrue(command instanceof GetPool);
+        final View view = command.getView();
+
+        final String expected =
+            "+-----------------------------------+--------------------------------------+--------+---------------+-----------+--------------------------------------+----------------------------+--------------------------+-------------------+\n" +
+            "|                Pool               |                  ID                  |  Type  |    Capacity   | Bucket Id |             Partition Id             | Assigned to Storage Domain |       Last Modified      | Last Verification |\n" +
+            "+-----------------------------------+--------------------------------------+--------+---------------+-----------+--------------------------------------+----------------------------+--------------------------+-------------------+\n" +
+            "| Online_Disk_1_7044231287698570181 | 7e2780c0-e447-4294-a9e0-e53324a1c79a | ONLINE | 3430686763316 | N/A       | 1982c83f-ee80-434f-ae5b-19415faa5b01 | true                       | 2017-02-27T10:42:34.000Z | N/A               |\n" +
+            "+-----------------------------------+--------------------------------------+--------+---------------+-----------+--------------------------------------+----------------------------+--------------------------+-------------------+\n";
+
+        final InputStream packet = IOUtils.toInputStream("<Data>" +
+                "<Pool>" +
+                "<AssignedToStorageDomain>true</AssignedToStorageDomain>" +
+                "<AvailableCapacity>3430686763316</AvailableCapacity><BucketId/>" +
+                "<Guid>7044231287698570181</Guid><Health>OK</Health>" +
+                "<Id>7e2780c0-e447-4294-a9e0-e53324a1c79a</Id>" +
+                "<LastAccessed>2017-02-27T10:42:34.000Z</LastAccessed>" +
+                "<LastModified>2017-02-27T10:42:34.000Z</LastModified><LastVerified/>" +
+                "<Mountpoint>/pool/Online_Disk_1_7044231287698570181/vol/data/ds3</Mountpoint>" +
+                "<Name>Online_Disk_1_7044231287698570181</Name>" +
+                "<PartitionId>1982c83f-ee80-434f-ae5b-19415faa5b01</PartitionId>" +
+                "<PoweredOn>true</PoweredOn><Quiesced>NO</Quiesced>" +
+                "<ReservedCapacity>386117455052</ReservedCapacity><State>NORMAL</State>" +
+                "<StorageDomainId>896dcbf3-66a6-4f4f-a163-0210c6e0ab4b</StorageDomainId>" +
+                "<TotalCapacity>3861174550528</TotalCapacity><Type>ONLINE</Type>" +
+                "<UsedCapacity>44370332160</UsedCapacity></Pool>" +
+                "</Data>", "utf-8");
+
+        final PoolList pools = XmlOutput.fromXml(packet, PoolList.class);
+        final GetPoolsResult getPoolsResult = new GetPoolsResult(pools);
+        final String result = view.render(getPoolsResult);
+        assertThat(result, is(expected));
+    }
+
+    @Test (expected = BadArgumentException.class)
+    public void getPoolsBadType() throws Exception {
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_pools", "--type", "carpool"});
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
+        command.init(args);
+    }
+
+
+        @Test
+    public void getPools() throws Exception {
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_pools"});
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
+        command.init(args);
+        assertTrue(command instanceof GetPools);
+        final View view = command.getView();
+
+        final String expected =
+            "+------------------------------------+--------------------------------------+----------+-----------------+-----------+--------------------------------------+----------------------------+--------------------------+-------------------+\n" +
+            "|                Pool                |                  ID                  |   Type   |     Capacity    | Bucket Id |             Partition Id             | Assigned to Storage Domain |       Last Modified      | Last Verification |\n" +
+            "+------------------------------------+--------------------------------------+----------+-----------------+-----------+--------------------------------------+----------------------------+--------------------------+-------------------+\n" +
+            "| Arctic_Blue_1_13867492206260533141 | e00a14f9-3da6-45b2-9d4d-6cef130b57bf | NEARLINE | 127096541946535 | N/A       | fa827f71-b9a7-451a-98cf-c3392bad9323 | true                       | 2017-02-27T10:42:06.000Z | N/A               |\n" +
+            "| Online_Disk_1_7044231287698570181  | 7e2780c0-e447-4294-a9e0-e53324a1c79a | ONLINE   | 3430686763316   | N/A       | 1982c83f-ee80-434f-ae5b-19415faa5b01 | true                       | 2017-02-27T10:42:34.000Z | N/A               |\n" +
+            "+------------------------------------+--------------------------------------+----------+-----------------+-----------+--------------------------------------+----------------------------+--------------------------+-------------------+\n";
+
+        final InputStream packet = IOUtils.toInputStream("<Data>" +
+                "<Pool>" +
+                "<AssignedToStorageDomain>true</AssignedToStorageDomain>" +
+                "<AvailableCapacity>127096541946535</AvailableCapacity>" +
+                "<BucketId/><Guid>13867492206260533141</Guid><Health>OK</Health>" +
+                "<Id>e00a14f9-3da6-45b2-9d4d-6cef130b57bf</Id><LastAccessed>2017-02-27T10:42:06.000Z</LastAccessed>" +
+                "<LastModified>2017-02-27T10:42:06.000Z</LastModified><LastVerified/>" +
+                "<Mountpoint>/pool/Arctic_Blue_1_13867492206260533141/vol/data/ds3</Mountpoint>" +
+                "<Name>Arctic_Blue_1_13867492206260533141</Name>" +
+                "<PartitionId>fa827f71-b9a7-451a-98cf-c3392bad9323</PartitionId>" +
+                "<PoweredOn>true</PoweredOn><Quiesced>NO</Quiesced>" +
+                "<ReservedCapacity>14209583782297</ReservedCapacity>" +
+                "<State>NORMAL</State><StorageDomainId>8253863e-8818-4677-8e6b-60b1d398dd1e</StorageDomainId>" +
+                "<TotalCapacity>142095837822976</TotalCapacity><Type>NEARLINE</Type>" +
+                "<UsedCapacity>789712094144</UsedCapacity></Pool>" +
+                "<Pool>" +
+                "<AssignedToStorageDomain>true</AssignedToStorageDomain>" +
+                "<AvailableCapacity>3430686763316</AvailableCapacity><BucketId/>" +
+                "<Guid>7044231287698570181</Guid><Health>OK</Health>" +
+                "<Id>7e2780c0-e447-4294-a9e0-e53324a1c79a</Id>" +
+                "<LastAccessed>2017-02-27T10:42:34.000Z</LastAccessed>" +
+                "<LastModified>2017-02-27T10:42:34.000Z</LastModified><LastVerified/>" +
+                "<Mountpoint>/pool/Online_Disk_1_7044231287698570181/vol/data/ds3</Mountpoint>" +
+                "<Name>Online_Disk_1_7044231287698570181</Name>" +
+                "<PartitionId>1982c83f-ee80-434f-ae5b-19415faa5b01</PartitionId>" +
+                "<PoweredOn>true</PoweredOn><Quiesced>NO</Quiesced>" +
+                "<ReservedCapacity>386117455052</ReservedCapacity><State>NORMAL</State>" +
+                "<StorageDomainId>896dcbf3-66a6-4f4f-a163-0210c6e0ab4b</StorageDomainId>" +
+                "<TotalCapacity>3861174550528</TotalCapacity><Type>ONLINE</Type>" +
+                "<UsedCapacity>44370332160</UsedCapacity></Pool>" +
+                "</Data>", "utf-8");
+
+        final PoolList pools = XmlOutput.fromXml(packet, PoolList.class);
+        final GetPoolsResult getPoolsResult = new GetPoolsResult(pools);
+        final String result = view.render(getPoolsResult);
+        assertThat(result, is(expected));
+    }
+
+    @Test
+    public void cancelVerifyAllPools() throws Exception {
+        final Arguments args = new Arguments( new String[] {"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "cancel_verify_all_pools"});
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
+        command.init(args);
+        assertTrue(command instanceof CancelVerifyAllPools);
+        final View view = command.getView();
+
+        final String expected = "Verify Pool cancelled on all pools.";
+        final String result = view.render(new DefaultResult(expected));
+        assertThat(result, is(expected));
+    }
+
+    @Test
+    public void cancelVerifyAllTapes() throws Exception {
+        final Arguments args = new Arguments( new String[] {"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "cancel_verify_all_tapes"});
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
+        command.init(args);
+        assertTrue(command instanceof CancelVerifyAllTapes);
+        final View view = command.getView();
+
+        final String expected = "Verify Tape cancelled on all tapes.";
+        final String result = view.render(new DefaultResult(expected));
+        assertThat(result, is(expected));
+    }
+
 }

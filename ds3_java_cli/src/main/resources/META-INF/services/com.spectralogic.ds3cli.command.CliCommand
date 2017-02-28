@@ -73,4 +73,14 @@ com.spectralogic.ds3cli.command.GetTape
 com.spectralogic.ds3cli.command.GetBucketDetails
 com.spectralogic.ds3cli.command.EjectTape
 com.spectralogic.ds3cli.command.ModifyJob
+com.spectralogic.ds3cli.command.CancelVerifyAllTapes
+com.spectralogic.ds3cli.command.CancelVerifyTape
+com.spectralogic.ds3cli.command.GetTape
+com.spectralogic.ds3cli.command.GetPools
+com.spectralogic.ds3cli.command.GetPool
+com.spectralogic.ds3cli.command.CancelVerifyPool
+com.spectralogic.ds3cli.command.CancelVerifyAllPools
+com.spectralogic.ds3cli.command.VerifyAllTapes
+com.spectralogic.ds3cli.command.VerifyTape
+
 
