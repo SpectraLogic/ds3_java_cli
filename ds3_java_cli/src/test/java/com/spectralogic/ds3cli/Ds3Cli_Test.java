@@ -1657,6 +1657,61 @@ public class Ds3Cli_Test {
     }
 
     @Test
+    public void testGetPhysicalPlacementOnReplication() throws Exception {
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_physical_placement", "-b", "ReplicationOnly", "-o", "VBox.log"});
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
+        command.init(args);
+        assertTrue(command instanceof GetPhysicalPlacement);
+        final View view = command.getView();
+
+        final String expected =
+            "+-------------+--------------------------------------+----------+--------+--------+--------+---------+\n" +
+            "| Object Name |                  ID                  | In Cache | Length | Offset | Latest | Version |\n" +
+            "+-------------+--------------------------------------+----------+--------+--------+--------+---------+\n" +
+            "| VBox.log    | 35e2c6ba-95f9-47ff-947c-194923633232 | false    | 102363 | 0      | true   | 1       |\n" +
+            "+-------------+--------------------------------------+----------+--------+--------+--------+---------+\n" +
+            "+------------------------------------+--------------------------------------+-----------+--------+--------+----------+--------------------------------------+\n" +
+            "|              Pool Name             |                  ID                  | Bucket ID |  State | Health |   Type   |             Partition ID             |\n" +
+            "+------------------------------------+--------------------------------------+-----------+--------+--------+----------+--------------------------------------+\n" +
+            "| Arctic_Blue_1_13867492206260533141 | e00a14f9-3da6-45b2-9d4d-6cef130b57bf |           | NORMAL | OK     | NEARLINE | fa827f71-b9a7-451a-98cf-c3392bad9323 |\n" +
+            "+------------------------------------+--------------------------------------+-----------+--------+--------+----------+--------------------------------------+\n" +
+            "+------------------+--------+--------------------------------------+----------+--------------------+\n" +
+            "| Replication Name |  State |                  Id                  | Quiesced | Data Path Endpoint |\n" +
+            "+------------------+--------+--------------------------------------+----------+--------------------+\n" +
+            "| BP_Test          | ONLINE | b1dfd8a6-d40b-414c-bc9d-010f8e177e70 | NO       | 10.85.41.86        |\n" +
+            "+------------------+--------+--------------------------------------+----------+--------------------+\n";
+
+         final String packet = "<Data>" +
+                 "<Object Bucket=\"ReplicationOnly\" Id=\"35e2c6ba-95f9-47ff-947c-194923633232\" InCache=\"false\" Latest=\"true\" Length=\"102363\" Name=\"VBox.log\" Offset=\"0\" Version=\"1\">" +
+                 "<PhysicalPlacement><AzureTargets/>" +
+                 "<Ds3Targets><Ds3Target><AccessControlReplication>NONE</AccessControlReplication>" +
+                 "<AdminAuthId>c3BlY3RyYQ==</AdminAuthId><AdminSecretKey>MFri35Rk</AdminSecretKey>" +
+                 "<DataPathEndPoint>10.85.41.86</DataPathEndPoint><DataPathHttps>false</DataPathHttps>" +
+                 "<DataPathPort>80</DataPathPort><DataPathProxy/><DataPathVerifyCertificate>false</DataPathVerifyCertificate>" +
+                 "<DefaultReadPreference>LAST_RESORT</DefaultReadPreference><Id>b1dfd8a6-d40b-414c-bc9d-010f8e177e70</Id>" +
+                 "<Name>BP_Test</Name><PermitGoingOutOfSync>false</PermitGoingOutOfSync><Quiesced>NO</Quiesced>" +
+                 "<ReplicatedUserDefaultDataPolicy/>" +
+                 "<State>ONLINE</State></Ds3Target></Ds3Targets>" +
+                 "<Pools><Pool><AssignedToStorageDomain>true</AssignedToStorageDomain>" +
+                 "<AvailableCapacity>127096132854919</AvailableCapacity><BucketId/>" +
+                 "<Guid>13867492206260533141</Guid><Health>OK</Health><Id>e00a14f9-3da6-45b2-9d4d-6cef130b57bf</Id>" +
+                 "<LastAccessed>2017-02-28T11:34:56.000Z</LastAccessed><LastModified>2017-02-28T11:34:56.000Z</LastModified>" +
+                 "<LastVerified/><Mountpoint>/pool/Arctic_Blue_1_13867492206260533141/vol/data/ds3</Mountpoint>" +
+                 "<Name>Arctic_Blue_1_13867492206260533141</Name><PartitionId>fa827f71-b9a7-451a-98cf-c3392bad9323</PartitionId>" +
+                 "<PoweredOn>true</PoweredOn><Quiesced>NO</Quiesced><ReservedCapacity>14209583782297</ReservedCapacity>" +
+                 "<State>NORMAL</State><StorageDomainId>8253863e-8818-4677-8e6b-60b1d398dd1e</StorageDomainId>" +
+                 "<TotalCapacity>142095837822976</TotalCapacity><Type>NEARLINE</Type><UsedCapacity>790121185760</UsedCapacity>" +
+                 "</Pool></Pools>" +
+                 "<S3Targets/><Tapes/></PhysicalPlacement>" +
+                 "</Object></Data>";
+
+        final BulkObjectList objectList = XmlOutput.fromXml(packet, BulkObjectList.class);
+        final GetPhysicalPlacementWithFullDetailsResult detailsResult = new GetPhysicalPlacementWithFullDetailsResult(objectList);
+        final String result = view.render(detailsResult);
+        assertThat(result, is(expected));
+    }
+
+    @Test
     public void getDataPolicies() throws Exception {
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_data_policies"});
         final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());

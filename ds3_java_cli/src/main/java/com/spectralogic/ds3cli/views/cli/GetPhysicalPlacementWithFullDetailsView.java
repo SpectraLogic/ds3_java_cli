@@ -57,6 +57,11 @@ public class GetPhysicalPlacementWithFullDetailsView  implements View<GetPhysica
                         formatTapesPlacement(bulkObjectList.getObjects().get(index).getPhysicalPlacement().getTapes())));
             }
 
+            if (!Guard.isNullOrEmpty(bulkObjectList.getObjects().get(index).getPhysicalPlacement().getDs3Targets())) {
+                output = output.concat(ASCIITable.getInstance().getTable(getDs3TargetPlacementHeaders(),
+                        formatDs3TargetPlacement(bulkObjectList.getObjects().get(index).getPhysicalPlacement().getDs3Targets())));
+            }
+
             if (!Guard.isNullOrEmpty(bulkObjectList.getObjects().get(index).getPhysicalPlacement().getAzureTargets())) {
                 output = output.concat(ASCIITable.getInstance().getTable(getAzureTargetPlacementHeaders(),
                         formatAzureTargetPlacement(bulkObjectList.getObjects().get(index).getPhysicalPlacement().getAzureTargets())));
@@ -155,6 +160,33 @@ public class GetPhysicalPlacementWithFullDetailsView  implements View<GetPhysica
                 new ASCIITableHeader("Description", ASCIITable.ALIGN_LEFT),
                 new ASCIITableHeader("Eject Label", ASCIITable.ALIGN_LEFT),
                 new ASCIITableHeader("Eject Location", ASCIITable.ALIGN_LEFT)
+        };
+    }
+
+    private String[][] formatDs3TargetPlacement(final List<Ds3Target> ds3TargetList) {
+        final String [][] formatArray = new String[ds3TargetList.size()][];
+
+        for (int i = 0; i < ds3TargetList.size(); i ++) {
+            final Ds3Target target = ds3TargetList.get(i);
+            final String[] tapePlacementArray = new String[getDs3TargetPlacementHeaders().length];
+            tapePlacementArray[0] = nullGuard(target.getName());
+            tapePlacementArray[1] = nullGuardToString(target.getState());
+            tapePlacementArray[2] = nullGuardToString(target.getId());
+            tapePlacementArray[3] = nullGuardToString(target.getQuiesced());
+            tapePlacementArray[4] = nullGuard(target.getDataPathEndPoint());
+
+            formatArray[i] = tapePlacementArray;
+        }
+        return formatArray;
+    }
+
+    private ASCIITableHeader[] getDs3TargetPlacementHeaders() {
+        return new ASCIITableHeader[]{
+                new ASCIITableHeader("Replication Name", ASCIITable.ALIGN_LEFT),
+                new ASCIITableHeader("State", ASCIITable.ALIGN_LEFT),
+                new ASCIITableHeader("Id", ASCIITable.ALIGN_LEFT),
+                new ASCIITableHeader("Quiesced", ASCIITable.ALIGN_LEFT),
+                new ASCIITableHeader("Data Path Endpoint", ASCIITable.ALIGN_LEFT)
         };
     }
 
