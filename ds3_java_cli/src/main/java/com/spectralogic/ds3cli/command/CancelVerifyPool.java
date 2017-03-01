@@ -1,6 +1,6 @@
 /*
  * *****************************************************************************
- *   Copyright 2014-2016 Spectra Logic Corporation. All Rights Reserved.
+ *   Copyright 2014-2017 Spectra Logic Corporation. All Rights Reserved.
  *   Licensed under the Apache License, Version 2.0 (the "License"). You may not use
  *   this file except in compliance with the License. A copy of the License is located at
  *
@@ -20,60 +20,53 @@ import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.exceptions.CommandException;
-import com.spectralogic.ds3cli.models.GetTapeResult;
-import com.spectralogic.ds3cli.views.cli.GetTapeView;
+import com.spectralogic.ds3cli.models.GetPoolsResult;
+import com.spectralogic.ds3cli.views.cli.GetPoolsView;
 import com.spectralogic.ds3cli.views.json.DataView;
-import com.spectralogic.ds3client.commands.spectrads3.VerifyTapeSpectraS3Request;
-import com.spectralogic.ds3client.commands.spectrads3.VerifyTapeSpectraS3Response;
-import com.spectralogic.ds3client.models.Priority;
+import com.spectralogic.ds3client.commands.spectrads3.CancelVerifyPoolSpectraS3Request;
+import com.spectralogic.ds3client.commands.spectrads3.CancelVerifyPoolSpectraS3Response;
 import com.spectralogic.ds3client.networking.FailedRequestException;
 import org.apache.commons.cli.Option;
 
 import static com.spectralogic.ds3cli.ArgumentFactory.ID;
-import static com.spectralogic.ds3cli.ArgumentFactory.PRIORITY;
 
 
-public class VerifyTape extends CliCommand<GetTapeResult> {
+public class CancelVerifyPool extends CliCommand<GetPoolsResult> {
 
     private final static ImmutableList<Option> requiredArgs = ImmutableList.of(ID);
-    private final static ImmutableList<Option> optionalArgs = ImmutableList.of(PRIORITY);
 
     private String id;
-    private Priority priority;
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
-        processCommandOptions(requiredArgs, optionalArgs, args);
-
-        this.priority = args.getPriority();
+        processCommandOptions(requiredArgs, EMPTY_LIST, args);
+        args.parseCommandLine();
         this.id = args.getId();
+        this.viewType = args.getOutputFormat();
         return this;
     }
 
     @Override
-    public GetTapeResult call() throws Exception {
+    public GetPoolsResult call() throws Exception {
         try {
-            final VerifyTapeSpectraS3Request request = new VerifyTapeSpectraS3Request(id);
-            if (priority != null) {
-                request.withTaskPriority(priority);
-            }
+            final CancelVerifyPoolSpectraS3Response response
+                    = getClient().cancelVerifyPoolSpectraS3(new CancelVerifyPoolSpectraS3Request(this.id));
 
-            final VerifyTapeSpectraS3Response verifyTapeSpectraS3Response = getClient().verifyTapeSpectraS3(request);
-            return new GetTapeResult(verifyTapeSpectraS3Response.getTapeResult());
-        } catch(final FailedRequestException e) {
+        return new GetPoolsResult(response.getPoolResult());
+        } catch (final FailedRequestException e) {
             if (e.getStatusCode() == 409) {
-                throw new CommandException("Conflict (409) tape " + id + " cannot be verified.", e);
+                throw new CommandException("Conflict (409) verify " + id + " cannot be cancelled.", e);
             }
             throw e;
         }
     }
 
     @Override
-    public View<GetTapeResult> getView() {
+    public View<GetPoolsResult> getView() {
         if (viewType == ViewType.JSON) {
             return new DataView<>();
-        } else {
-            return new GetTapeView();
         }
+        return new GetPoolsView();
     }
+
 }

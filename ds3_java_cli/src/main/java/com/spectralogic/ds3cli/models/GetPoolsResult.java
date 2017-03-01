@@ -1,6 +1,6 @@
 /*
  * *****************************************************************************
- *   Copyright 2014-2016 Spectra Logic Corporation. All Rights Reserved.
+ *   Copyright 2014-2017 Spectra Logic Corporation. All Rights Reserved.
  *   Licensed under the Apache License, Version 2.0 (the "License"). You may not use
  *   this file except in compliance with the License. A copy of the License is located at
  *
@@ -15,17 +15,26 @@
 
 package com.spectralogic.ds3cli.models;
 
-import com.spectralogic.ds3client.models.Tape;
+import com.google.common.collect.ImmutableList;
+import com.spectralogic.ds3client.models.Pool;
+import com.spectralogic.ds3client.models.PoolList;
 
-public class VerifyTapeResult implements Result<Tape> {
-    private final Tape tape;
+public class GetPoolsResult implements Result<PoolList> {
+    private final PoolList poolList;
 
-    public VerifyTapeResult(final Tape tapeResult) {
-        this.tape = tapeResult;
+    // constructor from PoolList for GetPools
+    public GetPoolsResult(final PoolList poolList) {
+        this.poolList = poolList;
+    }
+
+    // constructor for Pool for GetPool
+    public GetPoolsResult(final Pool pool) {
+        this.poolList = new PoolList();
+        this.poolList.setPools(ImmutableList.of(pool));
     }
 
     @Override
-    public Tape getResult() {
-        return tape;
+    public PoolList getResult() {
+        return poolList;
     }
 }
