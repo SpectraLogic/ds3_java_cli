@@ -21,12 +21,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.models.GetPhysicalPlacementWithFullDetailsResult;
 import com.spectralogic.ds3client.models.*;
-import com.spectralogic.ds3client.utils.Guard;
 
 import java.util.List;
 
 import static com.spectralogic.ds3cli.util.Guard.nullGuard;
 import static com.spectralogic.ds3cli.util.Guard.nullGuardToString;
+import static com.spectralogic.ds3client.utils.Guard.isNullOrEmpty;
 
 public class GetPhysicalPlacementWithFullDetailsView  implements View<GetPhysicalPlacementWithFullDetailsResult> {
 
@@ -56,17 +56,17 @@ public class GetPhysicalPlacementWithFullDetailsView  implements View<GetPhysica
                         formatTapesPlacement(bulkObjectList.getObjects().get(index).getPhysicalPlacement().getTapes())));
             }
 
-            if (!Guard.isNullOrEmpty(bulkObjectList.getObjects().get(index).getPhysicalPlacement().getDs3Targets())) {
+            if (!isNullOrEmpty(bulkObjectList.getObjects().get(index).getPhysicalPlacement().getDs3Targets())) {
                 output = output.concat(ASCIITable.getInstance().getTable(getDs3TargetPlacementHeaders(),
                         formatDs3TargetPlacement(bulkObjectList.getObjects().get(index).getPhysicalPlacement().getDs3Targets())));
             }
 
-            if (!Guard.isNullOrEmpty(bulkObjectList.getObjects().get(index).getPhysicalPlacement().getAzureTargets())) {
+            if (!isNullOrEmpty(bulkObjectList.getObjects().get(index).getPhysicalPlacement().getAzureTargets())) {
                 output = output.concat(ASCIITable.getInstance().getTable(getAzureTargetPlacementHeaders(),
                         formatAzureTargetPlacement(bulkObjectList.getObjects().get(index).getPhysicalPlacement().getAzureTargets())));
             }
 
-            if (!Guard.isNullOrEmpty(bulkObjectList.getObjects().get(index).getPhysicalPlacement().getS3Targets())) {
+            if (!isNullOrEmpty(bulkObjectList.getObjects().get(index).getPhysicalPlacement().getS3Targets())) {
                 output = output.concat(ASCIITable.getInstance().getTable(getS3TargetPlacementHeaders(),
                         formatS3TargetPlacement(bulkObjectList.getObjects().get(index).getPhysicalPlacement().getS3Targets())));
             }
