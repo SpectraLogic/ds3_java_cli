@@ -16,9 +16,9 @@
 package com.spectralogic.ds3cli.util;
 
 public interface CommandListener {
-    public void append(final String message);
+    void append(final String message);
 
-    public String toString();
+    String toString();
 }
 
 

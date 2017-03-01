@@ -17,7 +17,7 @@ package com.spectralogic.ds3cli.util;
 
 public class CommandListenerImpl implements CommandListener {
 
-    private StringBuilder builder;
+    private final StringBuilder builder;
 
     public CommandListenerImpl() {
         builder = new StringBuilder("");

@@ -19,7 +19,7 @@ import java.io.PrintStream;
 
 public class CommandListenerStream implements CommandListener {
 
-    private PrintStream stream;
+    private final PrintStream stream;
 
     public CommandListenerStream(final PrintStream stream) {
         this.stream = stream;
