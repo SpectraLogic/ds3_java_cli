@@ -56,7 +56,7 @@ import static com.spectralogic.ds3cli.ArgumentFactory.*;
 
 public class PutBulk extends CliCommand<PutBulkResult> {
 
-    private  final static Logger LOG = LoggerFactory.getLogger(PutBulk.class);
+    private final static Logger LOG = LoggerFactory.getLogger(PutBulk.class);
 
     private final static ImmutableList<Option> requiredArgs = ImmutableList.of(BUCKET);
     private final static ImmutableList<Option> optionalArgs
