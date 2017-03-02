@@ -31,9 +31,7 @@ public class GetService extends CliCommand<GetServiceResult> {
 
     @Override
     public GetServiceResult call() throws IOException, CommandException {
-        broadcast("Performing GetService...");
         final GetServiceResponse response = getClient().getService(new GetServiceRequest());
-        broadcast("Rendering Output...");
         return new GetServiceResult(response.getListAllMyBucketsResult());
     }
 
