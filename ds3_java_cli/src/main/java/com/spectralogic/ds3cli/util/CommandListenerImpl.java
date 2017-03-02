@@ -15,6 +15,9 @@
 
 package com.spectralogic.ds3cli.util;
 
+import java.io.Closeable;
+import java.io.IOException;
+
 public class CommandListenerImpl implements CommandListener {
 
     private final StringBuilder builder;
@@ -31,4 +34,8 @@ public class CommandListenerImpl implements CommandListener {
         return builder.toString();
     }
 
+    @Override
+    public void close() throws IOException {
+        // nothing to do here
+    }
 }

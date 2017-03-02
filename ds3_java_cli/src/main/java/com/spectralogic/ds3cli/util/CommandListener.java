@@ -15,7 +15,9 @@
 
 package com.spectralogic.ds3cli.util;
 
-public interface CommandListener {
+import java.io.Closeable;
+
+public interface CommandListener extends Closeable {
     void append(final String message);
 
     String toString();

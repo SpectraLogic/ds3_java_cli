@@ -15,6 +15,8 @@
 
 package com.spectralogic.ds3cli.util;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.io.PrintStream;
 
 public class CommandListenerStream implements CommandListener {
@@ -33,4 +35,8 @@ public class CommandListenerStream implements CommandListener {
         return "";
     }
 
+    @Override
+    public void close() throws IOException {
+        stream.close();
+    }
 }
