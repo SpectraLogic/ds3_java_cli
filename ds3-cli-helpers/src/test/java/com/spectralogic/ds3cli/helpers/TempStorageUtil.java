@@ -21,7 +21,6 @@ import com.spectralogic.ds3client.models.*;
 
 import java.io.IOException;
 import java.util.Iterator;
-import java.util.Optional;
 import java.util.UUID;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
