@@ -20,4 +20,5 @@ fi
 echo "cd ds3_java_cli"
 cd ds3_java_cli
 
-./gradlew test
+# Build all projects, run all unit tests, exclude certification integration tests.
+./gradlew test -x ds3-cli-certification:test

@@ -20,8 +20,11 @@ import com.spectralogic.ds3client.commands.spectrads3.*;
 import com.spectralogic.ds3client.models.*;
 
 import java.io.IOException;
-import java.util.Optional;
+import java.util.Iterator;
 import java.util.UUID;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
+import javax.annotation.Nullable;
 
 import static com.spectralogic.ds3cli.helpers.ABMTestHelper.*;
 import static org.hamcrest.CoreMatchers.is;
@@ -125,9 +128,15 @@ public class TempStorageUtil {
         assumeThat(getStorageDomainMembersResponse.getStorageDomainMemberListResult().getStorageDomainMembers().size(), is(greaterThan(0)));
 
         final GetDataPoliciesSpectraS3Response getDataPoliciesResponse = client.getDataPoliciesSpectraS3(new GetDataPoliciesSpectraS3Request());
-        final Optional<DataPolicy> optionalSingleTapeDataPolicy = getDataPoliciesResponse.getDataPolicyListResult().getDataPolicies().stream().filter(dp -> dp.getName().equals(PREFERRED_DATA_POLICY_NAME)).findFirst();
-        assumeTrue(optionalSingleTapeDataPolicy.isPresent());
-        final DataPolicy singleTapeDp = optionalSingleTapeDataPolicy.get();
+        final Iterable<DataPolicy> preferredPolicies =
+                Iterables.filter(getDataPoliciesResponse.getDataPolicyListResult().getDataPolicies(), new Predicate<DataPolicy>() {
+                @Override
+                public boolean apply(@Nullable DataPolicy input) {
+                    return input.getName().equals(PREFERRED_DATA_POLICY_NAME);
+                };});
+        final Iterator<DataPolicy> policies = preferredPolicies.iterator();
+        assumeTrue(policies.hasNext());
+        final DataPolicy singleTapeDp = policies.next();
 
         client.modifyUserSpectraS3(new ModifyUserSpectraS3Request("spectra")
                 .withDefaultDataPolicyId(singleTapeDp.getId()));
