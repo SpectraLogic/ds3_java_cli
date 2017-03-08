@@ -387,8 +387,6 @@ public class Arguments {
 
     public String getRangeLength() {return this.getOptionValue(RANGE_LENGTH.getLongOpt()); }
 
-    public String[] getAllArgs() {return this.args; }
-
 }
 
 

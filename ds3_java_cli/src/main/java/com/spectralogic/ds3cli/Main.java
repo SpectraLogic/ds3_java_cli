@@ -35,7 +35,6 @@ import com.spectralogic.ds3cli.util.*;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.networking.FailedRequestException;
-import com.spectralogic.ds3client.utils.*;
 import org.apache.commons.cli.MissingOptionException;
 import org.slf4j.LoggerFactory;
 
@@ -140,7 +139,6 @@ public final class Main {
     }
 
     public static void main(final String[] args) {
-        // recovery ;listerers
         try {
             final Properties props = CliUtils.readProperties(PROPERTY_FILE);
 
