@@ -1,6 +1,6 @@
 /*
  * *****************************************************************************
- *   Copyright 2014-2016 Spectra Logic Corporation. All Rights Reserved.
+ *   Copyright 2014-2017 Spectra Logic Corporation. All Rights Reserved.
  *   Licensed under the Apache License, Version 2.0 (the "License"). You may not use
  *   this file except in compliance with the License. A copy of the License is located at
  *
@@ -18,15 +18,20 @@ package com.spectralogic.ds3cli.command;
 import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.models.PutBulkResult;
+import com.spectralogic.ds3cli.models.RecoveryJob;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.helpers.JobRecoveryException;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.serializer.XmlProcessingException;
+import com.spectralogic.ds3client.utils.Guard;
 import org.apache.commons.cli.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.nio.file.FileSystems;
+import java.nio.file.Paths;
+import java.util.List;
 import java.util.UUID;
 
 import static com.spectralogic.ds3cli.ArgumentFactory.*;
@@ -55,35 +60,36 @@ public class RecoverPutBulk extends PutBulk {
     }
 
     @Override
+    public CliCommand init(final RecoveryJob job) throws Exception {
+        this.bucketName = job.getBucketName();
+        this.numberOfThreads = job.getNumberOfThreads();
+        this.jobId = job.getId();
+        if (Guard.isStringNullOrEmpty(job.getDirectory()) || job.getDirectory().equals(".")) {
+            this.inputDirectory = FileSystems.getDefault().getPath(".");
+        } else {
+            this.inputDirectory = Paths.get(job.getDirectory());
+        }
+        LOG.info("Input Path = {}", this.inputDirectory);
+
+        final List<String> prefix = job.getPrefixes();
+        // only one prefix on put
+        if (prefix != null && prefix.size() == 1) {
+            this.prefix = prefix.get(0);
+        }
+        return this;
+    }
+
+    @Override
     protected PutBulkResult transfer(final Ds3ClientHelpers helpers, final Iterable<Ds3Object> ds3Objects, final ImmutableList<IgnoreFile> ds3IgnoredObjects)
             throws JobRecoveryException, IOException, XmlProcessingException {
         final Ds3ClientHelpers.Job job = helpers.recoverWriteJob(this.jobId);
         job.withMaxParallelRequests(this.numberOfThreads);
-        printRecoveryCommand(job.getJobId());
 
-        if (this.checksum) {
-            throw new RuntimeException("Checksum calculation is not currently supported."); //TODO
-//            Logging.log("Performing bulk put with checksum computation enabled");
-//            job.withRequestModifier(new ComputedChecksumModifier());
-        }
-        LOG.info("Created recover bulk put job {}, starting transfer", job.getJobId().toString());
-
-        String resultMessage;
-        if (this.pipe) {
-
-            final PipeFileObjectPutter pipeFileObjectPutter = new PipeFileObjectPutter(this.mapNormalizedObjectNameToObjectName);
-            job.withMetadata(pipeFileObjectPutter).transfer(pipeFileObjectPutter);
-            resultMessage = String.format("SUCCESS: Wrote all piped files to bucket %s", this.bucketName);
-        } else {
-            final PrefixedFileObjectPutter prefixedFileObjectPutter = new PrefixedFileObjectPutter(this.inputDirectory, this.prefix);
-            job.withMetadata(prefixedFileObjectPutter).transfer(prefixedFileObjectPutter);
-            resultMessage = String.format("SUCCESS: Wrote all the files in %s to bucket %s", this.inputDirectory.toString(), this.bucketName);
-        }
-
-        if (this.ignoreErrors && !ds3IgnoredObjects.isEmpty()) {
-            resultMessage = String.format("WARN: Not all of the files were written to bucket %s", this.bucketName);
-        }
-        return new PutBulkResult(resultMessage, ds3IgnoredObjects);
+        final PrefixedFileObjectPutter prefixedFileObjectPutter = new PrefixedFileObjectPutter(this.inputDirectory, this.prefix);
+        job.withMetadata(prefixedFileObjectPutter).transfer(prefixedFileObjectPutter);
+        // clean up recovery job on success
+        deleteRecoveryCommand(job.getJobId());
+        return new PutBulkResult(String.format("SUCCESS: Wrote all the files in %s to bucket %s", this.inputDirectory.toString(), this.bucketName), ds3IgnoredObjects);
     }
 
 }

@@ -42,6 +42,7 @@ import org.hamcrest.core.StringEndsWith;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.internal.util.collections.Iterables;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.powermock.api.mockito.PowerMockito;
@@ -3235,6 +3236,53 @@ public class Ds3Cli_Test {
         final String expected = "Verify Tape cancelled on all tapes.";
         final String result = view.render(new DefaultResult(expected));
         assertThat(result, is(expected));
+    }
+
+    @Test
+    public void testRecoverManager() throws Exception {
+        try {
+            // clean up first
+            RecoveryFileManager.deleteFiles(null, null, null);
+            // create test files
+            final int numFiles = 6;
+            for (int i = 0; i < numFiles; i++) {
+                final UUID id = UUID.randomUUID();
+                final BulkJobType type;
+                if (i % 2 == 0) {
+                    type = BulkJobType.GET_BULK;
+                } else {
+                    type = BulkJobType.PUT_BULK;
+                }
+                final RecoveryJob job = new RecoveryJob(type);
+                job.setDirectory("dir" + i);
+                job.setPrefix(ImmutableList.of("jk"));
+                job.setBucketName("bucket" + i);
+                job.setId(id);
+                RecoveryFileManager.writeRecoveryJob(job);
+            }
+            Iterable<Path> allFiles = RecoveryFileManager.searchFiles(null, null, null);
+            assertTrue("Saved and found all files", com.google.common.collect.Iterables.size(allFiles) == numFiles);
+            allFiles = RecoveryFileManager.searchFiles(null, "bucket3", null);
+            assertTrue("Found all files for one bucket", com.google.common.collect.Iterables.size(allFiles) == 1);
+            final Iterable<Path> allGets = RecoveryFileManager.searchFiles(null, null, BulkJobType.GET_BULK);
+            assertTrue("Found all gets", com.google.common.collect.Iterables.size(allGets) == numFiles / 2);
+            RecoveryFileManager.deleteFiles(null, null, BulkJobType.PUT_BULK);
+            allFiles = RecoveryFileManager.searchFiles(null, null, null);
+            assertTrue("All files after puts are deleted", com.google.common.collect.Iterables.size(allFiles) == numFiles / 2);
+            RecoveryFileManager.deleteFiles(null, null, null);
+            allFiles = RecoveryFileManager.searchFiles(null, null, null);
+            assertTrue("Deleted all files", com.google.common.collect.Iterables.size(allFiles) == 0);
+        } finally {
+            RecoveryFileManager.deleteFiles(null, null, null);
+        }
+    }
+
+    @Test
+    public void testRecoverCommand() throws Exception {
+        final Arguments args = new Arguments( new String[] {"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "recover", "-b", "bucket", "--job-type", "GET_BULK", "--recover"});
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
+        command.init(args);
+        assertTrue(command instanceof Recover);
     }
 
 }

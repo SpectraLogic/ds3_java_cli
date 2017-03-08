@@ -19,10 +19,15 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.spectralogic.ds3cli.Arguments;
-import com.spectralogic.ds3client.helpers.*;
+import com.spectralogic.ds3cli.models.RecoveryJob;
+
+import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
+import com.spectralogic.ds3client.helpers.FolderNameFilter;
+import com.spectralogic.ds3client.helpers.JobRecoveryException;
 import com.spectralogic.ds3client.helpers.pagination.GetBucketLoaderFactory;
 import com.spectralogic.ds3client.models.Contents;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
+
 import com.spectralogic.ds3client.serializer.XmlProcessingException;
 import com.spectralogic.ds3client.utils.Guard;
 import com.spectralogic.ds3client.utils.collections.LazyIterable;
@@ -30,7 +35,9 @@ import org.apache.commons.cli.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
+import java.io.*;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
 import java.util.*;
 
 import static com.spectralogic.ds3cli.ArgumentFactory.*;
@@ -60,6 +67,27 @@ public class RecoverGetBulk extends GetBulk {
     }
 
     @Override
+    public CliCommand init(final RecoveryJob job) throws Exception {
+        this.bucketName = job.getBucketName();
+        this.numberOfThreads = job.getNumberOfThreads();
+        this.jobId = job.getId();
+        this.directory = job.getDirectory();
+        if (Guard.isStringNullOrEmpty(this.directory) || directory.equals(".")) {
+            this.outputPath = FileSystems.getDefault().getPath(".");
+        } else {
+            final Path dirPath = FileSystems.getDefault().getPath(directory);
+            this.outputPath = FileSystems.getDefault().getPath(".").resolve(dirPath);
+        }
+        LOG.info("Output Path = {}", this.outputPath);
+
+        final List<String> prefix = job.getPrefixes();
+        if (prefix != null && prefix.size() > 0) {
+            this.prefixes = ImmutableList.copyOf(prefix);
+        }
+        return this;
+    }
+
+    @Override
     protected String restoreSome(final Ds3ClientHelpers.ObjectChannelBuilder getter) throws JobRecoveryException, IOException, XmlProcessingException {
         final Ds3ClientHelpers helper = getClientHelpers();
 
@@ -75,29 +103,18 @@ public class RecoverGetBulk extends GetBulk {
         }
 
         final Iterable<Ds3Object> objects;
-        if (this.sync) {
-            final Iterable<Contents> filteredContents = this.filterContents(prefixMatches, this.outputPath);
-            if (Iterables.isEmpty(filteredContents)) {
-                return "SUCCESS: All files are up to date";
-            }
-            objects = helper.toDs3Iterable(filteredContents, FolderNameFilter.filter());
-        } else {
-            objects = helper.toDs3Iterable(prefixMatches, FolderNameFilter.filter());
-        }
+        objects = helper.toDs3Iterable(prefixMatches, FolderNameFilter.filter());
 
         final Ds3ClientHelpers.Job job = helper.recoverReadJob(this.jobId);
         job.withMaxParallelRequests(this.numberOfThreads);
         final LoggingFileObjectGetter loggingFileObjectGetter = new LoggingFileObjectGetter(getter, this.outputPath);
         job.attachMetadataReceivedListener(loggingFileObjectGetter);
-        // provide recovery command in case of failure
-        printRecoveryCommand(job.getJobId());
 
         // start transfer
         job.transfer(loggingFileObjectGetter);
 
         // Success -- build the response
         final StringBuilder response = new StringBuilder("SUCCESS: ");
-        response.append(this.sync ? "Synced" : this.discard ? "Retrieved and discarded" : "Wrote");
         response.append(Guard.isNullOrEmpty(this.prefixes) ? " all the objects"
                 : " all the objects that start with '" + Joiner.on(" ").join(this.prefixes) + "'");
         response.append(" from ");
@@ -114,11 +131,12 @@ public class RecoverGetBulk extends GetBulk {
         job.withMaxParallelRequests(this.numberOfThreads);
         final LoggingFileObjectGetter loggingFileObjectGetter = new LoggingFileObjectGetter(getter, this.outputPath);
         job.attachMetadataReceivedListener(loggingFileObjectGetter);
-        // provide recovery command in case of failure
-        printRecoveryCommand(job.getJobId());
 
         // start transfer
         job.transfer(loggingFileObjectGetter);
+
+        // delete recovery file on success
+        deleteRecoveryCommand(job.getJobId());
 
         if (this.discard) {
             return "SUCCESS: Retrieved and discarded all objects from " + this.bucketName;

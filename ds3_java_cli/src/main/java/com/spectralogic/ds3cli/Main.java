@@ -141,9 +141,6 @@ public final class Main {
 
     public static void main(final String[] args) {
         // recovery ;listerers
-        final CommandListener bufferListener = new CommandListenerImpl();
-        final CommandListener streamListener = new CommandListenerStream(System.out);
-
         try {
             final Properties props = CliUtils.readProperties(PROPERTY_FILE);
 
@@ -190,8 +187,6 @@ public final class Main {
 
             // get command, parse args
             final CliCommand command = CliCommandFactory.getCommandExecutor(arguments.getCommand()).withProvider(provider, fileSystemProvider);
-            command.registerListener(bufferListener);
-            command.registerListener(streamListener);
             command.init(arguments);
 
             final CommandResponse response = command.render();
@@ -199,10 +194,6 @@ public final class Main {
             System.exit(response.getReturnCode());
         } catch (final Exception e) {
             EXCEPTION.handleException(e);
-            final String recoveryString = bufferListener.toString();
-            if (!com.spectralogic.ds3client.utils.Guard.isStringNullOrEmpty(recoveryString)) {
-                System.out.println(recoveryString);
-            }
             System.exit(2);
         }
     }

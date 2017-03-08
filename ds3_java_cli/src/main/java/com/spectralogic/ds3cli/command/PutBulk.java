@@ -24,7 +24,9 @@ import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.exceptions.BadArgumentException;
 import com.spectralogic.ds3cli.exceptions.SyncNotSupportedException;
+import com.spectralogic.ds3cli.models.BulkJobType;
 import com.spectralogic.ds3cli.models.PutBulkResult;
+import com.spectralogic.ds3cli.models.RecoveryJob;
 import com.spectralogic.ds3cli.util.*;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.helpers.FileObjectPutter;
@@ -80,7 +82,6 @@ public class PutBulk extends CliCommand<PutBulkResult> {
     protected ImmutableMap<String, String> mapNormalizedObjectNameToObjectName = null;
     protected boolean followSymlinks;
     protected boolean ignoreNamingConflicts;
-    protected Arguments arguments;
 
     public PutBulk() {
     }
@@ -184,7 +185,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
                 writeJobOptions);
                 job.withMaxParallelRequests(this.numberOfThreads);
 
-        printRecoveryCommand(job.getJobId());
+        createRecoveryCommand(job.getJobId());
 
         if (this.checksum) {
             throw new RuntimeException("Checksum calculation is not currently supported."); //TODO
@@ -207,6 +208,8 @@ public class PutBulk extends CliCommand<PutBulkResult> {
 
         if (this.ignoreErrors && !ds3IgnoredObjects.isEmpty()) {
             resultMessage = String.format("WARN: Not all of the files were written to bucket %s", this.bucketName);
+        } else {
+            deleteRecoveryCommand(job.getJobId());
         }
 
         return new PutBulkResult(resultMessage, ds3IgnoredObjects);
@@ -424,23 +427,26 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         }
     }
 
-    protected void printRecoveryCommand(final UUID jobId) {
-        broadcast("To restart this job in case of failure:\n");
-        boolean appendId = true;
-        final String idOption = "-" + ID.getOpt();
-        for (final String arg : arguments.getAllArgs()) {
-            if (arg.equals(idOption)) {
-                // only add the id arg on put_bulk, it wil be in the list on recoveroes
-                appendId = false;
-            }
-            if (arg.equals("put_bulk")) {
-                broadcast("recover_put_bulk ");
-            } else {
-                broadcast(arg + " ");
-            }
+    protected void createRecoveryCommand(final UUID jobId) {
+        RecoveryJob recoveryJob = new RecoveryJob(BulkJobType.PUT_BULK);
+        recoveryJob.setBucketName(bucketName);
+        recoveryJob.setId(jobId);
+        recoveryJob.setNumberOfThreads(numberOfThreads);
+        recoveryJob.setDirectory(inputDirectory);
+        if(!Guard.isStringNullOrEmpty(prefix)) {
+            recoveryJob.setPrefix(ImmutableList.of(prefix));
         }
-        if (appendId) {
-            broadcast(idOption + " " + jobId.toString() + "\n");
+        if (!RecoveryFileManager.writeRecoveryJob(recoveryJob)) {
+            LOG.info("Could not create recovery file in temporary space.");
         }
     }
+
+    protected void deleteRecoveryCommand(final UUID jobId) {
+        try {
+            RecoveryFileManager.deleteFiles(jobId.toString(), null, null);
+        } catch (final IOException e) {
+            LOG.info("Could not delete recovery file in temporary space.", e);
+        }
+    }
+
 }

@@ -20,11 +20,10 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.exceptions.CommandException;
+import com.spectralogic.ds3cli.models.BulkJobType;
 import com.spectralogic.ds3cli.models.DefaultResult;
-import com.spectralogic.ds3cli.util.FileUtils;
-import com.spectralogic.ds3cli.util.MemoryObjectChannelBuilder;
-import com.spectralogic.ds3cli.util.MetadataUtils;
-import com.spectralogic.ds3cli.util.SyncUtils;
+import com.spectralogic.ds3cli.models.RecoveryJob;
+import com.spectralogic.ds3cli.util.*;
 import com.spectralogic.ds3client.helpers.*;
 import com.spectralogic.ds3client.helpers.options.ReadJobOptions;
 import com.spectralogic.ds3client.helpers.pagination.GetBucketLoaderFactory;
@@ -62,7 +61,6 @@ public class GetBulk extends CliCommand<DefaultResult> {
     protected boolean sync;
     protected boolean discard;
     protected int numberOfThreads;
-    protected Arguments arguments;
 
     public static final Option PREFIXES = Option.builder("p").hasArgs().argName("prefixes")
             .desc("get only objects whose names start with prefix  "
@@ -174,7 +172,7 @@ public class GetBulk extends CliCommand<DefaultResult> {
         job.attachMetadataReceivedListener(loggingFileObjectGetter);
 
         // provide recovery command in case of failure
-        printRecoveryCommand(job.getJobId());
+        createRecoveryCommand(job.getJobId());
 
         // start transfer
         job.transfer(loggingFileObjectGetter);
@@ -199,10 +197,13 @@ public class GetBulk extends CliCommand<DefaultResult> {
         final LoggingFileObjectGetter loggingFileObjectGetter = new LoggingFileObjectGetter(getter, this.outputPath);
         job.attachMetadataReceivedListener(loggingFileObjectGetter);
         // provide recovery command in case of failure
-        printRecoveryCommand(job.getJobId());
+        createRecoveryCommand(job.getJobId());
 
         // start transfer
         job.transfer(loggingFileObjectGetter);
+
+        // delete recovery file on success
+        deleteRecoveryCommand(job.getJobId());
 
         if (this.discard) {
             return "SUCCESS: Retrieved and discarded all objects from " + this.bucketName;
@@ -266,23 +267,23 @@ public class GetBulk extends CliCommand<DefaultResult> {
         return allPrefixMatches;
     }
 
-    protected void printRecoveryCommand(final UUID jobId) {
-        broadcast("To restart this job in case of failure:\n");
-        boolean appendId = true;
-        final String idOption = "-" + ID.getOpt();
-        for (final String arg : arguments.getAllArgs()) {
-            if (arg.equals(idOption)) {
-                // only add the id arg on put_bulk, it wil be in the list on recoveroes
-                appendId = false;
-            }
-            if (arg.equals("get_bulk")) {
-                broadcast("recover_get_bulk ");
-            } else {
-                broadcast(arg + " ");
-            }
+    protected void createRecoveryCommand(final UUID jobId) {
+        RecoveryJob recoveryJob = new RecoveryJob(BulkJobType.GET_BULK);
+        recoveryJob.setBucketName(bucketName);
+        recoveryJob.setId(jobId);
+        recoveryJob.setNumberOfThreads(numberOfThreads);
+        recoveryJob.setDirectory(directory);
+        recoveryJob.setPrefix(prefixes);
+        if (!RecoveryFileManager.writeRecoveryJob(recoveryJob)) {
+            LOG.info("Could not create recovery file in temporray space.");
         }
-        if (appendId) {
-            broadcast(idOption + " " + jobId.toString() + "\n");
+    }
+
+    protected void deleteRecoveryCommand(final UUID jobId) {
+        try {
+            RecoveryFileManager.deleteFiles(jobId.toString(), null, null);
+        } catch (final IOException e) {
+            LOG.info("Could not delete recovery file in temporary space.", e);
         }
     }
 
