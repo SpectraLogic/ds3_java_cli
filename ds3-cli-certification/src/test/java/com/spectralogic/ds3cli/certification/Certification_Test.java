@@ -407,7 +407,7 @@ public class Certification_Test {
 
             success = true;
         } catch (final Exception e) {
-            LOG.info("Exception: {}", e.getMessage(), e);
+            LOG.error("Exception: {}", e.getMessage(), e);
         } finally {
             Util.deleteBucket(client, bucketName);
 
