@@ -40,6 +40,8 @@ import org.joda.time.DateTime;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -58,6 +60,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeThat;
 
 public class FeatureIntegration_Test {
+    private static final Logger LOG = LoggerFactory.getLogger(FeatureIntegration_Test.class);
 
     private static final Ds3Client client = Ds3ClientBuilder.fromEnv().withHttps(false).build();
     private static final Ds3ClientHelpers HELPERS = Ds3ClientHelpers.wrap(client);
@@ -301,7 +304,7 @@ public class FeatureIntegration_Test {
         final String objectName = "beowulf.txt";
         try {
             // For a Get with sync, the local file needs to be older than the server copy
-            Util.copyFile(objectName, Util.RESOURCE_BASE_NAME, Util.RESOURCE_BASE_NAME);
+            Util.copyFile(objectName, Util.RESOURCE_BASE_NAME, Util.DOWNLOAD_BASE_NAME);
             final File file = new File(Util.RESOURCE_BASE_NAME + File.separator + objectName);
             final DateTime modTime = new DateTime().minusHours(1);
             file.setLastModified(modTime.getMillis());
@@ -309,8 +312,14 @@ public class FeatureIntegration_Test {
             Util.createBucket(client, bucketName);
             Util.loadBookTestData(client, bucketName);
 
-            final Arguments args = new Arguments(new String[]{"--http", "-c", "get_object", "-b", bucketName,
-                    "-o", objectName, "-d", Util.RESOURCE_BASE_NAME, "--sync"});
+            final Arguments args = new Arguments(
+                    new String[]{
+                            "--http",
+                            "-c", "get_object",
+                            "-b", bucketName,
+                            "-o", objectName,
+                            "-d", Util.RESOURCE_BASE_NAME,
+                            "--sync"});
             final CommandResponse response = Util.command(client, args);
             assertThat(response.getMessage(), is("SUCCESS: Finished syncing object."));
         } finally {
@@ -333,8 +342,14 @@ public class FeatureIntegration_Test {
             final DateTime now = new DateTime();
             newFile.setLastModified(now.getMillis());
 
-            final Arguments args = new Arguments(new String[]{"--http", "-c", "get_object", "-b", bucketName,
-                    "-o", objectName, "-d", Util.DOWNLOAD_BASE_NAME, "--sync"});
+            final Arguments args = new Arguments(
+                    new String[]{
+                            "--http",
+                            "-c", "get_object",
+                            "-b", bucketName,
+                            "-o", objectName,
+                            "-d", Util.DOWNLOAD_BASE_NAME,
+                            "--sync"});
             final CommandResponse response = Util.command(client, args);
             assertThat(response.getMessage(), is("SUCCESS: No need to sync " + objectName));
         } finally {
@@ -347,13 +362,19 @@ public class FeatureIntegration_Test {
     public void getBulkObjectWithPrefixes() throws Exception {
         final String bucketName = "test_get_bulk_with_prefixes";
         try {
+            Files.createDirectories(Paths.get(Util.DOWNLOAD_BASE_NAME));
             Util.createBucket(client, bucketName);
             Util.loadBookTestData(client, bucketName);
 
-            final Arguments args = new Arguments(new String[]{"--http", "-c", "get_bulk", "-b", bucketName,
-                    "-d", Util.DOWNLOAD_BASE_NAME, "-p", "beo", "uly"});
+            final Arguments args = new Arguments(
+                    new String[]{
+                            "--http",
+                            "-c", "get_bulk",
+                            "-b", bucketName,
+                            "-d", Util.DOWNLOAD_BASE_NAME,
+                            "-p", "beo", "uly"});
             final CommandResponse response = Util.command(client, args);
-            assertThat(response.getMessage(), is("SUCCESS: Wrote all the objects that start with 'beo uly' from " + bucketName + " to ." + File.separator + "." + File.separator + "output"));
+            assertThat(response.getMessage(), is("SUCCESS: Wrote all the objects that start with 'beo uly' from " + bucketName + " to ." + File.separator + "output"));
             assertEquals(Util.countLocalFiles(), 2);
         } finally {
             Util.deleteBucket(client, bucketName);
@@ -365,13 +386,19 @@ public class FeatureIntegration_Test {
     public void getBulkObjectWithSync() throws Exception {
         final String bucketName = "test_get_bulk_object_with_sync_no_update";
         try {
+            Files.createDirectories(Paths.get(Util.DOWNLOAD_BASE_NAME));
             Util.createBucket(client, bucketName);
             Util.loadBookTestData(client, bucketName);
 
-            final Arguments args = new Arguments(new String[]{"--http", "-c", "get_bulk", "-b", bucketName,
-                    "-d", Util.DOWNLOAD_BASE_NAME, "--sync"});
+            final Arguments args = new Arguments(
+                    new String[]{
+                            "--http",
+                            "-c", "get_bulk",
+                            "-b", bucketName,
+                            "-d", Util.DOWNLOAD_BASE_NAME,
+                            "--sync"});
             final CommandResponse response = Util.command(client, args);
-            assertThat(response.getMessage(), is("SUCCESS: Synced all the objects from " + bucketName + " to ." + File.separator + "." + File.separator + "output"));
+            assertThat(response.getMessage(), is("SUCCESS: Synced all the objects from " + bucketName + " to ." + File.separator + "output"));
         } finally {
             Util.deleteBucket(client, bucketName);
             Util.deleteLocalFiles();
@@ -382,24 +409,29 @@ public class FeatureIntegration_Test {
     public void getBulkObjectWithSyncNoUpdate() throws Exception {
         final String bucketName = "test_get_bulk_object_with_sync_no_update";
         try {
+            Files.createDirectories(Paths.get(Util.DOWNLOAD_BASE_NAME));
             Util.createBucket(client, bucketName);
             Util.loadBookTestData(client, bucketName);
 
-            final Arguments args = new Arguments(new String[]{"--http", "-c", "get_bulk", "-b", bucketName,
-                    "-d", Util.DOWNLOAD_BASE_NAME, "--sync"});
+            final Arguments args = new Arguments(
+                    new String[]{
+                            "--http",
+                            "-c", "get_bulk",
+                            "-b", bucketName,
+                            "-d", Paths.get(Util.DOWNLOAD_BASE_NAME).toString(),
+                            "--sync"});
             CommandResponse response = Util.command(client, args);
-            assertThat(response.getMessage(), is("SUCCESS: Synced all the objects from " + bucketName + " to ." + File.separator + "." + File.separator + "output"));
+            assertThat(response.getMessage(), is("SUCCESS: Synced all the objects from " + bucketName + " to ." + File.separator + "output"));
 
             // get_bulk sets the last_modified property to that of the original file, so we need to spoof for comparison
             final File destFolder = new File(Util.DOWNLOAD_BASE_NAME);
             final DateTime now = new DateTime();
-            for( final File currentFile : destFolder.listFiles()) {
+            for (final File currentFile : destFolder.listFiles()) {
                 currentFile.setLastModified(now.getMillis());
             }
 
             response = Util.command(client, args);
             assertThat(response.getMessage(), is("SUCCESS: All files are up to date"));
-
         } finally {
             Util.deleteBucket(client, bucketName);
             Util.deleteLocalFiles();

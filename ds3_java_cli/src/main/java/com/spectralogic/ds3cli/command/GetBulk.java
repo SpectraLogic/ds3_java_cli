@@ -62,7 +62,7 @@ public class GetBulk extends CliCommand<DefaultResult> {
     protected boolean discard;
     protected int numberOfThreads;
 
-    public static final Option PREFIXES = Option.builder("p").hasArgs().argName("prefixes")
+    private static final Option PREFIXES = Option.builder("p").hasArgs().argName("prefixes")
             .desc("get only objects whose names start with prefix  "
                     + "separate multiple prefixes with spaces").build();
 
