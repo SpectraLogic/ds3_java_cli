@@ -37,7 +37,7 @@ public class RecoveryFileManager {
     private static final Path tempdir;
     static {
         if (!Guard.isStringNullOrEmpty(System.getProperty("java.io.tmpdir"))) {
-            tempdir = Paths.get(System.getProperty("java.io.tmpdir") + DIR_PREFIX);
+            tempdir = Paths.get(System.getProperty("java.io.tmpdir") + File.separator + DIR_PREFIX);
         } else {
             tempdir = Paths.get("." + File.separator + DIR_PREFIX);
         }
