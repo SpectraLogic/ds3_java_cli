@@ -275,7 +275,7 @@ public class GetBulk extends CliCommand<DefaultResult> {
         recoveryJob.setDirectory(directory);
         recoveryJob.setPrefix(prefixes);
         if (!RecoveryFileManager.writeRecoveryJob(recoveryJob)) {
-            LOG.info("Could not create recovery file in temporray space.");
+            LOG.info("Could not create recovery file in temporary space.");
         }
     }
 
