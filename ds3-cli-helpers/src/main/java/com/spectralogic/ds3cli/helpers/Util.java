@@ -39,8 +39,8 @@ import java.util.regex.Pattern;
 
 public final class Util {
     public static final String RESOURCE_BASE_NAME = "./src/test/resources/books/";
-    public static final String DOWNLOAD_BASE_NAME = "./output/";
-    private static final int TRANSER_RETRY_ATTEMPTS = 5;
+    public static final String DOWNLOAD_BASE_NAME = "output/";
+    private static final int TRANSFER_RETRY_ATTEMPTS = 5;
 
     private Util() {
         //pass
@@ -48,7 +48,7 @@ public final class Util {
 
 
     public static CommandResponse command(final Ds3Client client, final Arguments args) throws Exception {
-        final Ds3Provider provider = new Ds3ProviderImpl(client, Ds3ClientHelpers.wrap(client, TRANSER_RETRY_ATTEMPTS));
+        final Ds3Provider provider = new Ds3ProviderImpl(client, Ds3ClientHelpers.wrap(client, TRANSFER_RETRY_ATTEMPTS));
         final FileSystemProvider fileSystemProvider = new FileSystemProviderImpl();
         final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(provider, fileSystemProvider);
         command.init(args);
@@ -151,9 +151,8 @@ public final class Util {
     public static void copyFile(final String fileName, final String from, final String to) throws IOException {
         final Path toDir = Paths.get(to);
 
-        if (Files.notExists(toDir)) {
-            Files.createDirectories(toDir);
-        }
+        // will fail silently if the destination directory already exists
+        Files.createDirectories(toDir);
 
         Files.copy(Paths.get(from + fileName), Paths.get(to + fileName), StandardCopyOption.REPLACE_EXISTING);
     }
