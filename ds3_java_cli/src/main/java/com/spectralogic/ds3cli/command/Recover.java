@@ -112,7 +112,7 @@ public class Recover extends CliCommand<DefaultResult> {
 
     private String recover(final RecoveryJob job) throws Exception {
         final CliCommand command = CliCommandFactory.getCommandExecutor(job.getRecoveryCommand()).withProvider(getProvider(), getFileSystemProvider());
-        command.init(job);
+        ((RecoverableCommand)command).init(job);
         return command.render().getMessage();
     }
 

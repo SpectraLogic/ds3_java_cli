@@ -36,7 +36,7 @@ import java.util.UUID;
 
 import static com.spectralogic.ds3cli.ArgumentFactory.*;
 
-public class RecoverPutBulk extends PutBulk {
+public class RecoverPutBulk extends PutBulk implements RecoverableCommand {
 
     private final static Logger LOG = LoggerFactory.getLogger(RecoverPutBulk.class);
 
@@ -59,7 +59,7 @@ public class RecoverPutBulk extends PutBulk {
         return populateFromArguments(args);
     }
 
-    @Override
+    // init from recovery job file
     public CliCommand init(final RecoveryJob job) throws Exception {
         this.bucketName = job.getBucketName();
         this.numberOfThreads = job.getNumberOfThreads();

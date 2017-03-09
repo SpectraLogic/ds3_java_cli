@@ -76,17 +76,6 @@ public abstract class CliCommand<T extends Result> implements Callable<T> {
         return this;
     }
 
-    /**
-     * Load args from JSON
-     * must override this method to implement
-     * @param job RecoveryJob object
-     * @returns this
-     * @throws Exception parsing and argument exceptions
-     */
-    public CliCommand init(final RecoveryJob job) throws Exception {
-        return this;
-    }
-
     protected Ds3Client getClient() {
         return this.ds3Provider.getClient();
     }
