@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3cli.command.PutBulk;
+import com.spectralogic.ds3cli.util.FileUtils;
 
 public class PutBulkResult implements Result<String> {
     @JsonProperty("status_message")
@@ -28,14 +29,14 @@ public class PutBulkResult implements Result<String> {
     @JacksonXmlElementWrapper(
             useWrapping = true
     )
-    private final ImmutableList<PutBulk.IgnoreFile> ignoredFiles;
+    private final ImmutableList<FileUtils.IgnoreFile> ignoredFiles;
 
     public PutBulkResult(final String result){
         this.result = result;
         this.ignoredFiles = null;
     }
 
-    public PutBulkResult(final String result, final ImmutableList<PutBulk.IgnoreFile> ignoredFiles) {
+    public PutBulkResult(final String result, final ImmutableList<FileUtils.IgnoreFile> ignoredFiles) {
         this.result = result;
         this.ignoredFiles = ignoredFiles;
     }
@@ -45,7 +46,7 @@ public class PutBulkResult implements Result<String> {
         return this.result;
     }
 
-    public ImmutableList<PutBulk.IgnoreFile> getIgnoredFiles() {
+    public ImmutableList<FileUtils.IgnoreFile> getIgnoredFiles() {
         return this.ignoredFiles;
     }
 }

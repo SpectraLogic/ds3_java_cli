@@ -17,20 +17,16 @@ package com.spectralogic.ds3cli.command;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
 import com.spectralogic.ds3cli.Arguments;
+import com.spectralogic.ds3cli.models.DefaultResult;
 import com.spectralogic.ds3cli.models.RecoveryJob;
 
-import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
-import com.spectralogic.ds3client.helpers.FolderNameFilter;
-import com.spectralogic.ds3client.helpers.JobRecoveryException;
-import com.spectralogic.ds3client.helpers.pagination.GetBucketLoaderFactory;
-import com.spectralogic.ds3client.models.Contents;
-import com.spectralogic.ds3client.models.bulk.Ds3Object;
+import com.spectralogic.ds3cli.util.LoggingFileObjectGetter;
+import com.spectralogic.ds3cli.util.RecoveryFileManager;
+import com.spectralogic.ds3client.helpers.*;
 
 import com.spectralogic.ds3client.serializer.XmlProcessingException;
 import com.spectralogic.ds3client.utils.Guard;
-import com.spectralogic.ds3client.utils.collections.LazyIterable;
 import org.apache.commons.cli.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,28 +38,48 @@ import java.util.*;
 
 import static com.spectralogic.ds3cli.ArgumentFactory.*;
 
-public class RecoverGetBulk extends GetBulk implements RecoverableCommand {
+public class RecoverGetBulk extends CliCommand<DefaultResult> implements RecoverableCommand {
 
     private final static Logger LOG = LoggerFactory.getLogger(RecoverGetBulk.class);
 
     private UUID jobId;
+    private String bucketName;
+    private String directory;
+    private Path outputPath;
+    private ImmutableList<String> prefixes;
+    private int numberOfThreads;
+
+    private static final Option PREFIXES = Option.builder("p").hasArgs().argName("prefixes")
+            .desc("get only objects whose names start with prefix  "
+                    + "separate multiple prefixes with spaces").build();
 
     private final static ImmutableList<Option> requiredArgs = ImmutableList.of(BUCKET, ID);
-    private final static ImmutableList<Option> optionalArgs
-            = ImmutableList.of(DIRECTORY, PREFIXES, NUMBER_OF_THREADS,
-            DISCARD, PRIORITY, SYNC, FORCE);
+    private final static ImmutableList<Option> optionalArgs = ImmutableList.of(DIRECTORY, PREFIXES, NUMBER_OF_THREADS);
 
     public RecoverGetBulk() {
     }
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
-        // keep a copy of argumnets to reconstruct command line for recovery
-        this.arguments = args;
-        // PutBulk gathers all but ID
         processCommandOptions(requiredArgs, optionalArgs, args);
         this.jobId = UUID.fromString(args.getId());
-        return populateFromArguments(args);
+        this.bucketName = args.getBucket();
+        this.numberOfThreads = args.getNumberOfThreads();
+
+        this.directory = args.getDirectory();
+        if (Guard.isStringNullOrEmpty(this.directory) || directory.equals(".")) {
+            this.outputPath = FileSystems.getDefault().getPath(".");
+        } else {
+            final Path dirPath = FileSystems.getDefault().getPath(directory);
+            this.outputPath = FileSystems.getDefault().getPath(".").resolve(dirPath);
+        }
+        LOG.info("Output Path = {}", this.outputPath);
+
+        final String[] prefix = args.getOptionValues(PREFIXES.getOpt());
+        if(prefix != null && prefix.length > 0) {
+            this.prefixes = ImmutableList.copyOf(prefix);
+        }
+        return this;
     }
 
     // init from recovery file
@@ -88,23 +104,20 @@ public class RecoverGetBulk extends GetBulk implements RecoverableCommand {
     }
 
     @Override
-    protected String restoreSome(final Ds3ClientHelpers.ObjectChannelBuilder getter) throws JobRecoveryException, IOException, XmlProcessingException {
-        final Ds3ClientHelpers helper = getClientHelpers();
+    public DefaultResult call() throws Exception {
+        final Ds3ClientHelpers.ObjectChannelBuilder getter = new FileObjectGetter(this.outputPath);
 
-        final Iterable<Contents> prefixMatches;
-        if (Guard.isNullOrEmpty(prefixes)) {
-            prefixMatches = new LazyIterable<>(
-                    new GetBucketLoaderFactory(getClient(), this.bucketName, null, null, 100, 5));
+        if (!Guard.isNotNullAndNotEmpty(prefixes)) {
+            LOG.info("Getting all objects from {}", this.bucketName);
         } else {
-            prefixMatches = getObjectsByPrefix();
+            LOG.info("Getting only those objects that start with {}", Joiner.on(" ").join(this.prefixes));
         }
-        if (Iterables.isEmpty(prefixMatches)) {
-            return "No objects in bucket " + this.bucketName + " with prefixes '" + Joiner.on(" ").join(this.prefixes) + "'";
-        }
+        return new DefaultResult(this.restore(getter));
+    }
 
-        final Iterable<Ds3Object> objects;
-        objects = helper.toDs3Iterable(prefixMatches, FolderNameFilter.filter());
 
+    protected String restore(final Ds3ClientHelpers.ObjectChannelBuilder getter) throws JobRecoveryException, IOException, XmlProcessingException {
+        final Ds3ClientHelpers helper = getClientHelpers();
         final Ds3ClientHelpers.Job job = helper.recoverReadJob(this.jobId);
         job.withMaxParallelRequests(this.numberOfThreads);
         final LoggingFileObjectGetter loggingFileObjectGetter = new LoggingFileObjectGetter(getter, this.outputPath);
@@ -113,36 +126,19 @@ public class RecoverGetBulk extends GetBulk implements RecoverableCommand {
         // start transfer
         job.transfer(loggingFileObjectGetter);
 
+        // clean up recovery file on success of job.transfer()
+        RecoveryFileManager.deleteRecoveryCommand(job.getJobId());
+
         // Success -- build the response
-        final StringBuilder response = new StringBuilder("SUCCESS: ");
+        final StringBuilder response = new StringBuilder("SUCCESS: Wrote");
         response.append(Guard.isNullOrEmpty(this.prefixes) ? " all the objects"
                 : " all the objects that start with '" + Joiner.on(" ").join(this.prefixes) + "'");
         response.append(" from ");
         response.append(this.bucketName);
-        response.append(this.discard ? "" : " to " + this.outputPath.toString());
+        response.append(" to ");
+        response.append(this.outputPath.toString());
 
         return response.toString();
-    }
-
-    @Override
-    protected String restoreAll(final Ds3ClientHelpers.ObjectChannelBuilder getter) throws JobRecoveryException, XmlProcessingException, IOException {
-        final Ds3ClientHelpers helper = getClientHelpers();
-        final Ds3ClientHelpers.Job job = helper.recoverReadJob(this.jobId);
-        job.withMaxParallelRequests(this.numberOfThreads);
-        final LoggingFileObjectGetter loggingFileObjectGetter = new LoggingFileObjectGetter(getter, this.outputPath);
-        job.attachMetadataReceivedListener(loggingFileObjectGetter);
-
-        // start transfer
-        job.transfer(loggingFileObjectGetter);
-
-        // delete recovery file on success
-        deleteRecoveryCommand(job.getJobId());
-
-        if (this.discard) {
-            return "SUCCESS: Retrieved and discarded all objects from " + this.bucketName;
-        } else {
-            return "SUCCESS: Wrote all the objects from " + this.bucketName + " to directory " + this.outputPath.toString();
-        }
     }
 
 }

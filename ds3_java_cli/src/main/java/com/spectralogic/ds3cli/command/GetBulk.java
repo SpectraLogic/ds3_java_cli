@@ -24,7 +24,10 @@ import com.spectralogic.ds3cli.models.BulkJobType;
 import com.spectralogic.ds3cli.models.DefaultResult;
 import com.spectralogic.ds3cli.models.RecoveryJob;
 import com.spectralogic.ds3cli.util.*;
-import com.spectralogic.ds3client.helpers.*;
+import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
+import com.spectralogic.ds3client.helpers.FileObjectGetter;
+import com.spectralogic.ds3client.helpers.FolderNameFilter;
+import com.spectralogic.ds3client.helpers.MetadataReceivedListener;
 import com.spectralogic.ds3client.helpers.options.ReadJobOptions;
 import com.spectralogic.ds3client.helpers.pagination.GetBucketLoaderFactory;
 import com.spectralogic.ds3client.models.Contents;
@@ -50,19 +53,19 @@ public class GetBulk extends CliCommand<DefaultResult> {
 
     private final static Logger LOG = LoggerFactory.getLogger(GetBulk.class);
 
-    protected final static int DEFAULT_BUFFER_SIZE = 1024 * 1024;
-    protected final static long DEFAULT_FILE_SIZE = 1024L;
+    private final static int DEFAULT_BUFFER_SIZE = 1024 * 1024;
+    private final static long DEFAULT_FILE_SIZE = 1024L;
 
-    protected String bucketName;
-    protected String directory;
-    protected Path outputPath;
-    protected ImmutableList<String> prefixes;
-    protected Priority priority;
-    protected boolean sync;
-    protected boolean discard;
-    protected int numberOfThreads;
+    private String bucketName;
+    private String directory;
+    private Path outputPath;
+    private ImmutableList<String> prefixes;
+    private Priority priority;
+    private boolean sync;
+    private boolean discard;
+    private int numberOfThreads;
 
-    protected static final Option PREFIXES = Option.builder("p").hasArgs().argName("prefixes")
+    private static final Option PREFIXES = Option.builder("p").hasArgs().argName("prefixes")
             .desc("get only objects whose names start with prefix  "
                     + "separate multiple prefixes with spaces").build();
 
@@ -76,13 +79,7 @@ public class GetBulk extends CliCommand<DefaultResult> {
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
-        // keep a copy of argumnets to reconstruct command line for recovery
-        this.arguments = args;
         processCommandOptions(requiredArgs, optionalArgs, args);
-        return populateFromArguments(args);
-    }
-
-    protected CliCommand populateFromArguments(final Arguments args) throws Exception {
         this.bucketName = args.getBucket();
         this.priority = args.getPriority();
         this.numberOfThreads = args.getNumberOfThreads();
@@ -140,7 +137,7 @@ public class GetBulk extends CliCommand<DefaultResult> {
         return new DefaultResult(this.restoreSome(getter));
     }
 
-    protected String restoreSome(final Ds3ClientHelpers.ObjectChannelBuilder getter) throws JobRecoveryException, IOException, XmlProcessingException {
+    private String restoreSome(final Ds3ClientHelpers.ObjectChannelBuilder getter) throws IOException, XmlProcessingException {
         final Ds3ClientHelpers helper = getClientHelpers();
 
         final Iterable<Contents> prefixMatches;
@@ -171,11 +168,13 @@ public class GetBulk extends CliCommand<DefaultResult> {
         final LoggingFileObjectGetter loggingFileObjectGetter = new LoggingFileObjectGetter(getter, this.outputPath);
         job.attachMetadataReceivedListener(loggingFileObjectGetter);
 
-        // provide recovery command in case of failure
+        // write parameters to file to enable recpvery
         createRecoveryCommand(job.getJobId());
 
-        // start transfer
         job.transfer(loggingFileObjectGetter);
+
+        // clean up recovery file on success of job.transfer()
+        RecoveryFileManager.deleteRecoveryCommand(job.getJobId());
 
         // Success -- build the response
         final StringBuilder response = new StringBuilder("SUCCESS: ");
@@ -189,21 +188,21 @@ public class GetBulk extends CliCommand<DefaultResult> {
         return response.toString();
     }
 
-    protected String restoreAll(final Ds3ClientHelpers.ObjectChannelBuilder getter) throws JobRecoveryException, XmlProcessingException, IOException {
+    private String restoreAll(final Ds3ClientHelpers.ObjectChannelBuilder getter) throws XmlProcessingException, IOException {
         final Ds3ClientHelpers helper = getClientHelpers();
         final Ds3ClientHelpers.Job job = helper.startReadAllJob(this.bucketName,
                 ReadJobOptions.create().withPriority(this.priority));
         job.withMaxParallelRequests(this.numberOfThreads);
         final LoggingFileObjectGetter loggingFileObjectGetter = new LoggingFileObjectGetter(getter, this.outputPath);
         job.attachMetadataReceivedListener(loggingFileObjectGetter);
-        // provide recovery command in case of failure
+
+        // write parameters to file to enable recpvery
         createRecoveryCommand(job.getJobId());
 
-        // start transfer
         job.transfer(loggingFileObjectGetter);
 
-        // delete recovery file on success
-        deleteRecoveryCommand(job.getJobId());
+        // clean up recovery file on success of job.transfer()
+        RecoveryFileManager.deleteRecoveryCommand(job.getJobId());
 
         if (this.discard) {
             return "SUCCESS: Retrieved and discarded all objects from " + this.bucketName;
@@ -212,7 +211,7 @@ public class GetBulk extends CliCommand<DefaultResult> {
         }
     }
 
-    protected Iterable<Contents> filterContents(final Iterable<Contents> contents, final Path outputPath) throws IOException {
+    private Iterable<Contents> filterContents(final Iterable<Contents> contents, final Path outputPath) throws IOException {
         final Iterable<Path> localFiles = FileUtils.listObjectsForDirectory(outputPath);
         final Map<String, Path> mapLocalFiles = new HashMap<>();
         for (final Path localFile : localFiles) {
@@ -234,30 +233,7 @@ public class GetBulk extends CliCommand<DefaultResult> {
         return filteredContents;
     }
 
-    protected class LoggingFileObjectGetter implements Ds3ClientHelpers.ObjectChannelBuilder, MetadataReceivedListener {
-
-        final private Ds3ClientHelpers.ObjectChannelBuilder objectGetter;
-        final private Path outputPath;
-
-        public LoggingFileObjectGetter(final Ds3ClientHelpers.ObjectChannelBuilder getter, final Path outputPath) {
-            this.objectGetter = getter;
-            this.outputPath = outputPath;
-        }
-
-        @Override
-        public SeekableByteChannel buildChannel(final String s) throws IOException {
-            LOG.info("Getting object {}", s);
-            return this.objectGetter.buildChannel(s);
-        }
-
-        @Override
-        public void metadataReceived(final String filename, final Metadata metadata) {
-            final Path path = outputPath.resolve(filename);
-            MetadataUtils.restoreLastModified(filename, metadata, path);
-        }
-    }
-
-    protected Iterable<Contents> getObjectsByPrefix() {
+    private Iterable<Contents> getObjectsByPrefix() {
         Iterable<Contents> allPrefixMatches = Collections.emptyList();
         for (final String prefix : prefixes) {
             final Iterable<Contents> prefixMatch = new LazyIterable<>(
@@ -267,7 +243,7 @@ public class GetBulk extends CliCommand<DefaultResult> {
         return allPrefixMatches;
     }
 
-    protected void createRecoveryCommand(final UUID jobId) {
+    private void createRecoveryCommand(final UUID jobId) {
         RecoveryJob recoveryJob = new RecoveryJob(BulkJobType.GET_BULK);
         recoveryJob.setBucketName(bucketName);
         recoveryJob.setId(jobId);
@@ -276,14 +252,6 @@ public class GetBulk extends CliCommand<DefaultResult> {
         recoveryJob.setPrefix(prefixes);
         if (!RecoveryFileManager.writeRecoveryJob(recoveryJob)) {
             LOG.info("Could not create recovery file in temporary space.");
-        }
-    }
-
-    protected void deleteRecoveryCommand(final UUID jobId) {
-        try {
-            RecoveryFileManager.deleteFiles(jobId.toString(), null, null);
-        } catch (final IOException e) {
-            LOG.info("Could not delete recovery file in temporary space.", e);
         }
     }
 

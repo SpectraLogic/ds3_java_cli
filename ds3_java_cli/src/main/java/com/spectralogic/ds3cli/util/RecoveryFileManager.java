@@ -19,6 +19,8 @@ import com.google.common.collect.Iterables;
 import com.spectralogic.ds3cli.models.BulkJobType;
 import com.spectralogic.ds3cli.models.RecoveryJob;
 import com.spectralogic.ds3client.utils.Guard;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -42,6 +44,8 @@ public class RecoveryFileManager {
             tempdir = Paths.get("." + File.separator + DIR_PREFIX);
         }
     }
+
+    private final static Logger LOG = LoggerFactory.getLogger(RecoveryFileManager.class);
 
     private static void ensureDirExists() throws IOException {
         if (!Files.isDirectory(tempdir)) {
@@ -168,8 +172,16 @@ public class RecoveryFileManager {
             }
             return true;
         } catch (final IOException e) {
-            System.err.println("Could not create recovery file");
+            LOG.error("Could not create recovery file", e);
             return false;
+        }
+    }
+
+    public static void deleteRecoveryCommand(final UUID jobId) {
+        try {
+            deleteFiles(jobId.toString(), null, null);
+        } catch (final IOException e) {
+            LOG.error("Could not delete recovery file in temporary space.", e);
         }
     }
 

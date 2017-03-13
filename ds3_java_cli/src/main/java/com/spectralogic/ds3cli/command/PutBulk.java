@@ -30,7 +30,6 @@ import com.spectralogic.ds3cli.models.RecoveryJob;
 import com.spectralogic.ds3cli.util.*;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.helpers.FileObjectPutter;
-import com.spectralogic.ds3client.helpers.JobRecoveryException;
 import com.spectralogic.ds3client.helpers.MetadataAccess;
 import com.spectralogic.ds3client.helpers.options.WriteJobOptions;
 import com.spectralogic.ds3client.models.Contents;
@@ -67,34 +66,29 @@ public class PutBulk extends CliCommand<PutBulkResult> {
             SYNC, FORCE, NUMBER_OF_THREADS, IGNORE_ERRORS,
             IGNORE_NAMING_CONFLICTS, DIRECTORY);
 
-    protected String bucketName;
-    protected Path inputDirectory;
-    protected String prefix;
-    protected boolean checksum;
-    protected Priority priority;
-    protected WriteOptimization writeOptimization;
-    protected boolean sync;
-    protected boolean force;
-    protected int numberOfThreads;
-    protected boolean ignoreErrors;
-    protected boolean pipe;
-    protected ImmutableList<Path> pipedFiles;
-    protected ImmutableMap<String, String> mapNormalizedObjectNameToObjectName = null;
-    protected boolean followSymlinks;
-    protected boolean ignoreNamingConflicts;
+    private String bucketName;
+    private Path inputDirectory;
+    private String prefix;
+    private boolean checksum;
+    private Priority priority;
+    private WriteOptimization writeOptimization;
+    private boolean sync;
+    private boolean force;
+    private int numberOfThreads;
+    private boolean ignoreErrors;
+    private boolean pipe;
+    private ImmutableList<Path> pipedFiles;
+    private ImmutableMap<String, String> mapNormalizedObjectNameToObjectName = null;
+    private boolean followSymlinks;
+    private boolean ignoreNamingConflicts;
 
     public PutBulk() {
     }
 
+
     @Override
     public CliCommand init(final Arguments args) throws Exception {
-        // keep a copy of argumnets to reconstruct command line for recovery
-        this.arguments = args;
         processCommandOptions(requiredArgs, optionalArgs, args);
-        return populateFromArguments(args);
-    }
-
-    protected CliCommand populateFromArguments(final Arguments args) throws Exception {
 
         this.bucketName = args.getBucket();
         this.pipe = CliUtils.isPipe();
@@ -156,9 +150,9 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         if (this.sync) {
             filesToPut = new FilteringIterable<>(filesToPut,
                     new SyncFilter(this.prefix != null ? this.prefix : "",
-                        this.inputDirectory,
-                        this.getClientHelpers(),
-                        this.bucketName
+                            this.inputDirectory,
+                            this.getClientHelpers(),
+                            this.bucketName
                     )
             );
 
@@ -167,15 +161,16 @@ public class PutBulk extends CliCommand<PutBulkResult> {
             }
         }
 
-        final ObjectsToPut objectsToPut = FileUtils.getObjectsToPut(filesToPut, this.inputDirectory, this.ignoreErrors);
+        final FileUtils.ObjectsToPut objectsToPut = FileUtils.getObjectsToPut(filesToPut, this.inputDirectory, this.ignoreErrors);
         final Iterable<Ds3Object> ds3Objects = objectsToPut.getDs3Objects();
-        this.appendPrefix(ds3Objects);
+        if (!this.pipe) {
+            FileUtils.appendPrefix(ds3Objects, this.prefix);
+        }
 
         return this.transfer(helpers, ds3Objects, objectsToPut.getDs3IgnoredObjects());
     }
 
-    protected PutBulkResult transfer(final Ds3ClientHelpers helpers, final Iterable<Ds3Object> ds3Objects, final ImmutableList<IgnoreFile> ds3IgnoredObjects)
-            throws JobRecoveryException, IOException, XmlProcessingException {
+    private PutBulkResult transfer(final Ds3ClientHelpers helpers, final Iterable<Ds3Object> ds3Objects, final ImmutableList<FileUtils.IgnoreFile> ds3IgnoredObjects) throws IOException, XmlProcessingException {
         final WriteJobOptions writeJobOptions = WriteJobOptions.create()
                 .withPriority(this.priority)
                 .withWriteOptimization(this.writeOptimization)
@@ -183,8 +178,9 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         writeJobOptions.setForce(force);
         final Ds3ClientHelpers.Job job = helpers.startWriteJob(this.bucketName, ds3Objects,
                 writeJobOptions);
-                job.withMaxParallelRequests(this.numberOfThreads);
+        job.withMaxParallelRequests(this.numberOfThreads);
 
+        // write parameters to file to allow recovery
         createRecoveryCommand(job.getJobId());
 
         if (this.checksum) {
@@ -209,22 +205,14 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         if (this.ignoreErrors && !ds3IgnoredObjects.isEmpty()) {
             resultMessage = String.format("WARN: Not all of the files were written to bucket %s", this.bucketName);
         } else {
-            deleteRecoveryCommand(job.getJobId());
+            RecoveryFileManager.deleteRecoveryCommand(job.getJobId());
         }
 
         return new PutBulkResult(resultMessage, ds3IgnoredObjects);
     }
 
-    protected void appendPrefix(final Iterable<Ds3Object> ds3Objects) {
-        if (this.pipe || this.prefix == null) return;
+    private ImmutableMap<String, String> getNormalizedObjectNameToObjectName(final ImmutableList<Path> pipedFiles) {
 
-        LOG.info("Pre-appending {} to all object names", this.prefix);
-        for (final Ds3Object obj : ds3Objects) {
-            obj.setName(this.prefix + obj.getName());
-        }
-    }
-
-    protected ImmutableMap<String, String> getNormalizedObjectNameToObjectName(final ImmutableList<Path> pipedFiles) {
         final ImmutableMap.Builder<String, String> map = ImmutableMap.builder();
         for (final Path file : pipedFiles) {
             map.put(FileUtils.normalizeObjectName(file.toString()), file.toString());
@@ -240,51 +228,9 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         }
         return new com.spectralogic.ds3cli.views.cli.PutBulkView();
     }
-    
-    protected static class SyncFilter implements FilteringIterable.FilterFunction<Path> {
 
-        private final String prefix;
-        private final Path inputDirectory;
-        private final ImmutableMap<String, Contents> mapBucketFiles;
 
-        public SyncFilter(final String prefix, final Path inputDirectory, final Ds3ClientHelpers helpers, final String bucketName) throws IOException {
-            this.prefix = prefix;
-            this.inputDirectory = inputDirectory;
-            this.mapBucketFiles = generateBucketFileMap(prefix, helpers, bucketName);
-        }
-
-        private static ImmutableMap<String, Contents> generateBucketFileMap(final String prefix, final Ds3ClientHelpers helpers, final String bucketName) throws IOException {
-            final Iterable<Contents> contents = helpers.listObjects(bucketName, prefix);
-            final ImmutableMap.Builder<String, Contents> bucketFileMapBuilder = ImmutableMap.builder();
-            for (final Contents content : contents) {
-                bucketFileMapBuilder.put(content.getKey(), content);
-            }
-            return bucketFileMapBuilder.build();
-        }
-
-        @Override
-        public boolean filter(final Path item) {
-            final String fileName = FileUtils.getFileName(this.inputDirectory, item);
-            final Contents content = mapBucketFiles.get(prefix + fileName);
-            try {
-                if (content == null) {
-                    return false;
-                } else if (SyncUtils.isNewFile(item, content, true)) {
-                    LOG.info("Syncing new version of {}", fileName);
-                    return false;
-                } else {
-                    LOG.info("No need to sync {}", fileName);
-                    return true;
-                }
-            } catch (final IOException e) {
-                LOG.error("Failed to check the status of a file", e);
-                // return false to let other code catch the exception when trying to access it
-                return false;
-            }
-        }
-    }
-
-    protected Iterable<Path> getFilesToPut() throws IOException {
+    private Iterable<Path> getFilesToPut() throws IOException {
         final Iterable<Path> filesToPut;
         if (this.pipe) {
             filesToPut = this.pipedFiles;
@@ -310,100 +256,6 @@ public class PutBulk extends CliCommand<PutBulkResult> {
                 !Guard.isStringNullOrEmpty(args.getPrefix());   //-p
     }
 
-    static class PrefixedFileObjectPutter implements Ds3ClientHelpers.ObjectChannelBuilder, MetadataAccess {
-
-        final private LoggingFileObjectPutter objectPutter;
-        final private String prefix;
-        final private Path inputDirectory;
-
-        public PrefixedFileObjectPutter(final Path inputDirectory, final String prefix) {
-            this.objectPutter = new LoggingFileObjectPutter(inputDirectory);
-            this.prefix = prefix;
-            this.inputDirectory = inputDirectory;
-        }
-
-        @Override
-        public SeekableByteChannel buildChannel(final String fileName) throws IOException {
-            final String objectName = removePrefix(fileName);
-            return this.objectPutter.buildChannel(objectName);
-        }
-
-        @Override
-        public Map<String, String> getMetadataValue(final String fileName) {
-            final String unPrefixedFile = removePrefix(fileName);
-
-            final Path path = inputDirectory.resolve(unPrefixedFile);
-            return MetadataUtils.getMetadataValues(path);
-        }
-
-        private String removePrefix(final String fileName) {
-            if (this.prefix == null) {
-                return fileName;
-            } else {
-                if (!fileName.startsWith(this.prefix)) {
-                    LOG.info("The object ({}) does not begin with prefix {}.  Ignoring adding the prefix.", fileName,  this.prefix);
-                    return fileName;
-                } else {
-                    return fileName.substring(this.prefix.length());
-                }
-            }
-        }
-    }
-
-    static class LoggingFileObjectPutter implements Ds3ClientHelpers.ObjectChannelBuilder {
-        final private FileObjectPutter objectPutter;
-
-        public LoggingFileObjectPutter(final Path inputDirectory) {
-            this.objectPutter = new FileObjectPutter(inputDirectory);
-        }
-
-        @Override
-        public SeekableByteChannel buildChannel(final String s) throws IOException {
-            LOG.info("Putting {} to ds3 endpoint", s);
-            return this.objectPutter.buildChannel(s);
-        }
-    }
-
-    public static class ObjectsToPut {
-
-        private final ImmutableList<Ds3Object> ds3Objects;
-        private final ImmutableList<IgnoreFile> ds3IgnoredObjects;
-
-        public ObjectsToPut(final ImmutableList<Ds3Object> ds3Objects, final ImmutableList<IgnoreFile> ds3IgnoredObjects) {
-            this.ds3Objects = ds3Objects;
-            this.ds3IgnoredObjects = ds3IgnoredObjects;
-        }
-
-        public ImmutableList<Ds3Object> getDs3Objects() {
-            return this.ds3Objects;
-        }
-
-        public ImmutableList<IgnoreFile> getDs3IgnoredObjects() {
-            return this.ds3IgnoredObjects;
-        }
-    }
-
-    public static class IgnoreFile {
-        @JsonProperty("path")
-        private final String path;
-
-        @JsonProperty("error_message")
-        private final String errorMessage;
-
-        public IgnoreFile(final Path path, final String errorMessage) {
-            this.path = path.toString();
-            this.errorMessage = errorMessage;
-        }
-
-        public String getPath() {
-            return this.path;
-        }
-
-        public String getErrorMessage() {
-            return this.errorMessage;
-        }
-    }
-
     /**
      * Returns a channel and metadata for files that have been piped in via stdin
      */
@@ -427,7 +279,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         }
     }
 
-    protected void createRecoveryCommand(final UUID jobId) {
+    private void createRecoveryCommand(final UUID jobId) {
         RecoveryJob recoveryJob = new RecoveryJob(BulkJobType.PUT_BULK);
         recoveryJob.setBucketName(bucketName);
         recoveryJob.setId(jobId);
@@ -438,14 +290,6 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         }
         if (!RecoveryFileManager.writeRecoveryJob(recoveryJob)) {
             LOG.info("Could not create recovery file in temporary space.");
-        }
-    }
-
-    protected void deleteRecoveryCommand(final UUID jobId) {
-        try {
-            RecoveryFileManager.deleteFiles(jobId.toString(), null, null);
-        } catch (final IOException e) {
-            LOG.info("Could not delete recovery file in temporary space.", e);
         }
     }
 

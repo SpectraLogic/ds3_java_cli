@@ -15,8 +15,8 @@
 
 package com.spectralogic.ds3cli.util;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.ImmutableList;
-import com.spectralogic.ds3cli.command.PutBulk;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +27,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
+
+import static com.spectralogic.ds3client.utils.Guard.isStringNullOrEmpty;
 
 public final class FileUtils {
 
@@ -61,9 +63,9 @@ public final class FileUtils {
         return Files.exists(filePath);
     }
 
-    public static PutBulk.ObjectsToPut getObjectsToPut(final Iterable<Path> filteredObjects, final Path inputDirectory, final boolean ignoreErrors) throws IOException {
+    public static FileUtils.ObjectsToPut getObjectsToPut(final Iterable<Path> filteredObjects, final Path inputDirectory, final boolean ignoreErrors) throws IOException {
         final ImmutableList.Builder<Ds3Object> objectsBuilder = ImmutableList.builder();
-        final ImmutableList.Builder<PutBulk.IgnoreFile> ignoredBuilder = ImmutableList.builder();
+        final ImmutableList.Builder<FileUtils.IgnoreFile> ignoredBuilder = ImmutableList.builder();
 
         for (final Path path : filteredObjects) {
             try {
@@ -75,11 +77,11 @@ public final class FileUtils {
                     throw ex;
                 }
                 LOG.warn(String.format("WARN: file '%s' has an error and will be ignored", path.getFileName()));
-                ignoredBuilder.add(new PutBulk.IgnoreFile(path, ex.toString()));
+                ignoredBuilder.add(new FileUtils.IgnoreFile(path, ex.toString()));
             }
         }
 
-        return new PutBulk.ObjectsToPut(objectsBuilder.build(), ignoredBuilder.build());
+        return new FileUtils.ObjectsToPut(objectsBuilder.build(), ignoredBuilder.build());
     }
 
     public static String normalizeObjectName(final String objectName) {
@@ -118,10 +120,10 @@ public final class FileUtils {
      * object name
      */
     protected static String removePrefixRecursively(final String objectName, final String prefix) {
-        if (com.spectralogic.ds3client.utils.Guard.isStringNullOrEmpty(objectName)) {
+        if (isStringNullOrEmpty(objectName)) {
             return "";
         }
-        if (com.spectralogic.ds3client.utils.Guard.isStringNullOrEmpty(prefix) || !objectName.startsWith(prefix)) {
+        if (isStringNullOrEmpty(prefix) || !objectName.startsWith(prefix)) {
             return objectName;
         }
         return removePrefixRecursively(objectName.substring(prefix.length()), prefix);
@@ -171,6 +173,54 @@ public final class FileUtils {
         }
 
         return pipedFiles.build();
+    }
+
+    public static void appendPrefix(final Iterable<Ds3Object> ds3Objects, final String prefix) {
+        if (isStringNullOrEmpty(prefix)) {
+            for (final Ds3Object obj : ds3Objects) {
+                obj.setName(prefix + obj.getName());
+            }
+        }
+    }
+
+    public static class ObjectsToPut {
+
+        private final ImmutableList<Ds3Object> ds3Objects;
+        private final ImmutableList<FileUtils.IgnoreFile> ds3IgnoredObjects;
+
+        public ObjectsToPut(final ImmutableList<Ds3Object> ds3Objects, final ImmutableList<FileUtils.IgnoreFile> ds3IgnoredObjects) {
+            this.ds3Objects = ds3Objects;
+            this.ds3IgnoredObjects = ds3IgnoredObjects;
+        }
+
+        public ImmutableList<Ds3Object> getDs3Objects() {
+            return this.ds3Objects;
+        }
+
+        public ImmutableList<FileUtils.IgnoreFile> getDs3IgnoredObjects() {
+            return this.ds3IgnoredObjects;
+        }
+    }
+
+    public static class IgnoreFile {
+        @JsonProperty("path")
+        private final String path;
+
+        @JsonProperty("error_message")
+        private final String errorMessage;
+
+        public IgnoreFile(final Path path, final String errorMessage) {
+            this.path = path.toString();
+            this.errorMessage = errorMessage;
+        }
+
+        public String getPath() {
+            return this.path;
+        }
+
+        public String getErrorMessage() {
+            return this.errorMessage;
+        }
     }
 
 }

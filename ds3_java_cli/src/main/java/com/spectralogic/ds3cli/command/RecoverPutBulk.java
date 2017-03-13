@@ -17,11 +17,12 @@ package com.spectralogic.ds3cli.command;
 
 import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3cli.Arguments;
+import com.spectralogic.ds3cli.exceptions.BadArgumentException;
 import com.spectralogic.ds3cli.models.PutBulkResult;
 import com.spectralogic.ds3cli.models.RecoveryJob;
+import com.spectralogic.ds3cli.util.*;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.helpers.JobRecoveryException;
-import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.serializer.XmlProcessingException;
 import com.spectralogic.ds3client.utils.Guard;
 import org.apache.commons.cli.Option;
@@ -30,33 +31,37 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.file.FileSystems;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.UUID;
 
 import static com.spectralogic.ds3cli.ArgumentFactory.*;
 
-public class RecoverPutBulk extends PutBulk implements RecoverableCommand {
+public class RecoverPutBulk extends CliCommand<PutBulkResult> implements RecoverableCommand {
 
     private final static Logger LOG = LoggerFactory.getLogger(RecoverPutBulk.class);
 
-    private final static ImmutableList<Option> requiredArgs = ImmutableList.of(BUCKET, ID);
-    private final static ImmutableList<Option> optionalArgs
-            = ImmutableList.of(PREFIX, NUMBER_OF_THREADS, WRITE_OPTIMIZATION,
-            FOLLOW_SYMLINKS, PRIORITY, CHECKSUM,
-            SYNC, FORCE, NUMBER_OF_THREADS, IGNORE_ERRORS,
-            IGNORE_NAMING_CONFLICTS, DIRECTORY);
+    private final static ImmutableList<Option> requiredArgs = ImmutableList.of(BUCKET, ID, DIRECTORY);
+    private final static ImmutableList<Option> optionalArgs = ImmutableList.of(PREFIX, NUMBER_OF_THREADS);
 
     private UUID jobId;
+    private String bucketName;
+    private Path inputDirectory;
+    private String prefix;
+    private int numberOfThreads;
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
-        // keep a copy of argumnets to reconstruct command line for recovery
-        this.arguments = args;
-        // PutBulk gathers all but ID
         processCommandOptions(requiredArgs, optionalArgs, args);
         this.jobId = UUID.fromString(args.getId());
-        return populateFromArguments(args);
+        this.bucketName = args.getBucket();
+        final String srcDir = args.getDirectory();
+        this.inputDirectory = Paths.get(srcDir);
+        this.prefix = args.getPrefix();
+        this.numberOfThreads = args.getNumberOfThreads();
+
+        return this;
     }
 
     // init from recovery job file
@@ -73,14 +78,26 @@ public class RecoverPutBulk extends PutBulk implements RecoverableCommand {
 
         final List<String> prefix = job.getPrefixes();
         // only one prefix on put
-        if (prefix != null && prefix.size() == 1) {
-            this.prefix = prefix.get(0);
+        if (prefix != null) {
+            if (prefix.size() == 1) {
+                this.prefix = prefix.get(0);
+            } else {
+                // this really shouldn't happen, but . . .
+                throw new BadArgumentException("Only one prefix allowed on put_bulk");
+            }
         }
         return this;
     }
 
     @Override
-    protected PutBulkResult transfer(final Ds3ClientHelpers helpers, final Iterable<Ds3Object> ds3Objects, final ImmutableList<IgnoreFile> ds3IgnoredObjects)
+    public PutBulkResult call() throws Exception {
+        /* Ensure the bucket exists and if not create it */
+        final Ds3ClientHelpers helpers = getClientHelpers();
+        helpers.ensureBucketExists(this.bucketName);
+        return this.transfer(helpers);
+    }
+
+    protected PutBulkResult transfer(final Ds3ClientHelpers helpers)
             throws JobRecoveryException, IOException, XmlProcessingException {
         final Ds3ClientHelpers.Job job = helpers.recoverWriteJob(this.jobId);
         job.withMaxParallelRequests(this.numberOfThreads);
@@ -88,8 +105,8 @@ public class RecoverPutBulk extends PutBulk implements RecoverableCommand {
         final PrefixedFileObjectPutter prefixedFileObjectPutter = new PrefixedFileObjectPutter(this.inputDirectory, this.prefix);
         job.withMetadata(prefixedFileObjectPutter).transfer(prefixedFileObjectPutter);
         // clean up recovery job on success
-        deleteRecoveryCommand(job.getJobId());
-        return new PutBulkResult(String.format("SUCCESS: Wrote all the files in %s to bucket %s", this.inputDirectory.toString(), this.bucketName), ds3IgnoredObjects);
+        RecoveryFileManager.deleteRecoveryCommand(job.getJobId());
+        return new PutBulkResult(String.format("SUCCESS: Wrote all the files in %s to bucket %s", this.inputDirectory.toString(), this.bucketName), null);
     }
 
 }
