@@ -150,9 +150,9 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         if (this.sync) {
             filesToPut = new FilteringIterable<>(filesToPut,
                     new SyncFilter(this.prefix != null ? this.prefix : "",
-                            this.inputDirectory,
-                            this.getClientHelpers(),
-                            this.bucketName
+                        this.inputDirectory,
+                        this.getClientHelpers(),
+                        this.bucketName
                     )
             );
 
@@ -292,5 +292,49 @@ public class PutBulk extends CliCommand<PutBulkResult> {
             LOG.info("Could not create recovery file in temporary space.");
         }
     }
+
+    private class SyncFilter implements FilteringIterable.FilterFunction<Path> {
+
+        private final String prefix;
+        private final Path inputDirectory;
+        private final ImmutableMap<String, Contents> mapBucketFiles;
+
+        private SyncFilter(final String prefix, final Path inputDirectory, final Ds3ClientHelpers helpers, final String bucketName) throws IOException {
+            this.prefix = prefix;
+            this.inputDirectory = inputDirectory;
+            this.mapBucketFiles = generateBucketFileMap(prefix, helpers, bucketName);
+        }
+
+        private ImmutableMap<String, Contents> generateBucketFileMap(final String prefix, final Ds3ClientHelpers helpers, final String bucketName) throws IOException {
+            final Iterable<Contents> contents = helpers.listObjects(bucketName, prefix);
+            final ImmutableMap.Builder<String, Contents> bucketFileMapBuilder = ImmutableMap.builder();
+            for (final Contents content : contents) {
+                bucketFileMapBuilder.put(content.getKey(), content);
+            }
+            return bucketFileMapBuilder.build();
+        }
+
+        @Override
+        public boolean filter(final Path item) {
+            final String fileName = FileUtils.getFileName(this.inputDirectory, item);
+            final Contents content = mapBucketFiles.get(prefix + fileName);
+            try {
+                if (content == null) {
+                    return false;
+                } else if (SyncUtils.isNewFile(item, content, true)) {
+                    LOG.info("Syncing new version of {}", fileName);
+                    return false;
+                } else {
+                    LOG.info("No need to sync {}", fileName);
+                    return true;
+                }
+            } catch (final IOException e) {
+                LOG.error("Failed to check the status of a file", e);
+                // return false to let other code catch the exception when trying to access it
+                return false;
+            }
+        }
+    }
+
 
 }

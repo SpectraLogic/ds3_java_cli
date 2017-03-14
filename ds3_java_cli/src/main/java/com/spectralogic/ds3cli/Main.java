@@ -1,6 +1,6 @@
 /*
  * *****************************************************************************
- *   Copyright 2014-2016 Spectra Logic Corporation. All Rights Reserved.
+ *   Copyright 2014-2017 Spectra Logic Corporation. All Rights Reserved.
  *   Licensed under the Apache License, Version 2.0 (the "License"). You may not use
  *   this file except in compliance with the License. A copy of the License is located at
  *
@@ -31,7 +31,9 @@ import com.google.common.base.Joiner;
 import com.spectralogic.ds3cli.command.CliCommand;
 import com.spectralogic.ds3cli.command.CliCommandFactory;
 import com.spectralogic.ds3cli.exceptions.*;
-import com.spectralogic.ds3cli.util.*;
+import com.spectralogic.ds3cli.util.CliUtils;
+import com.spectralogic.ds3cli.util.Ds3Provider;
+import com.spectralogic.ds3cli.util.FileSystemProvider;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.networking.FailedRequestException;
@@ -139,6 +141,7 @@ public final class Main {
     }
 
     public static void main(final String[] args) {
+
         try {
             final Properties props = CliUtils.readProperties(PROPERTY_FILE);
 
@@ -173,6 +176,7 @@ public final class Main {
             } catch (final IllegalArgumentException e) {
                 throw new BadArgumentException("Unknown command", e);
             }
+
 
             final Ds3Client client = ClientFactory.createClient(arguments);
             if (!CliUtils.isVersionSupported(client)) {

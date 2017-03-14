@@ -1169,7 +1169,7 @@ public class Ds3Cli_Test {
         final CommandResponse result = command.render();
         assertThat(result.getMessage(), is("SUCCESS: Wrote all the files in dir to bucket bucketName"));
         assertThat(result.getReturnCode(), is(0));
-        RecoveryFileManager.deleteFiles(null, null, null);
+        RecoveryFileManager.deleteFiles(jobId.toString(), null, null);
 
     }
 
@@ -1384,7 +1384,7 @@ public class Ds3Cli_Test {
 
         assertTrue(result.getMessage().startsWith(startWith));
         assertTrue(result.getMessage().endsWith(endsWith));
-        RecoveryFileManager.deleteFiles(null, null, null);
+        RecoveryFileManager.deleteFiles(jobId.toString(), null, null);
 
     }
 

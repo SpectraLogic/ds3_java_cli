@@ -20,7 +20,6 @@ import com.spectralogic.ds3cli.CommandResponse;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.exceptions.BadArgumentException;
-import com.spectralogic.ds3cli.models.RecoveryJob;
 import com.spectralogic.ds3cli.models.Result;
 import com.spectralogic.ds3cli.util.CommandHelpText;
 import com.spectralogic.ds3cli.util.Ds3Provider;
@@ -43,7 +42,6 @@ public abstract class CliCommand<T extends Result> implements Callable<T> {
     private Ds3Provider ds3Provider;
     private FileSystemProvider fileSystemProvider;
     protected ViewType viewType = ViewType.CLI;
-    protected Arguments arguments;
 
     // for service provider instantiation
     public CliCommand() {
@@ -72,7 +70,6 @@ public abstract class CliCommand<T extends Result> implements Callable<T> {
     public CliCommand init(final Arguments args) throws Exception {
         args.parseCommandLine();
         this.viewType = args.getOutputFormat();
-        this.arguments = args;
         return this;
     }
 
@@ -117,7 +114,6 @@ public abstract class CliCommand<T extends Result> implements Callable<T> {
         addOptionalArguments(optionalArgs, args);
         args.parseCommandLine();
         this.viewType = args.getOutputFormat();
-        this.arguments = args;
     }
 
 
