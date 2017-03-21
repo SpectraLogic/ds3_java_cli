@@ -183,7 +183,7 @@ public class GetBulk extends CliCommand<DefaultResult> {
                 contentMatches = getAllObjectsInBucket();
             }
             if (Iterables.isEmpty(contentMatches)) {
-                return "No objects in bucket " + this.bucketName + " with prefixes '" + Joiner.on(" ").join(this.prefixes) + "'";
+                return "No matching objects in bucket " + this.bucketName;
             }
 
             final Iterable<Ds3Object> objects;
@@ -214,7 +214,7 @@ public class GetBulk extends CliCommand<DefaultResult> {
         final StringBuilder response = new StringBuilder("SUCCESS: ");
         response.append(this.sync ? "Synced" : this.discard ? "Retrieved and discarded" : "Wrote");
         response.append((!this.pipe && !this.sync && Guard.isNullOrEmpty(this.prefixes))
-                ? " all objects" : this.pipe ? "object names listed in stdin " :
+                ? " all objects" : this.pipe ? " object names listed in stdin " :
                 " all the objects that start with '" + Joiner.on(" ").join(this.prefixes) + "'");
         response.append(" from ");
         response.append(this.bucketName);
