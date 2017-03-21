@@ -875,7 +875,7 @@ public class Ds3Cli_Test {
         final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(null, helpers), mockedFileSystemProvider);
         command.init(args);
         final CommandResponse result = command.render();
-        assertThat(result.getMessage(), is("SUCCESS: Wrote all the objects from bucketName to directory ."));
+        assertThat(result.getMessage(), is("SUCCESS: Wrote all objects from bucketName to directory ."));
         assertThat(result.getReturnCode(), is(0));
     }
 
@@ -928,7 +928,7 @@ public class Ds3Cli_Test {
 
     @Test
     public void getBulkJson() throws Exception {
-        final String expected = "\"Status\" : \"OK\",\n  \"Message\" : \"SUCCESS: Wrote all the objects from bucketName to directory .\"\n}";
+        final String expected = "\"Status\" : \"OK\",\n  \"Message\" : \"SUCCESS: Wrote all objects from bucketName to directory .\"\n}";
 
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_bulk", "-b", "bucketName", "--output-format", "json"});
         final Ds3ClientHelpers helpers = mock(Ds3ClientHelpers.class);

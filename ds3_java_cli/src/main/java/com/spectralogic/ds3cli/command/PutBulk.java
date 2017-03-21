@@ -101,7 +101,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
             if (Guard.isNullOrEmpty(this.pipedFiles)) {
                 throw new MissingOptionException("Stdin is empty"); //We should never see that since we checked isPipe
             }
-            this.mapNormalizedObjectNameToObjectName = this.getNormalizedObjectNameToObjectName(this.pipedFiles);
+            this.mapNormalizedObjectNameToObjectName = FileUtils.getNormalizedObjectNames(this.pipedFiles);
         } else if (!Guard.isStringNullOrEmpty(args.getDirectory())) {
             final String srcDir = args.getDirectory();
             this.inputDirectory = Paths.get(srcDir);
@@ -209,16 +209,6 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         }
 
         return new PutBulkResult(resultMessage, ds3IgnoredObjects);
-    }
-
-    private ImmutableMap<String, String> getNormalizedObjectNameToObjectName(final ImmutableList<Path> pipedFiles) {
-
-        final ImmutableMap.Builder<String, String> map = ImmutableMap.builder();
-        for (final Path file : pipedFiles) {
-            map.put(FileUtils.normalizeObjectName(file.toString()), file.toString());
-        }
-
-        return map.build();
     }
 
     @Override

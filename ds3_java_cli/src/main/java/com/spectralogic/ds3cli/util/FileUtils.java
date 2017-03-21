@@ -17,6 +17,7 @@ package com.spectralogic.ds3cli.util;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -84,11 +85,37 @@ public final class FileUtils {
         return new FileUtils.ObjectsToPut(objectsBuilder.build(), ignoredBuilder.build());
     }
 
+    /**
+     * Perform platform-specific normalization of path names on a list of Paths
+     * used by bulk get
+     * @param pipedFiles
+     * @return normalized pathname mapped to filename
+     */
+    public static ImmutableMap<String, String> getNormalizedObjectNames(final ImmutableList<Path> pipedFiles) {
+        final ImmutableMap.Builder<String, String> map = ImmutableMap.builder();
+        for (final Path file : pipedFiles) {
+            map.put(normalizeObjectName(file.toString()), file.toString());
+        }
+        return map.build();
+    }
+
+    /**
+     * Perform platform-specific normalization of path names as strings
+     * @param pipedFiles
+     * @return normalized pathname mapped to path
+     */
+    public static ImmutableMap<String, String> normalizedObjectNames(final ImmutableList<String> pipedFiles) {
+        final ImmutableMap.Builder<String, String> map = ImmutableMap.builder();
+        for (final String fileName : pipedFiles) {
+            map.put(normalizeObjectName(fileName), fileName);
+        }
+        return map.build();
+    }
+
     public static String normalizeObjectName(final String objectName) {
         if (IS_WINDOWS) {
             return windowsNormalizeObjectName(objectName);
         }
-
         return unixNormalizeObjectName(objectName);
     }
 
@@ -149,8 +176,8 @@ public final class FileUtils {
         return path;
     }
 
-    public static ImmutableList<Path> getPipedFilesFromStdin(final FileSystemProvider fileSystemProvider) throws IOException {
-        final ImmutableList.Builder<Path> pipedFiles = new ImmutableList.Builder<>();
+    public static ImmutableList<String> getPipedListFromStdin(final FileSystemProvider fileSystemProvider) throws IOException {
+        final ImmutableList.Builder<String> pipedNames = new ImmutableList.Builder<>();
         final InputStream inputStream = System.in;
         final int availableBytes = inputStream.available();
         if (availableBytes > 0) {
@@ -159,19 +186,28 @@ public final class FileUtils {
             // did not open System.in; enforcing the rule that
             // he who opens it, closes it; leave the closing to the OS.
             final BufferedReader in = new BufferedReader(new InputStreamReader(inputStream));
-            LOG.info("Piped files are:");
+            LOG.info("Piped list is:");
             String line;
             while ((line = in.readLine()) != null) {
-                final Path file = Paths.get(line);
-                if (!fileSystemProvider.isRegularFile(file) && !Files.isSymbolicLink(file)) {
-                    LOG.warn(String.format("WARN: piped data must be a regular/symbolic link file and not a directory ==> %s will be skipped", line));
-                    continue;
-                }
-                LOG.info("File \"{}\" from stdin", file.toString());
-                pipedFiles.add(file);
+                LOG.info("Name \"{}\" from stdin", line);
+                pipedNames.add(line);
             }
         }
+        return pipedNames.build();
+    }
 
+    public static ImmutableList<Path> getPipedFilesFromStdin(final FileSystemProvider fileSystemProvider) throws IOException {
+        final ImmutableList<String> pipedNames = getPipedListFromStdin(fileSystemProvider);
+        final ImmutableList.Builder<Path> pipedFiles = new ImmutableList.Builder<>();
+        for (final String name : pipedNames) {
+            final Path file = Paths.get(name);
+            if (!fileSystemProvider.isRegularFile(file) && !Files.isSymbolicLink(file)) {
+                LOG.warn(String.format("WARN: piped data must be a regular/symbolic link file and not a directory ==> %s will be skipped", file));
+                continue;
+            }
+            LOG.info("File \"{}\" from stdin", file.toString());
+            pipedFiles.add(file);
+        }
         return pipedFiles.build();
     }
 
@@ -222,5 +258,6 @@ public final class FileUtils {
             return this.errorMessage;
         }
     }
+
 
 }
