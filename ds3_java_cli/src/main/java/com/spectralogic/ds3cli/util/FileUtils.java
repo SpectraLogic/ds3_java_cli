@@ -101,6 +101,7 @@ public final class FileUtils {
 
     /**
      * Perform platform-specific normalization of path names as strings
+     * use by bulk put
      * @param pipedFiles
      * @return normalized pathname mapped to path
      */

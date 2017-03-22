@@ -310,10 +310,8 @@ public class GetBulk extends CliCommand<DefaultResult> {
             if (normalizedName == null) {
                 throw new IOException("No match for piped name " + key);
             }
-            LOG.info("Normalized: {}", normalizedName.getFileName());
             Path objectPath = this.root.resolve(normalizedName);
             Path parentPath = objectPath.getParent();
-            LOG.info("Object Path: {}", objectPath.getFileName());
             if (parentPath != null) {
                 Files.createDirectories(parentPath, new FileAttribute[0]);
             }
