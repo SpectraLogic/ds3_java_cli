@@ -292,7 +292,7 @@ public class GetBulk extends CliCommand<DefaultResult> {
         return  args.isDiscard() || // --discard
                 !Guard.isStringNullOrEmpty(args.getObjectName()) || //-o
                 (args.getOptionValues(PREFIXES.getOpt()) != null
-                 && args.getOptionValues(PREFIXES.getOpt()) .length > 0); // --prefixes
+                 && args.getOptionValues(PREFIXES.getOpt()).length > 0); // --prefixes
     }
 
     private class PipedFileObjectGetter implements Ds3ClientHelpers.ObjectChannelBuilder {
