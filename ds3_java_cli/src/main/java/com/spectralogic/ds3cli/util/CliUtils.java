@@ -16,19 +16,12 @@
 package com.spectralogic.ds3cli.util;
 
 import com.google.common.base.Joiner;
-import com.google.common.collect.Collections2;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.spectrads3.GetSystemInformationSpectraS3Request;
-import com.spectralogic.ds3client.utils.*;
-import org.apache.commons.cli.Option;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Path;
-import java.util.Collections;
 import java.util.Properties;
 import java.util.regex.Pattern;
 

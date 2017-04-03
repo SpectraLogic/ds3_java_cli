@@ -92,11 +92,11 @@ public final class FileUtils {
      * @return normalized pathname mapped to filename
      */
     public static ImmutableMap<String, String> getNormalizedObjectNames(final ImmutableList<Path> pipedFiles) {
-        final ImmutableMap.Builder<String, String> map = ImmutableMap.builder();
+        final ImmutableList.Builder<String> fileNames = ImmutableList.builder();
         for (final Path file : pipedFiles) {
-            map.put(normalizeObjectName(file.toString()), file.toString());
+            fileNames.add(file.toString());
         }
-        return map.build();
+        return normalizedObjectNames(fileNames.build());
     }
 
     /**

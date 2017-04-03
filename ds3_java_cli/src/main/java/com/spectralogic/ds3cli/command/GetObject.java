@@ -86,7 +86,7 @@ public class GetObject extends CliCommand<DefaultResult> {
             throw new CommandException("Cannot set both " + DIRECTORY.getOpt() + " and " + DISCARD.getLongOpt());
         }
         if (this.discard) {
-            LOG.warn("Using /dev/null getter -- all incoming data will be discarded");
+            LOG.warn("Discard flag set -- all incoming data will be discarded");
         }
 
         if (args.isSync()) {
