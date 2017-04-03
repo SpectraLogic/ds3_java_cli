@@ -765,6 +765,13 @@ public class Ds3Cli_Test {
         command.init(args);
     }
 
+    @Test(expected = CommandException.class)
+    public void getObjectWithBadArgs() throws Exception {
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_object", "-o", "some_file", "-b", "bucketName", "-d", "targetdir", "--discard"});
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
+        command.init(args);
+    }
+
     @Test
     public void getCompletedJob() throws Exception {
         final String jobId = "aa5df0cc-b03a-4cb9-b69d-56e7367e917f";

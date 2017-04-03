@@ -18,8 +18,10 @@ package com.spectralogic.ds3cli.command;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.spectralogic.ds3cli.Arguments;
+import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.DefaultResult;
 import com.spectralogic.ds3cli.util.FileUtils;
+import com.spectralogic.ds3cli.util.MemoryObjectChannelBuilder;
 import com.spectralogic.ds3cli.util.MetadataUtils;
 import com.spectralogic.ds3cli.util.SyncUtils;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
@@ -51,7 +53,7 @@ public class GetObject extends CliCommand<DefaultResult> {
 
     private final static ImmutableList<Option> requiredArgs = ImmutableList.of(BUCKET, OBJECT_NAME);
     private final static ImmutableList<Option> optionalArgs = ImmutableList.of(DIRECTORY, SYNC,
-            FORCE, NUMBER_OF_THREADS, PRIORITY, RANGE_OFFSET, RANGE_LENGTH);
+            FORCE, NUMBER_OF_THREADS, PRIORITY, RANGE_OFFSET, RANGE_LENGTH, DISCARD);
 
     private String bucketName;
     private String objectName;
@@ -61,6 +63,10 @@ public class GetObject extends CliCommand<DefaultResult> {
     private Priority priority;
     private long rangeOffset = 0L;
     private long rangeLength = 0L;
+    private boolean discard;
+
+    private final static int DEFAULT_BUFFER_SIZE = 1024 * 1024;
+    private final static long DEFAULT_FILE_SIZE = 1024L;
 
     public GetObject() {
     }
@@ -75,6 +81,14 @@ public class GetObject extends CliCommand<DefaultResult> {
         if (this.prefix == null) {
             this.prefix = ".";
         }
+        this.discard = args.isDiscard();
+        if (this.discard && !Guard.isStringNullOrEmpty(args.getDirectory())) {
+            throw new CommandException("Cannot set both " + DIRECTORY.getOpt() + " and " + DISCARD.getLongOpt());
+        }
+        if (this.discard) {
+            LOG.warn("Using /dev/null getter -- all incoming data will be discarded");
+        }
+
         if (args.isSync()) {
             LOG.info("Using sync command");
             this.sync = true;
@@ -119,10 +133,18 @@ public class GetObject extends CliCommand<DefaultResult> {
         }
 
         this.Transfer(helpers, ds3Obj);
-        return new DefaultResult("SUCCESS: Finished downloading object.  The object was written to: " + filePath);
+        return new DefaultResult("SUCCESS: "
+                + (this.discard ? "Object retrieved and discarded"
+                : "Finished downloading object.  The object was written to: " + filePath));
     }
 
     private void Transfer(final Ds3ClientHelpers helpers, final Ds3Object ds3Obj) throws IOException, XmlProcessingException {
+        final Ds3ClientHelpers.ObjectChannelBuilder getter;
+        if (this.discard) {
+            getter = new MemoryObjectChannelBuilder(DEFAULT_BUFFER_SIZE, DEFAULT_FILE_SIZE);
+        } else {
+            getter = new FileObjectGetter(Paths.get(this.prefix));
+        }
         final List<Ds3Object> ds3ObjectList = Lists.newArrayList(ds3Obj);
         final ReadJobOptions readJobOptions = ReadJobOptions.create();
         if (priority != null) {
@@ -136,6 +158,6 @@ public class GetObject extends CliCommand<DefaultResult> {
                 MetadataUtils.restoreLastModified(filename, metadata, Paths.get(prefix, filename));
             }
         });
-        job.transfer(new FileObjectGetter(Paths.get(this.prefix)));
+        job.transfer(getter);
     }
 }
