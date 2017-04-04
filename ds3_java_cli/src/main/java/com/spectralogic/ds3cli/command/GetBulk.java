@@ -1,6 +1,6 @@
 /*
  * *****************************************************************************
- *   Copyright 2014-2016 Spectra Logic Corporation. All Rights Reserved.
+ *   Copyright 2014-2017 Spectra Logic Corporation. All Rights Reserved.
  *   Licensed under the Apache License, Version 2.0 (the "License"). You may not use
  *   this file except in compliance with the License. A copy of the License is located at
  *
@@ -20,11 +20,10 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.exceptions.CommandException;
+import com.spectralogic.ds3cli.models.BulkJobType;
 import com.spectralogic.ds3cli.models.DefaultResult;
-import com.spectralogic.ds3cli.util.FileUtils;
-import com.spectralogic.ds3cli.util.MemoryObjectChannelBuilder;
-import com.spectralogic.ds3cli.util.MetadataUtils;
-import com.spectralogic.ds3cli.util.SyncUtils;
+import com.spectralogic.ds3cli.models.RecoveryJob;
+import com.spectralogic.ds3cli.util.*;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.helpers.FileObjectGetter;
 import com.spectralogic.ds3client.helpers.FolderNameFilter;
@@ -168,7 +167,14 @@ public class GetBulk extends CliCommand<DefaultResult> {
         job.withMaxParallelRequests(this.numberOfThreads);
         final LoggingFileObjectGetter loggingFileObjectGetter = new LoggingFileObjectGetter(getter, this.outputPath);
         job.attachMetadataReceivedListener(loggingFileObjectGetter);
+
+        // write parameters to file to enable recpvery
+        createRecoveryCommand(job.getJobId());
+
         job.transfer(loggingFileObjectGetter);
+
+        // clean up recovery file on success of job.transfer()
+        RecoveryFileManager.deleteRecoveryCommand(job.getJobId());
 
         // Success -- build the response
         final StringBuilder response = new StringBuilder("SUCCESS: ");
@@ -189,7 +195,14 @@ public class GetBulk extends CliCommand<DefaultResult> {
         job.withMaxParallelRequests(this.numberOfThreads);
         final LoggingFileObjectGetter loggingFileObjectGetter = new LoggingFileObjectGetter(getter, this.outputPath);
         job.attachMetadataReceivedListener(loggingFileObjectGetter);
+
+        // write parameters to file to enable recpvery
+        createRecoveryCommand(job.getJobId());
+
         job.transfer(loggingFileObjectGetter);
+
+        // clean up recovery file on success of job.transfer()
+        RecoveryFileManager.deleteRecoveryCommand(job.getJobId());
 
         if (this.discard) {
             return "SUCCESS: Retrieved and discarded all objects from " + this.bucketName;
@@ -220,29 +233,6 @@ public class GetBulk extends CliCommand<DefaultResult> {
         return filteredContents;
     }
 
-    class LoggingFileObjectGetter implements Ds3ClientHelpers.ObjectChannelBuilder, MetadataReceivedListener {
-
-        final private Ds3ClientHelpers.ObjectChannelBuilder objectGetter;
-        final private Path outputPath;
-
-        public LoggingFileObjectGetter(final Ds3ClientHelpers.ObjectChannelBuilder getter, final Path outputPath) {
-            this.objectGetter = getter;
-            this.outputPath = outputPath;
-        }
-
-        @Override
-        public SeekableByteChannel buildChannel(final String s) throws IOException {
-            LOG.info("Getting object {}", s);
-            return this.objectGetter.buildChannel(s);
-        }
-
-        @Override
-        public void metadataReceived(final String filename, final Metadata metadata) {
-            final Path path = outputPath.resolve(filename);
-            MetadataUtils.restoreLastModified(filename, metadata, path);
-        }
-    }
-
     private Iterable<Contents> getObjectsByPrefix() {
         Iterable<Contents> allPrefixMatches = Collections.emptyList();
         for (final String prefix : prefixes) {
@@ -251,6 +241,18 @@ public class GetBulk extends CliCommand<DefaultResult> {
             allPrefixMatches = Iterables.concat(allPrefixMatches, prefixMatch);
         }
         return allPrefixMatches;
+    }
+
+    private void createRecoveryCommand(final UUID jobId) {
+        RecoveryJob recoveryJob = new RecoveryJob(BulkJobType.GET_BULK);
+        recoveryJob.setBucketName(bucketName);
+        recoveryJob.setId(jobId);
+        recoveryJob.setNumberOfThreads(numberOfThreads);
+        recoveryJob.setDirectory(directory);
+        recoveryJob.setPrefix(prefixes);
+        if (!RecoveryFileManager.writeRecoveryJob(recoveryJob)) {
+            LOG.info("Could not create recovery file in temporary space.");
+        }
     }
 
 }
