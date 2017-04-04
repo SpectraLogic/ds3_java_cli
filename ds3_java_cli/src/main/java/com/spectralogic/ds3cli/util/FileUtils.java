@@ -15,8 +15,9 @@
 
 package com.spectralogic.ds3cli.util;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.ImmutableList;
-import com.spectralogic.ds3cli.command.PutBulk;
+import com.google.common.collect.ImmutableMap;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +28,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
+
+import static com.spectralogic.ds3client.utils.Guard.isStringNullOrEmpty;
 
 public final class FileUtils {
 
@@ -61,9 +64,9 @@ public final class FileUtils {
         return Files.exists(filePath);
     }
 
-    public static PutBulk.ObjectsToPut getObjectsToPut(final Iterable<Path> filteredObjects, final Path inputDirectory, final boolean ignoreErrors) throws IOException {
+    public static FileUtils.ObjectsToPut getObjectsToPut(final Iterable<Path> filteredObjects, final Path inputDirectory, final boolean ignoreErrors) throws IOException {
         final ImmutableList.Builder<Ds3Object> objectsBuilder = ImmutableList.builder();
-        final ImmutableList.Builder<PutBulk.IgnoreFile> ignoredBuilder = ImmutableList.builder();
+        final ImmutableList.Builder<FileUtils.IgnoreFile> ignoredBuilder = ImmutableList.builder();
 
         for (final Path path : filteredObjects) {
             try {
@@ -75,18 +78,45 @@ public final class FileUtils {
                     throw ex;
                 }
                 LOG.warn(String.format("WARN: file '%s' has an error and will be ignored", path.getFileName()));
-                ignoredBuilder.add(new PutBulk.IgnoreFile(path, ex.toString()));
+                ignoredBuilder.add(new FileUtils.IgnoreFile(path, ex.toString()));
             }
         }
 
-        return new PutBulk.ObjectsToPut(objectsBuilder.build(), ignoredBuilder.build());
+        return new FileUtils.ObjectsToPut(objectsBuilder.build(), ignoredBuilder.build());
+    }
+
+    /**
+     * Perform platform-specific normalization of path names on a list of Paths
+     * used by bulk get
+     * @param pipedFiles
+     * @return normalized pathname mapped to filename
+     */
+    public static ImmutableMap<String, String> getNormalizedObjectNames(final ImmutableList<Path> pipedFiles) {
+        final ImmutableMap.Builder<String, String> map = ImmutableMap.builder();
+        for (final Path file : pipedFiles) {
+            map.put(normalizeObjectName(file.toString()), file.toString());
+        }
+        return map.build();
+    }
+
+    /**
+     * Perform platform-specific normalization of path names as strings
+     * use by bulk put
+     * @param pipedFiles
+     * @return normalized pathname mapped to path
+     */
+    public static ImmutableMap<String, String> normalizedObjectNames(final ImmutableList<String> pipedFiles) {
+        final ImmutableMap.Builder<String, String> map = ImmutableMap.builder();
+        for (final String fileName : pipedFiles) {
+            map.put(normalizeObjectName(fileName), fileName);
+        }
+        return map.build();
     }
 
     public static String normalizeObjectName(final String objectName) {
         if (IS_WINDOWS) {
             return windowsNormalizeObjectName(objectName);
         }
-
         return unixNormalizeObjectName(objectName);
     }
 
@@ -118,10 +148,10 @@ public final class FileUtils {
      * object name
      */
     protected static String removePrefixRecursively(final String objectName, final String prefix) {
-        if (com.spectralogic.ds3client.utils.Guard.isStringNullOrEmpty(objectName)) {
+        if (isStringNullOrEmpty(objectName)) {
             return "";
         }
-        if (com.spectralogic.ds3client.utils.Guard.isStringNullOrEmpty(prefix) || !objectName.startsWith(prefix)) {
+        if (isStringNullOrEmpty(prefix) || !objectName.startsWith(prefix)) {
             return objectName;
         }
         return removePrefixRecursively(objectName.substring(prefix.length()), prefix);
@@ -147,8 +177,8 @@ public final class FileUtils {
         return path;
     }
 
-    public static ImmutableList<Path> getPipedFilesFromStdin(final FileSystemProvider fileSystemProvider) throws IOException {
-        final ImmutableList.Builder<Path> pipedFiles = new ImmutableList.Builder<>();
+    public static ImmutableList<String> getPipedListFromStdin(final FileSystemProvider fileSystemProvider) throws IOException {
+        final ImmutableList.Builder<String> pipedNames = new ImmutableList.Builder<>();
         final InputStream inputStream = System.in;
         final int availableBytes = inputStream.available();
         if (availableBytes > 0) {
@@ -157,20 +187,78 @@ public final class FileUtils {
             // did not open System.in; enforcing the rule that
             // he who opens it, closes it; leave the closing to the OS.
             final BufferedReader in = new BufferedReader(new InputStreamReader(inputStream));
-            LOG.info("Piped files are:");
+            LOG.info("Piped list is:");
             String line;
             while ((line = in.readLine()) != null) {
-                final Path file = Paths.get(line);
-                if (!fileSystemProvider.isRegularFile(file) && !Files.isSymbolicLink(file)) {
-                    LOG.warn(String.format("WARN: piped data must be a regular/symbolic link file and not a directory ==> %s will be skipped", line));
-                    continue;
-                }
-                LOG.info("File \"{}\" from stdin", file.toString());
-                pipedFiles.add(file);
+                LOG.info("Name \"{}\" from stdin", line);
+                pipedNames.add(line);
             }
         }
+        return pipedNames.build();
+    }
 
+    public static ImmutableList<Path> getPipedFilesFromStdin(final FileSystemProvider fileSystemProvider) throws IOException {
+        final ImmutableList<String> pipedNames = getPipedListFromStdin(fileSystemProvider);
+        final ImmutableList.Builder<Path> pipedFiles = new ImmutableList.Builder<>();
+        for (final String name : pipedNames) {
+            final Path file = Paths.get(name);
+            if (!fileSystemProvider.isRegularFile(file) && !Files.isSymbolicLink(file)) {
+                LOG.warn(String.format("WARN: piped data must be a regular/symbolic link file and not a directory ==> %s will be skipped", file));
+                continue;
+            }
+            LOG.info("File \"{}\" from stdin", file.toString());
+            pipedFiles.add(file);
+        }
         return pipedFiles.build();
     }
+
+    public static void appendPrefix(final Iterable<Ds3Object> ds3Objects, final String prefix) {
+        if (isStringNullOrEmpty(prefix)) {
+            for (final Ds3Object obj : ds3Objects) {
+                obj.setName(prefix + obj.getName());
+            }
+        }
+    }
+
+    public static class ObjectsToPut {
+
+        private final ImmutableList<Ds3Object> ds3Objects;
+        private final ImmutableList<FileUtils.IgnoreFile> ds3IgnoredObjects;
+
+        public ObjectsToPut(final ImmutableList<Ds3Object> ds3Objects, final ImmutableList<FileUtils.IgnoreFile> ds3IgnoredObjects) {
+            this.ds3Objects = ds3Objects;
+            this.ds3IgnoredObjects = ds3IgnoredObjects;
+        }
+
+        public ImmutableList<Ds3Object> getDs3Objects() {
+            return this.ds3Objects;
+        }
+
+        public ImmutableList<FileUtils.IgnoreFile> getDs3IgnoredObjects() {
+            return this.ds3IgnoredObjects;
+        }
+    }
+
+    public static class IgnoreFile {
+        @JsonProperty("path")
+        private final String path;
+
+        @JsonProperty("error_message")
+        private final String errorMessage;
+
+        public IgnoreFile(final Path path, final String errorMessage) {
+            this.path = path.toString();
+            this.errorMessage = errorMessage;
+        }
+
+        public String getPath() {
+            return this.path;
+        }
+
+        public String getErrorMessage() {
+            return this.errorMessage;
+        }
+    }
+
 
 }

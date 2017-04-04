@@ -1,6 +1,6 @@
 /*
  * *****************************************************************************
- *   Copyright 2014-2016 Spectra Logic Corporation. All Rights Reserved.
+ *   Copyright 2014-2017 Spectra Logic Corporation. All Rights Reserved.
  *   Licensed under the Apache License, Version 2.0 (the "License"). You may not use
  *   this file except in compliance with the License. A copy of the License is located at
  *
@@ -24,7 +24,9 @@ import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.exceptions.BadArgumentException;
 import com.spectralogic.ds3cli.exceptions.SyncNotSupportedException;
+import com.spectralogic.ds3cli.models.BulkJobType;
 import com.spectralogic.ds3cli.models.PutBulkResult;
+import com.spectralogic.ds3cli.models.RecoveryJob;
 import com.spectralogic.ds3cli.util.*;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.helpers.FileObjectPutter;
@@ -49,6 +51,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.Map;
+import java.util.UUID;
 
 import static com.spectralogic.ds3cli.ArgumentFactory.*;
 
@@ -98,7 +101,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
             if (Guard.isNullOrEmpty(this.pipedFiles)) {
                 throw new MissingOptionException("Stdin is empty"); //We should never see that since we checked isPipe
             }
-            this.mapNormalizedObjectNameToObjectName = this.getNormalizedObjectNameToObjectName(this.pipedFiles);
+            this.mapNormalizedObjectNameToObjectName = FileUtils.getNormalizedObjectNames(this.pipedFiles);
         } else if (!Guard.isStringNullOrEmpty(args.getDirectory())) {
             final String srcDir = args.getDirectory();
             this.inputDirectory = Paths.get(srcDir);
@@ -158,14 +161,16 @@ public class PutBulk extends CliCommand<PutBulkResult> {
             }
         }
 
-        final ObjectsToPut objectsToPut = FileUtils.getObjectsToPut(filesToPut, this.inputDirectory, this.ignoreErrors);
+        final FileUtils.ObjectsToPut objectsToPut = FileUtils.getObjectsToPut(filesToPut, this.inputDirectory, this.ignoreErrors);
         final Iterable<Ds3Object> ds3Objects = objectsToPut.getDs3Objects();
-        this.appendPrefix(ds3Objects);
+        if (!this.pipe) {
+            FileUtils.appendPrefix(ds3Objects, this.prefix);
+        }
 
         return this.transfer(helpers, ds3Objects, objectsToPut.getDs3IgnoredObjects());
     }
 
-    private PutBulkResult transfer(final Ds3ClientHelpers helpers, final Iterable<Ds3Object> ds3Objects, final ImmutableList<IgnoreFile> ds3IgnoredObjects) throws IOException, XmlProcessingException {
+    private PutBulkResult transfer(final Ds3ClientHelpers helpers, final Iterable<Ds3Object> ds3Objects, final ImmutableList<FileUtils.IgnoreFile> ds3IgnoredObjects) throws IOException, XmlProcessingException {
         final WriteJobOptions writeJobOptions = WriteJobOptions.create()
                 .withPriority(this.priority)
                 .withWriteOptimization(this.writeOptimization)
@@ -173,7 +178,10 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         writeJobOptions.setForce(force);
         final Ds3ClientHelpers.Job job = helpers.startWriteJob(this.bucketName, ds3Objects,
                 writeJobOptions);
-                job.withMaxParallelRequests(this.numberOfThreads);
+        job.withMaxParallelRequests(this.numberOfThreads);
+
+        // write parameters to file to allow recovery
+        createRecoveryCommand(job.getJobId());
 
         if (this.checksum) {
             throw new RuntimeException("Checksum calculation is not currently supported."); //TODO
@@ -196,27 +204,11 @@ public class PutBulk extends CliCommand<PutBulkResult> {
 
         if (this.ignoreErrors && !ds3IgnoredObjects.isEmpty()) {
             resultMessage = String.format("WARN: Not all of the files were written to bucket %s", this.bucketName);
+        } else {
+            RecoveryFileManager.deleteRecoveryCommand(job.getJobId());
         }
 
         return new PutBulkResult(resultMessage, ds3IgnoredObjects);
-    }
-
-    private void appendPrefix(final Iterable<Ds3Object> ds3Objects) {
-        if (this.pipe || this.prefix == null) return;
-
-        LOG.info("Pre-appending {} to all object names", this.prefix);
-        for (final Ds3Object obj : ds3Objects) {
-            obj.setName(this.prefix + obj.getName());
-        }
-    }
-
-    private ImmutableMap<String, String> getNormalizedObjectNameToObjectName(final ImmutableList<Path> pipedFiles) {
-        final ImmutableMap.Builder<String, String> map = ImmutableMap.builder();
-        for (final Path file : pipedFiles) {
-            map.put(FileUtils.normalizeObjectName(file.toString()), file.toString());
-        }
-
-        return map.build();
     }
 
     @Override
@@ -226,20 +218,84 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         }
         return new com.spectralogic.ds3cli.views.cli.PutBulkView();
     }
-    
-    private static class SyncFilter implements FilteringIterable.FilterFunction<Path> {
+
+
+    private Iterable<Path> getFilesToPut() throws IOException {
+        final Iterable<Path> filesToPut;
+        if (this.pipe) {
+            filesToPut = this.pipedFiles;
+        }
+        else {
+            filesToPut = FileUtils.listObjectsForDirectory(this.inputDirectory);
+        }
+        return new FilteringIterable<>(filesToPut, new FilteringIterable.FilterFunction<Path>() {
+            @Override
+            public boolean filter(final Path item) {
+                final boolean filter = !(followSymlinks || !Files.isSymbolicLink(item));
+                if (filter) {
+                    LOG.info("Skipping: {}", item.toString());
+                }
+                return filter;
+            }
+        });
+    }
+
+    public boolean isOtherArgs(final Arguments args) {
+        return  !Guard.isStringNullOrEmpty(args.getDirectory()) ||   //-d
+                !Guard.isStringNullOrEmpty(args.getObjectName()) || //-o
+                !Guard.isStringNullOrEmpty(args.getPrefix());   //-p
+    }
+
+    /**
+     * Returns a channel and metadata for files that have been piped in via stdin
+     */
+    static class PipeFileObjectPutter implements Ds3ClientHelpers.ObjectChannelBuilder, MetadataAccess {
+
+        private final ImmutableMap<String, String> mapNormalizedObjectNameToObjectName;
+
+        public PipeFileObjectPutter(final ImmutableMap<String, String> mapNormalizedObjectNameToObjectName) {
+            this.mapNormalizedObjectNameToObjectName = mapNormalizedObjectNameToObjectName;
+        }
+
+        @Override
+        public SeekableByteChannel buildChannel(final String s) throws IOException {
+            return FileChannel.open(Paths.get(this.mapNormalizedObjectNameToObjectName.get(s)), StandardOpenOption.READ);
+        }
+
+        @Override
+        public Map<String, String> getMetadataValue(final String s) {
+            final Path path = Paths.get(this.mapNormalizedObjectNameToObjectName.get(s));
+            return MetadataUtils.getMetadataValues(path);
+        }
+    }
+
+    private void createRecoveryCommand(final UUID jobId) {
+        RecoveryJob recoveryJob = new RecoveryJob(BulkJobType.PUT_BULK);
+        recoveryJob.setBucketName(bucketName);
+        recoveryJob.setId(jobId);
+        recoveryJob.setNumberOfThreads(numberOfThreads);
+        recoveryJob.setDirectory(inputDirectory);
+        if(!Guard.isStringNullOrEmpty(prefix)) {
+            recoveryJob.setPrefix(ImmutableList.of(prefix));
+        }
+        if (!RecoveryFileManager.writeRecoveryJob(recoveryJob)) {
+            LOG.info("Could not create recovery file in temporary space.");
+        }
+    }
+
+    private class SyncFilter implements FilteringIterable.FilterFunction<Path> {
 
         private final String prefix;
         private final Path inputDirectory;
         private final ImmutableMap<String, Contents> mapBucketFiles;
 
-        public SyncFilter(final String prefix, final Path inputDirectory, final Ds3ClientHelpers helpers, final String bucketName) throws IOException {
+        private SyncFilter(final String prefix, final Path inputDirectory, final Ds3ClientHelpers helpers, final String bucketName) throws IOException {
             this.prefix = prefix;
             this.inputDirectory = inputDirectory;
             this.mapBucketFiles = generateBucketFileMap(prefix, helpers, bucketName);
         }
 
-        private static ImmutableMap<String, Contents> generateBucketFileMap(final String prefix, final Ds3ClientHelpers helpers, final String bucketName) throws IOException {
+        private ImmutableMap<String, Contents> generateBucketFileMap(final String prefix, final Ds3ClientHelpers helpers, final String bucketName) throws IOException {
             final Iterable<Contents> contents = helpers.listObjects(bucketName, prefix);
             final ImmutableMap.Builder<String, Contents> bucketFileMapBuilder = ImmutableMap.builder();
             for (final Contents content : contents) {
@@ -270,146 +326,5 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         }
     }
 
-    private Iterable<Path> getFilesToPut() throws IOException {
-        final Iterable<Path> filesToPut;
-        if (this.pipe) {
-            filesToPut = this.pipedFiles;
-        }
-        else {
-            filesToPut = FileUtils.listObjectsForDirectory(this.inputDirectory);
-        }
-        return new FilteringIterable<>(filesToPut, new FilteringIterable.FilterFunction<Path>() {
-            @Override
-            public boolean filter(final Path item) {
-                final boolean filter = !(followSymlinks || !Files.isSymbolicLink(item));
-                if (filter) {
-                    LOG.info("Skipping: {}", item.toString());
-                }
-                return filter;
-            }
-        });
-    }
 
-    public boolean isOtherArgs(final Arguments args) {
-        return  !Guard.isStringNullOrEmpty(args.getDirectory()) ||   //-d
-                !Guard.isStringNullOrEmpty(args.getObjectName()) || //-o
-                !Guard.isStringNullOrEmpty(args.getPrefix());   //-p
-    }
-
-    static class PrefixedFileObjectPutter implements Ds3ClientHelpers.ObjectChannelBuilder, MetadataAccess {
-
-        final private LoggingFileObjectPutter objectPutter;
-        final private String prefix;
-        final private Path inputDirectory;
-
-        public PrefixedFileObjectPutter(final Path inputDirectory, final String prefix) {
-            this.objectPutter = new LoggingFileObjectPutter(inputDirectory);
-            this.prefix = prefix;
-            this.inputDirectory = inputDirectory;
-        }
-
-        @Override
-        public SeekableByteChannel buildChannel(final String fileName) throws IOException {
-            final String objectName = removePrefix(fileName);
-            return this.objectPutter.buildChannel(objectName);
-        }
-
-        @Override
-        public Map<String, String> getMetadataValue(final String fileName) {
-            final String unPrefixedFile = removePrefix(fileName);
-
-            final Path path = inputDirectory.resolve(unPrefixedFile);
-            return MetadataUtils.getMetadataValues(path);
-        }
-
-        private String removePrefix(final String fileName) {
-            if (this.prefix == null) {
-                return fileName;
-            } else {
-                if (!fileName.startsWith(this.prefix)) {
-                    LOG.info("The object ({}) does not begin with prefix {}.  Ignoring adding the prefix.", fileName,  this.prefix);
-                    return fileName;
-                } else {
-                    return fileName.substring(this.prefix.length());
-                }
-            }
-        }
-    }
-
-    static class LoggingFileObjectPutter implements Ds3ClientHelpers.ObjectChannelBuilder {
-        final private FileObjectPutter objectPutter;
-
-        public LoggingFileObjectPutter(final Path inputDirectory) {
-            this.objectPutter = new FileObjectPutter(inputDirectory);
-        }
-
-        @Override
-        public SeekableByteChannel buildChannel(final String s) throws IOException {
-            LOG.info("Putting {} to ds3 endpoint", s);
-            return this.objectPutter.buildChannel(s);
-        }
-    }
-
-    public static class ObjectsToPut {
-
-        private final ImmutableList<Ds3Object> ds3Objects;
-        private final ImmutableList<IgnoreFile> ds3IgnoredObjects;
-
-        public ObjectsToPut(final ImmutableList<Ds3Object> ds3Objects, final ImmutableList<IgnoreFile> ds3IgnoredObjects) {
-            this.ds3Objects = ds3Objects;
-            this.ds3IgnoredObjects = ds3IgnoredObjects;
-        }
-
-        public ImmutableList<Ds3Object> getDs3Objects() {
-            return this.ds3Objects;
-        }
-
-        public ImmutableList<IgnoreFile> getDs3IgnoredObjects() {
-            return this.ds3IgnoredObjects;
-        }
-    }
-
-    public static class IgnoreFile {
-        @JsonProperty("path")
-        private final String path;
-
-        @JsonProperty("error_message")
-        private final String errorMessage;
-
-        public IgnoreFile(final Path path, final String errorMessage) {
-            this.path = path.toString();
-            this.errorMessage = errorMessage;
-        }
-
-        public String getPath() {
-            return this.path;
-        }
-
-        public String getErrorMessage() {
-            return this.errorMessage;
-        }
-    }
-
-    /**
-     * Returns a channel and metadata for files that have been piped in via stdin
-     */
-    static class PipeFileObjectPutter implements Ds3ClientHelpers.ObjectChannelBuilder, MetadataAccess {
-
-        private final ImmutableMap<String, String> mapNormalizedObjectNameToObjectName;
-
-        public PipeFileObjectPutter(final ImmutableMap<String, String> mapNormalizedObjectNameToObjectName) {
-            this.mapNormalizedObjectNameToObjectName = mapNormalizedObjectNameToObjectName;
-        }
-
-        @Override
-        public SeekableByteChannel buildChannel(final String s) throws IOException {
-            return FileChannel.open(Paths.get(this.mapNormalizedObjectNameToObjectName.get(s)), StandardOpenOption.READ);
-        }
-
-        @Override
-        public Map<String, String> getMetadataValue(final String s) {
-            final Path path = Paths.get(this.mapNormalizedObjectNameToObjectName.get(s));
-            return MetadataUtils.getMetadataValues(path);
-        }
-    }
 }

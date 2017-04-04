@@ -19,13 +19,14 @@ import com.bethecoder.ascii_table.ASCIITable;
 import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3cli.command.PutBulk;
 import com.spectralogic.ds3cli.models.PutBulkResult;
+import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3client.utils.Guard;
 
 import static com.spectralogic.ds3cli.util.Guard.nullGuard;
 
 public class PutBulkView extends TableView<PutBulkResult> {
 
-    private ImmutableList<PutBulk.IgnoreFile> ignoreFileList;
+    private ImmutableList<FileUtils.IgnoreFile> ignoreFileList;
 
     @Override
     public String render(final PutBulkResult result) {
@@ -47,13 +48,12 @@ public class PutBulkView extends TableView<PutBulkResult> {
 
         int index = 0;
 
-        for (final PutBulk.IgnoreFile ignoreFile : this.ignoreFileList) {
+        for (final FileUtils.IgnoreFile ignoreFile : this.ignoreFileList) {
             final String[] arrayEntry = new String[this.columnCount];
             arrayEntry[0] = nullGuard(ignoreFile.getPath());
             arrayEntry[1] = nullGuard(ignoreFile.getErrorMessage());
             ignoreFileList[index++] = arrayEntry;
         }
-
         return ignoreFileList;
     }
 }

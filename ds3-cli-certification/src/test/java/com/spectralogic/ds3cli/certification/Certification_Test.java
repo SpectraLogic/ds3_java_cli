@@ -454,7 +454,7 @@ public class Certification_Test {
 
             // check file size
             final List<Path> filesToPut = com.spectralogic.ds3cli.util.FileUtils.listObjectsForDirectory(bulkPutLocalTempDir);
-            final PutBulk.ObjectsToPut objectsToPut = com.spectralogic.ds3cli.util.FileUtils.getObjectsToPut(filesToPut, bulkPutLocalTempDir, true);
+            final com.spectralogic.ds3cli.util.FileUtils.ObjectsToPut objectsToPut = com.spectralogic.ds3cli.util.FileUtils.getObjectsToPut(filesToPut, bulkPutLocalTempDir, true);
             final Ds3Object obj = objectsToPut.getDs3Objects().get(0);
             assertTrue(obj.getSize() < 150);
             OUT.insertLog(obj.getName()  + " size: " + Long.toString(obj.getSize()));
