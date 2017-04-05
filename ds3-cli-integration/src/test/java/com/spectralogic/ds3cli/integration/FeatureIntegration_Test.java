@@ -648,7 +648,6 @@ public class FeatureIntegration_Test {
 
             final CommandResponse response = Util.command(client, args);
             assertThat(response.getMessage(), startsWith(String.format("SUCCESS: Wrote object names listed in stdin from %s", bucketName)));
-
         } finally {
             Util.deleteBucket(client, bucketName);
             Util.deleteLocalFiles();
@@ -660,15 +659,14 @@ public class FeatureIntegration_Test {
     public void getBulkWithPipeMissingFile() throws Exception {
         assumeThat(Util.getBlackPearlVersion(client), greaterThan(1.2));
 
-        final String bucketName = "test_recover_get_bulk";
+        final String bucketName = "test_get_bulk_pipe_missing_files";
         try {
             final Path bookDir = Paths.get(Util.RESOURCE_BASE_NAME);
             Files.createDirectories(bookDir);
             Util.createBucket(client, bucketName);
             Util.loadBookTestData(client, bucketName);
 
-            final String pipedInput = bookDir.toString() + File.separator + "beowulf.txt\n"
-                    + bookDir.toString() + File.separator + "50 Shades of Grey.txt";
+            final String pipedInput = "beowulf.txt\nulysses.txt\n50 Shades of Grey.txt";
             final InputStream testFile = new ByteArrayInputStream(pipedInput.getBytes("UTF-8"));
             System.setIn(testFile);
 
@@ -680,7 +678,6 @@ public class FeatureIntegration_Test {
                             "-d", Util.DOWNLOAD_BASE_NAME});
 
             final CommandResponse response = Util.command(client, args);
-
         } finally {
             Util.deleteBucket(client, bucketName);
             Util.deleteLocalFiles();

@@ -277,7 +277,7 @@ public class GetBulk extends CliCommand<DefaultResult> {
                 }
             });
 
-        // report any in the piped list not in bucket
+        // look for objects in the piped list not in bucket
         final FluentIterable<String> objectNameList = FluentIterable.from(objectList).transform(new Function<Contents,String>() {
             @Override
             public String apply(@Nullable final Contents bulkObject) {
