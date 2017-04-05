@@ -15,10 +15,10 @@
 
 package com.spectralogic.ds3cli.command;
 
+import com.google.common.base.Function;
 import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Iterables;
+import com.google.common.base.Predicate;
+import com.google.common.collect.*;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.exceptions.BadArgumentException;
 import com.spectralogic.ds3cli.exceptions.CommandException;
@@ -32,7 +32,9 @@ import com.spectralogic.ds3client.helpers.FolderNameFilter;
 import com.spectralogic.ds3client.helpers.MetadataReceivedListener;
 import com.spectralogic.ds3client.helpers.options.ReadJobOptions;
 import com.spectralogic.ds3client.helpers.pagination.GetBucketLoaderFactory;
+import com.spectralogic.ds3client.models.BulkObject;
 import com.spectralogic.ds3client.models.Contents;
+import com.spectralogic.ds3client.models.Pool;
 import com.spectralogic.ds3client.models.Priority;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.networking.Metadata;
@@ -44,6 +46,7 @@ import org.apache.commons.cli.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import javax.swing.text.AbstractDocument;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
@@ -164,7 +167,7 @@ public class GetBulk extends CliCommand<DefaultResult> {
         return "Getting all objects from " + this.bucketName;
     }
 
-    private String restore(final Ds3ClientHelpers.ObjectChannelBuilder getter) throws IOException, XmlProcessingException {
+    private String restore(final Ds3ClientHelpers.ObjectChannelBuilder getter) throws CommandException, IOException, XmlProcessingException {
         final Ds3ClientHelpers helper = getClientHelpers();
         final LoggingFileObjectGetter loggingFileObjectGetter = new LoggingFileObjectGetter(getter, this.outputPath);
 
@@ -214,7 +217,7 @@ public class GetBulk extends CliCommand<DefaultResult> {
         final StringBuilder response = new StringBuilder("SUCCESS: ");
         response.append(this.sync ? "Synced" : this.discard ? "Retrieved and discarded" : "Wrote");
         response.append((!this.pipe && !this.sync && Guard.isNullOrEmpty(this.prefixes))
-                ? " all objects" : this.pipe ? " object names listed in stdin " :
+                ? " all objects" : this.pipe ? " object names listed in stdin" :
                 " all the objects that start with '" + Joiner.on(" ").join(this.prefixes) + "'");
         response.append(" from ");
         response.append(this.bucketName);
@@ -260,20 +263,36 @@ public class GetBulk extends CliCommand<DefaultResult> {
         return allPrefixMatches;
     }
 
-    private Iterable<Contents> getObjectsByPipe() {
-        final ImmutableMap<String, String> objectMap
+    private Iterable<Contents> getObjectsByPipe() throws CommandException {
+        final ImmutableMap<String, String> pipedObjectMap
                 = FileUtils.normalizedObjectNames(this.pipedFileNames);
-        ImmutableList.Builder<Contents> allMatches = new ImmutableList.Builder<>();
-        final Iterable<Contents> objects = new LazyIterable<>(
-                new GetBucketLoaderFactory(getClient(), this.bucketName, null, null, 100, 5));
-        for (final Contents object: objects) {
-            LOG.info("Contents key: {}", object.getKey());
-            if (objectMap.containsKey(object.getKey())) {
-                allMatches.add(object);
-                LOG.info("Matched: {}", object.getKey());
+
+        final FluentIterable<Contents> objectList = FluentIterable
+            .from(new LazyIterable<>(
+                        new GetBucketLoaderFactory(getClient(), this.bucketName, null, null, 100, 5)))
+            .filter(new Predicate<Contents>() {
+                @Override
+                public boolean apply(@Nullable final Contents bulkObject) {
+                    return pipedObjectMap.containsKey(bulkObject.getKey());
+                }
+            });
+
+        // report any in the piped list not in bucket
+        final FluentIterable<String> objectNameList = FluentIterable.from(objectList).transform(new Function<Contents,String>() {
+            @Override
+            public String apply(@Nullable final Contents bulkObject) {
+                return bulkObject.getKey();
+            }
+        });
+
+        for (final String object: pipedObjectMap.keySet()) {
+            if (objectNameList.contains(object)) {
+                LOG.info("Restore: {}", object);
+            } else {
+                throw new CommandException("Object: " + object + " not found in bucket");
             }
         }
-        return allMatches.build();
+        return objectList;
     }
 
     private void createRecoveryCommand(final UUID jobId) {

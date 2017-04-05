@@ -213,7 +213,7 @@ public final class FileUtils {
     }
 
     public static void appendPrefix(final Iterable<Ds3Object> ds3Objects, final String prefix) {
-        if (isStringNullOrEmpty(prefix)) {
+        if (!isStringNullOrEmpty(prefix)) {
             for (final Ds3Object obj : ds3Objects) {
                 obj.setName(prefix + obj.getName());
             }

@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Lists;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.CommandResponse;
+import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.helpers.JsonMapper;
 import com.spectralogic.ds3cli.helpers.TempStorageIds;
 import com.spectralogic.ds3cli.helpers.TempStorageUtil;
@@ -623,4 +624,70 @@ public class FeatureIntegration_Test {
             Util.deleteBucket(client, bucketName);
         }
     }
+
+    @Test
+    public void getBulkWithPipe() throws Exception {
+        assumeThat(Util.getBlackPearlVersion(client), greaterThan(1.2));
+
+        final String bucketName = "test_get_bulk_pipe_object";
+        try {
+            Files.createDirectories(Paths.get(Util.DOWNLOAD_BASE_NAME));
+            Util.createBucket(client, bucketName);
+            Util.loadBookTestData(client, bucketName);
+
+            final String pipedInput = "beowulf.txt\nulysses.txt";
+            final InputStream testFile = new ByteArrayInputStream(pipedInput.getBytes("UTF-8"));
+            System.setIn(testFile);
+
+            final Arguments args = new Arguments(
+                    new String[]{
+                            "--http",
+                            "-c", "get_bulk",
+                            "-b", bucketName,
+                            "-d", Util.DOWNLOAD_BASE_NAME});
+
+            final CommandResponse response = Util.command(client, args);
+            assertThat(response.getMessage(), startsWith(String.format("SUCCESS: Wrote object names listed in stdin from %s", bucketName)));
+
+        } finally {
+            Util.deleteBucket(client, bucketName);
+            Util.deleteLocalFiles();
+        }
+    }
+
+
+    @Test(expected = CommandException.class)
+    public void getBulkWithPipeMissingFile() throws Exception {
+        assumeThat(Util.getBlackPearlVersion(client), greaterThan(1.2));
+
+        final String bucketName = "test_recover_get_bulk";
+        try {
+            final Path bookDir = Paths.get(Util.RESOURCE_BASE_NAME);
+            Files.createDirectories(bookDir);
+            Util.createBucket(client, bucketName);
+            Util.loadBookTestData(client, bucketName);
+
+            final String pipedInput = bookDir.toString() + File.separator + "beowulf.txt\n"
+                    + bookDir.toString() + File.separator + "50 Shades of Grey.txt";
+            final InputStream testFile = new ByteArrayInputStream(pipedInput.getBytes("UTF-8"));
+            System.setIn(testFile);
+
+            final Arguments args = new Arguments(
+                    new String[]{
+                            "--http",
+                            "-c", "get_bulk",
+                            "-b", bucketName,
+                            "-d", Util.DOWNLOAD_BASE_NAME});
+
+            final CommandResponse response = Util.command(client, args);
+
+        } finally {
+            Util.deleteBucket(client, bucketName);
+            Util.deleteLocalFiles();
+        }
+    }
+
+
+
+
 }
