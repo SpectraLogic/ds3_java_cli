@@ -218,10 +218,11 @@ public class GetBulk extends CliCommand<DefaultResult> {
         response.append(this.sync ? "Synced" : this.discard ? "Retrieved and discarded" : "Wrote");
         response.append((!this.pipe && !this.sync && Guard.isNullOrEmpty(this.prefixes))
                 ? " all objects" : this.pipe ? " object names listed in stdin" :
+                Guard.isNullOrEmpty(this.prefixes) ? " all the objects" :
                 " all the objects that start with '" + Joiner.on(" ").join(this.prefixes) + "'");
         response.append(" from ");
         response.append(this.bucketName);
-        response.append(this.discard ? "" : " to directory " + this.outputPath.toString());
+        response.append(this.discard ? "" : " to " + this.outputPath.toString());
 
         return response.toString();
     }
