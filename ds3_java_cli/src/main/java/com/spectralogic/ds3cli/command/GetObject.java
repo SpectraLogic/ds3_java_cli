@@ -65,12 +65,6 @@ public class GetObject extends CliCommand<DefaultResult> {
     private long rangeLength = 0L;
     private boolean discard;
 
-    private final static int DEFAULT_BUFFER_SIZE = 1024 * 1024;
-    private final static long DEFAULT_FILE_SIZE = 1024L;
-
-    public GetObject() {
-    }
-
     @Override
     public CliCommand init(final Arguments args) throws Exception {
         processCommandOptions(requiredArgs, optionalArgs, args);
@@ -141,7 +135,7 @@ public class GetObject extends CliCommand<DefaultResult> {
     private void Transfer(final Ds3ClientHelpers helpers, final Ds3Object ds3Obj) throws IOException, XmlProcessingException {
         final Ds3ClientHelpers.ObjectChannelBuilder getter;
         if (this.discard) {
-            getter = new MemoryObjectChannelBuilder(DEFAULT_BUFFER_SIZE, DEFAULT_FILE_SIZE);
+            getter = new MemoryObjectChannelBuilder();
         } else {
             getter = new FileObjectGetter(Paths.get(this.prefix));
         }

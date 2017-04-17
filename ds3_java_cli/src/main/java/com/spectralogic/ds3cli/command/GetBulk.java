@@ -61,9 +61,6 @@ public class GetBulk extends CliCommand<DefaultResult> {
 
     private final static Logger LOG = LoggerFactory.getLogger(GetBulk.class);
 
-    private final static int DEFAULT_BUFFER_SIZE = 1024 * 1024;
-    private final static long DEFAULT_FILE_SIZE = 1024L;
-
     private String bucketName;
     private String directory;
     private Path outputPath;
@@ -141,7 +138,7 @@ public class GetBulk extends CliCommand<DefaultResult> {
         if (this.pipe) {
             getter = new PipedFileObjectGetter(this.outputPath, FileUtils.normalizedObjectNames(this.pipedFileNames));
         } else if (this.discard) {
-            getter = new MemoryObjectChannelBuilder(DEFAULT_BUFFER_SIZE, DEFAULT_FILE_SIZE);
+            getter = new MemoryObjectChannelBuilder();
         } else {
             getter = new FileObjectGetter(this.outputPath);
         }
