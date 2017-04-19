@@ -212,14 +212,6 @@ public final class FileUtils {
         return pipedFiles.build();
     }
 
-    public static void appendPrefix(final Iterable<Ds3Object> ds3Objects, final String prefix) {
-        if (!isStringNullOrEmpty(prefix)) {
-            for (final Ds3Object obj : ds3Objects) {
-                obj.setName(prefix + obj.getName());
-            }
-        }
-    }
-
     public static class ObjectsToPut {
 
         private final ImmutableList<Ds3Object> ds3Objects;
@@ -228,6 +220,14 @@ public final class FileUtils {
         public ObjectsToPut(final ImmutableList<Ds3Object> ds3Objects, final ImmutableList<FileUtils.IgnoreFile> ds3IgnoredObjects) {
             this.ds3Objects = ds3Objects;
             this.ds3IgnoredObjects = ds3IgnoredObjects;
+        }
+
+        public void appendPrefixToObjectList(final String prefix) {
+            if (!isStringNullOrEmpty(prefix)) {
+                for (final Ds3Object obj : this.ds3Objects) {
+                    obj.setName(prefix + obj.getName());
+                }
+            }
         }
 
         public ImmutableList<Ds3Object> getDs3Objects() {

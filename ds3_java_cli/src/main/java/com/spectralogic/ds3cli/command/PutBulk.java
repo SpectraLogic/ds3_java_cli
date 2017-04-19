@@ -164,7 +164,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
         final FileUtils.ObjectsToPut objectsToPut = FileUtils.getObjectsToPut(filesToPut, this.inputDirectory, this.ignoreErrors);
         final Iterable<Ds3Object> ds3Objects = objectsToPut.getDs3Objects();
         if (!this.pipe) {
-            FileUtils.appendPrefix(ds3Objects, this.prefix);
+            objectsToPut.appendPrefixToObjectList(this.prefix);
         }
 
         return this.transfer(helpers, ds3Objects, objectsToPut.getDs3IgnoredObjects());
@@ -270,7 +270,7 @@ public class PutBulk extends CliCommand<PutBulkResult> {
     }
 
     private void createRecoveryCommand(final UUID jobId) {
-        RecoveryJob recoveryJob = new RecoveryJob(BulkJobType.PUT_BULK);
+        final RecoveryJob recoveryJob = new RecoveryJob(BulkJobType.PUT_BULK);
         recoveryJob.setBucketName(bucketName);
         recoveryJob.setId(jobId);
         recoveryJob.setNumberOfThreads(numberOfThreads);

@@ -29,25 +29,25 @@ import java.nio.charset.Charset;
 import java.nio.file.*;
 import java.util.*;
 
-public class RecoveryFileManager {
+public final class RecoveryFileManager {
 
     public static String GET_PREFIX = "ds3Get_";
     public static String PUT_PREFIX = "ds3Put_";
     public static String DIR_PREFIX = "ds3";
     public static String RECOVERY_FILE_EXTENSION = ".json";
 
-    private static final Path tempdir;
-    static {
+    private final static Logger LOG = LoggerFactory.getLogger(RecoveryFileManager.class);
+
+    private static Path getTempdir() {
         if (!Guard.isStringNullOrEmpty(System.getProperty("java.io.tmpdir"))) {
-            tempdir = Paths.get(System.getProperty("java.io.tmpdir") + File.separator + DIR_PREFIX);
+            return Paths.get(System.getProperty("java.io.tmpdir") + File.separator + DIR_PREFIX);
         } else {
-            tempdir = Paths.get("." + File.separator + DIR_PREFIX);
+            return Paths.get("." + File.separator + DIR_PREFIX);
         }
     }
 
-    private final static Logger LOG = LoggerFactory.getLogger(RecoveryFileManager.class);
-
     private static void ensureDirExists() throws IOException {
+        final Path tempdir = getTempdir();
         if (!Files.isDirectory(tempdir)) {
             Files.createDirectory(tempdir);
         }
@@ -55,11 +55,11 @@ public class RecoveryFileManager {
 
     public static File createGetFile(final String id) throws IOException {
         ensureDirExists();
-        return new File(tempdir.toFile(), GET_PREFIX + id + RECOVERY_FILE_EXTENSION);
+        return new File(getTempdir().toFile(), GET_PREFIX + id + RECOVERY_FILE_EXTENSION);
     }
     public static File createPutFile(final String id) throws IOException {
         ensureDirExists();
-        return new File(tempdir.toFile(), PUT_PREFIX + id + RECOVERY_FILE_EXTENSION);
+        return new File(getTempdir().toFile(), PUT_PREFIX + id + RECOVERY_FILE_EXTENSION);
     }
 
     public static String getFileList() {
@@ -107,7 +107,7 @@ public class RecoveryFileManager {
 
     public static File getFileById(final String id) throws IOException {
         ensureDirExists();
-        try (DirectoryStream<Path> stream = Files.newDirectoryStream(tempdir, "*" + id + RECOVERY_FILE_EXTENSION)) {
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(getTempdir(), "*" + id + RECOVERY_FILE_EXTENSION)) {
             final Iterator<Path> iterator = stream.iterator();
             if (iterator.hasNext()) {
                 return iterator.next().toFile();
@@ -129,7 +129,7 @@ public class RecoveryFileManager {
     public static Iterable<Path> searchFiles(final String id, final String bucketName, final BulkJobType type) throws IOException {
         ensureDirExists();
         List<Path> matches = new ArrayList<>();
-        try (DirectoryStream<Path> stream = Files.newDirectoryStream(tempdir, "*" + RECOVERY_FILE_EXTENSION)) {
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(getTempdir(), "*" + RECOVERY_FILE_EXTENSION)) {
             for (final Path file : stream) {
                 final RecoveryJob job = getRecoveryJobByFile(file.toFile());
                 // match all supplied params
@@ -148,7 +148,7 @@ public class RecoveryFileManager {
     }
 
     public static RecoveryJob getRecoveryJobByName(final String fileName) throws IOException {
-        return getRecoveryJobByFile( new File(tempdir.toFile(), fileName));
+        return getRecoveryJobByFile( new File(getTempdir().toFile(), fileName));
     }
 
     public static RecoveryJob getRecoveryJobByFile(final File jobFile) throws IOException {
