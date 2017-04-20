@@ -142,12 +142,83 @@ public class GetBulk extends CliCommand<DefaultResult> {
         } else {
             getter = new FileObjectGetter(this.outputPath);
         }
-        LOG.info(getLogDescription());
+        LOG.info(buildLogDescription());
         return new DefaultResult(this.restore(getter));
     }
 
+    private String restore(final Ds3ClientHelpers.ObjectChannelBuilder getter) throws CommandException, IOException, XmlProcessingException {
+        final Ds3ClientHelpers helper = getClientHelpers();
+        final LoggingFileObjectGetter loggingFileObjectGetter = new LoggingFileObjectGetter(getter, this.outputPath);
+
+        final Ds3ClientHelpers.Job job = buildRestoreJob(helper);
+        job.withMaxParallelRequests(this.numberOfThreads);
+        job.attachMetadataReceivedListener(loggingFileObjectGetter);
+
+        // write parameters to file to enable recovery
+        createRecoveryCommand(job.getJobId());
+
+        // do the restore
+        job.transfer(loggingFileObjectGetter);
+
+        // clean up recovery file on success of job.transfer()
+        RecoveryFileManager.deleteRecoveryCommand(job.getJobId());
+
+        // return success message describing what was done
+        return buildResponse();
+    }
+
+    private  Ds3ClientHelpers.Job buildRestoreJob(final Ds3ClientHelpers helper) throws IOException, CommandException {
+        // restore all
+        if (!this.pipe && !this.sync && Guard.isNullOrEmpty(this.prefixes)) {
+            return helper.startReadAllJob(this.bucketName, ReadJobOptions.create().withPriority(this.priority));
+        }
+        // restore some
+        final Iterable<Ds3Object>objects = helper.toDs3Iterable(getObjects(helper), FolderNameFilter.filter());;
+        return helper.startReadJob(this.bucketName, objects,
+                ReadJobOptions.create().withPriority(this.priority));
+    }
+
+    private Iterable<Contents> getObjects(final Ds3ClientHelpers helper) throws IOException, CommandException {
+        final Iterable<Contents> contentMatches = getContentMatches();
+        if (Iterables.isEmpty(contentMatches)) {
+            throw new CommandException("No matching objects in bucket " + this.bucketName);
+        }
+        if (this.sync) {
+            final Iterable<Contents> filteredContents = this.filterContents(contentMatches, this.outputPath);
+            if (Iterables.isEmpty(filteredContents)) {
+                throw new CommandException("Nothing to do; all files are up to date");
+            }
+            return filteredContents;
+        }
+        return contentMatches;
+    }
+
+    private Iterable<Contents> getContentMatches() throws IOException, CommandException {
+        if (this.pipe) {
+            return getObjectsByPipe();
+        }
+        if (Guard.isNullOrEmpty(prefixes)) {
+            return getAllObjectsInBucket();
+        }
+        return getObjectsByPrefix();
+    }
+
+    private String buildResponse() {
+        final StringBuilder response = new StringBuilder("SUCCESS: ");
+        response.append(this.sync ? "Synced" : this.discard ? "Retrieved and discarded" : "Wrote");
+        response.append((!this.pipe && !this.sync && Guard.isNullOrEmpty(this.prefixes))
+                ? " all objects" : this.pipe ? " object names listed in stdin" :
+                Guard.isNullOrEmpty(this.prefixes) ? " all the objects" :
+                        " all the objects that start with '" + Joiner.on(" ").join(this.prefixes) + "'");
+        response.append(" from ");
+        response.append(this.bucketName);
+        response.append(this.discard ? "" : " to " + this.outputPath.toString());
+
+        return response.toString();
+    }
+
     // preserve legacy descriptions from different code paths
-    private String getLogDescription() {
+    private String buildLogDescription() {
         if (this.pipe) {
             return "Getting piped objects from " + this.bucketName;
         }
@@ -162,66 +233,6 @@ public class GetBulk extends CliCommand<DefaultResult> {
             return "Getting only those objects that start with " + Joiner.on(" ").join(this.prefixes);
         }
         return "Getting all objects from " + this.bucketName;
-    }
-
-    private String restore(final Ds3ClientHelpers.ObjectChannelBuilder getter) throws CommandException, IOException, XmlProcessingException {
-        final Ds3ClientHelpers helper = getClientHelpers();
-        final LoggingFileObjectGetter loggingFileObjectGetter = new LoggingFileObjectGetter(getter, this.outputPath);
-
-        final Ds3ClientHelpers.Job job;
-        if (!this.pipe && !this.sync && Guard.isNullOrEmpty(this.prefixes)) {
-            // restore all
-            job = helper.startReadAllJob(this.bucketName, ReadJobOptions.create().withPriority(this.priority));
-        } else {
-            // restore some
-            final Iterable<Contents> contentMatches;
-            if (this.pipe) {
-                contentMatches = getObjectsByPipe();
-            } else if (!Guard.isNullOrEmpty(prefixes)) {
-                contentMatches = getObjectsByPrefix();
-            } else {
-                contentMatches = getAllObjectsInBucket();
-            }
-            if (Iterables.isEmpty(contentMatches)) {
-                return "No matching objects in bucket " + this.bucketName;
-            }
-
-            final Iterable<Ds3Object> objects;
-            if (this.sync) {
-                final Iterable<Contents> filteredContents = this.filterContents(contentMatches, this.outputPath);
-                if (Iterables.isEmpty(filteredContents)) {
-                    return "SUCCESS: All files are up to date";
-                }
-                objects = helper.toDs3Iterable(filteredContents, FolderNameFilter.filter());
-            } else {
-                objects = helper.toDs3Iterable(contentMatches, FolderNameFilter.filter());
-            }
-            job = helper.startReadJob(this.bucketName, objects,
-                    ReadJobOptions.create().withPriority(this.priority));
-        }
-        job.withMaxParallelRequests(this.numberOfThreads);
-        job.attachMetadataReceivedListener(loggingFileObjectGetter);
-
-        // write parameters to file to enable recpvery
-        createRecoveryCommand(job.getJobId());
-
-        job.transfer(loggingFileObjectGetter);
-
-        // clean up recovery file on success of job.transfer()
-        RecoveryFileManager.deleteRecoveryCommand(job.getJobId());
-
-        // Success -- build the response
-        final StringBuilder response = new StringBuilder("SUCCESS: ");
-        response.append(this.sync ? "Synced" : this.discard ? "Retrieved and discarded" : "Wrote");
-        response.append((!this.pipe && !this.sync && Guard.isNullOrEmpty(this.prefixes))
-                ? " all objects" : this.pipe ? " object names listed in stdin" :
-                Guard.isNullOrEmpty(this.prefixes) ? " all the objects" :
-                " all the objects that start with '" + Joiner.on(" ").join(this.prefixes) + "'");
-        response.append(" from ");
-        response.append(this.bucketName);
-        response.append(this.discard ? "" : " to " + this.outputPath.toString());
-
-        return response.toString();
     }
 
     private Iterable<Contents> filterContents(final Iterable<Contents> contents, final Path outputPath) throws IOException {
@@ -315,26 +326,22 @@ public class GetBulk extends CliCommand<DefaultResult> {
     private class PipedFileObjectGetter implements Ds3ClientHelpers.ObjectChannelBuilder {
         private final ImmutableMap<String, String> mapNormalizedObjectNameToObjectName;
         private final Path root;
+        private FileObjectGetter fileObjectGetter;
 
         public PipedFileObjectGetter(final Path rootPath, final ImmutableMap<String, String> normalizedObjectNames) {
             this.mapNormalizedObjectNameToObjectName = normalizedObjectNames;
             this.root = rootPath;
+            this.fileObjectGetter = new FileObjectGetter(rootPath);
         }
 
         public SeekableByteChannel buildChannel(String key) throws IOException {
             LOG.info("Piped name: {}", key);
-            final Path normalizedName = Paths.get(this.mapNormalizedObjectNameToObjectName.get(key));
+            final String normalizedName = this.mapNormalizedObjectNameToObjectName.get(key);
             if (normalizedName == null) {
                 throw new IOException("No match for piped name " + key);
             }
-            Path objectPath = this.root.resolve(normalizedName);
-            Path parentPath = objectPath.getParent();
-            if (parentPath != null) {
-                Files.createDirectories(parentPath, new FileAttribute[0]);
-            }
-            return FileChannel.open(objectPath, new OpenOption[]{StandardOpenOption.WRITE, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING});
+            return fileObjectGetter.buildChannel(normalizedName);
         }
     }
-
 
 }

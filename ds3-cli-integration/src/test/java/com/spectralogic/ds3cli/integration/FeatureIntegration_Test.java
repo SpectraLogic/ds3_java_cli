@@ -440,7 +440,8 @@ public class FeatureIntegration_Test {
             }
 
             response = Util.command(client, args);
-            assertThat(response.getMessage(), is("SUCCESS: All files are up to date"));
+        } catch (final CommandException e) {
+            assertThat(e.getMessage(), is("Nothing to do; all files are up to date"));
         } finally {
             Util.deleteBucket(client, bucketName);
             Util.deleteLocalFiles();
@@ -483,6 +484,33 @@ public class FeatureIntegration_Test {
 
             response = Util.command(client, args);
             assertThat(response.getMessage(), is("SUCCESS: All files are up to date"));
+
+        } finally {
+            Util.deleteBucket(client, bucketName);
+        }
+    }
+
+    @Test
+    public void putBulkObjectWithPrefix() throws Exception {
+        assumeThat(Util.getBlackPearlVersion(client), greaterThan(1.2));
+
+        final String bucketName = "test_put_bulk_object_with_prefix";
+        final String prefix = "myfolder/";
+        try {
+
+            Util.createBucket(client, bucketName);
+            final Arguments args = new Arguments(new String[]{
+                    "--http",
+                    "-c", "put_bulk",
+                    "-b", bucketName,
+                    "-d", Util.RESOURCE_BASE_NAME,
+                    "-p" , prefix,
+                    "--sync"});
+            final CommandResponse response = Util.command(client, args);
+            assertThat(response.getMessage(), is(String.format("SUCCESS: Wrote all the files in %s to bucket %s", "." + File.separator + "src" + File.separator + "test" + File.separator + "resources" + File.separator + "books", bucketName)));
+
+            final CommandResponse getBucketResponse = Util.getBucket(client, bucketName);
+            assertTrue("Prefix not prepended", getBucketResponse.getMessage().contains(prefix + "ulysses.txt"));
 
         } finally {
             Util.deleteBucket(client, bucketName);

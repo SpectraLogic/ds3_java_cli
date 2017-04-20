@@ -161,11 +161,8 @@ public class PutBulk extends CliCommand<PutBulkResult> {
             }
         }
 
-        final FileUtils.ObjectsToPut objectsToPut = FileUtils.getObjectsToPut(filesToPut, this.inputDirectory, this.ignoreErrors);
+        final FileUtils.ObjectsToPut objectsToPut = FileUtils.getObjectsToPut(filesToPut, this.inputDirectory, this.prefix, this.ignoreErrors);
         final Iterable<Ds3Object> ds3Objects = objectsToPut.getDs3Objects();
-        if (!this.pipe) {
-            objectsToPut.appendPrefixToObjectList(this.prefix);
-        }
 
         return this.transfer(helpers, ds3Objects, objectsToPut.getDs3IgnoredObjects());
     }

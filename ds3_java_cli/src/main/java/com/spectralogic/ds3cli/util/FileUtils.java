@@ -16,18 +16,23 @@
 package com.spectralogic.ds3cli.util;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.Function;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
+import com.spectralogic.ds3client.utils.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.List;
 
 import static com.spectralogic.ds3client.utils.Guard.isStringNullOrEmpty;
 
@@ -64,7 +69,7 @@ public final class FileUtils {
         return Files.exists(filePath);
     }
 
-    public static FileUtils.ObjectsToPut getObjectsToPut(final Iterable<Path> filteredObjects, final Path inputDirectory, final boolean ignoreErrors) throws IOException {
+    public static FileUtils.ObjectsToPut getObjectsToPut(final Iterable<Path> filteredObjects, final Path inputDirectory, final String prefix, final boolean ignoreErrors) throws IOException {
         final ImmutableList.Builder<Ds3Object> objectsBuilder = ImmutableList.builder();
         final ImmutableList.Builder<FileUtils.IgnoreFile> ignoredBuilder = ImmutableList.builder();
 
@@ -81,8 +86,7 @@ public final class FileUtils {
                 ignoredBuilder.add(new FileUtils.IgnoreFile(path, ex.toString()));
             }
         }
-
-        return new FileUtils.ObjectsToPut(objectsBuilder.build(), ignoredBuilder.build());
+        return new FileUtils.ObjectsToPut(objectsBuilder.build(), ignoredBuilder.build(), prefix);
     }
 
     /**
@@ -213,25 +217,33 @@ public final class FileUtils {
     }
 
     public static class ObjectsToPut {
-
         private final ImmutableList<Ds3Object> ds3Objects;
         private final ImmutableList<FileUtils.IgnoreFile> ds3IgnoredObjects;
+        private final String prefix;
 
-        public ObjectsToPut(final ImmutableList<Ds3Object> ds3Objects, final ImmutableList<FileUtils.IgnoreFile> ds3IgnoredObjects) {
+        public ObjectsToPut(final ImmutableList<Ds3Object> ds3Objects, final ImmutableList<FileUtils.IgnoreFile> ds3IgnoredObjects, final String prefix) {
             this.ds3Objects = ds3Objects;
             this.ds3IgnoredObjects = ds3IgnoredObjects;
+            this.prefix = prefix;
         }
 
-        public void appendPrefixToObjectList(final String prefix) {
-            if (!isStringNullOrEmpty(prefix)) {
-                for (final Ds3Object obj : this.ds3Objects) {
-                    obj.setName(prefix + obj.getName());
-                }
-            }
+        private List<Ds3Object> appendPrefixToObjectList(final ImmutableList<Ds3Object> ds3Objects, final String prefix) {
+            FluentIterable<Ds3Object> appendedObjects = FluentIterable
+                    .from(ds3Objects)
+                    .transform(new Function<Ds3Object, Ds3Object>() {
+                        @Nullable
+                        @Override
+                        public Ds3Object apply(@Nullable Ds3Object input) {
+                            return new Ds3Object(prefix + input.getName(), input.getSize());
+                        }
+                    });
+            return appendedObjects.toList();
         }
 
         public ImmutableList<Ds3Object> getDs3Objects() {
-            return this.ds3Objects;
+            return (isStringNullOrEmpty(this.prefix))
+                    ? this.ds3Objects
+                    : ImmutableList.copyOf(appendPrefixToObjectList(ds3Objects, prefix));
         }
 
         public ImmutableList<FileUtils.IgnoreFile> getDs3IgnoredObjects() {
