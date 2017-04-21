@@ -107,7 +107,7 @@ public final class RecoveryFileManager {
 
     public static File getFileById(final String id) throws IOException {
         ensureDirExists();
-        try (DirectoryStream<Path> stream = Files.newDirectoryStream(getTempdir(), "*" + id + RECOVERY_FILE_EXTENSION)) {
+        try (final DirectoryStream<Path> stream = Files.newDirectoryStream(getTempdir(), "*" + id + RECOVERY_FILE_EXTENSION)) {
             final Iterator<Path> iterator = stream.iterator();
             if (iterator.hasNext()) {
                 return iterator.next().toFile();
