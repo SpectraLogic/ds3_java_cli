@@ -326,7 +326,7 @@ public class GetBulk extends CliCommand<DefaultResult> {
     private class PipedFileObjectGetter implements Ds3ClientHelpers.ObjectChannelBuilder {
         private final ImmutableMap<String, String> mapNormalizedObjectNameToObjectName;
         private final Path root;
-        private FileObjectGetter fileObjectGetter;
+        private final FileObjectGetter fileObjectGetter;
 
         public PipedFileObjectGetter(final Path rootPath, final ImmutableMap<String, String> normalizedObjectNames) {
             this.mapNormalizedObjectNameToObjectName = normalizedObjectNames;

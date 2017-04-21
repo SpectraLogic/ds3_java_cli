@@ -76,7 +76,7 @@ public final class RecoveryFileManager {
         }
         final StringBuffer fileList = new StringBuffer();
         try {
-            for (Path file : files) {
+            for (final Path file : files) {
                 final RecoveryJob job = getRecoveryJobByName(file.getFileName().toString());
                 fileList.append(job.toString());
                 fileList.append("\n");
@@ -93,7 +93,7 @@ public final class RecoveryFileManager {
         }
         final StringBuffer fileList = new StringBuffer("Deleted:\n");
         try {
-            for (Path file : files) {
+            for (final Path file : files) {
                 final RecoveryJob job = getRecoveryJobByName(file.getFileName().toString());
                 Files.delete(file);
                 fileList.append(job.toString());
@@ -128,8 +128,8 @@ public final class RecoveryFileManager {
 
     public static Iterable<Path> searchFiles(final String id, final String bucketName, final BulkJobType type) throws IOException {
         ensureDirExists();
-        List<Path> matches = new ArrayList<>();
-        try (DirectoryStream<Path> stream = Files.newDirectoryStream(getTempdir(), "*" + RECOVERY_FILE_EXTENSION)) {
+        final List<Path> matches = new ArrayList<>();
+        try (final DirectoryStream<Path> stream = Files.newDirectoryStream(getTempdir(), "*" + RECOVERY_FILE_EXTENSION)) {
             for (final Path file : stream) {
                 final RecoveryJob job = getRecoveryJobByFile(file.toFile());
                 // match all supplied params
