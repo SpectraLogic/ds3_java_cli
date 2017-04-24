@@ -165,7 +165,7 @@ public final class RecoveryFileManager {
             } else {
                 file = createPutFile(job.getId().toString());
             }
-            try (BufferedWriter writer = com.google.common.io.Files.newWriter(file, Charset.forName("utf-8"))) {
+            try (final BufferedWriter writer = com.google.common.io.Files.newWriter(file, Charset.forName("utf-8"))) {
                 writer.write(JsonMapper.toJson(job));
             } catch (final Exception inner) {
                 throw inner;

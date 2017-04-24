@@ -173,7 +173,7 @@ public class GetBulk extends CliCommand<DefaultResult> {
             return helper.startReadAllJob(this.bucketName, ReadJobOptions.create().withPriority(this.priority));
         }
         // restore some
-        final Iterable<Ds3Object>objects = helper.toDs3Iterable(getObjects(helper), FolderNameFilter.filter());;
+        final Iterable<Ds3Object>objects = helper.toDs3Iterable(getObjects(helper), FolderNameFilter.filter());
         return helper.startReadJob(this.bucketName, objects,
                 ReadJobOptions.create().withPriority(this.priority));
     }
