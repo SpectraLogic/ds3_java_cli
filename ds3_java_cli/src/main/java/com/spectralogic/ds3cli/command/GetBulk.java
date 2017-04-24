@@ -1,6 +1,6 @@
 /*
  * *****************************************************************************
- *   Copyright 2014-2016 Spectra Logic Corporation. All Rights Reserved.
+ *   Copyright 2014-2017 Spectra Logic Corporation. All Rights Reserved.
  *   Licensed under the Apache License, Version 2.0 (the "License"). You may not use
  *   this file except in compliance with the License. A copy of the License is located at
  *
@@ -15,37 +15,44 @@
 
 package com.spectralogic.ds3cli.command;
 
+import com.google.common.base.Function;
 import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
+import com.google.common.base.Predicate;
+import com.google.common.collect.*;
 import com.spectralogic.ds3cli.Arguments;
+import com.spectralogic.ds3cli.exceptions.BadArgumentException;
 import com.spectralogic.ds3cli.exceptions.CommandException;
+import com.spectralogic.ds3cli.models.BulkJobType;
 import com.spectralogic.ds3cli.models.DefaultResult;
-import com.spectralogic.ds3cli.util.FileUtils;
-import com.spectralogic.ds3cli.util.MemoryObjectChannelBuilder;
-import com.spectralogic.ds3cli.util.MetadataUtils;
-import com.spectralogic.ds3cli.util.SyncUtils;
+import com.spectralogic.ds3cli.models.RecoveryJob;
+import com.spectralogic.ds3cli.util.*;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.helpers.FileObjectGetter;
 import com.spectralogic.ds3client.helpers.FolderNameFilter;
 import com.spectralogic.ds3client.helpers.MetadataReceivedListener;
 import com.spectralogic.ds3client.helpers.options.ReadJobOptions;
 import com.spectralogic.ds3client.helpers.pagination.GetBucketLoaderFactory;
+import com.spectralogic.ds3client.models.BulkObject;
 import com.spectralogic.ds3client.models.Contents;
+import com.spectralogic.ds3client.models.Pool;
 import com.spectralogic.ds3client.models.Priority;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.networking.Metadata;
 import com.spectralogic.ds3client.serializer.XmlProcessingException;
 import com.spectralogic.ds3client.utils.Guard;
 import com.spectralogic.ds3client.utils.collections.LazyIterable;
+import org.apache.commons.cli.MissingOptionException;
 import org.apache.commons.cli.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
+import javax.swing.text.AbstractDocument;
 import java.io.IOException;
+import java.nio.channels.FileChannel;
 import java.nio.channels.SeekableByteChannel;
-import java.nio.file.FileSystems;
-import java.nio.file.Path;
+import java.nio.file.*;
+import java.nio.file.attribute.FileAttribute;
 import java.util.*;
 
 import static com.spectralogic.ds3cli.ArgumentFactory.*;
@@ -53,9 +60,6 @@ import static com.spectralogic.ds3cli.ArgumentFactory.*;
 public class GetBulk extends CliCommand<DefaultResult> {
 
     private final static Logger LOG = LoggerFactory.getLogger(GetBulk.class);
-
-    private final static int DEFAULT_BUFFER_SIZE = 1024 * 1024;
-    private final static long DEFAULT_FILE_SIZE = 1024L;
 
     private String bucketName;
     private String directory;
@@ -65,6 +69,8 @@ public class GetBulk extends CliCommand<DefaultResult> {
     private boolean sync;
     private boolean discard;
     private int numberOfThreads;
+    private boolean pipe;
+    private ImmutableList<String> pipedFileNames;
 
     private static final Option PREFIXES = Option.builder("p").hasArgs().argName("prefixes")
             .desc("get only objects whose names start with prefix  "
@@ -102,9 +108,21 @@ public class GetBulk extends CliCommand<DefaultResult> {
             LOG.warn("Using /dev/null getter -- all incoming data will be discarded");
         }
 
-        final String[] prefix = args.getOptionValues(PREFIXES.getOpt());
-        if(prefix != null && prefix.length > 0) {
-            this.prefixes = ImmutableList.copyOf(prefix);
+        this.pipe = CliUtils.isPipe();
+        if (this.pipe) {
+            if (this.isOtherArgs(args)) {
+                throw new BadArgumentException("--discard, -o and -p arguments are not supported when using piped input");
+            }
+
+            this.pipedFileNames = FileUtils.getPipedListFromStdin(getFileSystemProvider());
+            if (Guard.isNullOrEmpty(this.pipedFileNames)) {
+                throw new MissingOptionException("Stdin is empty"); //We should never see that since we checked isPipe
+            }
+        } else {
+            final String[] prefix = args.getOptionValues(PREFIXES.getOpt());
+            if (prefix != null && prefix.length > 0) {
+                this.prefixes = ImmutableList.copyOf(prefix);
+            }
         }
 
         if (args.isSync()) {
@@ -116,65 +134,82 @@ public class GetBulk extends CliCommand<DefaultResult> {
 
     @Override
     public DefaultResult call() throws Exception {
-        final Ds3ClientHelpers.ObjectChannelBuilder getter
-                = this.discard ?  new MemoryObjectChannelBuilder(DEFAULT_BUFFER_SIZE, DEFAULT_FILE_SIZE)
-                : new FileObjectGetter(this.outputPath);
-
-        if (this.sync) {
-            if (Guard.isNullOrEmpty(this.prefixes)) {
-                LOG.info("Syncing all objects from {}", this.bucketName);
-            } else {
-                LOG.info("Syncing only those objects that start with {}", Joiner.on(" ").join(this.prefixes));
-            }
-            return new DefaultResult(this.restoreSome(getter));
+        final Ds3ClientHelpers.ObjectChannelBuilder getter;
+        if (this.pipe) {
+            getter = new PipedFileObjectGetter(this.outputPath, FileUtils.normalizedObjectNames(this.pipedFileNames));
+        } else if (this.discard) {
+            getter = new MemoryObjectChannelBuilder();
+        } else {
+            getter = new FileObjectGetter(this.outputPath);
         }
-
-        if (!Guard.isNotNullAndNotEmpty(prefixes)) {
-            LOG.info("Getting all objects from {}", this.bucketName);
-            return new DefaultResult(this.restoreAll(getter));
-        }
-
-        LOG.info("Getting only those objects that start with {}", Joiner.on(" ").join(this.prefixes));
-        return new DefaultResult(this.restoreSome(getter));
+        LOG.info(buildLogDescription());
+        return new DefaultResult(this.restore(getter));
     }
 
-    private String restoreSome(final Ds3ClientHelpers.ObjectChannelBuilder getter) throws IOException, XmlProcessingException {
+    private String restore(final Ds3ClientHelpers.ObjectChannelBuilder getter) throws CommandException, IOException, XmlProcessingException {
         final Ds3ClientHelpers helper = getClientHelpers();
-
-        final Iterable<Contents> prefixMatches;
-        if (Guard.isNullOrEmpty(prefixes)) {
-            prefixMatches = new LazyIterable<>(
-                    new GetBucketLoaderFactory(getClient(), this.bucketName, null, null, 100, 5));
-        } else {
-            prefixMatches = getObjectsByPrefix();
-        }
-        if (Iterables.isEmpty(prefixMatches)) {
-            return "No objects in bucket " + this.bucketName + " with prefixes '" + Joiner.on(" ").join(this.prefixes) + "'";
-        }
-
-        final Iterable<Ds3Object> objects;
-        if (this.sync) {
-            final Iterable<Contents> filteredContents = this.filterContents(prefixMatches, this.outputPath);
-            if (Iterables.isEmpty(filteredContents)) {
-                return "SUCCESS: All files are up to date";
-            }
-            objects = helper.toDs3Iterable(filteredContents, FolderNameFilter.filter());
-        } else {
-            objects = helper.toDs3Iterable(prefixMatches, FolderNameFilter.filter());
-        }
-
-        final Ds3ClientHelpers.Job job = helper.startReadJob(this.bucketName, objects,
-                ReadJobOptions.create().withPriority(this.priority));
-        job.withMaxParallelRequests(this.numberOfThreads);
         final LoggingFileObjectGetter loggingFileObjectGetter = new LoggingFileObjectGetter(getter, this.outputPath);
+
+        final Ds3ClientHelpers.Job job = buildRestoreJob(helper);
+        job.withMaxParallelRequests(this.numberOfThreads);
         job.attachMetadataReceivedListener(loggingFileObjectGetter);
+
+        // write parameters to file to enable recovery
+        createRecoveryCommand(job.getJobId());
+
+        // do the restore
         job.transfer(loggingFileObjectGetter);
 
-        // Success -- build the response
+        // clean up recovery file on success of job.transfer()
+        RecoveryFileManager.deleteRecoveryCommand(job.getJobId());
+
+        // return success message describing what was done
+        return buildResponse();
+    }
+
+    private  Ds3ClientHelpers.Job buildRestoreJob(final Ds3ClientHelpers helper) throws IOException, CommandException {
+        // restore all
+        if (!this.pipe && !this.sync && Guard.isNullOrEmpty(this.prefixes)) {
+            return helper.startReadAllJob(this.bucketName, ReadJobOptions.create().withPriority(this.priority));
+        }
+        // restore some
+        final Iterable<Ds3Object>objects = helper.toDs3Iterable(getObjects(helper), FolderNameFilter.filter());
+        return helper.startReadJob(this.bucketName, objects,
+                ReadJobOptions.create().withPriority(this.priority));
+    }
+
+    private Iterable<Contents> getObjects(final Ds3ClientHelpers helper) throws IOException, CommandException {
+        final Iterable<Contents> contentMatches = getContentMatches();
+        if (Iterables.isEmpty(contentMatches)) {
+            throw new CommandException("No matching objects in bucket " + this.bucketName);
+        }
+        if (this.sync) {
+            final Iterable<Contents> filteredContents = this.filterContents(contentMatches, this.outputPath);
+            if (Iterables.isEmpty(filteredContents)) {
+                throw new CommandException("Nothing to do; all files are up to date");
+            }
+            return filteredContents;
+        }
+        return contentMatches;
+    }
+
+    private Iterable<Contents> getContentMatches() throws IOException, CommandException {
+        if (this.pipe) {
+            return getObjectsByPipe();
+        }
+        if (Guard.isNullOrEmpty(prefixes)) {
+            return getAllObjectsInBucket();
+        }
+        return getObjectsByPrefix();
+    }
+
+    private String buildResponse() {
         final StringBuilder response = new StringBuilder("SUCCESS: ");
         response.append(this.sync ? "Synced" : this.discard ? "Retrieved and discarded" : "Wrote");
-        response.append(Guard.isNullOrEmpty(this.prefixes) ? " all the objects"
-                : " all the objects that start with '" + Joiner.on(" ").join(this.prefixes) + "'");
+        response.append((!this.pipe && !this.sync && Guard.isNullOrEmpty(this.prefixes))
+                ? " all objects" : this.pipe ? " object names listed in stdin" :
+                Guard.isNullOrEmpty(this.prefixes) ? " all the objects" :
+                        " all the objects that start with '" + Joiner.on(" ").join(this.prefixes) + "'");
         response.append(" from ");
         response.append(this.bucketName);
         response.append(this.discard ? "" : " to " + this.outputPath.toString());
@@ -182,20 +217,22 @@ public class GetBulk extends CliCommand<DefaultResult> {
         return response.toString();
     }
 
-    private String restoreAll(final Ds3ClientHelpers.ObjectChannelBuilder getter) throws XmlProcessingException, IOException {
-        final Ds3ClientHelpers helper = getClientHelpers();
-        final Ds3ClientHelpers.Job job = helper.startReadAllJob(this.bucketName,
-                ReadJobOptions.create().withPriority(this.priority));
-        job.withMaxParallelRequests(this.numberOfThreads);
-        final LoggingFileObjectGetter loggingFileObjectGetter = new LoggingFileObjectGetter(getter, this.outputPath);
-        job.attachMetadataReceivedListener(loggingFileObjectGetter);
-        job.transfer(loggingFileObjectGetter);
-
-        if (this.discard) {
-            return "SUCCESS: Retrieved and discarded all objects from " + this.bucketName;
-        } else {
-            return "SUCCESS: Wrote all the objects from " + this.bucketName + " to directory " + this.outputPath.toString();
+    // preserve legacy descriptions from different code paths
+    private String buildLogDescription() {
+        if (this.pipe) {
+            return "Getting piped objects from " + this.bucketName;
         }
+        if (this.sync) {
+            if (Guard.isNullOrEmpty(this.prefixes)) {
+                return "Syncing all objects from " + this.bucketName;
+            } else {
+                return "Syncing only those objects that start with " + Joiner.on(" ").join(this.prefixes);
+            }
+        }
+        if (Guard.isNotNullAndNotEmpty(prefixes)) {
+            return "Getting only those objects that start with " + Joiner.on(" ").join(this.prefixes);
+        }
+        return "Getting all objects from " + this.bucketName;
     }
 
     private Iterable<Contents> filterContents(final Iterable<Contents> contents, final Path outputPath) throws IOException {
@@ -220,27 +257,9 @@ public class GetBulk extends CliCommand<DefaultResult> {
         return filteredContents;
     }
 
-    class LoggingFileObjectGetter implements Ds3ClientHelpers.ObjectChannelBuilder, MetadataReceivedListener {
-
-        final private Ds3ClientHelpers.ObjectChannelBuilder objectGetter;
-        final private Path outputPath;
-
-        public LoggingFileObjectGetter(final Ds3ClientHelpers.ObjectChannelBuilder getter, final Path outputPath) {
-            this.objectGetter = getter;
-            this.outputPath = outputPath;
-        }
-
-        @Override
-        public SeekableByteChannel buildChannel(final String s) throws IOException {
-            LOG.info("Getting object {}", s);
-            return this.objectGetter.buildChannel(s);
-        }
-
-        @Override
-        public void metadataReceived(final String filename, final Metadata metadata) {
-            final Path path = outputPath.resolve(filename);
-            MetadataUtils.restoreLastModified(filename, metadata, path);
-        }
+    private Iterable<Contents> getAllObjectsInBucket() {
+        return new LazyIterable<>(
+                    new GetBucketLoaderFactory(getClient(), this.bucketName, null, null, 100, 5));
     }
 
     private Iterable<Contents> getObjectsByPrefix() {
@@ -251,6 +270,78 @@ public class GetBulk extends CliCommand<DefaultResult> {
             allPrefixMatches = Iterables.concat(allPrefixMatches, prefixMatch);
         }
         return allPrefixMatches;
+    }
+
+    private Iterable<Contents> getObjectsByPipe() throws CommandException {
+        final ImmutableMap<String, String> pipedObjectMap
+                = FileUtils.normalizedObjectNames(this.pipedFileNames);
+
+        final FluentIterable<Contents> objectList = FluentIterable
+            .from(new LazyIterable<>(
+                        new GetBucketLoaderFactory(getClient(), this.bucketName, null, null, 100, 5)))
+            .filter(new Predicate<Contents>() {
+                @Override
+                public boolean apply(@Nullable final Contents bulkObject) {
+                    return pipedObjectMap.containsKey(bulkObject.getKey());
+                }
+            });
+
+        // look for objects in the piped list not in bucket
+        final FluentIterable<String> objectNameList = FluentIterable.from(objectList).transform(new Function<Contents,String>() {
+            @Override
+            public String apply(@Nullable final Contents bulkObject) {
+                return bulkObject.getKey();
+            }
+        });
+
+        for (final String object: pipedObjectMap.keySet()) {
+            if (objectNameList.contains(object)) {
+                LOG.info("Restore: {}", object);
+            } else {
+                throw new CommandException("Object: " + object + " not found in bucket");
+            }
+        }
+        return objectList;
+    }
+
+    private void createRecoveryCommand(final UUID jobId) {
+        RecoveryJob recoveryJob = new RecoveryJob(BulkJobType.GET_BULK);
+        recoveryJob.setBucketName(bucketName);
+        recoveryJob.setId(jobId);
+        recoveryJob.setNumberOfThreads(numberOfThreads);
+        recoveryJob.setDirectory(directory);
+        recoveryJob.setPrefix(prefixes);
+        if (!RecoveryFileManager.writeRecoveryJob(recoveryJob)) {
+            LOG.info("Could not create recovery file in temporary space.");
+        }
+    }
+
+    public boolean isOtherArgs(final Arguments args) {
+        return  args.isDiscard() || // --discard
+                !Guard.isStringNullOrEmpty(args.getObjectName()) || //-o
+                (args.getOptionValues(PREFIXES.getOpt()) != null
+                 && args.getOptionValues(PREFIXES.getOpt()).length > 0); // --prefixes
+    }
+
+    private class PipedFileObjectGetter implements Ds3ClientHelpers.ObjectChannelBuilder {
+        private final ImmutableMap<String, String> mapNormalizedObjectNameToObjectName;
+        private final Path root;
+        private final FileObjectGetter fileObjectGetter;
+
+        public PipedFileObjectGetter(final Path rootPath, final ImmutableMap<String, String> normalizedObjectNames) {
+            this.mapNormalizedObjectNameToObjectName = normalizedObjectNames;
+            this.root = rootPath;
+            this.fileObjectGetter = new FileObjectGetter(rootPath);
+        }
+
+        public SeekableByteChannel buildChannel(String key) throws IOException {
+            LOG.info("Piped name: {}", key);
+            final String normalizedName = this.mapNormalizedObjectNameToObjectName.get(key);
+            if (normalizedName == null) {
+                throw new IOException("No match for piped name " + key);
+            }
+            return fileObjectGetter.buildChannel(normalizedName);
+        }
     }
 
 }

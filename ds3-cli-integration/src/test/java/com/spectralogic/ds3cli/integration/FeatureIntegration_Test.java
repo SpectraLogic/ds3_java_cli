@@ -16,24 +16,33 @@
 package com.spectralogic.ds3cli.integration;
 
 import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Lists;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.CommandResponse;
+import com.spectralogic.ds3cli.command.GetBulk;
+import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.helpers.JsonMapper;
 import com.spectralogic.ds3cli.helpers.TempStorageIds;
 import com.spectralogic.ds3cli.helpers.TempStorageUtil;
 import com.spectralogic.ds3cli.helpers.Util;
 import com.spectralogic.ds3cli.helpers.models.HeadObject;
 import com.spectralogic.ds3cli.helpers.models.JobResponse;
+import com.spectralogic.ds3cli.models.BulkJobType;
+import com.spectralogic.ds3cli.models.RecoveryJob;
 import com.spectralogic.ds3cli.util.FileUtils;
+import com.spectralogic.ds3cli.util.MemoryObjectChannelBuilder;
+import com.spectralogic.ds3cli.util.RecoveryFileManager;
 import com.spectralogic.ds3cli.util.SterilizeString;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.Ds3ClientBuilder;
 import com.spectralogic.ds3client.commands.GetObjectRequest;
 import com.spectralogic.ds3client.commands.GetObjectResponse;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
+import com.spectralogic.ds3client.helpers.FolderNameFilter;
 import com.spectralogic.ds3client.models.ChecksumType;
+import com.spectralogic.ds3client.models.Contents;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.utils.ResourceUtils;
 import org.joda.time.DateTime;
@@ -431,7 +440,8 @@ public class FeatureIntegration_Test {
             }
 
             response = Util.command(client, args);
-            assertThat(response.getMessage(), is("SUCCESS: All files are up to date"));
+        } catch (final CommandException e) {
+            assertThat(e.getMessage(), is("Nothing to do; all files are up to date"));
         } finally {
             Util.deleteBucket(client, bucketName);
             Util.deleteLocalFiles();
@@ -474,6 +484,33 @@ public class FeatureIntegration_Test {
 
             response = Util.command(client, args);
             assertThat(response.getMessage(), is("SUCCESS: All files are up to date"));
+
+        } finally {
+            Util.deleteBucket(client, bucketName);
+        }
+    }
+
+    @Test
+    public void putBulkObjectWithPrefix() throws Exception {
+        assumeThat(Util.getBlackPearlVersion(client), greaterThan(1.2));
+
+        final String bucketName = "test_put_bulk_object_with_prefix";
+        final String prefix = "myfolder/";
+        try {
+
+            Util.createBucket(client, bucketName);
+            final Arguments args = new Arguments(new String[]{
+                    "--http",
+                    "-c", "put_bulk",
+                    "-b", bucketName,
+                    "-d", Util.RESOURCE_BASE_NAME,
+                    "-p" , prefix,
+                    "--sync"});
+            final CommandResponse response = Util.command(client, args);
+            assertThat(response.getMessage(), is(String.format("SUCCESS: Wrote all the files in %s to bucket %s", "." + File.separator + "src" + File.separator + "test" + File.separator + "resources" + File.separator + "books", bucketName)));
+
+            final CommandResponse getBucketResponse = Util.getBucket(client, bucketName);
+            assertTrue("Prefix not prepended", getBucketResponse.getMessage().contains(prefix + "ulysses.txt"));
 
         } finally {
             Util.deleteBucket(client, bucketName);
@@ -623,4 +660,151 @@ public class FeatureIntegration_Test {
             Util.deleteBucket(client, bucketName);
         }
     }
+
+    @Test
+    public void getBulkWithPipe() throws Exception {
+        assumeThat(Util.getBlackPearlVersion(client), greaterThan(1.2));
+
+        final String bucketName = "test_get_bulk_pipe_object";
+        try {
+            Files.createDirectories(Paths.get(Util.DOWNLOAD_BASE_NAME));
+            Util.createBucket(client, bucketName);
+            Util.loadBookTestData(client, bucketName);
+
+            final String pipedInput = "beowulf.txt\nulysses.txt";
+            final InputStream testFile = new ByteArrayInputStream(pipedInput.getBytes("UTF-8"));
+            System.setIn(testFile);
+
+            final Arguments args = new Arguments(
+                    new String[]{
+                            "--http",
+                            "-c", "get_bulk",
+                            "-b", bucketName,
+                            "-d", Util.DOWNLOAD_BASE_NAME});
+
+            final CommandResponse response = Util.command(client, args);
+            assertThat(response.getMessage(), startsWith(String.format("SUCCESS: Wrote object names listed in stdin from %s", bucketName)));
+        } finally {
+            Util.deleteBucket(client, bucketName);
+            Util.deleteLocalFiles();
+        }
+    }
+
+    @Test(expected = CommandException.class)
+    public void getBulkWithPipeMissingFile() throws Exception {
+        assumeThat(Util.getBlackPearlVersion(client), greaterThan(1.2));
+
+        final String bucketName = "test_get_bulk_pipe_missing_files";
+        try {
+            final Path bookDir = Paths.get(Util.RESOURCE_BASE_NAME);
+            Files.createDirectories(bookDir);
+            Util.createBucket(client, bucketName);
+            Util.loadBookTestData(client, bucketName);
+
+            final String pipedInput = "beowulf.txt\nulysses.txt\n50 Shades of Grey.txt";
+            final InputStream testFile = new ByteArrayInputStream(pipedInput.getBytes("UTF-8"));
+            System.setIn(testFile);
+
+            final Arguments args = new Arguments(
+                    new String[]{
+                            "--http",
+                            "-c", "get_bulk",
+                            "-b", bucketName,
+                            "-d", Util.DOWNLOAD_BASE_NAME});
+
+            final CommandResponse response = Util.command(client, args);
+        } finally {
+            Util.deleteBucket(client, bucketName);
+            Util.deleteLocalFiles();
+        }
+    }
+
+    @Test (expected = com.spectralogic.ds3client.helpers.JobRecoveryNotActiveException.class)
+    public void recoverGetBulk() throws Exception {
+        assumeThat(Util.getBlackPearlVersion(client), greaterThan(1.2));
+
+        final String bucketName = "test_recover_get_bulk";
+        UUID jobId = null;
+        try {
+            final Path bookDir = Paths.get(Util.RESOURCE_BASE_NAME);
+            Files.createDirectories(bookDir);
+            Util.createBucket(client, bucketName);
+            Util.loadBookTestData(client, bucketName);
+
+            final Contents book1 = new Contents();
+            book1.setKey("beowulf.txt");
+            book1.setSize(294056L);
+            final Contents book2 = new Contents();
+            book2.setKey("ulysses.txt");
+            book2.setSize(1540095L);
+
+            final Ds3ClientHelpers.Job job = HELPERS.startReadJob(bucketName, HELPERS.toDs3Iterable(ImmutableList.of(book1, book2), FolderNameFilter.filter()));
+            jobId = job.getJobId();
+            RecoveryJob recoveryJob = new RecoveryJob(BulkJobType.GET_BULK);
+            recoveryJob.setBucketName(bucketName);
+            recoveryJob.setId(jobId);
+            recoveryJob.setDirectory(Util.RESOURCE_BASE_NAME);
+            RecoveryFileManager.writeRecoveryJob(recoveryJob);
+
+            job.transfer(new MemoryObjectChannelBuilder());
+
+            final Arguments args = new Arguments(
+                    new String[]{
+                            "--http",
+                            "-c", "recover", "--recover",
+                            "-i", jobId.toString()});
+
+            final CommandResponse response = Util.command(client, args);
+        } finally {
+            Util.deleteBucket(client, bucketName);
+            Util.deleteLocalFiles();
+            RecoveryFileManager.deleteFiles(jobId.toString(), null, null);
+        }
+    }
+
+    @Test
+    public void recoverPutBulk() throws Exception {
+        assumeThat(Util.getBlackPearlVersion(client), greaterThan(1.2));
+
+        final String bucketName = "test_recover_put_bulk";
+        UUID jobId = null;
+        try {
+            Util.createBucket(client, bucketName);
+
+            final Contents file1 = new Contents();
+            file1.setKey("ThousandBytes.txt");
+            file1.setSize(1000L);
+            final Contents file2 = new Contents();
+            file2.setKey("TwoThousandBytes.txt");
+            file2.setSize(2000L);
+
+            final Ds3ClientHelpers.Job job = HELPERS.startWriteJob(bucketName, HELPERS.toDs3Iterable(ImmutableList.of(file1, file2)));
+            jobId = job.getJobId();
+            RecoveryJob recoveryJob = new RecoveryJob(BulkJobType.PUT_BULK);
+            recoveryJob.setBucketName(bucketName);
+            recoveryJob.setId(jobId);
+            RecoveryFileManager.writeRecoveryJob(recoveryJob);
+
+            job.transfer(new MemoryObjectChannelBuilder());
+
+            // list recovery files
+            final Arguments args = new Arguments(
+                    new String[]{
+                            "--http",
+                            "-c", "recover",
+                            "-i", jobId.toString()});
+
+            final String expectedBeginning = "PUT_BULK Bucket: " + bucketName;
+            final CommandResponse response = Util.command(client, args);
+            assertTrue(response.getMessage().startsWith(expectedBeginning));
+            assertTrue(response.getMessage().contains(jobId.toString()));
+        } finally {
+            Util.deleteBucket(client, bucketName);
+            RecoveryFileManager.deleteFiles(jobId.toString(), null, null);
+        }
+    }
+
+
+
+
 }

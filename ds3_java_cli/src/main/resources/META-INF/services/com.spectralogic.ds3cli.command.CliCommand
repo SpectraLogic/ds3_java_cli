@@ -73,6 +73,8 @@ com.spectralogic.ds3cli.command.GetTape
 com.spectralogic.ds3cli.command.GetBucketDetails
 com.spectralogic.ds3cli.command.EjectTape
 com.spectralogic.ds3cli.command.ModifyJob
+com.spectralogic.ds3cli.command.RecoverPutBulk
+com.spectralogic.ds3cli.command.RecoverGetBulk
 com.spectralogic.ds3cli.command.CancelVerifyAllTapes
 com.spectralogic.ds3cli.command.CancelVerifyTape
 com.spectralogic.ds3cli.command.GetTape
@@ -82,5 +84,4 @@ com.spectralogic.ds3cli.command.CancelVerifyPool
 com.spectralogic.ds3cli.command.CancelVerifyAllPools
 com.spectralogic.ds3cli.command.VerifyAllTapes
 com.spectralogic.ds3cli.command.VerifyTape
-
-
+com.spectralogic.ds3cli.command.Recover

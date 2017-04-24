@@ -31,6 +31,14 @@ public class MemoryObjectChannelBuilder implements Ds3ClientHelpers.ObjectChanne
     private final int bufferSize;
     private final long sizeOfFiles;
 
+    public final static int DEFAULT_BUFFER_SIZE = 1024 * 1024;
+    public final static long DEFAULT_FILE_SIZE = 1024L;
+
+    public MemoryObjectChannelBuilder() {
+        this.bufferSize = DEFAULT_BUFFER_SIZE;
+        this.sizeOfFiles = DEFAULT_FILE_SIZE;
+    }
+
     public MemoryObjectChannelBuilder(final int bufferSize, final long sizeOfFile) {
         this.bufferSize = bufferSize;
         this.sizeOfFiles = sizeOfFile;

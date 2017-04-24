@@ -84,4 +84,5 @@ public final class CliUtils {
     public static String getBuildDate(final Properties properties) {
         return properties.get("build.date").toString();
     }
+
 }

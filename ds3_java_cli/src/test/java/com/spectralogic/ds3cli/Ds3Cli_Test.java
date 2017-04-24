@@ -38,16 +38,21 @@ import com.spectralogic.ds3client.serializer.XmlOutput;
 import org.apache.commons.cli.MissingOptionException;
 import org.apache.commons.cli.UnrecognizedOptionException;
 import org.apache.commons.io.IOUtils;
+import org.hamcrest.core.StringEndsWith;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.internal.util.collections.Iterables;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.ParseException;
@@ -762,6 +767,13 @@ public class Ds3Cli_Test {
         command.init(args);
     }
 
+    @Test(expected = CommandException.class)
+    public void getObjectWithBadArgs() throws Exception {
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_object", "-o", "some_file", "-b", "bucketName", "-d", "targetdir", "--discard"});
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
+        command.init(args);
+    }
+
     @Test
     public void getCompletedJob() throws Exception {
         final String jobId = "aa5df0cc-b03a-4cb9-b69d-56e7367e917f";
@@ -851,7 +863,8 @@ public class Ds3Cli_Test {
         final Ds3ClientHelpers helpers = mock(Ds3ClientHelpers.class);
         final Ds3ClientHelpers.Job mockedGetJob = mock(Ds3ClientHelpers.Job.class);
         final FileSystemProvider mockedFileSystemProvider = mock(FileSystemProvider.class);
-
+        final UUID jobId = UUID.randomUUID();
+        when(mockedGetJob.getJobId()).thenReturn(jobId);
         when(helpers.startReadAllJob(eq("bucketName"), any(ReadJobOptions.class))).thenReturn(mockedGetJob);
 
         final Contents c1 = new Contents();
@@ -864,7 +877,6 @@ public class Ds3Cli_Test {
         final Iterable<Contents> retCont = Lists.newArrayList(c1, c2);
         when(helpers.listObjects(eq("bucketName"), any(String.class))).thenReturn(retCont);
 
-
         final Path p1 = Paths.get("obj1.txt");
         final Path p2 = Paths.get("obj2.txt");
         final ImmutableList<Path> retPath = ImmutableList.copyOf(Lists.newArrayList(p1, p2));
@@ -872,29 +884,68 @@ public class Ds3Cli_Test {
         final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(null, helpers), mockedFileSystemProvider);
         command.init(args);
         final CommandResponse result = command.render();
-        assertThat(result.getMessage(), is("SUCCESS: Wrote all the objects from bucketName to directory ."));
+        assertThat(result.getMessage(), is("SUCCESS: Wrote all objects from bucketName to ."));
         assertThat(result.getReturnCode(), is(0));
+    }
+
+    @Test
+    public void recoverGetBulk() throws Exception {
+        UUID jobId = UUID.randomUUID();
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "recover_get_bulk", "-b", "bucketName", "-i", jobId.toString()});
+        final Ds3ClientHelpers helpers = mock(Ds3ClientHelpers.class);
+        final Ds3ClientHelpers.Job mockedGetJob = mock(Ds3ClientHelpers.Job.class);
+        final FileSystemProvider mockedFileSystemProvider = mock(FileSystemProvider.class);
+        when(mockedGetJob.getJobId()).thenReturn(jobId);
+        when(helpers.recoverReadJob(jobId)).thenReturn(mockedGetJob);
+
+        final Contents c1 = new Contents();
+        c1.setKey("obj1.txt");
+        c1.setSize(123L);
+        final Contents c2 = new Contents();
+        c2.setKey("obj2.txt");
+        c2.setSize(123L);
+
+        final Iterable<Contents> retCont = Lists.newArrayList(c1, c2);
+        when(helpers.listObjects(eq("bucketName"), any(String.class))).thenReturn(retCont);
+
+        final Path p1 = Paths.get("obj1.txt");
+        final Path p2 = Paths.get("obj2.txt");
+        final ImmutableList<Path> retPath = ImmutableList.copyOf(Lists.newArrayList(p1, p2));
+
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(null, helpers), mockedFileSystemProvider);
+        command.init(args);
+        assertTrue("Instantiated wrong command", command instanceof RecoverGetBulk);
+        final CommandResponse result = command.render();
+        assertThat(result.getMessage(), is("SUCCESS: Wrote all the objects from bucketName to ."));
+        assertThat(result.getReturnCode(), is(0));
+    }
+
+    @Test(expected = MissingOptionException.class)
+    public void recoverGetBulkBadArgs() throws Exception {
+        // missing ID
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "recover_get_bulk", "-b", "bucketName"});
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
+        command.init(args);
     }
 
     @Test(expected = CommandException.class)
     public void getBulkWithBadArgs() throws Exception {
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_bulk", "-b", "bucketName", "-d", "targetdir", "--discard"});
-        final Ds3ClientHelpers helpers = mock(Ds3ClientHelpers.class);
-        final Ds3ClientHelpers.Job mockedGetJob = mock(Ds3ClientHelpers.Job.class);
-        final FileSystemProvider mockedFileSystemProvider = mock(FileSystemProvider.class);
-        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(null, helpers), mockedFileSystemProvider);
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
         command.init(args);
     }
 
     @Test
     public void getBulkJson() throws Exception {
-        final String expected = "\"Status\" : \"OK\",\n  \"Message\" : \"SUCCESS: Wrote all the objects from bucketName to directory .\"\n}";
+        final String expected = "\"Status\" : \"OK\",\n  \"Message\" : \"SUCCESS: Wrote all objects from bucketName to .\"\n}";
 
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_bulk", "-b", "bucketName", "--output-format", "json"});
         final Ds3ClientHelpers helpers = mock(Ds3ClientHelpers.class);
         final Ds3ClientHelpers.Job mockedGetJob = mock(Ds3ClientHelpers.Job.class);
-        final FileSystemProvider mockedFileSystemProvider = mock(FileSystemProvider.class);
+        final UUID jobId = UUID.randomUUID();
+        when(mockedGetJob.getJobId()).thenReturn(jobId);
 
+        final FileSystemProvider mockedFileSystemProvider = mock(FileSystemProvider.class);
         when(helpers.startReadAllJob(eq("bucketName"), any(ReadJobOptions.class))).thenReturn(mockedGetJob);
 
         final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand())
@@ -923,7 +974,42 @@ public class Ds3Cli_Test {
         when(mockedPutJob.withMetadata((MetadataAccess) isNotNull())).thenReturn(mockedPutJob);
 
         PowerMockito.mockStatic(FileUtils.class);
-        when(FileUtils.getObjectsToPut((Iterable<Path>)isNotNull(), any(Path.class), any(Boolean.class))).thenCallRealMethod();
+        when(FileUtils.getObjectsToPut((Iterable<Path>)isNotNull(), any(Path.class), any(String.class), any(Boolean.class))).thenCallRealMethod();
+        when(FileUtils.listObjectsForDirectory(any(Path.class))).thenReturn(retPath);
+        when(FileUtils.getFileName(any(Path.class), eq(p1))).thenReturn("obj1.txt");
+        when(FileUtils.getFileSize(eq(p1))).thenReturn(1245L);
+        when(FileUtils.getFileName(any(Path.class), eq(p2))).thenReturn("obj2.txt");
+        when(FileUtils.getFileSize(eq(p2))).thenReturn(12345L);
+
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand())
+                .withProvider(new Ds3ProviderImpl(null, helpers), mockedFileSystemProvider);
+        command.init(args);
+        final CommandResponse result = command.render();
+        assertThat(result.getMessage(), is("SUCCESS: Wrote all the files in dir to bucket bucketName"));
+        assertThat(result.getReturnCode(), is(0));
+    }
+
+    @Test
+    public void putBulkWithPrefix() throws Exception {
+        final String prefix = "myfolder/";
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "put_bulk", "-b", "bucketName", "-d", "dir", "-p", prefix});
+        final Ds3ClientHelpers helpers = mock(Ds3ClientHelpers.class);
+        final Ds3ClientHelpers.Job mockedPutJob = mock(Ds3ClientHelpers.Job.class);
+        final FileSystemProvider mockedFileSystemProvider = mock(FileSystemProvider.class);
+
+        // expect the prefix to be added
+        final Path p1 = Paths.get(prefix + "obj1.txt");
+        final Path p2 = Paths.get(prefix + "obj2.txt");
+        final ImmutableList<Path> retPath = ImmutableList.copyOf(Lists.newArrayList(p1, p2));
+
+        final UUID jobId = UUID.randomUUID();
+        when(mockedPutJob.getJobId()).thenReturn(jobId);
+        final Iterable<Ds3Object> retObj = Lists.newArrayList(new Ds3Object(prefix + "obj1.txt", 1245), new Ds3Object(prefix + "obj2.txt", 12345));
+        when(helpers.startWriteJob(eq("bucketName"), eq(retObj), any(WriteJobOptions.class))).thenReturn(mockedPutJob);
+        when(mockedPutJob.withMetadata((MetadataAccess) isNotNull())).thenReturn(mockedPutJob);
+
+        PowerMockito.mockStatic(FileUtils.class);
+        when(FileUtils.getObjectsToPut((Iterable<Path>)isNotNull(), any(Path.class), any(String.class), any(Boolean.class))).thenCallRealMethod();
         when(FileUtils.listObjectsForDirectory(any(Path.class))).thenReturn(retPath);
         when(FileUtils.getFileName(any(Path.class), eq(p1))).thenReturn("obj1.txt");
         when(FileUtils.getFileSize(eq(p1))).thenReturn(1245L);
@@ -957,7 +1043,7 @@ public class Ds3Cli_Test {
         when(mockedPutJob.withMetadata((MetadataAccess) isNotNull())).thenReturn(mockedPutJob);
 
         PowerMockito.mockStatic(FileUtils.class);
-        when(FileUtils.getObjectsToPut((Iterable<Path>)isNotNull(), any(Path.class), any(Boolean.class))).thenCallRealMethod();
+        when(FileUtils.getObjectsToPut((Iterable<Path>)isNotNull(), any(Path.class), any(String.class),any(Boolean.class))).thenCallRealMethod();
         when(FileUtils.listObjectsForDirectory(any(Path.class))).thenReturn(retPath);
         when(FileUtils.getFileName(any(Path.class), eq(p1))).thenReturn("obj1.txt");
         when(FileUtils.getFileSize(eq(p1))).thenReturn(1245L);
@@ -1002,7 +1088,7 @@ public class Ds3Cli_Test {
         final ImmutableList<Path> retPath = ImmutableList.copyOf(Lists.newArrayList(p1, p2));
 
         PowerMockito.mockStatic(FileUtils.class);
-        when(FileUtils.getObjectsToPut((Iterable<Path>)isNotNull(), any(Path.class), any(Boolean.class))).thenCallRealMethod();
+        when(FileUtils.getObjectsToPut((Iterable<Path>)isNotNull(), any(Path.class), any(String.class), any(Boolean.class))).thenCallRealMethod();
         when(FileUtils.listObjectsForDirectory(any(Path.class))).thenReturn(retPath);
         when(FileUtils.getFileName(any(Path.class), eq(p1))).thenReturn("obj1.txt");
         when(FileUtils.getFileName(any(Path.class), eq(p2))).thenReturn("obj2.txt");
@@ -1075,7 +1161,7 @@ public class Ds3Cli_Test {
         final ImmutableList<Path> retPath = ImmutableList.copyOf(Lists.newArrayList(p1, p2));
 
         PowerMockito.mockStatic(FileUtils.class);
-        when(FileUtils.getObjectsToPut((Iterable<Path>)isNotNull(), any(Path.class), any(Boolean.class))).thenCallRealMethod();
+        when(FileUtils.getObjectsToPut((Iterable<Path>)isNotNull(), any(Path.class), any(String.class), any(Boolean.class))).thenCallRealMethod();
         when(FileUtils.listObjectsForDirectory(any(Path.class))).thenReturn(retPath);
         when(FileUtils.getFileName(any(Path.class), eq(p1))).thenReturn("obj1.txt");
         when(FileUtils.getFileSize(eq(p1))).thenReturn(1245L);
@@ -1093,6 +1179,50 @@ public class Ds3Cli_Test {
         final CommandResponse result = command.render();
         assertTrue(result.getMessage().endsWith(expected));
         assertThat(result.getReturnCode(), is(0));
+    }
+
+    @Test
+    public void recoverPutBulk() throws Exception {
+        final UUID jobId = UUID.randomUUID();
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "recover_put_bulk", "-b", "bucketName", "-d", "dir", "-i", jobId.toString()});
+        final Ds3ClientHelpers helpers = mock(Ds3ClientHelpers.class);
+        final Ds3ClientHelpers.Job mockedPutJob = mock(Ds3ClientHelpers.Job.class);
+        final FileSystemProvider mockedFileSystemProvider = mock(FileSystemProvider.class);
+
+        final Path p1 = Paths.get("obj1.txt");
+        final Path p2 = Paths.get("obj2.txt");
+        final ImmutableList<Path> retPath = ImmutableList.copyOf(Lists.newArrayList(p1, p2));
+
+        when(mockedPutJob.getJobId()).thenReturn(jobId);
+        final Iterable<Ds3Object> retObj = Lists.newArrayList(new Ds3Object("obj1.txt", 1245), new Ds3Object("obj2.txt", 12345));
+        when(helpers.recoverWriteJob(eq(jobId))).thenReturn(mockedPutJob);
+        when(mockedPutJob.withMetadata((MetadataAccess) isNotNull())).thenReturn(mockedPutJob);
+
+        PowerMockito.mockStatic(FileUtils.class);
+        when(FileUtils.getObjectsToPut((Iterable<Path>)isNotNull(), any(Path.class), any(String.class), any(Boolean.class))).thenCallRealMethod();
+        when(FileUtils.listObjectsForDirectory(any(Path.class))).thenReturn(retPath);
+        when(FileUtils.getFileName(any(Path.class), eq(p1))).thenReturn("obj1.txt");
+        when(FileUtils.getFileSize(eq(p1))).thenReturn(1245L);
+        when(FileUtils.getFileName(any(Path.class), eq(p2))).thenReturn("obj2.txt");
+        when(FileUtils.getFileSize(eq(p2))).thenReturn(12345L);
+
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand())
+                .withProvider(new Ds3ProviderImpl(null, helpers), mockedFileSystemProvider);
+        command.init(args);
+        assertThat("Instantiated incorrect command", command instanceof RecoverPutBulk);
+        final CommandResponse result = command.render();
+        assertThat(result.getMessage(), is("SUCCESS: Wrote all the files in dir to bucket bucketName"));
+        assertThat(result.getReturnCode(), is(0));
+        RecoveryFileManager.deleteFiles(jobId.toString(), null, null);
+
+    }
+
+    @Test (expected = MissingOptionException.class)
+    public void recoverPutBulkBadArgs() throws Exception {
+        // no Id argument
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "recover_put_bulk", "-b", "bucketName", "-d", "dir"});
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
+        command.init(args);
     }
 
     @Test
@@ -1220,7 +1350,7 @@ public class Ds3Cli_Test {
         PowerMockito.mockStatic(FileUtils.class);
         PowerMockito.mockStatic(Guard.class);
         when(mockedPutJob.withMetadata((MetadataAccess) isNotNull())).thenReturn(mockedPutJob);
-        when(FileUtils.getObjectsToPut((Iterable<Path>)isNotNull(), any(Path.class), any(Boolean.class))).thenCallRealMethod();
+        when(FileUtils.getObjectsToPut((Iterable<Path>)isNotNull(), any(Path.class), any(String.class), any(Boolean.class))).thenCallRealMethod();
         when(FileUtils.listObjectsForDirectory(any(Path.class))).thenReturn(retPath);
         when(FileUtils.getFileName(any(Path.class), eq(p1))).thenReturn("obj1.txt");
         when(FileUtils.getFileSize(eq(p1))).thenReturn(1245L);
@@ -1267,7 +1397,7 @@ public class Ds3Cli_Test {
         PowerMockito.mockStatic(CliUtils.class);
         PowerMockito.mockStatic(Guard.class);
         when(mockedPutJob.withMetadata((MetadataAccess) isNotNull())).thenReturn(mockedPutJob);
-        when(FileUtils.getObjectsToPut((Iterable<Path>)isNotNull(), any(Path.class), any(Boolean.class))).thenCallRealMethod();
+        when(FileUtils.getObjectsToPut((Iterable<Path>)isNotNull(), any(Path.class), any(String.class), any(Boolean.class))).thenCallRealMethod();
         when(FileUtils.listObjectsForDirectory(any(Path.class))).thenReturn(retPath);
         when(FileUtils.getFileName(any(Path.class), eq(p1))).thenReturn("obj1.txt");
         when(FileUtils.getFileSize(eq(p1))).thenReturn(1245L);
@@ -1298,6 +1428,8 @@ public class Ds3Cli_Test {
 
         assertTrue(result.getMessage().startsWith(startWith));
         assertTrue(result.getMessage().endsWith(endsWith));
+        RecoveryFileManager.deleteFiles(jobId.toString(), null, null);
+
     }
 
     @Test
@@ -1328,7 +1460,7 @@ public class Ds3Cli_Test {
         when(CliUtils.isPipe()).thenReturn(true);
         when(mockedPutJob.withMetadata((MetadataAccess) isNotNull())).thenReturn(mockedPutJob);
         when(FileUtils.getPipedFilesFromStdin(any(FileSystemProvider.class))).thenReturn(retPath);
-        when(FileUtils.getObjectsToPut((Iterable<Path>) isNotNull(), any(Path.class), any(Boolean.class))).thenCallRealMethod();
+        when(FileUtils.getObjectsToPut((Iterable<Path>) isNotNull(), any(Path.class), any(String.class), any(Boolean.class))).thenCallRealMethod();
         when(FileUtils.getFileName(any(Path.class), eq(p1))).thenReturn(p1.toString());
         when(FileUtils.getFileSize(eq(p1))).thenReturn(1245L);
         when(FileUtils.getFileName(any(Path.class), eq(p2))).thenReturn(p2.toString());
@@ -1374,7 +1506,7 @@ public class Ds3Cli_Test {
         when(mockedPutJob.withMetadata((MetadataAccess) isNotNull())).thenReturn(mockedPutJob);
         when(CliUtils.isPipe()).thenReturn(true);
         when(FileUtils.getPipedFilesFromStdin(any(FileSystemProvider.class))).thenReturn(retPath);
-        when(FileUtils.getObjectsToPut((Iterable<Path>)isNotNull(), any(Path.class), any(Boolean.class))).thenCallRealMethod();
+        when(FileUtils.getObjectsToPut((Iterable<Path>)isNotNull(), any(Path.class), any(String.class), any(Boolean.class))).thenCallRealMethod();
         when(FileUtils.getFileName(any(Path.class), eq(p1))).thenReturn(p1.toString());
         when(FileUtils.getFileSize(eq(p1))).thenReturn(1245L);
         when(FileUtils.getFileName(any(Path.class), eq(p2))).thenReturn(p2.toString());
@@ -3152,6 +3284,82 @@ public class Ds3Cli_Test {
         final String expected = "Verify Tape cancelled on all tapes.";
         final String result = view.render(new DefaultResult(expected));
         assertThat(result, is(expected));
+    }
+
+    @Test
+    public void testCreateRecoverFile() throws Exception {
+        final String jobId = UUID.randomUUID().toString();
+        final File recoverFile = RecoveryFileManager.createGetFile(jobId);
+        assertTrue("Created file", recoverFile.getName().endsWith(jobId + RecoveryFileManager.RECOVERY_FILE_EXTENSION));
+    }
+
+    @Test
+    public void testPrintRecoverFiles() throws Exception {
+        final UUID jobId = UUID.randomUUID();
+        final String bucketName = "buckety";
+        final BulkJobType bulkJobType = BulkJobType.PUT_BULK;
+        try {
+            final RecoveryJob job = new RecoveryJob(bulkJobType);
+            job.setDirectory("testy");
+            job.setPrefix(ImmutableList.of("jk"));
+            job.setBucketName(bucketName);
+            job.setId(jobId);
+            RecoveryFileManager.writeRecoveryJob(job);
+
+            final String expectedBeginning = "PUT_BULK Bucket: " + bucketName;
+            final String response = RecoveryFileManager.printSearchFiles(jobId.toString(), bucketName, bulkJobType);
+            assertTrue(response.startsWith(expectedBeginning));
+            assertTrue(response.contains(jobId.toString()));
+        } finally {
+            RecoveryFileManager.deleteFiles(jobId.toString(), null, null);
+        }
+    }
+
+        @Test
+    public void exerciseRecoverManager() throws Exception {
+        try {
+            // clean up first
+            RecoveryFileManager.deleteFiles(null, null, null);
+            // create test files
+            final int numFiles = 6;
+            for (int i = 0; i < numFiles; i++) {
+                final UUID id = UUID.randomUUID();
+                final BulkJobType type;
+                if (i % 2 == 0) {
+                    type = BulkJobType.GET_BULK;
+                } else {
+                    type = BulkJobType.PUT_BULK;
+                }
+                final RecoveryJob job = new RecoveryJob(type);
+                job.setDirectory("dir" + i);
+                job.setPrefix(ImmutableList.of("jk"));
+                job.setBucketName("bucket" + i);
+                job.setId(id);
+                RecoveryFileManager.writeRecoveryJob(job);
+            }
+            Iterable<Path> allFiles = RecoveryFileManager.searchFiles(null, null, null);
+            assertTrue("Saved and found all files", com.google.common.collect.Iterables.size(allFiles) == numFiles);
+            allFiles = RecoveryFileManager.searchFiles(null, "bucket3", null);
+            assertTrue("Found all files for one bucket", com.google.common.collect.Iterables.size(allFiles) == 1);
+            final Iterable<Path> allGets = RecoveryFileManager.searchFiles(null, null, BulkJobType.GET_BULK);
+            assertTrue("Found all gets", com.google.common.collect.Iterables.size(allGets) == numFiles / 2);
+            RecoveryFileManager.deleteFiles(null, null, BulkJobType.PUT_BULK);
+            allFiles = RecoveryFileManager.searchFiles(null, null, null);
+            assertTrue("All files after puts are deleted", com.google.common.collect.Iterables.size(allFiles) == numFiles / 2);
+            RecoveryFileManager.deleteFiles(null, null, null);
+            allFiles = RecoveryFileManager.searchFiles(null, null, null);
+            assertTrue("Deleted all files", com.google.common.collect.Iterables.size(allFiles) == 0);
+        } finally {
+            RecoveryFileManager.deleteFiles(null, null, null);
+        }
+    }
+
+    @Test
+    public void testRecoverCommand() throws Exception {
+        final Arguments args = new Arguments( new String[] {"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "recover", "-b", "bucket", "--job-type", "GET_BULK", "--recover"});
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
+        command.init(args);
+        assertTrue(command instanceof Recover);
     }
 
 }
