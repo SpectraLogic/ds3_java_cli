@@ -27,6 +27,7 @@ import com.spectralogic.ds3client.models.Quiesced;
 import com.spectralogic.ds3client.models.SpectraUser;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.networking.FailedRequestException;
+import com.spectralogic.ds3client.utils.Guard;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,7 +48,7 @@ public final class CertificationUtil {
 
     public static Path createTempDs3Directory(final String directoryName) throws IOException {
         final String tempDir = System.getenv(TEMP_ENVIRONMENT_VARIABLE);
-        if (tempDir == null || tempDir.length() == 0) {
+        if (Guard.isStringNullOrEmpty(tempDir)) {
             return Files.createTempDirectory(directoryName);
         }
         return Files.createDirectories(Paths.get(SterilizeString.osSpecificPath(tempDir + "/" + directoryName)));
