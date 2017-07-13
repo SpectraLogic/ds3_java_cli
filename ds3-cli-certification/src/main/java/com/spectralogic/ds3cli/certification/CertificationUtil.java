@@ -19,6 +19,7 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
 import com.spectralogic.ds3cli.CommandResponse;
 import com.spectralogic.ds3cli.helpers.Util;
+import com.spectralogic.ds3cli.util.SterilizeString;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.spectrads3.*;
 import com.spectralogic.ds3client.models.Priority;
@@ -33,6 +34,7 @@ import javax.annotation.Nullable;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.UUID;
 
 import static java.lang.Thread.sleep;
@@ -41,13 +43,22 @@ import static java.lang.Thread.sleep;
 public final class CertificationUtil {
 
     private static final Logger LOG =  LoggerFactory.getLogger(CertificationUtil.class);
+    private static final String TEMP_ENVIRONMENT_VARIABLE = "DS3_TEMP_DIR";
+
+    public static Path createTempDs3Directory(final String directoryName) throws IOException {
+        final String tempDir = System.getenv(TEMP_ENVIRONMENT_VARIABLE);
+        if (tempDir == null || tempDir.length() == 0) {
+            return Files.createTempDirectory(directoryName);
+        }
+        return Files.createDirectories(Paths.get(SterilizeString.osSpecificPath(tempDir + "/" + directoryName)));
+    }
 
     public static Path createTempFiles(
-           final String prefix,
-           final int numFiles,
-           final long length) throws IOException {
+            final String prefix,
+            final int numFiles,
+            final long length) throws IOException {
         LOG.info("Creating {} files of size {}...", numFiles, length);
-        final Path tempDir = Files.createTempDirectory(prefix);
+        final Path tempDir = createTempDs3Directory(prefix);
         for(int fileNum = 0; fileNum < numFiles; fileNum++) {
             final File tempFile = new File(tempDir.toString(), prefix + "_" + fileNum);
             try (final RandomAccessFile raf = new RandomAccessFile(tempFile, "rw")) {
