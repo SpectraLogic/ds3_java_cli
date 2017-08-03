@@ -29,7 +29,7 @@ import org.apache.commons.cli.Option;
 import static com.spectralogic.ds3cli.ArgumentFactory.BUCKET;
 
 public class GetTapes extends CliCommand<GetTapesResult> {
-    final GetTapesSpectraS3Request getTapesSpectraS3Request = new GetTapesSpectraS3Request();
+    private final GetTapesSpectraS3Request getTapesSpectraS3Request = new GetTapesSpectraS3Request();
     private final static ImmutableList<Option> optionalArgs = ImmutableList.of(BUCKET);
 
     @Override
