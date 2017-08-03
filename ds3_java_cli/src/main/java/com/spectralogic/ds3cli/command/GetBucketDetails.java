@@ -19,16 +19,13 @@ package com.spectralogic.ds3cli.command;
 import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.View;
-import com.spectralogic.ds3cli.exceptions.BadArgumentException;
 import com.spectralogic.ds3cli.models.GetBucketResult;
 import com.spectralogic.ds3cli.views.json.DataView;
 import com.spectralogic.ds3client.commands.spectrads3.GetBucketSpectraS3Request;
 import com.spectralogic.ds3client.commands.spectrads3.GetBucketSpectraS3Response;
-import com.spectralogic.ds3client.utils.Guard;
 import org.apache.commons.cli.Option;
 
 import static com.spectralogic.ds3cli.ArgumentFactory.BUCKET;
-import static com.spectralogic.ds3cli.ArgumentFactory.ID;
 
 public class GetBucketDetails extends CliCommand<GetBucketResult> {
 

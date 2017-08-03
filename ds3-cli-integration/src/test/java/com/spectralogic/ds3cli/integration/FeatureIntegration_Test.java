@@ -142,6 +142,13 @@ public class FeatureIntegration_Test {
     }
 
     @Test
+    public void testGetTapes() throws Exception {
+        final Arguments args = new Arguments(new String[]{"--http", "-b", UUID.randomUUID().toString(), "-c", "get_tapes"});
+        final CommandResponse response = Util.command(client, args);
+        assertThat(response.getMessage(), is("You do not have any tapes"));
+    }
+
+    @Test
     public void getObject() throws Exception {
         final String bucketName = "test_get_object";
         try {
