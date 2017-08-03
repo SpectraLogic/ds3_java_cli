@@ -15,23 +15,40 @@
 
 package com.spectralogic.ds3cli.command;
 
+import com.google.common.collect.ImmutableList;
+import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.models.GetTapesResult;
+import com.spectralogic.ds3client.utils.Guard;
 import com.spectralogic.ds3cli.views.cli.GetTapesView;
 import com.spectralogic.ds3client.commands.spectrads3.GetTapesSpectraS3Request;
 import com.spectralogic.ds3client.commands.spectrads3.GetTapesSpectraS3Response;
+import org.apache.commons.cli.Option;
+
+import static com.spectralogic.ds3cli.ArgumentFactory.BUCKET;
 
 public class GetTapes extends CliCommand<GetTapesResult> {
+    final GetTapesSpectraS3Request getTapesSpectraS3Request = new GetTapesSpectraS3Request();
+    private final static ImmutableList<Option> optionalArgs = ImmutableList.of(BUCKET);
 
-    public GetTapes() {
+    @Override
+    public CliCommand init(final Arguments args) throws Exception {
+        processCommandOptions(EMPTY_LIST, optionalArgs, args);
+
+        final String bucketId = args.getBucket();
+        if ( ! Guard.isStringNullOrEmpty(bucketId)) {
+            getTapesSpectraS3Request.withBucketId(bucketId);
+        }
+
+        return this;
     }
 
     @Override
     public GetTapesResult call() throws Exception {
-            final GetTapesSpectraS3Response response = getClient().getTapesSpectraS3(new GetTapesSpectraS3Request());
+        final GetTapesSpectraS3Response response = getClient().getTapesSpectraS3(getTapesSpectraS3Request);
 
-            return new GetTapesResult(response.getTapeListResult());
+        return new GetTapesResult(response.getTapeListResult());
     }
 
     @Override

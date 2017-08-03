@@ -142,6 +142,13 @@ public class FeatureIntegration_Test {
     }
 
     @Test
+    public void testGetTapes() throws Exception {
+        final Arguments args = new Arguments(new String[]{"--http", "-b", "e45ee135-0e0c-4e4e-9f03-3c95d8e5a4e1", "-c", "get_tapes"});
+        final CommandResponse response = Util.command(client, args);
+        System.out.println(response.getMessage());
+    }
+
+    @Test
     public void getObject() throws Exception {
         final String bucketName = "test_get_object";
         try {

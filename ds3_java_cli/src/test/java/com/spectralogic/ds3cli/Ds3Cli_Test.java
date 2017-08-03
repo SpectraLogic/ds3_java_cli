@@ -2456,6 +2456,42 @@ public class Ds3Cli_Test {
     }
 
     @Test
+    public void getTapesWithBucketId() throws Exception {
+        final String bucketId = "8894FD77-699C-4080-BB10-AD2B34BA8B66";
+
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-b", bucketId, "-c", "get_tapes"});
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
+        command.init(args);
+        assertTrue(command instanceof GetTapes);
+        final View view = command.getView();
+
+        final InputStream packet = IOUtils.toInputStream("<Data><Tape>" +
+                "<AssignedToStorageDomain>false</AssignedToStorageDomain>" +
+                "<AvailableRawCapacity>2408082046976</AvailableRawCapacity>" +
+                "<BarCode>121552L6</BarCode><BucketId>" + bucketId + "</BucketId><DescriptionForIdentification/>" +
+                "<EjectDate/><EjectLabel/><EjectLocation/><EjectPending/><FullOfData>false</FullOfData>" +
+                "<Id>52741a53-24d5-4391-87a9-9cce703d7ed7</Id><LastAccessed>2016-06-29T20:28:45.000Z</LastAccessed>" +
+                "<LastCheckpoint>6fc8a8c6-0b14-4ef6-a4ec-b7246028fa8e:2</LastCheckpoint><LastModified>2016-06-29T20:24:35.000Z</LastModified><LastVerified/>" +
+                "<PartitionId>f3a7b5dd-af2d-4dc3-84d9-6ac69fab135c</PartitionId><PreviousState/>" +
+                "<SerialNumber>HP-Y140125415</SerialNumber><State>NORMAL</State><StorageDomainId/>" +
+                "<TakeOwnershipPending>false</TakeOwnershipPending><TotalRawCapacity>2408088338432</TotalRawCapacity>" +
+                "<Type>LTO6</Type><VerifyPending/><WriteProtected>false</WriteProtected></Tape>" +
+                "</Data>", "utf-8");
+
+        final String expected =
+                "+----------+--------------------------------------+--------+--------------------------+------------------------+--------------------------------------+----------------------------+---------------+-------------------+----------------+------------------+\n" +
+                "| Bar Code |                  ID                  |  State |       Last Modified      | Available Raw Capacity |               BucketID               | Assigned to Storage Domain | Ejection Date | Ejection Location | Ejection Label | Ejection Pending |\n" +
+                "+----------+--------------------------------------+--------+--------------------------+------------------------+--------------------------------------+----------------------------+---------------+-------------------+----------------+------------------+\n" +
+                "| 121552L6 | 52741a53-24d5-4391-87a9-9cce703d7ed7 | NORMAL | 2016-06-29T20:24:35.000Z | 2408082046976          | " + bucketId.toLowerCase() + " | false                      | N/A           | N/A               | N/A            | N/A              |\n" +
+                "+----------+--------------------------------------+--------+--------------------------+------------------------+--------------------------------------+----------------------------+---------------+-------------------+----------------+------------------+\n";
+
+        final TapeList tapes = XmlOutput.fromXml(packet, TapeList.class);
+        final GetTapesResult domainsResult = new GetTapesResult(tapes);
+        final String result = view.render(domainsResult);
+        assertThat(result, is(expected));
+    }
+
+    @Test
     public void ejectTape() throws Exception {
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "eject_tape", "-i", "52741a53-24d5-4391-87a9-9cce703d7ed7"});
         final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
