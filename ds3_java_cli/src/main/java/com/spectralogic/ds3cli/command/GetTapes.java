@@ -30,11 +30,11 @@ import static com.spectralogic.ds3cli.ArgumentFactory.BUCKET;
 
 public class GetTapes extends CliCommand<GetTapesResult> {
     private final GetTapesSpectraS3Request getTapesSpectraS3Request = new GetTapesSpectraS3Request();
-    private final static ImmutableList<Option> optionalArgs = ImmutableList.of(BUCKET);
+    private final static ImmutableList<Option> OPTIONAL_ARGS = ImmutableList.of(BUCKET);
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
-        processCommandOptions(EMPTY_LIST, optionalArgs, args);
+        processCommandOptions(EMPTY_LIST, OPTIONAL_ARGS, args);
 
         final String bucketId = args.getBucket();
         if ( ! Guard.isStringNullOrEmpty(bucketId)) {
