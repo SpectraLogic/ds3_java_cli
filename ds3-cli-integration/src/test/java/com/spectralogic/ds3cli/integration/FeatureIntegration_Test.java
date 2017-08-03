@@ -145,7 +145,7 @@ public class FeatureIntegration_Test {
     public void testGetTapes() throws Exception {
         final Arguments args = new Arguments(new String[]{"--http", "-b", UUID.randomUUID().toString(), "-c", "get_tapes"});
         final CommandResponse response = Util.command(client, args);
-        assertThat("You do not have any tapes", is(response.getMessage()));
+        assertThat(response.getMessage(), is("You do not have any tapes"));
     }
 
     @Test
