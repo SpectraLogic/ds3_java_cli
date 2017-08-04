@@ -24,7 +24,7 @@ public class TapeListStorageDomainMapTuple {
     private final TapeList tapeList;
     private final ImmutableMap<UUID, String> storageDomainIdNameMap;
 
-    public TapeListStorageDomainMapTuple(final TapeList tapeList, final ImmutableMap<UUID, String> storageDomainIdNameMap) {
+    TapeListStorageDomainMapTuple(final TapeList tapeList, final ImmutableMap<UUID, String> storageDomainIdNameMap) {
         this.tapeList = tapeList;
         this.storageDomainIdNameMap = storageDomainIdNameMap;
     }
