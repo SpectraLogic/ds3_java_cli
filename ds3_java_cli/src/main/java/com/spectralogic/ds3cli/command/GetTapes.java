@@ -32,7 +32,6 @@ import com.spectralogic.ds3client.commands.spectrads3.GetTapesSpectraS3Response;
 import org.apache.commons.cli.Option;
 
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import org.slf4j.Logger;
@@ -66,7 +65,7 @@ public class GetTapes extends CliCommand<GetTapesResult> {
         return new GetTapesResult(response.getTapeListResult(), populateStorageDomainIdNameMap());
     }
 
-    private Map<UUID, String> populateStorageDomainIdNameMap() {
+    private ImmutableMap<UUID, String> populateStorageDomainIdNameMap() {
         final ImmutableMap.Builder<UUID, String> storageDomainIdNameMapBuilder = ImmutableMap.builder();
 
         try {

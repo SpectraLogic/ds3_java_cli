@@ -15,16 +15,16 @@
 
 package com.spectralogic.ds3cli.models;
 
+import com.google.common.collect.ImmutableMap;
 import com.spectralogic.ds3client.models.TapeList;
 
-import java.util.Map;
 import java.util.UUID;
 
 public class TapeListStorageDomainMapTuple {
     private final TapeList tapeList;
-    private final Map<UUID, String> storageDomainIdNameMap;
+    private final ImmutableMap<UUID, String> storageDomainIdNameMap;
 
-    public TapeListStorageDomainMapTuple(final TapeList tapeList, final Map<UUID, String> storageDomainIdNameMap) {
+    public TapeListStorageDomainMapTuple(final TapeList tapeList, final ImmutableMap<UUID, String> storageDomainIdNameMap) {
         this.tapeList = tapeList;
         this.storageDomainIdNameMap = storageDomainIdNameMap;
     }
@@ -33,7 +33,7 @@ public class TapeListStorageDomainMapTuple {
         return tapeList;
     }
 
-    public Map<UUID, String> getStorageDomainIdNameMap() {
+    public ImmutableMap<UUID, String> getStorageDomainIdNameMap() {
         return storageDomainIdNameMap;
     }
 }
