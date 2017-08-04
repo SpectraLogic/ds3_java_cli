@@ -18,11 +18,14 @@ package com.spectralogic.ds3cli.views.cli;
 import com.bethecoder.ascii_table.ASCIITable;
 import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3cli.models.GetTapesResult;
+import com.spectralogic.ds3cli.models.TapeListStorageDomainMapTuple;
 import com.spectralogic.ds3client.models.Tape;
-import com.spectralogic.ds3client.models.TapeList;
 import com.spectralogic.ds3client.utils.Guard;
 
 import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static com.spectralogic.ds3cli.util.Constants.DATE_FORMAT;
 import static com.spectralogic.ds3cli.util.Guard.nullGuard;
@@ -30,16 +33,21 @@ import static com.spectralogic.ds3cli.util.Guard.nullGuardFromDate;
 import static com.spectralogic.ds3cli.util.Guard.nullGuardToString;
 
 public class GetTapesView extends TableView<GetTapesResult> {
+    private static final Logger LOG = LoggerFactory.getLogger(GetTapesView.class);
 
-    private List<Tape> tapeList;
+    private GetTapesResult getTapesResult;
 
     @Override
-    public String render(final GetTapesResult obj) {
-        final TapeList result = obj.getResult();
-        if (result == null || Guard.isNullOrEmpty(result.getTapes())) {
+    public String render(final GetTapesResult getTapesResult) {
+        final TapeListStorageDomainMapTuple tapeListStorageDomainMapTuple = getTapesResult.getResult();
+
+        if (tapeListStorageDomainMapTuple == null || tapeListStorageDomainMapTuple.getTapeList() == null ||
+                Guard.isNullOrEmpty(tapeListStorageDomainMapTuple.getTapeList().getTapes()))
+        {
             return "You do not have any tapes";
         }
-        this.tapeList = result.getTapes();
+
+        this.getTapesResult = getTapesResult;
 
         initTable(ImmutableList.of("Bar Code", "ID", "State", "Last Modified", "Available Raw Capacity", "BucketID", "Assigned to Storage Domain", "Ejection Date", "Ejection Location", "Ejection Label", "Ejection Pending"));
 
@@ -47,9 +55,11 @@ public class GetTapesView extends TableView<GetTapesResult> {
     }
 
     protected String[][] formatTableContents() {
-        final String [][] formatArray = new String[this.tapeList.size()][];
+        final List<Tape> tapes = getTapesResult.getResult().getTapeList().getTapes();
+
+        final String [][] formatArray = new String[tapes.size()][];
         int i = 0;
-        for (final Tape tape : this.tapeList) {
+        for (final Tape tape : tapes) {
             final String [] bucketArray = new String[this.columnCount];
             bucketArray[0] = nullGuard(tape.getBarCode());
             bucketArray[1] = nullGuardToString(tape.getId());
@@ -57,7 +67,7 @@ public class GetTapesView extends TableView<GetTapesResult> {
             bucketArray[3] = nullGuardFromDate(tape.getLastModified(), DATE_FORMAT);
             bucketArray[4] = nullGuardToString(tape.getAvailableRawCapacity());
             bucketArray[5] = nullGuardToString(tape.getBucketId());
-            bucketArray[6] = nullGuardToString(tape.getAssignedToStorageDomain());
+            bucketArray[6] = nullGuardToString(storageDomainName(tape));
             bucketArray[7] = nullGuardFromDate(tape.getEjectDate(), DATE_FORMAT);
             bucketArray[8] = nullGuard(tape.getEjectLocation());
             bucketArray[9] = nullGuard(tape.getEjectLabel());
@@ -65,6 +75,16 @@ public class GetTapesView extends TableView<GetTapesResult> {
             formatArray[i++] = bucketArray;
         }
         return formatArray;
+    }
+
+    private String storageDomainName(final Tape tape) {
+        try {
+            return getTapesResult.getResult().getStorageDomainIdNameMap().get(tape.getStorageDomainId());
+        } catch (final Throwable t) {
+            LOG.debug("Error getting storage domain name for tape.", t);
+        }
+
+        return null;
     }
 }
 

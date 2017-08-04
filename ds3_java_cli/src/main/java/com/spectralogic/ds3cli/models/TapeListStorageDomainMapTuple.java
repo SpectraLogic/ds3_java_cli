@@ -20,17 +20,20 @@ import com.spectralogic.ds3client.models.TapeList;
 
 import java.util.UUID;
 
-public class GetTapesResult implements Result<TapeListStorageDomainMapTuple> {
+public class TapeListStorageDomainMapTuple {
+    private final TapeList tapeList;
+    private final ImmutableMap<UUID, String> storageDomainIdNameMap;
 
-    private final TapeListStorageDomainMapTuple tapeListStorageDomainMapTuple;
-
-    public GetTapesResult(final TapeList tapes, final ImmutableMap<UUID, String> storageDomainIdNameMap) {
-        this.tapeListStorageDomainMapTuple = new TapeListStorageDomainMapTuple(tapes, storageDomainIdNameMap);
+    TapeListStorageDomainMapTuple(final TapeList tapeList, final ImmutableMap<UUID, String> storageDomainIdNameMap) {
+        this.tapeList = tapeList;
+        this.storageDomainIdNameMap = storageDomainIdNameMap;
     }
 
-    @Override
-    public TapeListStorageDomainMapTuple getResult() {
-        return tapeListStorageDomainMapTuple;
+    public TapeList getTapeList() {
+        return tapeList;
+    }
+
+    public ImmutableMap<UUID, String> getStorageDomainIdNameMap() {
+        return storageDomainIdNameMap;
     }
 }
-

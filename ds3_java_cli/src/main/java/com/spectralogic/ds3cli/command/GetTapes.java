@@ -16,21 +16,35 @@
 package com.spectralogic.ds3cli.command;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.models.GetTapesResult;
+import com.spectralogic.ds3client.commands.spectrads3.GetStorageDomainsSpectraS3Request;
+import com.spectralogic.ds3client.commands.spectrads3.GetStorageDomainsSpectraS3Response;
+import com.spectralogic.ds3client.models.StorageDomain;
+import com.spectralogic.ds3client.models.StorageDomainList;
 import com.spectralogic.ds3client.utils.Guard;
 import com.spectralogic.ds3cli.views.cli.GetTapesView;
 import com.spectralogic.ds3client.commands.spectrads3.GetTapesSpectraS3Request;
 import com.spectralogic.ds3client.commands.spectrads3.GetTapesSpectraS3Response;
 import org.apache.commons.cli.Option;
 
+import java.util.List;
+import java.util.UUID;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import static com.spectralogic.ds3cli.ArgumentFactory.BUCKET;
 
 public class GetTapes extends CliCommand<GetTapesResult> {
-    private final GetTapesSpectraS3Request getTapesSpectraS3Request = new GetTapesSpectraS3Request();
+    private final static Logger LOG = LoggerFactory.getLogger(GetTapes.class);
     private final static ImmutableList<Option> OPTIONAL_ARGS = ImmutableList.of(BUCKET);
+
+    private final GetTapesSpectraS3Request getTapesSpectraS3Request = new GetTapesSpectraS3Request();
+
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
@@ -48,7 +62,34 @@ public class GetTapes extends CliCommand<GetTapesResult> {
     public GetTapesResult call() throws Exception {
         final GetTapesSpectraS3Response response = getClient().getTapesSpectraS3(getTapesSpectraS3Request);
 
-        return new GetTapesResult(response.getTapeListResult());
+        return new GetTapesResult(response.getTapeListResult(), populateStorageDomainIdNameMap());
+    }
+
+    private ImmutableMap<UUID, String> populateStorageDomainIdNameMap() {
+        final ImmutableMap.Builder<UUID, String> storageDomainIdNameMapBuilder = ImmutableMap.builder();
+
+        try {
+            final GetStorageDomainsSpectraS3Response getStorageDomainsSpectraS3Response = getClient().getStorageDomainsSpectraS3(new GetStorageDomainsSpectraS3Request());
+            processStorageDomainList(getStorageDomainsSpectraS3Response.getStorageDomainListResult(), storageDomainIdNameMapBuilder);
+        } catch (final Throwable t) {
+            LOG.debug("Error populating storage domain info.", t);
+        }
+
+        return storageDomainIdNameMapBuilder.build();
+    }
+
+    private void processStorageDomainList(final StorageDomainList storageDomainList, final ImmutableMap.Builder<UUID, String> storageDomainIdNameMapBuilder) {
+        if (storageDomainList != null) {
+            processStorageDomains(storageDomainList.getStorageDomains(), storageDomainIdNameMapBuilder);
+        }
+    }
+
+    private void processStorageDomains(final List<StorageDomain> storageDomains, final ImmutableMap.Builder<UUID, String> storageDomainIdNameMapBuilder) {
+        if (storageDomains != null) {
+            for (final StorageDomain storageDomain : storageDomains) {
+                storageDomainIdNameMapBuilder.put(storageDomain.getId(), storageDomain.getName());
+            }
+        }
     }
 
     @Override

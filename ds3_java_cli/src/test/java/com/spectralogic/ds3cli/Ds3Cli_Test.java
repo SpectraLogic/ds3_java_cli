@@ -16,12 +16,12 @@
 package com.spectralogic.ds3cli;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.spectralogic.ds3cli.command.*;
 import com.spectralogic.ds3cli.exceptions.*;
 import com.spectralogic.ds3cli.models.*;
 import com.spectralogic.ds3cli.util.*;
-import com.spectralogic.ds3cli.views.cli.GetPhysicalPlacementWithFullDetailsView;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.*;
 import com.spectralogic.ds3client.commands.spectrads3.*;
@@ -38,11 +38,8 @@ import com.spectralogic.ds3client.serializer.XmlOutput;
 import org.apache.commons.cli.MissingOptionException;
 import org.apache.commons.cli.UnrecognizedOptionException;
 import org.apache.commons.io.IOUtils;
-import org.hamcrest.core.StringEndsWith;
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.internal.util.collections.Iterables;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.powermock.api.mockito.PowerMockito;
@@ -2382,14 +2379,19 @@ public class Ds3Cli_Test {
         assertTrue(command instanceof GetTapes);
         final View view = command.getView();
 
+        final String storageDoamin1Id = "93032a20-0751-4bb9-8b00-585aed548f55";
+        final String storageDoamin2Id = "cf08b1e3-12d7-407a-acfe-83afc7b835f4";
+        final String storageDoamin1Name = "Storage domain 1";
+        final String storageDoamin2Name = "Storage domain 2";
+
         final String expected =
                 "+----------+--------------------------------------+--------+--------------------------+------------------------+--------------------------------------+----------------------------+---------------+-------------------+----------------+------------------+\n" +
                 "| Bar Code |                  ID                  |  State |       Last Modified      | Available Raw Capacity |               BucketID               | Assigned to Storage Domain | Ejection Date | Ejection Location | Ejection Label | Ejection Pending |\n" +
                 "+----------+--------------------------------------+--------+--------------------------+------------------------+--------------------------------------+----------------------------+---------------+-------------------+----------------+------------------+\n" +
-                "| 121552L6 | 52741a53-24d5-4391-87a9-9cce703d7ed7 | NORMAL | 2016-06-29T20:24:35.000Z | 2408082046976          | N/A                                  | false                      | N/A           | N/A               | N/A            | N/A              |\n" +
-                "| 121553L6 | e9e2e2c8-813b-4adf-9ed9-c6f788084656 | NORMAL | 2016-07-18T03:04:30.000Z | 2407684636672          | 5f02264b-b344-4bdd-88bd-7e87133bb0c9 | true                       | N/A           | N/A               | N/A            | N/A              |\n" +
-                "| 121555L6 | 8cb037d1-39aa-4f42-b27c-acbdf8b4c3c7 | NORMAL | 2016-06-29T20:18:44.000Z | 2408082046976          | N/A                                  | false                      | N/A           | N/A               | N/A            | N/A              |\n" +
-                "| 122104L6 | b16a8737-8801-4658-971c-c67d6ae44773 | NORMAL | 2016-07-18T03:07:26.000Z | 2407688830976          | 5f02264b-b344-4bdd-88bd-7e87133bb0c9 | true                       | N/A           | N/A               | N/A            | N/A              |\n" +
+                "| 121552L6 | 52741a53-24d5-4391-87a9-9cce703d7ed7 | NORMAL | 2016-06-29T20:24:35.000Z | 2408082046976          | N/A                                  | N/A                        | N/A           | N/A               | N/A            | N/A              |\n" +
+                "| 121553L6 | e9e2e2c8-813b-4adf-9ed9-c6f788084656 | NORMAL | 2016-07-18T03:04:30.000Z | 2407684636672          | 5f02264b-b344-4bdd-88bd-7e87133bb0c9 | " + storageDoamin1Name + "           | N/A           | N/A               | N/A            | N/A              |\n" +
+                "| 121555L6 | 8cb037d1-39aa-4f42-b27c-acbdf8b4c3c7 | NORMAL | 2016-06-29T20:18:44.000Z | 2408082046976          | N/A                                  | N/A                        | N/A           | N/A               | N/A            | N/A              |\n" +
+                "| 122104L6 | b16a8737-8801-4658-971c-c67d6ae44773 | NORMAL | 2016-07-18T03:07:26.000Z | 2407688830976          | 5f02264b-b344-4bdd-88bd-7e87133bb0c9 | " + storageDoamin2Name + "           | N/A           | N/A               | N/A            | N/A              |\n" +
                 "+----------+--------------------------------------+--------+--------------------------+------------------------+--------------------------------------+----------------------------+---------------+-------------------+----------------+------------------+\n";
 
         final InputStream packet = IOUtils.toInputStream("<Data><Tape>" +
@@ -2413,7 +2415,7 @@ public class Ds3Cli_Test {
                 "<LastModified>2016-07-18T03:04:30.000Z</LastModified><LastVerified/>" +
                 "<PartitionId>f3a7b5dd-af2d-4dc3-84d9-6ac69fab135c</PartitionId><PreviousState/>" +
                 "<SerialNumber>HP-Y140125438</SerialNumber><State>NORMAL</State>" +
-                "<StorageDomainId>93032a20-0751-4bb9-8b00-585aed548f55</StorageDomainId>" +
+                "<StorageDomainId>" + storageDoamin1Id + "</StorageDomainId>" +
                 "<TakeOwnershipPending>false</TakeOwnershipPending><TotalRawCapacity>2408088338432</TotalRawCapacity>" +
                 "<Type>LTO6</Type><VerifyPending/><WriteProtected>false</WriteProtected></Tape>" +
                 "<Tape>" +
@@ -2442,7 +2444,7 @@ public class Ds3Cli_Test {
                 "<PartitionId>f3a7b5dd-af2d-4dc3-84d9-6ac69fab135c</PartitionId><PreviousState/>" +
                 "<SerialNumber>HP-X131014007</SerialNumber>" +
                 "<State>NORMAL</State>" +
-                "<StorageDomainId>cf08b1e3-12d7-407a-acfe-83afc7b835f4</StorageDomainId>" +
+                "<StorageDomainId>" + storageDoamin2Id + "</StorageDomainId>" +
                 "<TakeOwnershipPending>false</TakeOwnershipPending>" +
                 "<TotalRawCapacity>2408088338432</TotalRawCapacity>" +
                 "<Type>LTO6</Type><VerifyPending/>" +
@@ -2450,7 +2452,11 @@ public class Ds3Cli_Test {
                 "</Tape></Data>", "utf-8");
 
         final TapeList tapes = XmlOutput.fromXml(packet, TapeList.class);
-        final GetTapesResult domainsResult = new GetTapesResult(tapes);
+
+        final GetTapesResult domainsResult = new GetTapesResult(tapes, ImmutableMap.of(
+                UUID.fromString(storageDoamin1Id), storageDoamin1Name,
+                UUID.fromString(storageDoamin2Id), storageDoamin2Name));
+
         final String result = view.render(domainsResult);
         assertThat(result, is(expected));
     }
@@ -2482,11 +2488,11 @@ public class Ds3Cli_Test {
                 "+----------+--------------------------------------+--------+--------------------------+------------------------+--------------------------------------+----------------------------+---------------+-------------------+----------------+------------------+\n" +
                 "| Bar Code |                  ID                  |  State |       Last Modified      | Available Raw Capacity |               BucketID               | Assigned to Storage Domain | Ejection Date | Ejection Location | Ejection Label | Ejection Pending |\n" +
                 "+----------+--------------------------------------+--------+--------------------------+------------------------+--------------------------------------+----------------------------+---------------+-------------------+----------------+------------------+\n" +
-                "| 121552L6 | 52741a53-24d5-4391-87a9-9cce703d7ed7 | NORMAL | 2016-06-29T20:24:35.000Z | 2408082046976          | " + bucketId.toLowerCase() + " | false                      | N/A           | N/A               | N/A            | N/A              |\n" +
+                "| 121552L6 | 52741a53-24d5-4391-87a9-9cce703d7ed7 | NORMAL | 2016-06-29T20:24:35.000Z | 2408082046976          | " + bucketId.toLowerCase() + " | N/A                        | N/A           | N/A               | N/A            | N/A              |\n" +
                 "+----------+--------------------------------------+--------+--------------------------+------------------------+--------------------------------------+----------------------------+---------------+-------------------+----------------+------------------+\n";
 
         final TapeList tapes = XmlOutput.fromXml(packet, TapeList.class);
-        final GetTapesResult domainsResult = new GetTapesResult(tapes);
+        final GetTapesResult domainsResult = new GetTapesResult(tapes, ImmutableMap.of());
         final String result = view.render(domainsResult);
         assertThat(result, is(expected));
     }
