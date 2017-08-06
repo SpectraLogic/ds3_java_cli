@@ -71,5 +71,5 @@ project(':ds3-cli-certification') {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '3.2'
+    gradleVersion = '4.0.2'
 }
