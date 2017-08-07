@@ -34,7 +34,7 @@ public class LoggingMemoryObjectGetter implements LoggingObjectGetter {
     }
 
     @Override
-    public void metadataReceived(final String s, final Metadata metadata) {
+    public void metadataReceived(final String fileName, final Metadata metadata) {
         // Intentionally not implemented
     }
 }
