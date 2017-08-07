@@ -24,6 +24,8 @@ subprojects {
     apply plugin: 'maven'
     apply plugin: 'idea'
 
+    sourceCompatibility = JavaVersion.VERSION_1_7
+
     repositories {
         mavenCentral()
         jcenter()

@@ -148,23 +148,31 @@ public class GetBulk extends CliCommand<DefaultResult> {
 
     private String restore(final Ds3ClientHelpers.ObjectChannelBuilder getter) throws CommandException, IOException, XmlProcessingException {
         final Ds3ClientHelpers helper = getClientHelpers();
-        final LoggingFileObjectGetter loggingFileObjectGetter = new LoggingFileObjectGetter(getter, this.outputPath);
+        final LoggingObjectGetter loggingObjectGetter = makeLoggingObjectGetter(getter);
 
         final Ds3ClientHelpers.Job job = buildRestoreJob(helper);
         job.withMaxParallelRequests(this.numberOfThreads);
-        job.attachMetadataReceivedListener(loggingFileObjectGetter);
+        job.attachMetadataReceivedListener(loggingObjectGetter);
 
         // write parameters to file to enable recovery
         createRecoveryCommand(job.getJobId());
 
         // do the restore
-        job.transfer(loggingFileObjectGetter);
+        job.transfer(loggingObjectGetter);
 
         // clean up recovery file on success of job.transfer()
         RecoveryFileManager.deleteRecoveryCommand(job.getJobId());
 
         // return success message describing what was done
         return buildResponse();
+    }
+
+    private LoggingObjectGetter makeLoggingObjectGetter(final Ds3ClientHelpers.ObjectChannelBuilder getter) {
+        if (discard) {
+            return new LoggingMemoryObjectGetter(getter);
+        }
+
+        return new LoggingFileObjectGetter(getter, outputPath);
     }
 
     private  Ds3ClientHelpers.Job buildRestoreJob(final Ds3ClientHelpers helper) throws IOException, CommandException {

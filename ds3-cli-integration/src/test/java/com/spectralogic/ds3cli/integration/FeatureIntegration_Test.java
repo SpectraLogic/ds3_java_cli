@@ -399,6 +399,29 @@ public class FeatureIntegration_Test {
     }
 
     @Test
+    public void testGetBulkObjectWithDiscard() throws Exception {
+        final String bucketName = "test_get_bulk_with_discard";
+        try {
+            Files.createDirectories(Paths.get(Util.DOWNLOAD_BASE_NAME));
+            Util.createBucket(client, bucketName);
+            Util.loadBookTestData(client, bucketName);
+
+            final Arguments args = new Arguments(
+                    new String[]{
+                            "--http",
+                            "-c", "get_bulk",
+                            "-b", bucketName,
+                            "--discard"});
+            final CommandResponse response = Util.command(client, args);
+            assertThat(response.getMessage(), is("SUCCESS: Retrieved and discarded all objects from test_get_bulk_with_discard"));
+            assertEquals(Util.countLocalFiles(), 0);
+        } finally {
+            Util.deleteBucket(client, bucketName);
+            Util.deleteLocalFiles();
+        }
+    }
+
+    @Test
     public void getBulkObjectWithSync() throws Exception {
         final String bucketName = "test_get_bulk_object_with_sync_no_update";
         try {
