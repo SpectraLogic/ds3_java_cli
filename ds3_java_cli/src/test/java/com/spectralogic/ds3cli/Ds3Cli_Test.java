@@ -2453,9 +2453,11 @@ public class Ds3Cli_Test {
 
         final TapeList tapes = XmlOutput.fromXml(packet, TapeList.class);
 
-        final GetTapesResult domainsResult = new GetTapesResult(tapes, ImmutableMap.of(
-                UUID.fromString(storageDoamin1Id), storageDoamin1Name,
-                UUID.fromString(storageDoamin2Id), storageDoamin2Name));
+        final ImmutableMap.Builder<UUID, String> storageDomainIdNameMapBuilder = ImmutableMap.builder();
+        storageDomainIdNameMapBuilder.put(UUID.fromString(storageDoamin1Id), storageDoamin1Name);
+        storageDomainIdNameMapBuilder.put(UUID.fromString(storageDoamin2Id), storageDoamin2Name);
+
+        final GetTapesResult domainsResult = new GetTapesResult(tapes, storageDomainIdNameMapBuilder.build());
 
         final String result = view.render(domainsResult);
         assertThat(result, is(expected));
@@ -2492,7 +2494,10 @@ public class Ds3Cli_Test {
                 "+----------+--------------------------------------+--------+--------------------------+------------------------+--------------------------------------+----------------------------+---------------+-------------------+----------------+------------------+\n";
 
         final TapeList tapes = XmlOutput.fromXml(packet, TapeList.class);
-        final GetTapesResult domainsResult = new GetTapesResult(tapes, ImmutableMap.of());
+
+        final ImmutableMap.Builder<UUID, String> storageDomainIdNameMapBuilder = ImmutableMap.builder();
+
+        final GetTapesResult domainsResult = new GetTapesResult(tapes, storageDomainIdNameMapBuilder.build());
         final String result = view.render(domainsResult);
         assertThat(result, is(expected));
     }
