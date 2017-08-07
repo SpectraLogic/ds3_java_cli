@@ -17,34 +17,24 @@ package com.spectralogic.ds3cli.util;
 
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.networking.Metadata;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.channels.SeekableByteChannel;
-import java.nio.file.Path;
 
-public class LoggingFileObjectGetter implements LoggingObjectGetter {
+public class LoggingMemoryObjectGetter implements LoggingObjectGetter {
+    private final Ds3ClientHelpers.ObjectChannelBuilder objectChannelBuilder;
 
-    private final static Logger LOG = LoggerFactory.getLogger(LoggingFileObjectGetter.class);
-
-    final private Ds3ClientHelpers.ObjectChannelBuilder objectGetter;
-    final private Path outputPath;
-
-    public LoggingFileObjectGetter(final Ds3ClientHelpers.ObjectChannelBuilder getter, final Path outputPath) {
-        this.objectGetter = getter;
-        this.outputPath = outputPath;
+    public LoggingMemoryObjectGetter(final Ds3ClientHelpers.ObjectChannelBuilder objectChannelBuilder) {
+        this.objectChannelBuilder = objectChannelBuilder;
     }
 
     @Override
-    public SeekableByteChannel buildChannel(final String s) throws IOException {
-        LOG.info("Getting object {}", s);
-        return this.objectGetter.buildChannel(s);
+    public SeekableByteChannel buildChannel(final String channelName) throws IOException {
+        return objectChannelBuilder.buildChannel(channelName);
     }
 
     @Override
-    public void metadataReceived(final String filename, final Metadata metadata) {
-        final Path path = outputPath.resolve(filename);
-        MetadataUtils.restoreLastModified(filename, metadata, path);
+    public void metadataReceived(final String s, final Metadata metadata) {
+        // Intentionally not implemented
     }
 }
