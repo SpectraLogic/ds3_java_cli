@@ -19,7 +19,6 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
 import com.spectralogic.ds3cli.CommandResponse;
-import com.spectralogic.ds3cli.command.PutBulk;
 import com.spectralogic.ds3cli.exceptions.*;
 import com.spectralogic.ds3cli.helpers.Util;
 import com.spectralogic.ds3client.Ds3Client;
@@ -42,7 +41,6 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.net.UnknownHostException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 
