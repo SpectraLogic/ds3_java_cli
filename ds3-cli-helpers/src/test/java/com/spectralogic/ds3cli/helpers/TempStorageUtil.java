@@ -112,7 +112,7 @@ public class TempStorageUtil {
                 withEndToEndCrcRequired,
                 false,
                 client);
-        client.modifyUserSpectraS3(new ModifyUserSpectraS3Request("spectra")
+        client.modifyUserSpectraS3(new ModifyUserSpectraS3Request("Administrator")
                 .withDefaultDataPolicyId(dataPolicyResponse.getDataPolicyResult().getId()));
         return dataPolicyResponse.getDataPolicyResult().getId();
     }
@@ -138,7 +138,7 @@ public class TempStorageUtil {
         assumeTrue(policies.hasNext());
         final DataPolicy singleTapeDp = policies.next();
 
-        client.modifyUserSpectraS3(new ModifyUserSpectraS3Request("spectra")
+        client.modifyUserSpectraS3(new ModifyUserSpectraS3Request("Administrator")
                 .withDefaultDataPolicyId(singleTapeDp.getId()));
 
         return singleTapeDp.getId();
