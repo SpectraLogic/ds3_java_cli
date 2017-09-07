@@ -27,6 +27,7 @@ import ch.qos.logback.core.rolling.FixedWindowRollingPolicy;
 import ch.qos.logback.core.rolling.RollingFileAppender;
 import ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy;
 import ch.qos.logback.core.rolling.TriggeringPolicy;
+import ch.qos.logback.core.util.FileSize;
 import com.google.common.base.Joiner;
 import com.spectralogic.ds3cli.command.CliCommand;
 import com.spectralogic.ds3cli.command.CliCommandFactory;
@@ -115,7 +116,7 @@ public final class Main {
             sizeBasedRollingPolicy.setFileNamePattern(LOG_DIR + LOG_ARCHIVE_FILE_PATTERN);
             sizeBasedRollingPolicy.start();
 
-            sizeBasedTriggeringPolicy.setMaxFileSize("10MB");
+            sizeBasedTriggeringPolicy.setMaxFileSize(FileSize.valueOf("10MB"));
             sizeBasedTriggeringPolicy.start();
 
             final PatternLayoutEncoder fileEncoder = new PatternLayoutEncoder();
