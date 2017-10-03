@@ -59,10 +59,7 @@ public class ModifyJob extends CliCommand<GetJobResult> {
         this.jobId = args.getId();
         this.jobPriority = args.getPriority();
         this.jobName = args.getOptionValue(JOB_NAME.getLongOpt());
-        if (Guard.isStringNullOrEmpty(this.jobName) && this.jobPriority == null) {
-            throw new MissingArgumentException("Must set at least one of: " +
-                    PRIORITY.getLongOpt() + ", " + JOB_NAME.getLongOpt());
-        }
+
         return this;
     }
 

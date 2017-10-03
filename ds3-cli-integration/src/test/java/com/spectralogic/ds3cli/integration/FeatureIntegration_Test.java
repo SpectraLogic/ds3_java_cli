@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Lists;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.CommandResponse;
-import com.spectralogic.ds3cli.command.GetBulk;
 import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.helpers.JsonMapper;
 import com.spectralogic.ds3cli.helpers.TempStorageIds;
@@ -64,6 +63,8 @@ import java.util.UUID;
 import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.number.OrderingComparison.greaterThan;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeThat;
@@ -770,7 +771,7 @@ public class FeatureIntegration_Test {
 
             final Ds3ClientHelpers.Job job = HELPERS.startReadJob(bucketName, HELPERS.toDs3Iterable(ImmutableList.of(book1, book2), FolderNameFilter.filter()));
             jobId = job.getJobId();
-            RecoveryJob recoveryJob = new RecoveryJob(BulkJobType.GET_BULK);
+            final RecoveryJob recoveryJob = new RecoveryJob(BulkJobType.GET_BULK);
             recoveryJob.setBucketName(bucketName);
             recoveryJob.setId(jobId);
             recoveryJob.setDirectory(Util.RESOURCE_BASE_NAME);
@@ -810,7 +811,7 @@ public class FeatureIntegration_Test {
 
             final Ds3ClientHelpers.Job job = HELPERS.startWriteJob(bucketName, HELPERS.toDs3Iterable(ImmutableList.of(file1, file2)));
             jobId = job.getJobId();
-            RecoveryJob recoveryJob = new RecoveryJob(BulkJobType.PUT_BULK);
+            final RecoveryJob recoveryJob = new RecoveryJob(BulkJobType.PUT_BULK);
             recoveryJob.setBucketName(bucketName);
             recoveryJob.setId(jobId);
             RecoveryFileManager.writeRecoveryJob(recoveryJob);
@@ -834,7 +835,34 @@ public class FeatureIntegration_Test {
         }
     }
 
+    @Test
+    public void testResettingDeadJobTimerWithModifyJob() throws Exception {
+        final String bucketName = "testResettingDeadJobTimerWithModifyJob";
 
+        try {
+            Util.createBucket(client, bucketName);
 
+            final Contents file1 = new Contents();
+            file1.setKey("ThousandBytes.txt");
+            file1.setSize(1000L);
+            final Contents file2 = new Contents();
+            file2.setKey("TwoThousandBytes.txt");
+            file2.setSize(2000L);
 
+            final Ds3ClientHelpers.Job job = HELPERS.startWriteJob(bucketName, HELPERS.toDs3Iterable(ImmutableList.of(file1, file2)));
+            final UUID jobId = job.getJobId();
+
+            final Arguments arguments = new Arguments(new String[]{
+                    "--http",
+                    "-c", "modify_job",
+                    "-i", jobId.toString()
+            });
+            final CommandResponse response = Util.command(client, arguments);
+            assertNotNull(response);
+            assertNotNull(response.getMessage());
+            assertFalse(response.getMessage().isEmpty());
+        } finally {
+            Util.deleteBucket(client, bucketName);
+        }
+    }
 }
