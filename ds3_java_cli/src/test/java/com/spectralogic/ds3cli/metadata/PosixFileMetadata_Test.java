@@ -31,7 +31,6 @@ import static org.junit.Assert.assertTrue;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.attribute.BasicFileAttributeView;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
 
@@ -42,9 +41,11 @@ public class PosixFileMetadata_Test {
     public void testFileModifiedTime() throws Exception {
         Assume.assumeFalse(Platform.isWindows());
 
-        final FileNamePathTuple fileNamePathTuple = createAFile();
+        final FileNamePathTuple fileNamePathTuple = createAFile(true);
 
         try {
+            final FileTime createdTime = Files.readAttributes(fileNamePathTuple.filePath(), BasicFileAttributes.class).creationTime();
+
             Runtime.getRuntime().exec("touch " + fileNamePathTuple.fileName()).waitFor();
 
             final FileTime modifedTimeAfterTouch = Files.readAttributes(fileNamePathTuple.filePath(), BasicFileAttributes.class).lastModifiedTime();
@@ -54,6 +55,11 @@ public class PosixFileMetadata_Test {
             final FileTime modifiedTimeAfterRestore = Files.readAttributes(fileNamePathTuple.filePath(), BasicFileAttributes.class).lastModifiedTime();
 
             assertTrue(modifedTimeAfterTouch.compareTo(modifiedTimeAfterRestore) > 0);
+
+            final FileTime createdTimeAfterRestoringLastModified = Files.readAttributes(fileNamePathTuple.filePath(), BasicFileAttributes.class).creationTime();
+
+            assertEquals(createdTimeAfterRestoringLastModified, createdTime);
+            assertTrue(modifiedTimeAfterRestore.compareTo(createdTimeAfterRestoringLastModified) > 0);
         } finally {
             if (fileNamePathTuple.filePath() != null) {
                 Files.deleteIfExists(fileNamePathTuple.filePath());
@@ -61,10 +67,12 @@ public class PosixFileMetadata_Test {
         }
     }
 
-    private FileNamePathTuple createAFile() throws Exception {
+    private FileNamePathTuple createAFile(final boolean recordMetaData) throws Exception {
         final String fileName = "aFile.txt";
         final Path filePath = Paths.get(fileName);
         final Path createdFilePath = Files.createFile(filePath);
+
+        Thread.sleep(1000);
 
         write(filePath, new byte[] { 0 });
 
@@ -78,7 +86,11 @@ public class PosixFileMetadata_Test {
 
         Thread.sleep(1000);
 
-        return new FileNamePathTuple(fileName, createdFilePath, metadata);
+        if (recordMetaData) {
+            return new FileNamePathTuple(fileName, createdFilePath, metadata);
+        } else {
+            return new FileNamePathTuple(fileName, createdFilePath, ImmutableMap.of());
+        }
     }
 
     private static class FileNamePathTuple {
@@ -109,7 +121,7 @@ public class PosixFileMetadata_Test {
     public void testFileAccessedTime() throws Exception {
         Assume.assumeFalse(Platform.isWindows());
 
-        final FileNamePathTuple fileNamePathTuple = createAFile();
+        final FileNamePathTuple fileNamePathTuple = createAFile(true);
 
         try {
             readAllBytes(fileNamePathTuple.filePath);
@@ -132,20 +144,25 @@ public class PosixFileMetadata_Test {
     public void testFileCreatedTime() throws Exception {
         Assume.assumeFalse(Platform.isWindows());
 
-        final FileNamePathTuple fileNamePathTuple = createAFile();
+        final FileNamePathTuple fileNamePathTuple = createAFile(true);
 
         try {
-            final FileTime time0 = FileTime.fromMillis(0);
+            final FileTime lastModified = Files.readAttributes(fileNamePathTuple.filePath(), BasicFileAttributes.class).lastModifiedTime();
 
-            Files.getFileAttributeView(fileNamePathTuple.filePath(), BasicFileAttributeView.class).setTimes(null, null, time0);
+            Files.deleteIfExists(fileNamePathTuple.filePath);
 
-            final FileTime createdTimeAfterSettingToTime0 = Files.readAttributes(fileNamePathTuple.filePath(), BasicFileAttributes.class).creationTime();
+            createAFile(false);
+
+            final FileTime createdAfterDeletion = Files.readAttributes(fileNamePathTuple.filePath(), BasicFileAttributes.class).creationTime();
 
             fileMetadata.writeMetadataTo(fileNamePathTuple.filePath(), fileNamePathTuple.metadata());
 
+            final FileTime lastModifiedAfterRestore = Files.readAttributes(fileNamePathTuple.filePath(), BasicFileAttributes.class).lastModifiedTime();
+            assertEquals(lastModified, lastModifiedAfterRestore);
+
             final FileTime createdTimeAfterRestore = Files.readAttributes(fileNamePathTuple.filePath(), BasicFileAttributes.class).creationTime();
 
-            assertTrue(createdTimeAfterRestore.compareTo(createdTimeAfterSettingToTime0) > 0);
+            assertTrue(createdAfterDeletion.compareTo(createdTimeAfterRestore) > 0);
         } finally {
             if (fileNamePathTuple.filePath() != null) {
                 Files.deleteIfExists(fileNamePathTuple.filePath());

@@ -36,18 +36,9 @@ public class PosixFileMetadata implements FileMetadata {
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSSSSSSSSX");
 
     private static final ImmutableMap<String, MetadataFieldHandler> METADATA_HANDLERS = ImmutableMap.of(
-            MetadataFieldNames.LAST_MODIFIED_TIME,
-            (path, metadataValue) -> {
-                Files.getFileAttributeView(path, BasicFileAttributeView.class).setTimes(makeLocalFileTime(metadataValue), null, null);
-            },
-            MetadataFieldNames.LAST_ACCESSED_TIME,
-            (path, metadataValue) -> {
-                Files.getFileAttributeView(path, BasicFileAttributeView.class).setTimes(null, makeLocalFileTime(metadataValue), null);
-            },
-            MetadataFieldNames.CREATION_TIME,
-            (path, metadataValue) -> {
-                Files.getFileAttributeView(path, BasicFileAttributeView.class).setTimes(null, null, makeLocalFileTime(metadataValue));
-            }
+            MetadataFieldNames.LAST_MODIFIED_TIME, (filePath, metadataValue) -> Files.getFileAttributeView(filePath, BasicFileAttributeView.class).setTimes(makeLocalFileTime(metadataValue), null, null),
+            MetadataFieldNames.LAST_ACCESSED_TIME, (filePath, metadataValue) -> Files.getFileAttributeView(filePath, BasicFileAttributeView.class).setTimes(null, makeLocalFileTime(metadataValue), null),
+            MetadataFieldNames.CREATION_TIME, (filePath, metadataValue) -> Files.getFileAttributeView(filePath, BasicFileAttributeView.class).setTimes(null, null, makeLocalFileTime(metadataValue))
     );
 
     @NotNull
