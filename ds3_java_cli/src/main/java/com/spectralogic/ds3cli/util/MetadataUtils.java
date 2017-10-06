@@ -16,6 +16,11 @@
 package com.spectralogic.ds3cli.util;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.spectralogic.ds3cli.GuiceInjector;
+import com.spectralogic.ds3cli.metadata.FileMetadata;
+import com.spectralogic.ds3cli.metadata.FileMetadataFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,6 +33,7 @@ import java.util.concurrent.TimeUnit;
 
 public final class MetadataUtils {
     private final static Logger LOG = LoggerFactory.getLogger(MetadataUtils.class);
+    private final static Injector INJECTOR = GuiceInjector.INSTANCE.injector();
 
     public static ImmutableMap<String, String> parse(final String[] metadataArgs) {
         final ImmutableMap.Builder<String, String> metadataBuilder = ImmutableMap.builder();
@@ -43,13 +49,12 @@ public final class MetadataUtils {
         return metadataBuilder.build();
     }
 
-    public static Map<String, String> getMetadataValues(final Path path) {
+    public static ImmutableMap<String, String> getMetadataValues(final Path path) {
         try {
-            final FileTime lastModifiedTime = Files.getLastModifiedTime(path);
-            return ImmutableMap.of(Constants.DS3_LAST_MODIFIED, Long.toString(lastModifiedTime.toMillis()));
+            return INJECTOR.getInstance(FileMetadataFactory.class).fileMetadata().readMetadataFrom(path);
         } catch (final IOException e) {
             LOG.error("Could not get the last modified time for file: {}", path, e);
-            return null;
+            return ImmutableMap.of();
         }
     }
 

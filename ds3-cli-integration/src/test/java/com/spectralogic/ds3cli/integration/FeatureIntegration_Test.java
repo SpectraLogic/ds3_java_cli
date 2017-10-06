@@ -501,6 +501,51 @@ public class FeatureIntegration_Test {
     }
 
     @Test
+    public void putObjectWithMetadata() throws Exception {
+        assumeThat(Util.getBlackPearlVersion(client), greaterThan(1.2));
+
+        final String bucketName = "test_put_object_with_metadata";
+        Path filePath = null;
+        final String fileName = "aFile.txt";
+        final Path oldFilePath = Paths.get("oldFilePath.txt");
+
+        try {
+            filePath = Files.createFile(Paths.get(".", fileName));
+
+            Util.createBucket(client, bucketName);
+            final Arguments putObjectsArgs = new Arguments(new String[]{"--http", "-c", "put_object", "-b", bucketName,
+                    "-o", FileUtils.getFileName(Paths.get("."), filePath),
+                    "-metadata name:Gracie"});
+
+            final CommandResponse putObjectResponse = Util.command(client, putObjectsArgs);
+            assertThat(putObjectResponse.getMessage(), is("Success: Finished writing file to ds3 appliance."));
+
+            Files.move(filePath, oldFilePath);
+
+            final Arguments getObjectArgs = new Arguments(new String[]{
+                    "--http",
+                    "-c", "get_object",
+                    "-b", bucketName,
+                    "-o", fileName
+            });
+
+            final CommandResponse getObjectResponse = Util.command(client, getObjectArgs);
+
+            System.out.println();
+        } finally {
+            if (oldFilePath != null) {
+                Files.deleteIfExists(oldFilePath);
+            }
+
+            if (filePath != null) {
+                Files.deleteIfExists(filePath);
+            }
+
+            Util.deleteBucket(client, bucketName);
+        }
+    }
+
+    @Test
     public void putBulkObjectWithSync() throws Exception {
         assumeThat(Util.getBlackPearlVersion(client), greaterThan(1.2));
 
