@@ -20,6 +20,7 @@ import com.spectralogic.ds3cli.GuiceInjector;
 import com.spectralogic.ds3client.utils.Guard;
 import com.spectralogic.ds3client.utils.Platform;
 import org.junit.Assume;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static java.nio.file.Files.readAllBytes;
@@ -27,6 +28,7 @@ import static java.nio.file.Files.write;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertNull;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -35,12 +37,15 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
 
 public class PosixFileMetadata_Test {
+    @BeforeClass
+    public static void setup() {
+        Assume.assumeFalse(Platform.isWindows());
+    }
+
     private final FileMetadata fileMetadata = GuiceInjector.INSTANCE.injector().getInstance(FileMetadataFactory.class).fileMetadata();
 
     @Test
     public void testFileModifiedTime() throws Exception {
-        Assume.assumeFalse(Platform.isWindows());
-
         final FileNamePathTuple fileNamePathTuple = createAFile(true);
 
         try {
@@ -119,8 +124,6 @@ public class PosixFileMetadata_Test {
 
     @Test
     public void testFileAccessedTime() throws Exception {
-        Assume.assumeFalse(Platform.isWindows());
-
         final FileNamePathTuple fileNamePathTuple = createAFile(true);
 
         try {
@@ -142,8 +145,6 @@ public class PosixFileMetadata_Test {
 
     @Test
     public void testFileCreatedTime() throws Exception {
-        Assume.assumeFalse(Platform.isWindows());
-
         final FileNamePathTuple fileNamePathTuple = createAFile(true);
 
         try {
@@ -168,5 +169,53 @@ public class PosixFileMetadata_Test {
                 Files.deleteIfExists(fileNamePathTuple.filePath());
             }
         }
+    }
+
+    @Test
+    public void testFileMode() throws Exception {
+        final FileNamePathTuple fileNamePathTuple = createAFile(true);
+
+        try {
+            final int fileModeBeforeChmod = (int)Files.getAttribute(fileNamePathTuple.filePath(), "unix:mode");
+            Runtime.getRuntime().exec("chmod 400 " + fileNamePathTuple.fileName()).waitFor();
+            final int fileModeAfterChmod = (int)Files.getAttribute(fileNamePathTuple.filePath(), "unix:mode");
+            assertFalse(fileModeAfterChmod == fileModeBeforeChmod);
+
+            fileMetadata.writeMetadataTo(fileNamePathTuple.filePath(), fileNamePathTuple.metadata());
+
+            final int fileModeAfterRestore = (int)Files.getAttribute(fileNamePathTuple.filePath(), "unix:mode");
+            assertTrue(fileModeAfterRestore == fileModeBeforeChmod);
+        } finally {
+            if (fileNamePathTuple.filePath() != null) {
+                Files.deleteIfExists(fileNamePathTuple.filePath());
+            }
+        }
+    }
+
+    /**
+     * About the only thing we can do for owner and group is check that we don't get an exception.
+     */
+    @Test
+    public void testOwnerAndGroup() {
+        Throwable badJuju = null;
+
+        FileNamePathTuple fileNamePathTuple = null;
+
+        try {
+            fileNamePathTuple = createAFile(true);
+            fileMetadata.writeMetadataTo(fileNamePathTuple.filePath(), fileNamePathTuple.metadata());
+        } catch (final Throwable t) {
+            badJuju = t;
+        } finally {
+            if (fileNamePathTuple.filePath() != null) {
+                try {
+                    Files.deleteIfExists(fileNamePathTuple.filePath());
+                } catch (final Throwable t) {
+                    // Don't really care if we got an exception here
+                }
+            }
+        }
+
+        assertNull(badJuju);
     }
 }

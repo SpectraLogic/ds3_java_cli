@@ -16,7 +16,6 @@
 package com.spectralogic.ds3cli.metadata;
 
 import com.google.common.collect.ImmutableMap;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -24,6 +23,7 @@ import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributeView;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
+import java.nio.file.attribute.UserPrincipalLookupService;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -35,18 +35,28 @@ import java.util.Map;
 public class PosixFileMetadata implements FileMetadata {
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSSSSSSSSX");
 
-    private static final ImmutableMap<String, MetadataFieldHandler> METADATA_HANDLERS = ImmutableMap.of(
-            MetadataFieldNames.LAST_MODIFIED_TIME, (filePath, metadataValue) -> Files.getFileAttributeView(filePath, BasicFileAttributeView.class).setTimes(makeLocalFileTime(metadataValue), null, null),
-            MetadataFieldNames.LAST_ACCESSED_TIME, (filePath, metadataValue) -> Files.getFileAttributeView(filePath, BasicFileAttributeView.class).setTimes(null, makeLocalFileTime(metadataValue), null),
-            MetadataFieldNames.CREATION_TIME, (filePath, metadataValue) -> Files.getFileAttributeView(filePath, BasicFileAttributeView.class).setTimes(null, null, makeLocalFileTime(metadataValue))
-    );
+    private static final ImmutableMap<String, MetadataFieldHandler> METADATA_HANDLERS;
 
-    @NotNull
+    static {
+        final ImmutableMap.Builder<String, MetadataFieldHandler> mapBuilder = ImmutableMap.builder();
+        mapBuilder.put(MetadataFieldNames.LAST_MODIFIED_TIME, (filePath, metadataValue) -> Files.getFileAttributeView(filePath, BasicFileAttributeView.class).setTimes(makeLocalFileTime(metadataValue), null, null));
+        mapBuilder.put(MetadataFieldNames.LAST_ACCESSED_TIME, (filePath, metadataValue) -> Files.getFileAttributeView(filePath, BasicFileAttributeView.class).setTimes(null, makeLocalFileTime(metadataValue), null));
+        mapBuilder.put(MetadataFieldNames.CREATION_TIME, (filePath, metadataValue) -> Files.getFileAttributeView(filePath, BasicFileAttributeView.class).setTimes(null, null, makeLocalFileTime(metadataValue)));
+        mapBuilder.put(MetadataFieldNames.OWNER, (filePath, metadataValue) -> Files.setAttribute(filePath, "posix:owner", userPrincipalLookupService(filePath).lookupPrincipalByName(metadataValue)));
+        mapBuilder.put(MetadataFieldNames.GROUP, (filePath, metadataValue) -> Files.setAttribute(filePath, "posix:group", userPrincipalLookupService(filePath).lookupPrincipalByGroupName(metadataValue)));
+        mapBuilder.put(MetadataFieldNames.MODE, (filePath, metadataValue) -> Files.setAttribute(filePath, "unix:mode", Integer.parseInt(metadataValue)));
+        METADATA_HANDLERS = mapBuilder.build();
+    }
+
     private static FileTime makeLocalFileTime(final String metadataValue) {
         final Instant timeReadBack = LocalDateTime.parse(metadataValue, DATE_TIME_FORMATTER).toInstant(ZoneOffset.UTC);
         final LocalDateTime localDateTime = LocalDateTime.ofInstant(timeReadBack, ZoneId.systemDefault());
         final Date localDate = Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
         return FileTime.fromMillis(localDate.getTime());
+    }
+
+    private static UserPrincipalLookupService userPrincipalLookupService(final Path filePath) {
+        return filePath.getFileSystem().getUserPrincipalLookupService();
     }
 
     @Override
