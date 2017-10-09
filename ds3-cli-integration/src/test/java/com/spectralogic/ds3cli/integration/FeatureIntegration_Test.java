@@ -17,10 +17,12 @@ package com.spectralogic.ds3cli.integration;
 
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Lists;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.CommandResponse;
+import com.spectralogic.ds3cli.GuiceInjector;
 import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.helpers.JsonMapper;
 import com.spectralogic.ds3cli.helpers.TempStorageIds;
@@ -28,6 +30,9 @@ import com.spectralogic.ds3cli.helpers.TempStorageUtil;
 import com.spectralogic.ds3cli.helpers.Util;
 import com.spectralogic.ds3cli.helpers.models.HeadObject;
 import com.spectralogic.ds3cli.helpers.models.JobResponse;
+import com.spectralogic.ds3cli.metadata.FileMetadata;
+import com.spectralogic.ds3cli.metadata.FileMetadataFactory;
+import com.spectralogic.ds3cli.metadata.FileMetadataFieldNames;
 import com.spectralogic.ds3cli.models.BulkJobType;
 import com.spectralogic.ds3cli.models.RecoveryJob;
 import com.spectralogic.ds3cli.util.FileUtils;
@@ -43,6 +48,7 @@ import com.spectralogic.ds3client.helpers.FolderNameFilter;
 import com.spectralogic.ds3client.models.ChecksumType;
 import com.spectralogic.ds3client.models.Contents;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
+import com.spectralogic.ds3client.utils.Platform;
 import com.spectralogic.ds3client.utils.ResourceUtils;
 import org.joda.time.DateTime;
 import org.junit.AfterClass;
@@ -67,6 +73,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeThat;
 
 public class FeatureIntegration_Test {
@@ -503,6 +510,7 @@ public class FeatureIntegration_Test {
     @Test
     public void putObjectWithMetadata() throws Exception {
         assumeThat(Util.getBlackPearlVersion(client), greaterThan(1.2));
+        assumeFalse(Platform.isWindows());
 
         final String bucketName = "test_put_object_with_metadata";
         Path filePath = null;
@@ -531,7 +539,26 @@ public class FeatureIntegration_Test {
 
             final CommandResponse getObjectResponse = Util.command(client, getObjectArgs);
 
-            System.out.println();
+            assertEquals("SUCCESS: Finished downloading object.  The object was written to: ./" + fileName, getObjectResponse.getMessage());
+
+            final ImmutableMap<String, String> oldFileMetadata = GuiceInjector.INSTANCE.injector().getInstance(FileMetadataFactory.class).fileMetadata().readMetadataFrom(oldFilePath);
+            final ImmutableMap<String, String> newFileMetadata = GuiceInjector.INSTANCE.injector().getInstance(FileMetadataFactory.class).fileMetadata().readMetadataFrom(filePath);
+
+            assertEquals(oldFileMetadata.keySet(), newFileMetadata.keySet());
+
+            for (final String metdataKey : oldFileMetadata.keySet()) {
+                // Changed time is a value difficult to write to a file, because it gets updated with many kinds of
+                // access.  Depending on the order things happen, which we don't want to try to specify, trying to restore
+                // the change time could happen before some other thing which could, in turn, change ctime.
+                if (metdataKey.equals(FileMetadataFieldNames.CHANGED_TIME)) {
+                    continue;
+                }
+
+                final String oldMetadataValue = oldFileMetadata.get(metdataKey);
+                final String newwMetadataValue = newFileMetadata.get(metdataKey);
+
+                assertEquals(oldMetadataValue, newwMetadataValue);
+            }
         } finally {
             if (oldFilePath != null) {
                 Files.deleteIfExists(oldFilePath);

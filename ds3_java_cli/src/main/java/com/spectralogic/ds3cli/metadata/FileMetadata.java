@@ -19,9 +19,9 @@ import com.google.common.collect.ImmutableMap;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.Map;
+import com.spectralogic.ds3client.networking.Metadata;
 
 public interface FileMetadata {
     ImmutableMap<String, String> readMetadataFrom(final Path filePath) throws IOException;
-    void writeMetadataTo(final Path filePath, final Map<String, String> metadata) throws IOException;
+    void writeMetadataTo(final Path filePath, final Metadata metadata) throws IOException;
 }

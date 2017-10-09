@@ -30,7 +30,7 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
-import java.util.Map;
+import com.spectralogic.ds3client.networking.Metadata;
 
 public class PosixFileMetadata implements FileMetadata {
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSSSSSSSSX");
@@ -39,12 +39,12 @@ public class PosixFileMetadata implements FileMetadata {
 
     static {
         final ImmutableMap.Builder<String, MetadataFieldHandler> mapBuilder = ImmutableMap.builder();
-        mapBuilder.put(MetadataFieldNames.LAST_MODIFIED_TIME, (filePath, metadataValue) -> Files.getFileAttributeView(filePath, BasicFileAttributeView.class).setTimes(makeLocalFileTime(metadataValue), null, null));
-        mapBuilder.put(MetadataFieldNames.LAST_ACCESSED_TIME, (filePath, metadataValue) -> Files.getFileAttributeView(filePath, BasicFileAttributeView.class).setTimes(null, makeLocalFileTime(metadataValue), null));
-        mapBuilder.put(MetadataFieldNames.CREATION_TIME, (filePath, metadataValue) -> Files.getFileAttributeView(filePath, BasicFileAttributeView.class).setTimes(null, null, makeLocalFileTime(metadataValue)));
-        mapBuilder.put(MetadataFieldNames.OWNER, (filePath, metadataValue) -> Files.setAttribute(filePath, "posix:owner", userPrincipalLookupService(filePath).lookupPrincipalByName(metadataValue)));
-        mapBuilder.put(MetadataFieldNames.GROUP, (filePath, metadataValue) -> Files.setAttribute(filePath, "posix:group", userPrincipalLookupService(filePath).lookupPrincipalByGroupName(metadataValue)));
-        mapBuilder.put(MetadataFieldNames.MODE, (filePath, metadataValue) -> Files.setAttribute(filePath, "unix:mode", Integer.parseInt(metadataValue)));
+        mapBuilder.put(FileMetadataFieldNames.LAST_MODIFIED_TIME, (filePath, metadataValue) -> Files.getFileAttributeView(filePath, BasicFileAttributeView.class).setTimes(makeLocalFileTime(metadataValue), null, null));
+        mapBuilder.put(FileMetadataFieldNames.LAST_ACCESSED_TIME, (filePath, metadataValue) -> Files.getFileAttributeView(filePath, BasicFileAttributeView.class).setTimes(null, makeLocalFileTime(metadataValue), null));
+        mapBuilder.put(FileMetadataFieldNames.CREATION_TIME, (filePath, metadataValue) -> Files.getFileAttributeView(filePath, BasicFileAttributeView.class).setTimes(null, null, makeLocalFileTime(metadataValue)));
+        mapBuilder.put(FileMetadataFieldNames.OWNER, (filePath, metadataValue) -> Files.setAttribute(filePath, "posix:owner", userPrincipalLookupService(filePath).lookupPrincipalByName(metadataValue)));
+        mapBuilder.put(FileMetadataFieldNames.GROUP, (filePath, metadataValue) -> Files.setAttribute(filePath, "posix:group", userPrincipalLookupService(filePath).lookupPrincipalByGroupName(metadataValue)));
+        mapBuilder.put(FileMetadataFieldNames.MODE, (filePath, metadataValue) -> Files.setAttribute(filePath, "unix:mode", Integer.parseInt(metadataValue)));
         METADATA_HANDLERS = mapBuilder.build();
     }
 
@@ -75,13 +75,23 @@ public class PosixFileMetadata implements FileMetadata {
     }
 
     @Override
-    public void writeMetadataTo(final Path filePath, final Map<String, String> metadata) throws IOException {
-        for (final String metadataKey : metadata.keySet()) {
-            final MetadataFieldHandler metadataFieldHandler = METADATA_HANDLERS.get(metadataKey);
+    public void writeMetadataTo(final Path filePath, final Metadata metadata) throws IOException {
+        for (final String metadataKey : metadata.keys()) {
+            processMetadataKeys(filePath, metadata, metadataKey);
+        }
+    }
 
-            if (metadataFieldHandler != null) {
-                metadataFieldHandler.apply(filePath, metadata.get(metadataKey));
-            }
+    private void processMetadataKeys(final Path filePath, final Metadata metadata, final String metadataKey) throws IOException {
+        final MetadataFieldHandler metadataFieldHandler = METADATA_HANDLERS.get(metadataKey);
+
+        if (metadataFieldHandler != null) {
+            processMetadataValues(filePath, metadata, metadataKey, metadataFieldHandler);
+        }
+    }
+
+    private void processMetadataValues(final Path filePath, final Metadata metadata, final String metadataKey, final MetadataFieldHandler metadataFieldHandler) throws IOException {
+        for (final String metadataValue : metadata.get(metadataKey)) {
+            metadataFieldHandler.apply(filePath, metadataValue);
         }
     }
 

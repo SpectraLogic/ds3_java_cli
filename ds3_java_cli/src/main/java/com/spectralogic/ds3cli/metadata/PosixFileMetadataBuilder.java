@@ -82,31 +82,31 @@ public class PosixFileMetadataBuilder {
         final ImmutableMap.Builder<String, String> mapBuilder = ImmutableMap.builder();
 
         if ( ! Guard.isStringNullOrEmpty(lastModifiedTimeString)) {
-            mapBuilder.put(MetadataFieldType.LastModifiedTime.metadataFieldId(), lastModifiedTimeString);
+            mapBuilder.put(FileMetadataFieldType.LastModifiedTime.metadataFieldId(), lastModifiedTimeString);
         }
 
         if ( ! Guard.isStringNullOrEmpty(lastAccessedTimeString)) {
-            mapBuilder.put(MetadataFieldType.LastAccessedTime.metadataFieldId(), lastAccessedTimeString);
+            mapBuilder.put(FileMetadataFieldType.LastAccessedTime.metadataFieldId(), lastAccessedTimeString);
         }
 
         if ( ! Guard.isStringNullOrEmpty(creationTimeString)) {
-            mapBuilder.put(MetadataFieldType.CreationTime.metadataFieldId(), creationTimeString);
+            mapBuilder.put(FileMetadataFieldType.CreationTime.metadataFieldId(), creationTimeString);
         }
 
         if ( ! Guard.isStringNullOrEmpty(changedTimeString)) {
-            mapBuilder.put(MetadataFieldType.ChangedTime.metadataFieldId(), changedTimeString);
+            mapBuilder.put(FileMetadataFieldType.ChangedTime.metadataFieldId(), changedTimeString);
         }
 
         if ( ! Guard.isStringNullOrEmpty(ownerIdString)) {
-            mapBuilder.put(MetadataFieldType.OwnerId.metadataFieldId(), ownerIdString);
+            mapBuilder.put(FileMetadataFieldType.OwnerId.metadataFieldId(), ownerIdString);
         }
 
         if ( ! Guard.isStringNullOrEmpty(groupIdString)) {
-            mapBuilder.put(MetadataFieldType.GroupId.metadataFieldId(), groupIdString);
+            mapBuilder.put(FileMetadataFieldType.GroupId.metadataFieldId(), groupIdString);
         }
 
         if ( ! Guard.isStringNullOrEmpty(modeString)) {
-            mapBuilder.put(MetadataFieldType.Mode.metadataFieldId(), modeString);
+            mapBuilder.put(FileMetadataFieldType.Mode.metadataFieldId(), modeString);
         }
 
         return mapBuilder.build();

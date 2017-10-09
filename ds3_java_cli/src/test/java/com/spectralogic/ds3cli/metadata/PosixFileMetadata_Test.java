@@ -35,6 +35,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+
+import com.spectralogic.ds3client.networking.Metadata;
 
 public class PosixFileMetadata_Test {
     @BeforeClass
@@ -81,29 +86,53 @@ public class PosixFileMetadata_Test {
 
         write(filePath, new byte[] { 0 });
 
-        final ImmutableMap<String, String> metadata = fileMetadata.readMetadataFrom(filePath);
+        final ImmutableMap<String, String> metadataMap = fileMetadata.readMetadataFrom(filePath);
 
-        assertEquals(MetadataFieldType.values().length, metadata.size());
+        assertEquals(FileMetadataFieldType.values().length, metadataMap.size());
 
-        for (final String metadataField : metadata.values()) {
+        for (final String metadataField : metadataMap.values()) {
             assertFalse(Guard.isStringNullOrEmpty(metadataField));
         }
 
         Thread.sleep(1000);
 
         if (recordMetaData) {
+            final Metadata metadata = new Metadata() {
+                @Override
+                public List<String> get(final String s) {
+                    return Collections.singletonList(metadataMap.get(s));
+                }
+
+                @Override
+                public Set<String> keys() {
+                    return metadataMap.keySet();
+                }
+            };
+
             return new FileNamePathTuple(fileName, createdFilePath, metadata);
         } else {
-            return new FileNamePathTuple(fileName, createdFilePath, ImmutableMap.of());
+            final Metadata metadata = new Metadata() {
+                @Override
+                public List<String> get(final String s) {
+                    return Collections.emptyList();
+                }
+
+                @Override
+                public Set<String> keys() {
+                    return Collections.emptySet();
+                }
+            };
+
+            return new FileNamePathTuple(fileName, createdFilePath, metadata);
         }
     }
 
     private static class FileNamePathTuple {
         private final String fileName;
         private final Path filePath;
-        private final ImmutableMap<String, String> metadata;
+        private final Metadata metadata;
 
-        private FileNamePathTuple(final String fileName, final Path filePath, final ImmutableMap<String, String> metadata) {
+        private FileNamePathTuple(final String fileName, final Path filePath, final Metadata metadata) {
             this.fileName = fileName;
             this.filePath = filePath;
             this.metadata = metadata;
@@ -117,7 +146,7 @@ public class PosixFileMetadata_Test {
             return filePath;
         }
 
-        private ImmutableMap<String, String> metadata() {
+        private Metadata metadata() {
             return metadata;
         }
     }

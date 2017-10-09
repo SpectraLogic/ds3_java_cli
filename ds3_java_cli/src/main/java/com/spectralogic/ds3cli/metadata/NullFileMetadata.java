@@ -16,10 +16,10 @@
 package com.spectralogic.ds3cli.metadata;
 
 import com.google.common.collect.ImmutableMap;
+import com.spectralogic.ds3client.networking.Metadata;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.Map;
 
 public class NullFileMetadata implements FileMetadata {
     @Override
@@ -28,7 +28,7 @@ public class NullFileMetadata implements FileMetadata {
     }
 
     @Override
-    public void writeMetadataTo(final Path filePath, final Map<String, String> metadata) {
+    public void writeMetadataTo(final Path filePath, final Metadata metadata) throws IOException {
         // Intentionally not implemented
     }
 }

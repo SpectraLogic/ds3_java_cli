@@ -59,17 +59,10 @@ public final class MetadataUtils {
     }
 
     public static void restoreLastModified(final String filename, final com.spectralogic.ds3client.networking.Metadata metadata, final Path path) {
-        if (metadata.keys().contains(Constants.DS3_LAST_MODIFIED)) {
-            try {
-                final long lastModifiedMs = Long.parseLong(metadata.get(Constants.DS3_LAST_MODIFIED).get(0));
-                final FileTime lastModified = FileTime.from(lastModifiedMs, TimeUnit.MILLISECONDS);
-                Files.setLastModifiedTime(path, lastModified);
-            } catch (final Throwable t) {
-                LOG.error("Failed to restore the last modified date for object: {}", filename, t);
-            }
-
-        } else {
-            LOG.warn("Object ({}) does not contain a last modified field", filename);
+        try {
+            INJECTOR.getInstance(FileMetadataFactory.class).fileMetadata().writeMetadataTo(path, metadata);
+        } catch (final Throwable t) {
+            LOG.error("Failed to restore the last modified date for object: {}", filename, t);
         }
     }
 }

@@ -15,16 +15,22 @@
 
 package com.spectralogic.ds3cli.metadata;
 
-public final class MetadataFieldNames {
-    public static final String LAST_MODIFIED_TIME = "ds3-last-modified-time";
-    public static final String LAST_ACCESSED_TIME = "ds3-last-access-time";
-    public static final String CREATION_TIME = "ds3-create-time";
-    public static final String CHANGED_TIME = "ds3-ctime";
-    public static final String OWNER = "ds3-owner";
-    public static final String GROUP = "ds3-group";
-    public static final String MODE = "ds3-mode";
+public enum FileMetadataFieldType {
+    LastModifiedTime(FileMetadataFieldNames.LAST_MODIFIED_TIME),
+    LastAccessedTime(FileMetadataFieldNames.LAST_ACCESSED_TIME),
+    CreationTime(FileMetadataFieldNames.CREATION_TIME),
+    ChangedTime(FileMetadataFieldNames.CHANGED_TIME),
+    OwnerId(FileMetadataFieldNames.OWNER),
+    GroupId(FileMetadataFieldNames.GROUP),
+    Mode(FileMetadataFieldNames.MODE);
 
-    private MetadataFieldNames() {
-        // Intentionally not implemented
+    private final String metadataFieldId;
+
+    FileMetadataFieldType(final String metadataFieldId) {
+        this.metadataFieldId = metadataFieldId;
+    }
+
+    public String metadataFieldId() {
+        return metadataFieldId;
     }
 }
