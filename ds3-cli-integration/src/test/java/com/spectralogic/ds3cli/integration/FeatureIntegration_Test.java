@@ -30,9 +30,9 @@ import com.spectralogic.ds3cli.helpers.TempStorageUtil;
 import com.spectralogic.ds3cli.helpers.Util;
 import com.spectralogic.ds3cli.helpers.models.HeadObject;
 import com.spectralogic.ds3cli.helpers.models.JobResponse;
-import com.spectralogic.ds3cli.metadata.FileMetadata;
 import com.spectralogic.ds3cli.metadata.FileMetadataFactory;
 import com.spectralogic.ds3cli.metadata.FileMetadataFieldNames;
+import com.spectralogic.ds3cli.metadata.FileMetadataFieldType;
 import com.spectralogic.ds3cli.models.BulkJobType;
 import com.spectralogic.ds3cli.models.RecoveryJob;
 import com.spectralogic.ds3cli.util.FileUtils;
@@ -514,7 +514,7 @@ public class FeatureIntegration_Test {
 
         final String bucketName = "test_put_object_with_metadata";
         Path filePath = null;
-        final String fileName = "aFile.txt";
+        final String fileName = "Gracie.txt";
         final Path oldFilePath = Paths.get("oldFilePath.txt");
 
         try {
@@ -523,7 +523,7 @@ public class FeatureIntegration_Test {
             Util.createBucket(client, bucketName);
             final Arguments putObjectsArgs = new Arguments(new String[]{"--http", "-c", "put_object", "-b", bucketName,
                     "-o", FileUtils.getFileName(Paths.get("."), filePath),
-                    "-metadata name:Gracie"});
+                    "-metadata"});
 
             final CommandResponse putObjectResponse = Util.command(client, putObjectsArgs);
             assertThat(putObjectResponse.getMessage(), is("Success: Finished writing file to ds3 appliance."));
@@ -696,7 +696,7 @@ public class FeatureIntegration_Test {
             final ImmutableMultimap<String, String> metadata = headObject.getData().getMetadata();
 
             assertThat(metadata, is(notNullValue()));
-            assertThat(metadata.size(), is(2)); // x-amz-meta-ds3-last-modified is added automatically
+            assertThat(metadata.size(), is(FileMetadataFieldType.values().length + 1));
 
             final ImmutableCollection<String> collection = metadata.get("key");
 
@@ -731,7 +731,7 @@ public class FeatureIntegration_Test {
             final ImmutableMultimap<String, String> metadata = headObject.getData().getMetadata();
 
             assertThat(metadata, is(notNullValue()));
-            assertThat(metadata.size(), is(3)); // x-amz-meta-ds3-last-modified is added automatically
+            assertThat(metadata.size(), is(FileMetadataFieldType.values().length +  2));
 
             ImmutableCollection<String> collection = metadata.get("key");
             assertThat(collection.size(), is(1));

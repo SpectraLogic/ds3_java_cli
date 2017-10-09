@@ -16,20 +16,14 @@
 package com.spectralogic.ds3cli.util;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.spectralogic.ds3cli.GuiceInjector;
-import com.spectralogic.ds3cli.metadata.FileMetadata;
 import com.spectralogic.ds3cli.metadata.FileMetadataFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.attribute.FileTime;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 public final class MetadataUtils {
     private final static Logger LOG = LoggerFactory.getLogger(MetadataUtils.class);
