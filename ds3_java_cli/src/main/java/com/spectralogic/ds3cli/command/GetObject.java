@@ -146,12 +146,7 @@ public class GetObject extends CliCommand<DefaultResult> {
         }
         final Ds3ClientHelpers.Job job = helpers.startReadJob(this.bucketName, ds3ObjectList, readJobOptions);
         job.withMaxParallelRequests(this.numberOfThreads);
-        job.attachMetadataReceivedListener(new MetadataReceivedListener() {
-            @Override
-            public void metadataReceived(final String filename, final Metadata metadata) {
-                MetadataUtils.restoreLastModified(filename, metadata, Paths.get(prefix, filename));
-            }
-        });
+        job.attachMetadataReceivedListener((filename, metadata) -> MetadataUtils.restoreLastModified(filename, metadata, Paths.get(prefix, filename)));
         job.transfer(getter);
     }
 }
