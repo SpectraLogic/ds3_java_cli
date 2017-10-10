@@ -552,41 +552,6 @@ public class Ds3Cli_Test {
     }
 
     @Test
-    public void putJob() throws Exception {
-        final String jobId = "42b61136-9221-474b-a509-d716d8c554cd";
-        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!",
-                "-a", "access", "-c", "put_job", "-i", jobId, "--priority", "LOW"});
-        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
-        command.init(args);
-        assertTrue(command instanceof PutJob);
-        final View view = command.getView();
-
-        final String expected = "Success: Modified job with job id '" + jobId + "' with priority LOW.";
-        final String packet = "<MasterObjectList BucketName=\"test_modify_job\" CachedSizeInBytes=\"0\" ChunkClientProcessingOrderGuarantee=\"IN_ORDER\" CompletedSizeInBytes=\"0\" JobId=\"42b61136-9221-474b-a509-d716d8c554cd\" OriginalSizeInBytes=\"2\" Priority=\"HIGH\" RequestType=\"PUT\" StartDate=\"2015-09-23T20:25:26.000Z\" Status=\"IN_PROGRESS\" UserId=\"c2581493-058c-40d7-a3a1-9a50b20d6d3b\" UserName=\"spectra\" WriteOptimization=\"CAPACITY\"><Nodes><Node EndPoint=\"192.168.56.101\" HttpPort=\"8080\" Id=\"477097a1-5326-11e5-b859-0800271a68bf\"/></Nodes><Objects ChunkId=\"a1004507-24d7-43c8-bdba-19faae3dc349\" ChunkNumber=\"0\"><Object InCache=\"false\" Length=\"2\" Name=\"test\" Offset=\"0\"/></Objects></MasterObjectList>";
-
-        final String result = view.render(new DefaultResult("Success: Modified job with job id '" + jobId + "' with priority LOW."));
-        assertThat(result, is(expected));
-    }
-
-    @Test
-    public void putJobJson() throws Exception {
-        final String jobId = "42b61136-9221-474b-a509-d716d8c554cd";
-        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!",
-                "-a", "access", "-c", "put_job", "-i", jobId, "--priority", "LOW", "--output-format", "json"});
-
-        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
-        command.init(args);
-        assertTrue(command instanceof PutJob);
-        final View view = command.getView();
-
-        final String expected = "\"Message\" : \"Success: Modified job with job id '" + jobId + "' with priority LOW.\"\n}";
-        final String packet = "<MasterObjectList BucketName=\"test_modify_job\" CachedSizeInBytes=\"0\" ChunkClientProcessingOrderGuarantee=\"IN_ORDER\" CompletedSizeInBytes=\"0\" JobId=\"42b61136-9221-474b-a509-d716d8c554cd\" OriginalSizeInBytes=\"2\" Priority=\"HIGH\" RequestType=\"PUT\" StartDate=\"2015-09-23T20:25:26.000Z\" Status=\"IN_PROGRESS\" UserId=\"c2581493-058c-40d7-a3a1-9a50b20d6d3b\" UserName=\"spectra\" WriteOptimization=\"CAPACITY\"><Nodes><Node EndPoint=\"192.168.56.101\" HttpPort=\"8080\" Id=\"477097a1-5326-11e5-b859-0800271a68bf\"/></Nodes><Objects ChunkId=\"a1004507-24d7-43c8-bdba-19faae3dc349\" ChunkNumber=\"0\"><Object InCache=\"false\" Length=\"2\" Name=\"test\" Offset=\"0\"/></Objects></MasterObjectList>";
-
-        final String result = view.render(new DefaultResult("Success: Modified job with job id '" + jobId + "' with priority LOW."));
-        assertTrue(result.endsWith(expected));
-    }
-
-    @Test
     public void putObject() throws Exception {
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "put_object", "-b", "bucketName", "-o", "obj.txt"});
         final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());

@@ -48,7 +48,6 @@ com.spectralogic.ds3cli.command.ModifyUser
 com.spectralogic.ds3cli.command.Performance
 com.spectralogic.ds3cli.command.PutBucket
 com.spectralogic.ds3cli.command.PutBulk
-com.spectralogic.ds3cli.command.PutJob
 com.spectralogic.ds3cli.command.PutObject
 com.spectralogic.ds3cli.command.ReclaimCache
 com.spectralogic.ds3cli.command.SystemInformation
