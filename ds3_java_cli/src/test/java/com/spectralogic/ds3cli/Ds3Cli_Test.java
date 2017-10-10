@@ -855,6 +855,27 @@ public class Ds3Cli_Test {
     }
 
     @Test
+    public void modifyJobToOnlyUpdateDeadJobTimer() throws Exception {
+        final String jobId = "081bbb4f-fb42-4871-b3af-d5180f0c6569";
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!",
+                "-a", "access", "-c", "modify_job", "-i", jobId});
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
+        command.init(args);
+        assertTrue(command instanceof ModifyJob);
+        final View view = command.getView();
+
+        final String expected = "JobId: " + jobId + " | Name: jobName | Status: IN_PROGRESS | Bucket: coffeehouse | Type: PUT | Priority: HIGH | User Name: jk | Creation Date: 2016-12-01T18:51:09.000Z | Total Size: 343479386 | Total Transferred: 0";
+
+        final String xmlResponse = "<MasterObjectList Aggregating=\"false\" BucketName=\"coffeehouse\" CachedSizeInBytes=\"343479386\" ChunkClientProcessingOrderGuarantee=\"IN_ORDER\" CompletedSizeInBytes=\"0\" EntirelyInCache=\"true\" JobId=\"" + jobId +
+                "\" Naked=\"false\" Name=\"jobName\" OriginalSizeInBytes=\"343479386\" Priority=\"HIGH\" RequestType=\"PUT\" StartDate=\"2016-12-01T18:51:09.000Z\" Status=\"IN_PROGRESS\" UserId=\"c1fdd654-5e00-4adf-a5d5-bafeba1bb237\" UserName=\"jk\"></MasterObjectList>";
+
+        final MasterObjectList objectList = XmlOutput.fromXml(xmlResponse, MasterObjectList.class);
+        final GetJobResult result = new GetJobResult(objectList);
+        final String output = view.render(result);
+        assertThat(output, is(expected));
+    }
+
+    @Test
     public void getBulk() throws Exception {
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_bulk", "-b", "bucketName"});
         final Ds3ClientHelpers helpers = mock(Ds3ClientHelpers.class);
