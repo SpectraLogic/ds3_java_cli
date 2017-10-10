@@ -45,6 +45,6 @@ public class LoggingFileObjectGetter implements LoggingObjectGetter {
     @Override
     public void metadataReceived(final String fileName, final Metadata metadata) {
         final Path path = outputPath.resolve(fileName);
-        MetadataUtils.restoreLastModified(fileName, metadata, path);
+        MetadataUtils.restoreMetadataValues(fileName, metadata, path);
     }
 }

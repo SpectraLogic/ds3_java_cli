@@ -51,7 +51,7 @@ public class PosixFileMetadata_Test {
 
     @Test
     public void testFileModifiedTime() throws Exception {
-        final FileNamePathTuple fileNamePathTuple = createAFile(true);
+        final FileNamePathTuple fileNamePathTuple = createAFile("Twitch.txt", true);
 
         try {
             final FileTime createdTime = Files.readAttributes(fileNamePathTuple.filePath(), BasicFileAttributes.class).creationTime();
@@ -77,8 +77,7 @@ public class PosixFileMetadata_Test {
         }
     }
 
-    private FileNamePathTuple createAFile(final boolean recordMetaData) throws Exception {
-        final String fileName = "aFile.txt";
+    private FileNamePathTuple createAFile(final String fileName, final boolean recordMetaData) throws Exception {
         final Path filePath = Paths.get(fileName);
         final Path createdFilePath = Files.createFile(filePath);
 
@@ -153,7 +152,7 @@ public class PosixFileMetadata_Test {
 
     @Test
     public void testFileAccessedTime() throws Exception {
-        final FileNamePathTuple fileNamePathTuple = createAFile(true);
+        final FileNamePathTuple fileNamePathTuple = createAFile("Gracie.txt", true);
 
         try {
             readAllBytes(fileNamePathTuple.filePath);
@@ -174,14 +173,16 @@ public class PosixFileMetadata_Test {
 
     @Test
     public void testFileCreatedTime() throws Exception {
-        final FileNamePathTuple fileNamePathTuple = createAFile(true);
+        final String fileName = "Shasta.txt";
+
+        final FileNamePathTuple fileNamePathTuple = createAFile(fileName, true);
 
         try {
             final FileTime lastModified = Files.readAttributes(fileNamePathTuple.filePath(), BasicFileAttributes.class).lastModifiedTime();
 
             Files.deleteIfExists(fileNamePathTuple.filePath);
 
-            createAFile(false);
+            createAFile(fileName, false);
 
             final FileTime createdAfterDeletion = Files.readAttributes(fileNamePathTuple.filePath(), BasicFileAttributes.class).creationTime();
 
@@ -202,7 +203,7 @@ public class PosixFileMetadata_Test {
 
     @Test
     public void testFileMode() throws Exception {
-        final FileNamePathTuple fileNamePathTuple = createAFile(true);
+        final FileNamePathTuple fileNamePathTuple = createAFile("Nibbles.txt", true);
 
         try {
             final int fileModeBeforeChmod = (int)Files.getAttribute(fileNamePathTuple.filePath(), "unix:mode");
@@ -231,7 +232,7 @@ public class PosixFileMetadata_Test {
         FileNamePathTuple fileNamePathTuple = null;
 
         try {
-            fileNamePathTuple = createAFile(true);
+            fileNamePathTuple = createAFile("Marbles.txt", true);
             fileMetadata.writeMetadataTo(fileNamePathTuple.filePath(), fileNamePathTuple.metadata());
         } catch (final Throwable t) {
             badJuju = t;

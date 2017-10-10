@@ -30,6 +30,7 @@ import com.spectralogic.ds3cli.helpers.TempStorageUtil;
 import com.spectralogic.ds3cli.helpers.Util;
 import com.spectralogic.ds3cli.helpers.models.HeadObject;
 import com.spectralogic.ds3cli.helpers.models.JobResponse;
+import com.spectralogic.ds3cli.metadata.FileMetadata;
 import com.spectralogic.ds3cli.metadata.FileMetadataFactory;
 import com.spectralogic.ds3cli.metadata.FileMetadataFieldNames;
 import com.spectralogic.ds3cli.metadata.FileMetadataFieldType;
@@ -80,7 +81,6 @@ public class FeatureIntegration_Test {
     private static final String TEST_ENV_NAME = "FeatureIntegration_Test";
     private static TempStorageIds envStorageIds;
     private static UUID envDataPolicyId;
-
 
     @BeforeClass
     public static void startup() throws IOException {
@@ -510,7 +510,7 @@ public class FeatureIntegration_Test {
 
         final String bucketName = "test_put_object_with_metadata";
         Path filePath = null;
-        final String fileName = "Gracie.txt";
+        final String fileName = "Buttons.txt";
         final Path oldFilePath = Paths.get("oldFilePath.txt");
 
         try {
@@ -537,23 +537,26 @@ public class FeatureIntegration_Test {
 
             assertEquals("SUCCESS: Finished downloading object.  The object was written to: ./" + fileName, getObjectResponse.getMessage());
 
-            final ImmutableMap<String, String> oldFileMetadata = GuiceInjector.INSTANCE.injector().getInstance(FileMetadataFactory.class).fileMetadata().readMetadataFrom(oldFilePath);
-            final ImmutableMap<String, String> newFileMetadata = GuiceInjector.INSTANCE.injector().getInstance(FileMetadataFactory.class).fileMetadata().readMetadataFrom(filePath);
+            final FileMetadata fileMetadata = GuiceInjector.INSTANCE.injector().getInstance(FileMetadataFactory.class).fileMetadata();
+
+            final ImmutableMap<String, String> oldFileMetadata = fileMetadata.readMetadataFrom(oldFilePath);
+            final ImmutableMap<String, String> newFileMetadata = fileMetadata.readMetadataFrom(filePath);
 
             assertEquals(oldFileMetadata.keySet(), newFileMetadata.keySet());
 
-            for (final String metdataKey : oldFileMetadata.keySet()) {
+            for (final String metadataKey : oldFileMetadata.keySet()) {
                 // Changed time is a value difficult to write to a file, because it gets updated with many kinds of
                 // access.  Depending on the order things happen, which we don't want to try to specify, trying to restore
                 // the change time could happen before some other thing which could, in turn, change ctime.
-                if (metdataKey.equals(FileMetadataFieldNames.CHANGED_TIME)) {
+                if (metadataKey.equals(FileMetadataFieldNames.CHANGED_TIME)) {
                     continue;
                 }
 
-                final String oldMetadataValue = oldFileMetadata.get(metdataKey);
-                final String newwMetadataValue = newFileMetadata.get(metdataKey);
+                final String oldMetadataValue = oldFileMetadata.get(metadataKey);
 
-                assertEquals(oldMetadataValue, newwMetadataValue);
+                final String newMetadataValue = newFileMetadata.get(metadataKey);
+
+                assertEquals(oldMetadataValue, newMetadataValue);
             }
         } finally {
             if (oldFilePath != null) {

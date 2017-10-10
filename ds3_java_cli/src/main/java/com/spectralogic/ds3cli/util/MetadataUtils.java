@@ -16,8 +16,8 @@
 package com.spectralogic.ds3cli.util;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.inject.Injector;
 import com.spectralogic.ds3cli.GuiceInjector;
+import com.spectralogic.ds3cli.metadata.FileMetadata;
 import com.spectralogic.ds3cli.metadata.FileMetadataFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,7 +27,7 @@ import java.nio.file.Path;
 
 public final class MetadataUtils {
     private final static Logger LOG = LoggerFactory.getLogger(MetadataUtils.class);
-    private final static Injector INJECTOR = GuiceInjector.INSTANCE.injector();
+    private final static FileMetadata FILE_METADATA = GuiceInjector.INSTANCE.injector().getInstance(FileMetadataFactory.class).fileMetadata();
 
     public static ImmutableMap<String, String> parse(final String[] metadataArgs) {
         final ImmutableMap.Builder<String, String> metadataBuilder = ImmutableMap.builder();
@@ -45,16 +45,16 @@ public final class MetadataUtils {
 
     public static ImmutableMap<String, String> getMetadataValues(final Path path) {
         try {
-            return INJECTOR.getInstance(FileMetadataFactory.class).fileMetadata().readMetadataFrom(path);
+            return FILE_METADATA.readMetadataFrom(path);
         } catch (final IOException e) {
             LOG.error("Could not get the last modified time for file: {}", path, e);
             return ImmutableMap.of();
         }
     }
 
-    public static void restoreLastModified(final String filename, final com.spectralogic.ds3client.networking.Metadata metadata, final Path path) {
+    public static void restoreMetadataValues(final String filename, final com.spectralogic.ds3client.networking.Metadata metadata, final Path path) {
         try {
-            INJECTOR.getInstance(FileMetadataFactory.class).fileMetadata().writeMetadataTo(path, metadata);
+            FILE_METADATA.writeMetadataTo(path, metadata);
         } catch (final Throwable t) {
             LOG.error("Failed to restore the last modified date for object: {}", filename, t);
         }
