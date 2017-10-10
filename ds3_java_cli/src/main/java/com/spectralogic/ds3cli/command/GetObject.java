@@ -26,13 +26,11 @@ import com.spectralogic.ds3cli.util.MetadataUtils;
 import com.spectralogic.ds3cli.util.SyncUtils;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.helpers.FileObjectGetter;
-import com.spectralogic.ds3client.helpers.MetadataReceivedListener;
 import com.spectralogic.ds3client.helpers.options.ReadJobOptions;
 import com.spectralogic.ds3client.models.Priority;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.models.bulk.PartialDs3Object;
 import com.spectralogic.ds3client.models.common.Range;
-import com.spectralogic.ds3client.networking.Metadata;
 import com.spectralogic.ds3client.serializer.XmlProcessingException;
 import com.spectralogic.ds3client.utils.Guard;
 import org.apache.commons.cli.MissingOptionException;
@@ -146,12 +144,7 @@ public class GetObject extends CliCommand<DefaultResult> {
         }
         final Ds3ClientHelpers.Job job = helpers.startReadJob(this.bucketName, ds3ObjectList, readJobOptions);
         job.withMaxParallelRequests(this.numberOfThreads);
-        job.attachMetadataReceivedListener(new MetadataReceivedListener() {
-            @Override
-            public void metadataReceived(final String filename, final Metadata metadata) {
-                MetadataUtils.restoreLastModified(filename, metadata, Paths.get(prefix, filename));
-            }
-        });
+        job.attachMetadataReceivedListener((filename, metadata) -> MetadataUtils.restoreMetadataValues(filename, metadata, Paths.get(prefix, filename)));
         job.transfer(getter);
     }
 }

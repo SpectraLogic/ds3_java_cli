@@ -84,6 +84,7 @@ public final class ArgumentFactory {
     public static final Option METADATA = Option.builder()
             .longOpt("metadata")
             .desc("Metadata for when putting a single object.  Using the format: key:value,key2:value2")
+            .optionalArg(true)
             .hasArgs()
             .valueSeparator(',')
             .build();
