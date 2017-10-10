@@ -41,12 +41,7 @@ import java.util.Set;
 
 import com.spectralogic.ds3client.networking.Metadata;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public class PosixFileMetadata_Test {
-    private static final Logger LOG = LoggerFactory.getLogger(PosixFileMetadata_Test.class);
-
     @BeforeClass
     public static void setup() {
         Assume.assumeFalse(Platform.isWindows());
@@ -60,16 +55,12 @@ public class PosixFileMetadata_Test {
 
         try {
             Runtime.getRuntime().exec("touch " + fileNamePathTuple.fileName()).waitFor();
-            LOG.info("Touch finished");
 
             final FileTime modifedTimeAfterTouch = Files.readAttributes(fileNamePathTuple.filePath(), BasicFileAttributes.class).lastModifiedTime();
-            LOG.info("modifedTimeAfterTouch: {}", modifedTimeAfterTouch);
 
             fileMetadata.writeMetadataTo(fileNamePathTuple.filePath(), fileNamePathTuple.metadata());
-            LOG.info("writeMetadataTo");
 
             final FileTime modifiedTimeAfterRestore = Files.readAttributes(fileNamePathTuple.filePath(), BasicFileAttributes.class).lastModifiedTime();
-            LOG.info("modifiedTimeAfterRestore: {}", modifiedTimeAfterRestore);
 
             assertTrue(modifedTimeAfterTouch.compareTo(modifiedTimeAfterRestore) > 0);
 
@@ -151,5 +142,104 @@ public class PosixFileMetadata_Test {
         private Metadata metadata() {
             return metadata;
         }
+    }
+
+    @Test
+    public void testFileAccessedTime() throws Exception {
+        final FileNamePathTuple fileNamePathTuple = createAFile("Gracie.txt", true);
+
+        try {
+            readAllBytes(fileNamePathTuple.filePath);
+
+            final FileTime accessedTimeAfterRead = Files.readAttributes(fileNamePathTuple.filePath(), BasicFileAttributes.class).lastAccessTime();
+
+            fileMetadata.writeMetadataTo(fileNamePathTuple.filePath(), fileNamePathTuple.metadata());
+
+            final FileTime accessedTimeAfterRestore = Files.readAttributes(fileNamePathTuple.filePath(), BasicFileAttributes.class).lastAccessTime();
+
+            assertTrue(accessedTimeAfterRead.compareTo(accessedTimeAfterRestore) > 0);
+        } finally {
+            if (fileNamePathTuple.filePath() != null) {
+                Files.deleteIfExists(fileNamePathTuple.filePath());
+            }
+        }
+    }
+
+    @Test
+    public void testFileCreatedTime() throws Exception {
+        final String fileName = "Shasta.txt";
+
+        final FileNamePathTuple fileNamePathTuple = createAFile(fileName, true);
+
+        try {
+            final FileTime lastModified = Files.readAttributes(fileNamePathTuple.filePath(), BasicFileAttributes.class).lastModifiedTime();
+
+            Files.deleteIfExists(fileNamePathTuple.filePath);
+
+            createAFile(fileName, false);
+
+            final FileTime createdAfterDeletion = Files.readAttributes(fileNamePathTuple.filePath(), BasicFileAttributes.class).creationTime();
+
+            fileMetadata.writeMetadataTo(fileNamePathTuple.filePath(), fileNamePathTuple.metadata());
+
+            final FileTime lastModifiedAfterRestore = Files.readAttributes(fileNamePathTuple.filePath(), BasicFileAttributes.class).lastModifiedTime();
+            assertEquals(lastModified, lastModifiedAfterRestore);
+
+            final FileTime createdTimeAfterRestore = Files.readAttributes(fileNamePathTuple.filePath(), BasicFileAttributes.class).creationTime();
+
+            assertTrue(createdAfterDeletion.compareTo(createdTimeAfterRestore) > 0);
+        } finally {
+            if (fileNamePathTuple.filePath() != null) {
+                Files.deleteIfExists(fileNamePathTuple.filePath());
+            }
+        }
+    }
+
+    @Test
+    public void testFileMode() throws Exception {
+        final FileNamePathTuple fileNamePathTuple = createAFile("Nibbles.txt", true);
+
+        try {
+            final int fileModeBeforeChmod = (int)Files.getAttribute(fileNamePathTuple.filePath(), "unix:mode");
+            Runtime.getRuntime().exec("chmod 400 " + fileNamePathTuple.fileName()).waitFor();
+            final int fileModeAfterChmod = (int)Files.getAttribute(fileNamePathTuple.filePath(), "unix:mode");
+            assertFalse(fileModeAfterChmod == fileModeBeforeChmod);
+
+            fileMetadata.writeMetadataTo(fileNamePathTuple.filePath(), fileNamePathTuple.metadata());
+
+            final int fileModeAfterRestore = (int)Files.getAttribute(fileNamePathTuple.filePath(), "unix:mode");
+            assertTrue(fileModeAfterRestore == fileModeBeforeChmod);
+        } finally {
+            if (fileNamePathTuple.filePath() != null) {
+                Files.deleteIfExists(fileNamePathTuple.filePath());
+            }
+        }
+    }
+
+    /**
+     * About the only thing we can do for owner and group is check that we don't get an exception.
+     */
+    @Test
+    public void testOwnerAndGroup() {
+        Throwable badJuju = null;
+
+        FileNamePathTuple fileNamePathTuple = null;
+
+        try {
+            fileNamePathTuple = createAFile("Marbles.txt", true);
+            fileMetadata.writeMetadataTo(fileNamePathTuple.filePath(), fileNamePathTuple.metadata());
+        } catch (final Throwable t) {
+            badJuju = t;
+        } finally {
+            if (fileNamePathTuple.filePath() != null) {
+                try {
+                    Files.deleteIfExists(fileNamePathTuple.filePath());
+                } catch (final Throwable t) {
+                    // Don't really care if we got an exception here
+                }
+            }
+        }
+
+        assertNull(badJuju);
     }
 }
