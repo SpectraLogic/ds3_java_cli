@@ -59,9 +59,6 @@ public class PosixFileMetadata_Test {
         final FileNamePathTuple fileNamePathTuple = createAFile("Twitch.txt", true);
 
         try {
-            final FileTime createdTime = Files.readAttributes(fileNamePathTuple.filePath(), BasicFileAttributes.class).creationTime();
-            LOG.info("Created time: {}", createdTime);
-
             Runtime.getRuntime().exec("touch " + fileNamePathTuple.fileName()).waitFor();
             LOG.info("Touch finished");
 
@@ -76,11 +73,6 @@ public class PosixFileMetadata_Test {
 
             assertTrue(modifedTimeAfterTouch.compareTo(modifiedTimeAfterRestore) > 0);
 
-            final FileTime createdTimeAfterRestoringLastModified = Files.readAttributes(fileNamePathTuple.filePath(), BasicFileAttributes.class).creationTime();
-            LOG.info("createdTimeAfterRestoringLastModified: {}", createdTimeAfterRestoringLastModified);
-
-            assertEquals(createdTimeAfterRestoringLastModified, createdTime);
-            assertTrue(modifiedTimeAfterRestore.compareTo(createdTimeAfterRestoringLastModified) > 0);
         } finally {
             if (fileNamePathTuple.filePath() != null) {
                 Files.deleteIfExists(fileNamePathTuple.filePath());
