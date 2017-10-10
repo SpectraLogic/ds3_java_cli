@@ -41,7 +41,12 @@ import java.util.Set;
 
 import com.spectralogic.ds3client.networking.Metadata;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class PosixFileMetadata_Test {
+    private static final Logger LOG = LoggerFactory.getLogger(PosixFileMetadata_Test.class);
+
     @BeforeClass
     public static void setup() {
         Assume.assumeFalse(Platform.isWindows());
@@ -55,18 +60,24 @@ public class PosixFileMetadata_Test {
 
         try {
             final FileTime createdTime = Files.readAttributes(fileNamePathTuple.filePath(), BasicFileAttributes.class).creationTime();
+            LOG.info("Created time: {}", createdTime);
 
             Runtime.getRuntime().exec("touch " + fileNamePathTuple.fileName()).waitFor();
+            LOG.info("Touch finished");
 
             final FileTime modifedTimeAfterTouch = Files.readAttributes(fileNamePathTuple.filePath(), BasicFileAttributes.class).lastModifiedTime();
+            LOG.info("modifedTimeAfterTouch: {}", modifedTimeAfterTouch);
 
             fileMetadata.writeMetadataTo(fileNamePathTuple.filePath(), fileNamePathTuple.metadata());
+            LOG.info("writeMetadataTo");
 
             final FileTime modifiedTimeAfterRestore = Files.readAttributes(fileNamePathTuple.filePath(), BasicFileAttributes.class).lastModifiedTime();
+            LOG.info("modifiedTimeAfterRestore: {}", modifiedTimeAfterRestore);
 
             assertTrue(modifedTimeAfterTouch.compareTo(modifiedTimeAfterRestore) > 0);
 
             final FileTime createdTimeAfterRestoringLastModified = Files.readAttributes(fileNamePathTuple.filePath(), BasicFileAttributes.class).creationTime();
+            LOG.info("createdTimeAfterRestoringLastModified: {}", createdTimeAfterRestoringLastModified);
 
             assertEquals(createdTimeAfterRestoringLastModified, createdTime);
             assertTrue(modifiedTimeAfterRestore.compareTo(createdTimeAfterRestoringLastModified) > 0);
