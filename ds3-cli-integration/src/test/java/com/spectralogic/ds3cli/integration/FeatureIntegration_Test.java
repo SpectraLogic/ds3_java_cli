@@ -605,7 +605,7 @@ public class FeatureIntegration_Test {
 
         try {
             Util.createBucket(client, bucketName);
-            final Arguments args = new Arguments(new String[]{"--http", "-c", "put_object", "-b", bucketName, "-o", FileUtils.getFileName(Paths.get("."), Paths.get(Util.RESOURCE_BASE_NAME + "beowulf.txt")), "--metadata", "key:value"});
+            final Arguments args = new Arguments(new String[]{"--http", "-c", "put_object", "-b", bucketName, "-o", FileUtils.getFileName(Paths.get("."), Paths.get(Util.RESOURCE_BASE_NAME + "beowulf.txt")), "--user-metadata", "key:value"});
 
             final CommandResponse response = Util.command(client, args);
 
@@ -640,7 +640,7 @@ public class FeatureIntegration_Test {
 
         try {
             Util.createBucket(client, bucketName);
-            final Arguments args = new Arguments(new String[]{"--http", "-c", "put_object", "-b", bucketName, "-o", FileUtils.getFileName(Paths.get("."), Paths.get(Util.RESOURCE_BASE_NAME + "beowulf.txt")), "--metadata", "key:value,key2:value2"});
+            final Arguments args = new Arguments(new String[]{"--http", "-c", "put_object", "-b", bucketName, "-o", FileUtils.getFileName(Paths.get("."), Paths.get(Util.RESOURCE_BASE_NAME + "beowulf.txt")), "--user-metadata", "key:value,key2:value2"});
 
             final CommandResponse response = Util.command(client, args);
 
