@@ -348,7 +348,7 @@ public class Arguments {
         return this.optionExists(FOLLOW_SYMLINKS.getLongOpt())  && !this.optionExists(NO_FOLLOW_SYMLINKS.getLongOpt());
     }
     public ImmutableMap<String, String> getMetadata() {
-        final String[] meta = this.getOptionValues(METADATA.getLongOpt());
+        final String[] meta = this.getOptionValues(USER_METADATA.getLongOpt());
         if (meta == null) {
             return null;
         }

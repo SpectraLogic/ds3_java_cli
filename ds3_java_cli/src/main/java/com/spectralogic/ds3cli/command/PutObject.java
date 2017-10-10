@@ -47,7 +47,7 @@ public class PutObject extends CliCommand<DefaultResult> {
     private final static ImmutableList<Option> requiredArgs = ImmutableList.of(BUCKET, OBJECT_NAME);
     private final static ImmutableList<Option> optionalArgs
             = ImmutableList.of(PREFIX, SYNC, NUMBER_OF_THREADS,
-            METADATA, PRIORITY, FORCE);
+            USER_METADATA, PRIORITY, FORCE);
 
     private String bucketName;
     private Path objectPath;
