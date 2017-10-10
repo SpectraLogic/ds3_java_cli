@@ -387,6 +387,7 @@ public class Arguments {
 
     public String getRangeLength() {return this.getOptionValue(RANGE_LENGTH.getLongOpt()); }
 
+    public boolean doFileMetadata() { return this.optionExists(FILE_METADATA.getLongOpt()); }
 }
 
 

@@ -28,6 +28,7 @@ import com.spectralogic.ds3cli.helpers.TempStorageUtil;
 import com.spectralogic.ds3cli.helpers.Util;
 import com.spectralogic.ds3cli.helpers.models.HeadObject;
 import com.spectralogic.ds3cli.helpers.models.JobResponse;
+import com.spectralogic.ds3cli.metadata.FileMetadataFieldType;
 import com.spectralogic.ds3cli.models.BulkJobType;
 import com.spectralogic.ds3cli.models.RecoveryJob;
 import com.spectralogic.ds3cli.util.FileUtils;
@@ -601,7 +602,7 @@ public class FeatureIntegration_Test {
 
     @Test
     public void metadataPut() throws Exception {
-        final String bucketName = "test_put_with_metadata";
+        final String bucketName = "test_put_with_user_metadata";
 
         try {
             Util.createBucket(client, bucketName);
@@ -629,6 +630,69 @@ public class FeatureIntegration_Test {
             assertThat(collection.size(), is(1));
             assertThat(collection.asList().get(0), is("value"));
 
+        } finally {
+            Util.deleteBucket(client, bucketName);
+        }
+    }
+
+    @Test
+    public void testPutObjectWithFileMetadata() throws Exception {
+        final String bucketName = "test_put_object_with_file_metadata";
+
+        try {
+            Util.createBucket(client, bucketName);
+            final Arguments args = new Arguments(new String[]{"--http", "-c", "put_object", "-b", bucketName, "-o", FileUtils.getFileName(Paths.get("."), Paths.get(Util.RESOURCE_BASE_NAME + "beowulf.txt")), "--file-metadata"});
+
+            final CommandResponse response = Util.command(client, args);
+
+            assertThat(response.getReturnCode(), is(0));
+
+            final Arguments headObjectArgs = new Arguments(new String[]{"--http", "-c", "head_object", "-b", bucketName, "-o", "src/test/resources/books/beowulf.txt", "--output-format", "json"});
+            final CommandResponse headResponse = Util.command(client, headObjectArgs);
+            assertThat(headResponse.getReturnCode(), is(0));
+
+            final HeadObject headObject = JsonMapper.toModel(headResponse.getMessage(), HeadObject.class);
+
+            assertThat(headObject, is(notNullValue()));
+
+            final ImmutableMultimap<String, String> metadata = headObject.getData().getMetadata();
+
+            assertThat(metadata, is(notNullValue()));
+            assertThat(metadata.size(), is(FileMetadataFieldType.values().length));
+        } finally {
+            Util.deleteBucket(client, bucketName);
+        }
+    }
+
+    @Test
+    public void testPutObjectWithFileAndUserMetadata() throws Exception {
+        final String bucketName = "test_put_object_with_user_and_file_metadata";
+
+        try {
+            Util.createBucket(client, bucketName);
+            final Arguments args = new Arguments(new String[]{"--http", "-c", "put_object", "-b", bucketName, "-o", FileUtils.getFileName(Paths.get("."), Paths.get(Util.RESOURCE_BASE_NAME + "beowulf.txt")), "--user-metadata", "key:value", "--file-metadata"});
+
+            final CommandResponse response = Util.command(client, args);
+
+            assertThat(response.getReturnCode(), is(0));
+
+            final Arguments headObjectArgs = new Arguments(new String[]{"--http", "-c", "head_object", "-b", bucketName, "-o", "src/test/resources/books/beowulf.txt", "--output-format", "json"});
+            final CommandResponse headResponse = Util.command(client, headObjectArgs);
+            assertThat(headResponse.getReturnCode(), is(0));
+
+            final HeadObject headObject = JsonMapper.toModel(headResponse.getMessage(), HeadObject.class);
+
+            assertThat(headObject, is(notNullValue()));
+
+            final ImmutableMultimap<String, String> metadata = headObject.getData().getMetadata();
+
+            assertThat(metadata, is(notNullValue()));
+            assertThat(metadata.size(), is(FileMetadataFieldType.values().length + 1));
+
+            final ImmutableCollection<String> collection = metadata.get("key");
+
+            assertThat(collection.size(), is(1));
+            assertThat(collection.asList().get(0), is("value"));
         } finally {
             Util.deleteBucket(client, bucketName);
         }
