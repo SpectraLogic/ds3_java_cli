@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Lists;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.CommandResponse;
-import com.spectralogic.ds3cli.command.GetBulk;
 import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.helpers.JsonMapper;
 import com.spectralogic.ds3cli.helpers.TempStorageIds;
@@ -623,7 +622,7 @@ public class FeatureIntegration_Test {
             final ImmutableMultimap<String, String> metadata = headObject.getData().getMetadata();
 
             assertThat(metadata, is(notNullValue()));
-            assertThat(metadata.size(), is(2)); // x-amz-meta-ds3-last-modified is added automatically
+            assertThat(metadata.size(), is(1));
 
             final ImmutableCollection<String> collection = metadata.get("key");
 
@@ -658,7 +657,7 @@ public class FeatureIntegration_Test {
             final ImmutableMultimap<String, String> metadata = headObject.getData().getMetadata();
 
             assertThat(metadata, is(notNullValue()));
-            assertThat(metadata.size(), is(3)); // x-amz-meta-ds3-last-modified is added automatically
+            assertThat(metadata.size(), is(2));
 
             ImmutableCollection<String> collection = metadata.get("key");
             assertThat(collection.size(), is(1));

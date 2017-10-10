@@ -21,10 +21,8 @@ import com.google.common.collect.Lists;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.models.DefaultResult;
 import com.spectralogic.ds3cli.util.FileUtils;
-import com.spectralogic.ds3cli.util.MetadataUtils;
 import com.spectralogic.ds3cli.util.SyncUtils;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
-import com.spectralogic.ds3client.helpers.MetadataAccess;
 import com.spectralogic.ds3client.helpers.options.WriteJobOptions;
 import com.spectralogic.ds3client.models.Priority;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
@@ -36,11 +34,9 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.channels.FileChannel;
-import java.nio.channels.SeekableByteChannel;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.util.Map;
 
 import static com.spectralogic.ds3cli.ArgumentFactory.*;
 
@@ -123,23 +119,11 @@ public class PutObject extends CliCommand<DefaultResult> {
                 .withMaxParallelRequests(this.numberOfThreads);
 
         if (!Guard.isMapNullOrEmpty(metadata)) {
-            putJob.withMetadata(new MetadataAccess() {
-                @Override
-                public Map<String, String> getMetadataValue(final String s) {
-
-                    return new ImmutableMap.Builder<String, String>()
-                            .putAll(MetadataUtils.getMetadataValues(objectPath))
-                            .putAll(metadata).build();
-                }
-            });
+            putJob.withMetadata(s -> new ImmutableMap.Builder<String, String>()
+                    .putAll(metadata).build());
         }
 
-        putJob.transfer(new Ds3ClientHelpers.ObjectChannelBuilder() {
-            @Override
-            public SeekableByteChannel buildChannel(final String s) throws IOException {
-                return FileChannel.open(objectPath, StandardOpenOption.READ);
-            }
-        });
+        putJob.transfer(s -> FileChannel.open(objectPath, StandardOpenOption.READ));
     }
 
 }
