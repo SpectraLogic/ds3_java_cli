@@ -15,6 +15,7 @@
 
 package com.spectralogic.ds3cli.util;
 
+import com.spectralogic.ds3cli.Main;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.networking.Metadata;
 import org.slf4j.Logger;
@@ -45,6 +46,6 @@ public class LoggingFileObjectGetter implements LoggingObjectGetter {
     @Override
     public void metadataReceived(final String fileName, final Metadata metadata) {
         final Path path = outputPath.resolve(fileName);
-        MetadataUtils.restoreLastModified(fileName, metadata, path);
+        Main.metadataUtils().restoreMetadataValues(fileName, metadata, path);
     }
 }

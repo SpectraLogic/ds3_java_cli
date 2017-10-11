@@ -352,21 +352,21 @@ public class Arguments {
         if (meta == null) {
             return null;
         }
-        return MetadataUtils.parse(meta);
+        return Main.metadataUtils().parse(meta);
     }
     public ImmutableMap<String, String> getModifyParams() {
         final String[] meta = this.getOptionValues(MODIFY_PARAMS.getLongOpt());
         if (meta == null) {
             return null;
         }
-        return MetadataUtils.parse(meta);
+        return Main.metadataUtils().parse(meta);
     }
     public ImmutableMap<String, String> getFilterParams() {
         final String[] meta = this.getOptionValues(FILTER_PARAMS.getLongOpt());
         if (meta == null) {
             return null;
         }
-        return MetadataUtils.parse(meta);
+        return Main.metadataUtils().parse(meta);
     }
 
     public boolean isDiscard() { return this.optionExists(DISCARD.getLongOpt()); }

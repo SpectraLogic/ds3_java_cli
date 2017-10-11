@@ -21,9 +21,9 @@ import com.google.inject.Injector;
 public enum GuiceInjector {
     INSTANCE;
 
-    private static final Injector injector = Guice.createInjector(new GuiceModule());
+    private static final Injector INJECTOR = Guice.createInjector(new GuiceModule());
 
     public Injector injector() {
-        return injector;
+        return INJECTOR;
     }
 }

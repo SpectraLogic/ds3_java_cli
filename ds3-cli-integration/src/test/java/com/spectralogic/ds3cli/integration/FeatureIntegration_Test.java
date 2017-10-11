@@ -37,6 +37,8 @@ import com.spectralogic.ds3cli.util.RecoveryFileManager;
 import com.spectralogic.ds3cli.util.SterilizeString;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.Ds3ClientBuilder;
+import com.spectralogic.ds3client.commands.GetBucketRequest;
+import com.spectralogic.ds3client.commands.GetBucketResponse;
 import com.spectralogic.ds3client.commands.GetObjectRequest;
 import com.spectralogic.ds3client.commands.GetObjectResponse;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
@@ -59,6 +61,7 @@ import java.io.InputStream;
 import java.nio.channels.FileChannel;
 import java.nio.file.*;
 import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 
 import static org.hamcrest.CoreMatchers.*;
@@ -505,7 +508,6 @@ public class FeatureIntegration_Test {
 
         final String bucketName = "test_put_bulk_object_with_sync";
         try {
-
             Util.createBucket(client, bucketName);
             final Arguments args = new Arguments(new String[]{"--http", "-c", "put_bulk", "-b", bucketName, "-d", Util.RESOURCE_BASE_NAME, "--sync"});
             CommandResponse response = Util.command(client, args);
@@ -595,6 +597,78 @@ public class FeatureIntegration_Test {
             testFile.reset();
             final CommandResponse response2 = Util.command(client, args);
             assertThat(response2.getMessage(), is("SUCCESS: All files are up to date"));
+        } finally {
+            Util.deleteBucket(client, bucketName);
+        }
+    }
+
+    @Test
+    public void putBulkObjectWithFileMetadata() throws Exception {
+        assumeThat(Util.getBlackPearlVersion(client), greaterThan(1.2));
+
+        final String bucketName = "test_put_bulk_object_with_metadata";
+        try {
+            Util.createBucket(client, bucketName);
+            final Arguments args = new Arguments(new String[]{
+                    "--http",
+                    "-c", "put_bulk",
+                    "-b", bucketName,
+                    "-d", Util.RESOURCE_BASE_NAME,
+                    "--file-metadata"});
+            CommandResponse response = Util.command(client, args);
+
+            assertThat(response.getMessage(), is(String.format("SUCCESS: Wrote all the files in %s to bucket %s", "." + File.separator + "src" + File.separator + "test" + File.separator + "resources" + File.separator + "books", bucketName)));
+
+            final GetBucketResponse getBucketResponse = client.getBucket(new GetBucketRequest(bucketName));
+            final List<Contents> bucketContents = getBucketResponse.getListBucketResult().getObjects();
+            assertTrue(bucketContents.size() > 0);
+
+            checkFileMetadata(bucketName, bucketContents, FileMetadataFieldType.values().length);
+        } finally {
+            Util.deleteBucket(client, bucketName);
+        }
+    }
+
+    private void checkFileMetadata(final String bucketName, final List<Contents> bucketContents, final int numMetadataEntries) throws Exception {
+        for (final Contents contents : bucketContents) {
+            final String fileOrObjectName = contents.getKey();
+            final Arguments headObjectArgs = new Arguments(new String[]{"--http", "-c", "head_object", "-b", bucketName, "-o", fileOrObjectName, "--output-format", "json"});
+            final CommandResponse headResponse = Util.command(client, headObjectArgs);
+            assertThat(headResponse.getReturnCode(), is(0));
+
+            final HeadObject headObject = JsonMapper.toModel(headResponse.getMessage(), HeadObject.class);
+
+            assertThat(headObject, is(notNullValue()));
+
+            final ImmutableMultimap<String, String> metadata = headObject.getData().getMetadata();
+
+            assertThat(metadata, is(notNullValue()));
+            assertThat(metadata.size(), is(numMetadataEntries));
+
+        }
+    }
+
+    @Test
+    public void putBulkObjectWithoutFileMetadata() throws Exception {
+        assumeThat(Util.getBlackPearlVersion(client), greaterThan(1.2));
+
+        final String bucketName = "test_put_bulk_object_without_metadata";
+        try {
+            Util.createBucket(client, bucketName);
+            final Arguments args = new Arguments(new String[]{
+                    "--http",
+                    "-c", "put_bulk",
+                    "-b", bucketName,
+                    "-d", Util.RESOURCE_BASE_NAME});
+            CommandResponse response = Util.command(client, args);
+
+            assertThat(response.getMessage(), is(String.format("SUCCESS: Wrote all the files in %s to bucket %s", "." + File.separator + "src" + File.separator + "test" + File.separator + "resources" + File.separator + "books", bucketName)));
+
+            final GetBucketResponse getBucketResponse = client.getBucket(new GetBucketRequest(bucketName));
+            final List<Contents> bucketContents = getBucketResponse.getListBucketResult().getObjects();
+            assertTrue(bucketContents.size() > 0);
+
+            checkFileMetadata(bucketName, bucketContents, 0);
         } finally {
             Util.deleteBucket(client, bucketName);
         }

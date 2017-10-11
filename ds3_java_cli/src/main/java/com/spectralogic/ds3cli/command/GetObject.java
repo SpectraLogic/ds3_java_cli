@@ -18,21 +18,19 @@ package com.spectralogic.ds3cli.command;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.spectralogic.ds3cli.Arguments;
+import com.spectralogic.ds3cli.Main;
 import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.DefaultResult;
 import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3cli.util.MemoryObjectChannelBuilder;
-import com.spectralogic.ds3cli.util.MetadataUtils;
 import com.spectralogic.ds3cli.util.SyncUtils;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.helpers.FileObjectGetter;
-import com.spectralogic.ds3client.helpers.MetadataReceivedListener;
 import com.spectralogic.ds3client.helpers.options.ReadJobOptions;
 import com.spectralogic.ds3client.models.Priority;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.models.bulk.PartialDs3Object;
 import com.spectralogic.ds3client.models.common.Range;
-import com.spectralogic.ds3client.networking.Metadata;
 import com.spectralogic.ds3client.serializer.XmlProcessingException;
 import com.spectralogic.ds3client.utils.Guard;
 import org.apache.commons.cli.MissingOptionException;
@@ -146,12 +144,7 @@ public class GetObject extends CliCommand<DefaultResult> {
         }
         final Ds3ClientHelpers.Job job = helpers.startReadJob(this.bucketName, ds3ObjectList, readJobOptions);
         job.withMaxParallelRequests(this.numberOfThreads);
-        job.attachMetadataReceivedListener(new MetadataReceivedListener() {
-            @Override
-            public void metadataReceived(final String filename, final Metadata metadata) {
-                MetadataUtils.restoreLastModified(filename, metadata, Paths.get(prefix, filename));
-            }
-        });
+        job.attachMetadataReceivedListener((filename, metadata) -> Main.metadataUtils().restoreMetadataValues(filename, metadata, Paths.get(prefix, filename)));
         job.transfer(getter);
     }
 }

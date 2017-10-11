@@ -19,10 +19,12 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Singleton;
 import com.spectralogic.ds3cli.metadata.FileMetadataFactory;
 import com.spectralogic.ds3cli.metadata.FileMetadataFactoryImpl;
+import com.spectralogic.ds3cli.util.MetadataUtils;
 
 public class GuiceModule extends AbstractModule {
     @Override
     protected void configure() {
+        bind(MetadataUtils.class).in(Singleton.class);
         bind(FileMetadataFactory.class).to(FileMetadataFactoryImpl.class).in(Singleton.class);
     }
 }

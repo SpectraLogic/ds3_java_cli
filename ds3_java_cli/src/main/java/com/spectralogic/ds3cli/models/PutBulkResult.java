@@ -18,7 +18,6 @@ package com.spectralogic.ds3cli.models;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.google.common.collect.ImmutableList;
-import com.spectralogic.ds3cli.command.PutBulk;
 import com.spectralogic.ds3cli.util.FileUtils;
 
 public class PutBulkResult implements Result<String> {

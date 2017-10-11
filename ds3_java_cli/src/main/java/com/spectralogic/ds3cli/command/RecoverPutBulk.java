@@ -17,6 +17,7 @@ package com.spectralogic.ds3cli.command;
 
 import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3cli.Arguments;
+import com.spectralogic.ds3cli.Main;
 import com.spectralogic.ds3cli.exceptions.BadArgumentException;
 import com.spectralogic.ds3cli.models.PutBulkResult;
 import com.spectralogic.ds3cli.models.RecoveryJob;
@@ -43,13 +44,14 @@ public class RecoverPutBulk extends CliCommand<PutBulkResult> implements Recover
     private final static Logger LOG = LoggerFactory.getLogger(RecoverPutBulk.class);
 
     private final static ImmutableList<Option> requiredArgs = ImmutableList.of(BUCKET, ID, DIRECTORY);
-    private final static ImmutableList<Option> optionalArgs = ImmutableList.of(PREFIX, NUMBER_OF_THREADS);
+    private final static ImmutableList<Option> optionalArgs = ImmutableList.of(PREFIX, NUMBER_OF_THREADS, FILE_METADATA);
 
     private UUID jobId;
     private String bucketName;
     private Path inputDirectory;
     private String prefix;
     private int numberOfThreads;
+    private boolean archiveMetadata;
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
@@ -60,6 +62,7 @@ public class RecoverPutBulk extends CliCommand<PutBulkResult> implements Recover
         this.inputDirectory = Paths.get(srcDir);
         this.prefix = args.getPrefix();
         this.numberOfThreads = args.getNumberOfThreads();
+        this.archiveMetadata = args.doFileMetadata();
 
         return this;
     }
@@ -102,8 +105,12 @@ public class RecoverPutBulk extends CliCommand<PutBulkResult> implements Recover
         final Ds3ClientHelpers.Job job = helpers.recoverWriteJob(this.jobId);
         job.withMaxParallelRequests(this.numberOfThreads);
 
+        if (archiveMetadata) {
+            job.withMetadata(fileOrObjectName -> Main.metadataUtils().getMetadataValues(Paths.get(inputDirectory.toString(), fileOrObjectName)));
+        }
+
         final PrefixedFileObjectPutter prefixedFileObjectPutter = new PrefixedFileObjectPutter(this.inputDirectory, this.prefix);
-        job.withMetadata(prefixedFileObjectPutter).transfer(prefixedFileObjectPutter);
+        job.transfer(prefixedFileObjectPutter);
         // clean up recovery job on success
         RecoveryFileManager.deleteRecoveryCommand(job.getJobId());
         return new PutBulkResult(String.format("SUCCESS: Wrote all the files in %s to bucket %s", this.inputDirectory.toString(), this.bucketName), null);

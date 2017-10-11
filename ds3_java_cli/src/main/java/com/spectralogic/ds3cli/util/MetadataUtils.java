@@ -16,20 +16,25 @@
 package com.spectralogic.ds3cli.util;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.inject.Inject;
+import com.spectralogic.ds3cli.metadata.FileMetadata;
+import com.spectralogic.ds3cli.metadata.FileMetadataFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.attribute.FileTime;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 public final class MetadataUtils {
     private final static Logger LOG = LoggerFactory.getLogger(MetadataUtils.class);
+    private final FileMetadata fileMetadata;
 
-    public static ImmutableMap<String, String> parse(final String[] metadataArgs) {
+    @Inject
+    public MetadataUtils(final FileMetadataFactory fileMetadataFactory) {
+        this.fileMetadata = fileMetadataFactory.fileMetadata();
+    }
+
+    public ImmutableMap<String, String> parse(final String[] metadataArgs) {
         final ImmutableMap.Builder<String, String> metadataBuilder = ImmutableMap.builder();
 
         for (final String arg : metadataArgs) {
@@ -43,28 +48,20 @@ public final class MetadataUtils {
         return metadataBuilder.build();
     }
 
-    public static Map<String, String> getMetadataValues(final Path path) {
+    public ImmutableMap<String, String> getMetadataValues(final Path path) {
         try {
-            final FileTime lastModifiedTime = Files.getLastModifiedTime(path);
-            return ImmutableMap.of(Constants.DS3_LAST_MODIFIED, Long.toString(lastModifiedTime.toMillis()));
+            return fileMetadata.readMetadataFrom(path);
         } catch (final IOException e) {
             LOG.error("Could not get the last modified time for file: {}", path, e);
-            return null;
+            return ImmutableMap.of();
         }
     }
 
-    public static void restoreLastModified(final String filename, final com.spectralogic.ds3client.networking.Metadata metadata, final Path path) {
-        if (metadata.keys().contains(Constants.DS3_LAST_MODIFIED)) {
-            try {
-                final long lastModifiedMs = Long.parseLong(metadata.get(Constants.DS3_LAST_MODIFIED).get(0));
-                final FileTime lastModified = FileTime.from(lastModifiedMs, TimeUnit.MILLISECONDS);
-                Files.setLastModifiedTime(path, lastModified);
-            } catch (final Throwable t) {
-                LOG.error("Failed to restore the last modified date for object: {}", filename, t);
-            }
-
-        } else {
-            LOG.warn("Object ({}) does not contain a last modified field", filename);
+    public void restoreMetadataValues(final String filename, final com.spectralogic.ds3client.networking.Metadata metadata, final Path path) {
+        try {
+            fileMetadata.writeMetadataTo(path, metadata);
+        } catch (final Throwable t) {
+            LOG.error("Failed to restore the last modified date for object: {}", filename, t);
         }
     }
 }
