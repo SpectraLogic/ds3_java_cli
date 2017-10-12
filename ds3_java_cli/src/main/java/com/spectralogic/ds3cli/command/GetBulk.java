@@ -15,11 +15,10 @@
 
 package com.spectralogic.ds3cli.command;
 
-import com.google.common.base.Function;
 import com.google.common.base.Joiner;
-import com.google.common.base.Predicate;
 import com.google.common.collect.*;
 import com.spectralogic.ds3cli.Arguments;
+import com.spectralogic.ds3cli.Main;
 import com.spectralogic.ds3cli.exceptions.BadArgumentException;
 import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.BulkJobType;
@@ -29,15 +28,11 @@ import com.spectralogic.ds3cli.util.*;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.helpers.FileObjectGetter;
 import com.spectralogic.ds3client.helpers.FolderNameFilter;
-import com.spectralogic.ds3client.helpers.MetadataReceivedListener;
 import com.spectralogic.ds3client.helpers.options.ReadJobOptions;
 import com.spectralogic.ds3client.helpers.pagination.GetBucketLoaderFactory;
-import com.spectralogic.ds3client.models.BulkObject;
 import com.spectralogic.ds3client.models.Contents;
-import com.spectralogic.ds3client.models.Pool;
 import com.spectralogic.ds3client.models.Priority;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
-import com.spectralogic.ds3client.networking.Metadata;
 import com.spectralogic.ds3client.serializer.XmlProcessingException;
 import com.spectralogic.ds3client.utils.Guard;
 import com.spectralogic.ds3client.utils.collections.LazyIterable;
@@ -46,13 +41,9 @@ import org.apache.commons.cli.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
-import javax.swing.text.AbstractDocument;
 import java.io.IOException;
-import java.nio.channels.FileChannel;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.*;
-import java.nio.file.attribute.FileAttribute;
 import java.util.*;
 
 import static com.spectralogic.ds3cli.ArgumentFactory.*;
@@ -71,6 +62,7 @@ public class GetBulk extends CliCommand<DefaultResult> {
     private int numberOfThreads;
     private boolean pipe;
     private ImmutableList<String> pipedFileNames;
+    private boolean restoreMetadata;
 
     private static final Option PREFIXES = Option.builder("p").hasArgs().argName("prefixes")
             .desc("get only objects whose names start with prefix  "
@@ -79,10 +71,7 @@ public class GetBulk extends CliCommand<DefaultResult> {
     private final static ImmutableList<Option> requiredArgs = ImmutableList.of(BUCKET);
     private final static ImmutableList<Option> optionalArgs
             = ImmutableList.of(DIRECTORY, PREFIXES, NUMBER_OF_THREADS,
-            DISCARD, PRIORITY, SYNC, FORCE);
-
-    public GetBulk() {
-    }
+            DISCARD, PRIORITY, SYNC, FORCE, FILE_METADATA);
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
@@ -129,6 +118,9 @@ public class GetBulk extends CliCommand<DefaultResult> {
             LOG.info("Using sync command");
             this.sync = true;
         }
+
+        this.restoreMetadata = !discard && args.doFileMetadata();
+
         return this;
     }
 
@@ -152,7 +144,10 @@ public class GetBulk extends CliCommand<DefaultResult> {
 
         final Ds3ClientHelpers.Job job = buildRestoreJob(helper);
         job.withMaxParallelRequests(this.numberOfThreads);
-        job.attachMetadataReceivedListener(loggingObjectGetter);
+
+        if (restoreMetadata) {
+            job.attachMetadataReceivedListener((fileOrObjectName, metadata) -> Main.metadataUtils().restoreMetadataValues(fileOrObjectName, metadata, Paths.get(outputPath.toString(), fileOrObjectName)));
+        }
 
         // write parameters to file to enable recovery
         createRecoveryCommand(job.getJobId());
@@ -172,7 +167,7 @@ public class GetBulk extends CliCommand<DefaultResult> {
             return new LoggingMemoryObjectGetter(getter);
         }
 
-        return new LoggingFileObjectGetter(getter, outputPath);
+        return new LoggingFileObjectGetter(getter);
     }
 
     private  Ds3ClientHelpers.Job buildRestoreJob(final Ds3ClientHelpers helper) throws IOException, CommandException {
@@ -285,22 +280,11 @@ public class GetBulk extends CliCommand<DefaultResult> {
                 = FileUtils.normalizedObjectNames(this.pipedFileNames);
 
         final FluentIterable<Contents> objectList = FluentIterable
-            .from(new LazyIterable<>(
-                        new GetBucketLoaderFactory(getClient(), this.bucketName, null, null, 100, 5)))
-            .filter(new Predicate<Contents>() {
-                @Override
-                public boolean apply(@Nullable final Contents bulkObject) {
-                    return pipedObjectMap.containsKey(bulkObject.getKey());
-                }
-            });
+            .from(new LazyIterable<>(new GetBucketLoaderFactory(getClient(), this.bucketName, null, null, 100, 5)))
+            .filter(bulkObject -> pipedObjectMap.containsKey(bulkObject.getKey()));
 
         // look for objects in the piped list not in bucket
-        final FluentIterable<String> objectNameList = FluentIterable.from(objectList).transform(new Function<Contents,String>() {
-            @Override
-            public String apply(@Nullable final Contents bulkObject) {
-                return bulkObject.getKey();
-            }
-        });
+        final FluentIterable<String> objectNameList = FluentIterable.from(objectList).transform(bulkObject -> bulkObject.getKey());
 
         for (final String object: pipedObjectMap.keySet()) {
             if (objectNameList.contains(object)) {

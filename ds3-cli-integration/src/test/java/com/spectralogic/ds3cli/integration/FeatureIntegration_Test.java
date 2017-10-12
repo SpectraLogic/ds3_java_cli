@@ -63,6 +63,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.channels.FileChannel;
 import java.nio.file.*;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -81,7 +82,6 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeThat;
 
 public class FeatureIntegration_Test {
@@ -1019,6 +1019,8 @@ public class FeatureIntegration_Test {
 
             Files.deleteIfExists(filePath);
 
+            Thread.sleep(1000);
+
             final Arguments args;
 
             if (withMetadata) {
@@ -1079,6 +1081,121 @@ public class FeatureIntegration_Test {
     @Test
     public void testGetObjectWithoutMetadata() throws Exception {
         runGetObjectTest(false, false);
+    }
+
+    @Test
+    public void testGetBulkWithMetadata() throws Exception {
+        runGetBulkTest(true, true);
+    }
+
+    private void runGetBulkTest(final boolean withMetadata, final boolean metadataShouldBeEqual) throws Exception {
+        Assume.assumeFalse(Platform.isWindows());
+
+        final String bucketName = "testGetBulkWithMetadata";
+
+        final String aFileName = "aFileName.txt";
+        final String bFileName = "bFileName.txt";
+
+        final Path aFilePath = createAFile(aFileName);
+        Thread.sleep(1000);
+        final Path bFilePath = createAFile(bFileName);
+
+        final Map<String, String> aFileMetadataBeforePut = Main.metadataUtils().getMetadataValues(aFilePath);
+        final Map<String, String> bFileMetadataBeforePut = Main.metadataUtils().getMetadataValues(bFilePath);
+
+        final Ds3Object aFileObject = new Ds3Object();
+        aFileObject.setName(aFileName);
+        aFileObject.setSize(1);
+
+        final Ds3Object bFileObject = new Ds3Object();
+        bFileObject.setName(bFileName);
+        bFileObject.setSize(1);
+
+        final List<Ds3Object> ds3Objects = new ArrayList<>(2);
+        ds3Objects.add(aFileObject);
+        ds3Objects.add(bFileObject);
+
+        final CountDownLatch countDownLatch = new CountDownLatch(3);
+
+        try {
+            Util.createBucket(client, bucketName);
+            final Ds3ClientHelpers.Job writeJob = HELPERS.startWriteJob(bucketName, ds3Objects);
+            writeJob.withMetadata(fileOrObjectName -> {
+                countDownLatch.countDown();
+                return Main.metadataUtils().getMetadataValues(fileOrObjectName.equals(aFileName) ? aFilePath : bFilePath);
+            });
+            writeJob.attachObjectCompletedListener(objectName -> countDownLatch.countDown());
+            writeJob.transfer(new FileObjectPutter(Paths.get(".")));
+
+            countDownLatch.await();
+
+            Files.deleteIfExists(aFilePath);
+            Files.deleteIfExists(bFilePath);
+
+            Thread.sleep(1000);
+
+            final Arguments args;
+
+            if (withMetadata) {
+                args = new Arguments(new String[]{
+                        "--http",
+                        "-c", "get_bulk",
+                        "-b", bucketName,
+                        "-d", ".",
+                        "--file-metadata"
+                });
+            } else {
+                args = new Arguments(new String[]{
+                        "--http",
+                        "-c", "get_bulk",
+                        "-b", bucketName,
+                        "-d", ".",
+                });
+            }
+
+            final CommandResponse response = Util.command(client, args);
+
+            assertEquals("SUCCESS: Wrote all objects from testGetBulkWithMetadata to .", response.getMessage());
+
+            final Map<String, String> aFileMetadataAfterRestore = Main.metadataUtils().getMetadataValues(aFilePath);
+            final Map<String, String> bFileMetadataAfterRestore = Main.metadataUtils().getMetadataValues(bFilePath);
+
+            assertEquals(FileMetadataFieldType.values().length, aFileMetadataAfterRestore.size());
+            assertEquals(FileMetadataFieldType.values().length, bFileMetadataAfterRestore.size());
+
+            if (metadataShouldBeEqual) {
+                compareAllMetadataEntries(aFileMetadataBeforePut, aFileMetadataAfterRestore);
+                compareAllMetadataEntries(bFileMetadataBeforePut, bFileMetadataAfterRestore);
+            } else {
+                compareMetaDataValuesThatShouldNotBeEqual(aFileMetadataBeforePut, aFileMetadataAfterRestore);
+                compareMetaDataValuesThatShouldNotBeEqual(bFileMetadataBeforePut, bFileMetadataAfterRestore);
+            }
+        } finally {
+            Files.deleteIfExists(aFilePath);
+            Files.deleteIfExists(bFilePath);
+            Util.deleteBucket(client, bucketName);
+        }
+    }
+
+    private void compareAllMetadataEntries(final Map<String, String> originalMetadata, final Map<String, String> restoredMetadata) {
+        for (final String metadataKey : originalMetadata.keySet()) {
+            if (metadataKey.equals(FileMetadataFieldNames.CHANGED_TIME)) {
+                continue;
+            }
+
+            assertEquals(originalMetadata.get(metadataKey), restoredMetadata.get(metadataKey));
+        }
+    }
+
+    private void compareMetaDataValuesThatShouldNotBeEqual(final Map<String, String> originalMetadata, final Map<String, String> restoredMetadata) {
+        assertNotEquals(originalMetadata.get(LAST_MODIFIED_TIME), restoredMetadata.get(LAST_MODIFIED_TIME));
+        assertNotEquals(originalMetadata.get(LAST_ACCESSED_TIME), restoredMetadata.get(LAST_ACCESSED_TIME));
+        assertNotEquals(originalMetadata.get(CREATION_TIME), restoredMetadata.get(CREATION_TIME));
+    }
+
+    @Test
+    public void testGetBulkWithoutMetadata() throws Exception {
+        runGetBulkTest(false, false);
     }
 
     @Test
