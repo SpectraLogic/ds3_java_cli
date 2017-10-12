@@ -23,7 +23,7 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 
-public class PosixFileMetadataBuilder {
+class PosixFileMetadataBuilder {
     private final DateTimeFormatter dateTimeFormatter;
 
     private String lastModifiedTimeString;
@@ -34,11 +34,11 @@ public class PosixFileMetadataBuilder {
     private String groupIdString;
     private String modeString;
 
-    public PosixFileMetadataBuilder(final DateTimeFormatter dateTimeFormatter) {
+    PosixFileMetadataBuilder(final DateTimeFormatter dateTimeFormatter) {
         this.dateTimeFormatter = dateTimeFormatter;
     }
 
-    public PosixFileMetadataBuilder withLastModifiedTime(final FileTime lastModifiedTime) {
+    PosixFileMetadataBuilder withLastModifiedTime(final FileTime lastModifiedTime) {
         lastModifiedTimeString = fileTimeToString(lastModifiedTime);
         return this;
     }
@@ -48,37 +48,37 @@ public class PosixFileMetadataBuilder {
         return fileTimeOffsetToUTC.format(dateTimeFormatter);
     }
 
-    public PosixFileMetadataBuilder withLastAccessTime(final FileTime lastAccessTime) {
+    PosixFileMetadataBuilder withLastAccessTime(final FileTime lastAccessTime) {
         lastAccessedTimeString = fileTimeToString(lastAccessTime);
         return this;
     }
 
-    public PosixFileMetadataBuilder withCreationTime(final FileTime fileTime) {
+    PosixFileMetadataBuilder withCreationTime(final FileTime fileTime) {
         creationTimeString = fileTimeToString(fileTime);
         return this;
     }
 
-    public PosixFileMetadataBuilder withChangedTime(final FileTime fileTime) {
+    PosixFileMetadataBuilder withChangedTime(final FileTime fileTime) {
         changedTimeString = fileTimeToString(fileTime);
         return this;
     }
 
-    public PosixFileMetadataBuilder withOwnerId(final Integer ownerId) {
+    PosixFileMetadataBuilder withOwnerId(final Integer ownerId) {
         ownerIdString = ownerId.toString();
         return this;
     }
 
-    public PosixFileMetadataBuilder withGroupId(final Integer groupId) {
+    PosixFileMetadataBuilder withGroupId(final Integer groupId) {
         groupIdString = groupId.toString();
         return this;
     }
 
-    public PosixFileMetadataBuilder withMode(final Integer mode) {
+    PosixFileMetadataBuilder withMode(final Integer mode) {
         modeString = mode.toString();
         return this;
     }
 
-    public ImmutableMap<String, String> toMetadataMap() {
+    ImmutableMap<String, String> toMetadataMap() {
         final ImmutableMap.Builder<String, String> mapBuilder = ImmutableMap.builder();
 
         if ( ! Guard.isStringNullOrEmpty(lastModifiedTimeString)) {
