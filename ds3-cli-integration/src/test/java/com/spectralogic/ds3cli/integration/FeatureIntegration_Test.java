@@ -987,10 +987,10 @@ public class FeatureIntegration_Test {
 
     @Test
     public void testGetObjectWithMetadata() throws Exception {
-        runGetObjectTest(true, true);
+        runGetObjectTest(true, true, true);
     }
 
-    private void runGetObjectTest(final boolean withMetadata, final boolean metadataShouldBeEqual) throws Exception {
+    private void runGetObjectTest(final boolean withMetadata, final boolean metadataShouldBeEqual, final boolean archiveMetadata) throws Exception {
         Assume.assumeFalse(Platform.isWindows());
 
         final String bucketName = "testGetObjectWithMetadata";
@@ -1003,15 +1003,25 @@ public class FeatureIntegration_Test {
         ds3Object.setName(fileName);
         ds3Object.setSize(1);
 
-        final CountDownLatch countDownLatch = new CountDownLatch(2);
+        final CountDownLatch countDownLatch;
+
+        if (archiveMetadata) {
+            countDownLatch = new CountDownLatch(2);
+        } else {
+            countDownLatch = new CountDownLatch(1);
+        }
 
         try {
             Util.createBucket(client, bucketName);
             final Ds3ClientHelpers.Job writeJob = HELPERS.startWriteJob(bucketName, Collections.singletonList(ds3Object));
-            writeJob.withMetadata(fileOrObjectName -> {
-                countDownLatch.countDown();
-                return Main.metadataUtils().getMetadataValues(filePath);
-            });
+
+            if (archiveMetadata) {
+                writeJob.withMetadata(fileOrObjectName -> {
+                    countDownLatch.countDown();
+                    return Main.metadataUtils().getMetadataValues(filePath);
+                });
+            }
+
             writeJob.attachObjectCompletedListener(objectName -> countDownLatch.countDown());
             writeJob.transfer(new FileObjectPutter(Paths.get(".")));
 
@@ -1050,7 +1060,7 @@ public class FeatureIntegration_Test {
 
             assertEquals(FileMetadataFieldType.values().length, metadataAfterGet.size());
 
-            if (metadataShouldBeEqual) {
+            if (metadataShouldBeEqual && archiveMetadata) {
                 for (final String metadataKey : metadataAfterGet.keySet()) {
                     if (metadataKey.equals(FileMetadataFieldNames.CHANGED_TIME)) {
                         continue;
@@ -1080,15 +1090,20 @@ public class FeatureIntegration_Test {
 
     @Test
     public void testGetObjectWithoutMetadata() throws Exception {
-        runGetObjectTest(false, false);
+        runGetObjectTest(false, false, true);
+    }
+
+    @Test
+    public void testGetObjectMetadataWhenMetadataNotArchived() throws Exception {
+        runGetObjectTest(true, true, false);
     }
 
     @Test
     public void testGetBulkWithMetadata() throws Exception {
-        runGetBulkTest(true, true);
+        runGetBulkTest(true, true, true);
     }
 
-    private void runGetBulkTest(final boolean withMetadata, final boolean metadataShouldBeEqual) throws Exception {
+    private void runGetBulkTest(final boolean withMetadata, final boolean metadataShouldBeEqual, final boolean archiveMetadata) throws Exception {
         Assume.assumeFalse(Platform.isWindows());
 
         final String bucketName = "testGetBulkWithMetadata";
@@ -1115,15 +1130,25 @@ public class FeatureIntegration_Test {
         ds3Objects.add(aFileObject);
         ds3Objects.add(bFileObject);
 
-        final CountDownLatch countDownLatch = new CountDownLatch(3);
+        final CountDownLatch countDownLatch;
+
+        if (archiveMetadata) {
+            countDownLatch = new CountDownLatch(3);
+        } else {
+            countDownLatch = new CountDownLatch(1);
+        }
 
         try {
             Util.createBucket(client, bucketName);
             final Ds3ClientHelpers.Job writeJob = HELPERS.startWriteJob(bucketName, ds3Objects);
-            writeJob.withMetadata(fileOrObjectName -> {
-                countDownLatch.countDown();
-                return Main.metadataUtils().getMetadataValues(fileOrObjectName.equals(aFileName) ? aFilePath : bFilePath);
-            });
+
+            if (archiveMetadata) {
+                writeJob.withMetadata(fileOrObjectName -> {
+                    countDownLatch.countDown();
+                    return Main.metadataUtils().getMetadataValues(fileOrObjectName.equals(aFileName) ? aFilePath : bFilePath);
+                });
+            }
+
             writeJob.attachObjectCompletedListener(objectName -> countDownLatch.countDown());
             writeJob.transfer(new FileObjectPutter(Paths.get(".")));
 
@@ -1163,7 +1188,7 @@ public class FeatureIntegration_Test {
             assertEquals(FileMetadataFieldType.values().length, aFileMetadataAfterRestore.size());
             assertEquals(FileMetadataFieldType.values().length, bFileMetadataAfterRestore.size());
 
-            if (metadataShouldBeEqual) {
+            if (metadataShouldBeEqual && archiveMetadata) {
                 compareAllMetadataEntries(aFileMetadataBeforePut, aFileMetadataAfterRestore);
                 compareAllMetadataEntries(bFileMetadataBeforePut, bFileMetadataAfterRestore);
             } else {
@@ -1195,7 +1220,12 @@ public class FeatureIntegration_Test {
 
     @Test
     public void testGetBulkWithoutMetadata() throws Exception {
-        runGetBulkTest(false, false);
+        runGetBulkTest(false, false, true);
+    }
+
+    @Test
+    public void testGetBulkWithMetadataWhenMetadataNotArchived() throws Exception {
+        runGetBulkTest(true, true, false);
     }
 
     @Test
