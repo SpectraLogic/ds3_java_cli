@@ -19,8 +19,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.spectralogic.ds3cli.Arguments;
-import com.spectralogic.ds3cli.GuiceInjector;
-import com.spectralogic.ds3cli.metadata.FileMetadataFactory;
+import com.spectralogic.ds3cli.Main;
 import com.spectralogic.ds3cli.models.DefaultResult;
 import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3cli.util.SyncUtils;
@@ -130,7 +129,7 @@ public class PutObject extends CliCommand<DefaultResult> {
         }
 
         if (archiveFileMetadata) {
-            metadataBuilder.putAll(GuiceInjector.INSTANCE.injector().getInstance(FileMetadataFactory.class).fileMetadata().readMetadataFrom(objectPath));
+            metadataBuilder.putAll(Main.metadataUtils().getMetadataValues(objectPath));
         }
 
         putJob.withMetadata(fileOrObjectName -> metadataBuilder.build());

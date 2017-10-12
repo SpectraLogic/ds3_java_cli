@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Lists;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.CommandResponse;
+import com.spectralogic.ds3cli.Main;
 import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.helpers.JsonMapper;
 import com.spectralogic.ds3cli.helpers.TempStorageIds;
@@ -28,6 +29,7 @@ import com.spectralogic.ds3cli.helpers.TempStorageUtil;
 import com.spectralogic.ds3cli.helpers.Util;
 import com.spectralogic.ds3cli.helpers.models.HeadObject;
 import com.spectralogic.ds3cli.helpers.models.JobResponse;
+import com.spectralogic.ds3cli.metadata.FileMetadataFieldNames;
 import com.spectralogic.ds3cli.metadata.FileMetadataFieldType;
 import com.spectralogic.ds3cli.models.BulkJobType;
 import com.spectralogic.ds3cli.models.RecoveryJob;
@@ -42,17 +44,18 @@ import com.spectralogic.ds3client.commands.GetBucketResponse;
 import com.spectralogic.ds3client.commands.GetObjectRequest;
 import com.spectralogic.ds3client.commands.GetObjectResponse;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
+import com.spectralogic.ds3client.helpers.FileObjectPutter;
 import com.spectralogic.ds3client.helpers.FolderNameFilter;
 import com.spectralogic.ds3client.models.ChecksumType;
 import com.spectralogic.ds3client.models.Contents;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
+import com.spectralogic.ds3client.utils.Platform;
 import com.spectralogic.ds3client.utils.ResourceUtils;
 import org.joda.time.DateTime;
 import org.junit.AfterClass;
+import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -62,28 +65,34 @@ import java.nio.channels.FileChannel;
 import java.nio.file.*;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
 
+import static com.spectralogic.ds3cli.metadata.FileMetadataFieldNames.CREATION_TIME;
+import static com.spectralogic.ds3cli.metadata.FileMetadataFieldNames.LAST_ACCESSED_TIME;
+import static com.spectralogic.ds3cli.metadata.FileMetadataFieldNames.LAST_MODIFIED_TIME;
+import static java.nio.file.Files.write;
 import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.number.OrderingComparison.greaterThan;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeThat;
 
 public class FeatureIntegration_Test {
-    private static final Logger LOG = LoggerFactory.getLogger(FeatureIntegration_Test.class);
-
     private static final Ds3Client client = Ds3ClientBuilder.fromEnv().withHttps(false).build();
     private static final Ds3ClientHelpers HELPERS = Ds3ClientHelpers.wrap(client);
     private static final String TEST_ENV_NAME = "FeatureIntegration_Test";
     private static TempStorageIds envStorageIds;
-    private static UUID envDataPolicyId;
-
 
     @BeforeClass
     public static void startup() throws IOException {
-        envDataPolicyId = TempStorageUtil.setupDataPolicy(TEST_ENV_NAME, false, ChecksumType.Type.MD5, client);
+        final UUID envDataPolicyId = TempStorageUtil.setupDataPolicy(TEST_ENV_NAME, false, ChecksumType.Type.MD5, client);
         envStorageIds = TempStorageUtil.setup(TEST_ENV_NAME, envDataPolicyId, client);
     }
 
@@ -605,6 +614,7 @@ public class FeatureIntegration_Test {
     @Test
     public void putBulkObjectWithFileMetadata() throws Exception {
         assumeThat(Util.getBlackPearlVersion(client), greaterThan(1.2));
+        Assume.assumeFalse(Platform.isWindows());
 
         final String bucketName = "test_put_bulk_object_with_metadata";
         try {
@@ -711,6 +721,8 @@ public class FeatureIntegration_Test {
 
     @Test
     public void testPutObjectWithFileMetadata() throws Exception {
+        Assume.assumeFalse(Platform.isWindows());
+
         final String bucketName = "test_put_object_with_file_metadata";
 
         try {
@@ -740,6 +752,8 @@ public class FeatureIntegration_Test {
 
     @Test
     public void testPutObjectWithFileAndUserMetadata() throws Exception {
+        Assume.assumeFalse(Platform.isWindows());
+
         final String bucketName = "test_put_object_with_user_and_file_metadata";
 
         try {
@@ -907,7 +921,7 @@ public class FeatureIntegration_Test {
 
             final Ds3ClientHelpers.Job job = HELPERS.startReadJob(bucketName, HELPERS.toDs3Iterable(ImmutableList.of(book1, book2), FolderNameFilter.filter()));
             jobId = job.getJobId();
-            RecoveryJob recoveryJob = new RecoveryJob(BulkJobType.GET_BULK);
+            final RecoveryJob recoveryJob = new RecoveryJob(BulkJobType.GET_BULK);
             recoveryJob.setBucketName(bucketName);
             recoveryJob.setId(jobId);
             recoveryJob.setDirectory(Util.RESOURCE_BASE_NAME);
@@ -947,7 +961,7 @@ public class FeatureIntegration_Test {
 
             final Ds3ClientHelpers.Job job = HELPERS.startWriteJob(bucketName, HELPERS.toDs3Iterable(ImmutableList.of(file1, file2)));
             jobId = job.getJobId();
-            RecoveryJob recoveryJob = new RecoveryJob(BulkJobType.PUT_BULK);
+            final RecoveryJob recoveryJob = new RecoveryJob(BulkJobType.PUT_BULK);
             recoveryJob.setBucketName(bucketName);
             recoveryJob.setId(jobId);
             RecoveryFileManager.writeRecoveryJob(recoveryJob);
@@ -971,7 +985,130 @@ public class FeatureIntegration_Test {
         }
     }
 
+    @Test
+    public void testGetObjectWithMetadata() throws Exception {
+        runGetObjectTest(true, true);
+    }
 
+    private void runGetObjectTest(final boolean withMetadata, final boolean metadataShouldBeEqual) throws Exception {
+        Assume.assumeFalse(Platform.isWindows());
 
+        final String bucketName = "testGetObjectWithMetadata";
+        final String fileName = "aFle.txt";
+        final Path filePath = createAFile(fileName);
 
+        final Map<String, String> metadataBeforePut = Main.metadataUtils().getMetadataValues(filePath);
+
+        final Ds3Object ds3Object = new Ds3Object();
+        ds3Object.setName(fileName);
+        ds3Object.setSize(1);
+
+        final CountDownLatch countDownLatch = new CountDownLatch(2);
+
+        try {
+            Util.createBucket(client, bucketName);
+            final Ds3ClientHelpers.Job writeJob = HELPERS.startWriteJob(bucketName, Collections.singletonList(ds3Object));
+            writeJob.withMetadata(fileOrObjectName -> {
+                countDownLatch.countDown();
+                return Main.metadataUtils().getMetadataValues(filePath);
+            });
+            writeJob.attachObjectCompletedListener(objectName -> countDownLatch.countDown());
+            writeJob.transfer(new FileObjectPutter(Paths.get(".")));
+
+            countDownLatch.await();
+
+            Files.deleteIfExists(filePath);
+
+            final Arguments args;
+
+            if (withMetadata) {
+                args = new Arguments(new String[]{
+                        "--http",
+                        "-c", "get_object",
+                        "-b", bucketName,
+                        "-o", fileName,
+                        "-d", ".",
+                        "--file-metadata"
+                });
+            } else {
+                args = new Arguments(new String[]{
+                        "--http",
+                        "-c", "get_object",
+                        "-b", bucketName,
+                        "-o", fileName,
+                        "-d", "."
+                });
+            }
+
+            final CommandResponse response = Util.command(client, args);
+
+            assertEquals("SUCCESS: Finished downloading object.  The object was written to: ./" + fileName, response.getMessage());
+
+            final Map<String, String> metadataAfterGet = Main.metadataUtils().getMetadataValues(filePath);
+
+            assertEquals(FileMetadataFieldType.values().length, metadataAfterGet.size());
+
+            if (metadataShouldBeEqual) {
+                for (final String metadataKey : metadataAfterGet.keySet()) {
+                    if (metadataKey.equals(FileMetadataFieldNames.CHANGED_TIME)) {
+                        continue;
+                    }
+
+                    assertEquals(metadataBeforePut.get(metadataKey), metadataAfterGet.get(metadataKey));
+                }
+            } else {
+                assertNotEquals(metadataBeforePut.get(LAST_MODIFIED_TIME), metadataAfterGet.get(LAST_MODIFIED_TIME));
+                assertNotEquals(metadataBeforePut.get(LAST_ACCESSED_TIME), metadataAfterGet.get(LAST_ACCESSED_TIME));
+                assertNotEquals(metadataBeforePut.get(CREATION_TIME), metadataAfterGet.get(CREATION_TIME));
+            }
+        } finally {
+            Files.deleteIfExists(filePath);
+            Util.deleteBucket(client, bucketName);
+        }
+    }
+
+    private Path createAFile(final String fileName) throws Exception {
+        final Path filePath = Paths.get(fileName);
+        final Path createdFilePath = Files.createFile(filePath);
+
+        write(createdFilePath, new byte[] { 0 });
+
+        return createdFilePath;
+    }
+
+    @Test
+    public void testGetObjectWithoutMetadata() throws Exception {
+        runGetObjectTest(false, false);
+    }
+
+    @Test
+    public void testResettingDeadJobTimerWithModifyJob() throws Exception {
+        final String bucketName = "testResettingDeadJobTimerWithModifyJob";
+
+        try {
+            Util.createBucket(client, bucketName);
+
+            final Contents file1 = new Contents();
+            file1.setKey("ThousandBytes.txt");
+            file1.setSize(1000L);
+            final Contents file2 = new Contents();
+            file2.setKey("TwoThousandBytes.txt");
+            file2.setSize(2000L);
+
+            final Ds3ClientHelpers.Job job = HELPERS.startWriteJob(bucketName, HELPERS.toDs3Iterable(ImmutableList.of(file1, file2)));
+            final UUID jobId = job.getJobId();
+
+            final Arguments arguments = new Arguments(new String[]{
+                    "--http",
+                    "-c", "modify_job",
+                    "-i", jobId.toString()
+            });
+            final CommandResponse response = Util.command(client, arguments);
+            assertNotNull(response);
+            assertNotNull(response.getMessage());
+            assertFalse(response.getMessage().isEmpty());
+        } finally {
+            Util.deleteBucket(client, bucketName);
+        }
+    }
 }
