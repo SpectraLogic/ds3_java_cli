@@ -18,6 +18,7 @@ package com.spectralogic.ds3cli.command;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3cli.Arguments;
+import com.spectralogic.ds3cli.Main;
 import com.spectralogic.ds3cli.models.DefaultResult;
 import com.spectralogic.ds3cli.models.RecoveryJob;
 
@@ -34,6 +35,7 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 
 import static com.spectralogic.ds3cli.ArgumentFactory.*;
@@ -48,16 +50,14 @@ public class RecoverGetBulk extends CliCommand<DefaultResult> implements Recover
     private Path outputPath;
     private ImmutableList<String> prefixes;
     private int numberOfThreads;
+    private boolean restoreMetadata;
 
     private static final Option PREFIXES = Option.builder("p").hasArgs().argName("prefixes")
             .desc("get only objects whose names start with prefix  "
                     + "separate multiple prefixes with spaces").build();
 
     private final static ImmutableList<Option> requiredArgs = ImmutableList.of(BUCKET, ID);
-    private final static ImmutableList<Option> optionalArgs = ImmutableList.of(DIRECTORY, PREFIXES, NUMBER_OF_THREADS);
-
-    public RecoverGetBulk() {
-    }
+    private final static ImmutableList<Option> optionalArgs = ImmutableList.of(DIRECTORY, PREFIXES, NUMBER_OF_THREADS, FILE_METADATA);
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
@@ -79,6 +79,9 @@ public class RecoverGetBulk extends CliCommand<DefaultResult> implements Recover
         if(prefix != null && prefix.length > 0) {
             this.prefixes = ImmutableList.copyOf(prefix);
         }
+
+        this.restoreMetadata = args.doFileMetadata();
+
         return this;
     }
 
@@ -120,8 +123,11 @@ public class RecoverGetBulk extends CliCommand<DefaultResult> implements Recover
         final Ds3ClientHelpers helper = getClientHelpers();
         final Ds3ClientHelpers.Job job = helper.recoverReadJob(this.jobId);
         job.withMaxParallelRequests(this.numberOfThreads);
-        final LoggingFileObjectGetter loggingFileObjectGetter = new LoggingFileObjectGetter(getter, this.outputPath);
-        job.attachMetadataReceivedListener(loggingFileObjectGetter);
+        final LoggingFileObjectGetter loggingFileObjectGetter = new LoggingFileObjectGetter(getter);
+
+        if (restoreMetadata) {
+            job.attachMetadataReceivedListener((fileOrObjectName, metadata) -> Main.metadataUtils().restoreMetadataValues(fileOrObjectName, metadata, Paths.get(outputPath.toString(), fileOrObjectName)));
+        }
 
         // start transfer
         job.transfer(loggingFileObjectGetter);

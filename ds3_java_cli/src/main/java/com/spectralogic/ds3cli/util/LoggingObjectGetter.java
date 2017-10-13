@@ -21,6 +21,6 @@ import com.spectralogic.ds3client.helpers.MetadataReceivedListener;
 /**
  * A marker interface to allow subclass creation from a factory
  */
-public interface LoggingObjectGetter extends Ds3ClientHelpers.ObjectChannelBuilder, MetadataReceivedListener {
+public interface LoggingObjectGetter extends Ds3ClientHelpers.ObjectChannelBuilder {
     // Intentionally empty
 }

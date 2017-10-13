@@ -32,9 +32,4 @@ public class LoggingMemoryObjectGetter implements LoggingObjectGetter {
     public SeekableByteChannel buildChannel(final String channelName) throws IOException {
         return objectChannelBuilder.buildChannel(channelName);
     }
-
-    @Override
-    public void metadataReceived(final String fileName, final Metadata metadata) {
-        // Intentionally not implemented
-    }
 }

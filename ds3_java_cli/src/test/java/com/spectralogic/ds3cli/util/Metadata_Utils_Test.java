@@ -16,6 +16,7 @@
 package com.spectralogic.ds3cli.util;
 
 import com.google.common.collect.ImmutableMap;
+import com.spectralogic.ds3cli.Main;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -25,14 +26,14 @@ public class Metadata_Utils_Test {
 
     @Test
     public void singleMetadataEntry() {
-        final ImmutableMap<String, String> metadata = MetadataUtils.parse(new String[]{"key:value"});
+        final ImmutableMap<String, String> metadata = Main.metadataUtils().parse(new String[]{"key:value"});
         assertThat(metadata.size(), is(1));
         assertThat(metadata.get("key"), is("value"));
     }
 
     @Test
     public void twoMetadataEntries() {
-        final ImmutableMap<String, String> metadata = MetadataUtils.parse(new String[]{"key:value", "key2:value2"});
+        final ImmutableMap<String, String> metadata = Main.metadataUtils().parse(new String[]{"key:value", "key2:value2"});
         assertThat(metadata.size(), is(2));
         assertThat(metadata.get("key"), is("value"));
         assertThat(metadata.get("key2"), is("value2"));
@@ -40,6 +41,6 @@ public class Metadata_Utils_Test {
 
     @Test(expected = IllegalArgumentException.class)
     public void malformedEntry() {
-      MetadataUtils.parse(new String[]{"key;value"});
+        Main.metadataUtils().parse(new String[]{"key;value"});
     }
 }

@@ -81,11 +81,15 @@ public final class ArgumentFactory {
             .desc("Set to not follow symlinks, this is the default behavior").build();
     public static final Option FOLLOW_SYMLINKS = Option.builder().longOpt("no-follow-symlinks").desc("Set to follow symlinks").build();
     public static final Option DISCARD = Option.builder().longOpt("discard").desc("Discard restoration data (/dev/null)").build();
-    public static final Option METADATA = Option.builder()
-            .longOpt("metadata")
+    public static final Option USER_METADATA = Option.builder()
+            .longOpt("user-metadata")
             .desc("Metadata for when putting a single object.  Using the format: key:value,key2:value2")
             .hasArgs()
             .valueSeparator(',')
+            .build();
+    public static final Option FILE_METADATA = Option.builder()
+            .longOpt("file-metadata")
+            .desc("Archive and restore file metadata, such as modified and accessed times, permissions and ownership.")
             .build();
     public static final Option MODIFY_PARAMS = Option.builder()
             .longOpt("modify-params")

@@ -21,7 +21,6 @@ import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
 import ch.qos.logback.classic.filter.ThresholdFilter;
 import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.core.Appender;
 import ch.qos.logback.core.ConsoleAppender;
 import ch.qos.logback.core.rolling.FixedWindowRollingPolicy;
 import ch.qos.logback.core.rolling.RollingFileAppender;
@@ -35,6 +34,7 @@ import com.spectralogic.ds3cli.exceptions.*;
 import com.spectralogic.ds3cli.util.CliUtils;
 import com.spectralogic.ds3cli.util.Ds3Provider;
 import com.spectralogic.ds3cli.util.FileSystemProvider;
+import com.spectralogic.ds3cli.util.MetadataUtils;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.networking.FailedRequestException;
@@ -65,6 +65,9 @@ public final class Main {
         EXCEPTION.addHandler(RuntimeException.class, new RuntimeExceptionHandler());
     }
 
+    private final static MetadataUtils metadataUtils = GuiceInjector.INSTANCE.injector().getInstance(MetadataUtils.class);
+
+    @SuppressWarnings("unchecked")
     private static void configureLogging(final Level consoleLevel, final Level fileLevel) {
 
         final LoggerContext loggerContext = LOG.getLoggerContext();
@@ -136,7 +139,7 @@ public final class Main {
             fileFilter.start();
             fileAppender.addFilter(fileFilter);
 
-            LOG.addAppender((Appender)fileAppender);
+            LOG.addAppender(fileAppender);
             fileAppender.start();
         }
     }
@@ -230,4 +233,7 @@ public final class Main {
         }
     }
 
+    public static MetadataUtils metadataUtils() {
+        return metadataUtils;
+    }
 }

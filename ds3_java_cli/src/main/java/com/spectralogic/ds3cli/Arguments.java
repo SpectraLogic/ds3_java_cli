@@ -348,25 +348,25 @@ public class Arguments {
         return this.optionExists(FOLLOW_SYMLINKS.getLongOpt())  && !this.optionExists(NO_FOLLOW_SYMLINKS.getLongOpt());
     }
     public ImmutableMap<String, String> getMetadata() {
-        final String[] meta = this.getOptionValues(METADATA.getLongOpt());
+        final String[] meta = this.getOptionValues(USER_METADATA.getLongOpt());
         if (meta == null) {
             return null;
         }
-        return MetadataUtils.parse(meta);
+        return Main.metadataUtils().parse(meta);
     }
     public ImmutableMap<String, String> getModifyParams() {
         final String[] meta = this.getOptionValues(MODIFY_PARAMS.getLongOpt());
         if (meta == null) {
             return null;
         }
-        return MetadataUtils.parse(meta);
+        return Main.metadataUtils().parse(meta);
     }
     public ImmutableMap<String, String> getFilterParams() {
         final String[] meta = this.getOptionValues(FILTER_PARAMS.getLongOpt());
         if (meta == null) {
             return null;
         }
-        return MetadataUtils.parse(meta);
+        return Main.metadataUtils().parse(meta);
     }
 
     public boolean isDiscard() { return this.optionExists(DISCARD.getLongOpt()); }
@@ -387,6 +387,7 @@ public class Arguments {
 
     public String getRangeLength() {return this.getOptionValue(RANGE_LENGTH.getLongOpt()); }
 
+    public boolean doFileMetadata() { return this.optionExists(FILE_METADATA.getLongOpt()); }
 }
 
 

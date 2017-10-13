@@ -18,21 +18,19 @@ package com.spectralogic.ds3cli.command;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.spectralogic.ds3cli.Arguments;
+import com.spectralogic.ds3cli.Main;
 import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.DefaultResult;
 import com.spectralogic.ds3cli.util.FileUtils;
 import com.spectralogic.ds3cli.util.MemoryObjectChannelBuilder;
-import com.spectralogic.ds3cli.util.MetadataUtils;
 import com.spectralogic.ds3cli.util.SyncUtils;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.helpers.FileObjectGetter;
-import com.spectralogic.ds3client.helpers.MetadataReceivedListener;
 import com.spectralogic.ds3client.helpers.options.ReadJobOptions;
 import com.spectralogic.ds3client.models.Priority;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.models.bulk.PartialDs3Object;
 import com.spectralogic.ds3client.models.common.Range;
-import com.spectralogic.ds3client.networking.Metadata;
 import com.spectralogic.ds3client.serializer.XmlProcessingException;
 import com.spectralogic.ds3client.utils.Guard;
 import org.apache.commons.cli.MissingOptionException;
@@ -53,7 +51,7 @@ public class GetObject extends CliCommand<DefaultResult> {
 
     private final static ImmutableList<Option> requiredArgs = ImmutableList.of(BUCKET, OBJECT_NAME);
     private final static ImmutableList<Option> optionalArgs = ImmutableList.of(DIRECTORY, SYNC,
-            FORCE, NUMBER_OF_THREADS, PRIORITY, RANGE_OFFSET, RANGE_LENGTH, DISCARD);
+            FORCE, NUMBER_OF_THREADS, PRIORITY, RANGE_OFFSET, RANGE_LENGTH, DISCARD, FILE_METADATA);
 
     private String bucketName;
     private String objectName;
@@ -64,6 +62,7 @@ public class GetObject extends CliCommand<DefaultResult> {
     private long rangeOffset = 0L;
     private long rangeLength = 0L;
     private boolean discard;
+    private boolean restoreMetadata;
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
@@ -100,6 +99,9 @@ public class GetObject extends CliCommand<DefaultResult> {
                 this.rangeLength = Long.parseLong(args.getOptionValue(RANGE_LENGTH.getLongOpt()));
             }
         }
+
+        this.restoreMetadata = !discard && args.doFileMetadata();
+
         return this;
     }
 
@@ -119,20 +121,20 @@ public class GetObject extends CliCommand<DefaultResult> {
 
         if (this.sync && FileUtils.fileExists(filePath)) {
             if (SyncUtils.needToSync(helpers, this.bucketName, filePath, ds3Obj.getName(), false)) {
-                this.Transfer(helpers, ds3Obj);
+                this.Transfer(helpers, ds3Obj, filePath);
                 return new DefaultResult("SUCCESS: Finished syncing object.");
             } else {
                 return new DefaultResult("SUCCESS: No need to sync " + this.objectName);
             }
         }
 
-        this.Transfer(helpers, ds3Obj);
+        this.Transfer(helpers, ds3Obj, filePath);
         return new DefaultResult("SUCCESS: "
                 + (this.discard ? "Object retrieved and discarded"
                 : "Finished downloading object.  The object was written to: " + filePath));
     }
 
-    private void Transfer(final Ds3ClientHelpers helpers, final Ds3Object ds3Obj) throws IOException, XmlProcessingException {
+    private void Transfer(final Ds3ClientHelpers helpers, final Ds3Object ds3Obj, final Path filePath) throws IOException, XmlProcessingException {
         final Ds3ClientHelpers.ObjectChannelBuilder getter;
         if (this.discard) {
             getter = new MemoryObjectChannelBuilder();
@@ -146,12 +148,11 @@ public class GetObject extends CliCommand<DefaultResult> {
         }
         final Ds3ClientHelpers.Job job = helpers.startReadJob(this.bucketName, ds3ObjectList, readJobOptions);
         job.withMaxParallelRequests(this.numberOfThreads);
-        job.attachMetadataReceivedListener(new MetadataReceivedListener() {
-            @Override
-            public void metadataReceived(final String filename, final Metadata metadata) {
-                MetadataUtils.restoreLastModified(filename, metadata, Paths.get(prefix, filename));
-            }
-        });
+
+        if (restoreMetadata) {
+            job.attachMetadataReceivedListener((filename, metadata) -> Main.metadataUtils().restoreMetadataValues(filename, metadata, filePath));
+        }
+
         job.transfer(getter);
     }
 }

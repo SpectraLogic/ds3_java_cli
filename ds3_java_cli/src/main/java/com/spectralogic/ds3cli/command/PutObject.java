@@ -19,12 +19,11 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.spectralogic.ds3cli.Arguments;
+import com.spectralogic.ds3cli.Main;
 import com.spectralogic.ds3cli.models.DefaultResult;
 import com.spectralogic.ds3cli.util.FileUtils;
-import com.spectralogic.ds3cli.util.MetadataUtils;
 import com.spectralogic.ds3cli.util.SyncUtils;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
-import com.spectralogic.ds3client.helpers.MetadataAccess;
 import com.spectralogic.ds3client.helpers.options.WriteJobOptions;
 import com.spectralogic.ds3client.models.Priority;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
@@ -36,11 +35,9 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.channels.FileChannel;
-import java.nio.channels.SeekableByteChannel;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.util.Map;
 
 import static com.spectralogic.ds3cli.ArgumentFactory.*;
 
@@ -51,7 +48,7 @@ public class PutObject extends CliCommand<DefaultResult> {
     private final static ImmutableList<Option> requiredArgs = ImmutableList.of(BUCKET, OBJECT_NAME);
     private final static ImmutableList<Option> optionalArgs
             = ImmutableList.of(PREFIX, SYNC, NUMBER_OF_THREADS,
-            METADATA, PRIORITY, FORCE);
+            USER_METADATA, FILE_METADATA, PRIORITY, FORCE);
 
     private String bucketName;
     private Path objectPath;
@@ -62,6 +59,7 @@ public class PutObject extends CliCommand<DefaultResult> {
     private int numberOfThreads;
     private ImmutableMap<String, String> metadata;
     private Priority priority;
+    private boolean archiveFileMetadata;
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
@@ -80,6 +78,8 @@ public class PutObject extends CliCommand<DefaultResult> {
         }
         this.numberOfThreads = args.getNumberOfThreads();
         this.metadata = args.getMetadata();
+        this.archiveFileMetadata = args.doFileMetadata();
+
         return this;
     }
 
@@ -122,24 +122,19 @@ public class PutObject extends CliCommand<DefaultResult> {
         final Ds3ClientHelpers.Job putJob = helpers.startWriteJob(this.bucketName, Lists.newArrayList(ds3Obj), writeJobOptions)
                 .withMaxParallelRequests(this.numberOfThreads);
 
-        if (!Guard.isMapNullOrEmpty(metadata)) {
-            putJob.withMetadata(new MetadataAccess() {
-                @Override
-                public Map<String, String> getMetadataValue(final String s) {
+        final ImmutableMap.Builder<String, String> metadataBuilder = ImmutableMap.builder();
 
-                    return new ImmutableMap.Builder<String, String>()
-                            .putAll(MetadataUtils.getMetadataValues(objectPath))
-                            .putAll(metadata).build();
-                }
-            });
+        if (!Guard.isMapNullOrEmpty(metadata)) {
+            metadataBuilder.putAll(metadata);
         }
 
-        putJob.transfer(new Ds3ClientHelpers.ObjectChannelBuilder() {
-            @Override
-            public SeekableByteChannel buildChannel(final String s) throws IOException {
-                return FileChannel.open(objectPath, StandardOpenOption.READ);
-            }
-        });
+        if (archiveFileMetadata) {
+            metadataBuilder.putAll(Main.metadataUtils().getMetadataValues(objectPath));
+        }
+
+        putJob.withMetadata(fileOrObjectName -> metadataBuilder.build());
+
+        putJob.transfer(fileOrObjectName -> FileChannel.open(objectPath, StandardOpenOption.READ));
     }
 
 }
