@@ -3429,4 +3429,11 @@ public class Ds3Cli_Test {
         final String filteredArgs = Main.filterSecretKeyOutOfCommandLineLogString(args);
         assertEquals("-x, A Proxy, -c, Gracie, -a, Access id", filteredArgs);
     }
+
+    @Test
+    public void testThatWeDontMungeCommandLineWithoutSecretKey() {
+        final String[] args = { "-x", "A Proxy", "-c", "Gracie", "-a", "Access id", "--ick" };
+        final String filteredArgs = Main.filterSecretKeyOutOfCommandLineLogString(args);
+        assertEquals("-x, A Proxy, -c, Gracie, -a, Access id, --ick", filteredArgs);
+    }
 }
