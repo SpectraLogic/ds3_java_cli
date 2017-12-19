@@ -218,7 +218,7 @@ public final class Main {
             }
         }
 
-        return stringBuilder.toString().replaceAll(", $", "");
+        return stringBuilder.toString().replaceAll(ARG_JOINER_DELIMITER + "$", "");
     }
 
     private static void printHelp(final Arguments arguments) throws CommandException, BadArgumentException {
