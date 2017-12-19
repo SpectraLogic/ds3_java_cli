@@ -3395,4 +3395,38 @@ public class Ds3Cli_Test {
         assertTrue(command instanceof Recover);
     }
 
+    @Test
+    public void testThatWeDontLogSecretKey() {
+        final String[] args = { "-k", "Secret key" };
+        final String filteredArgs = Main.filterSecretKeyOutOfCommandLineLogString(args);
+        assertEquals("", filteredArgs);
+    }
+
+    @Test
+    public void testThatWeDontLogSecretKeyAtEndWithOtherArg() {
+        final String[] args = { "-a", "Access id", "-k", "Secret key" };
+        final String filteredArgs = Main.filterSecretKeyOutOfCommandLineLogString(args);
+        assertEquals("-a, Access id", filteredArgs);
+    }
+
+    @Test
+    public void testThatWeDontLogSecretKeyAtBeginningWithOtherArg() {
+        final String[] args = { "-k", "Secret key", "-a", "Access id" };
+        final String filteredArgs = Main.filterSecretKeyOutOfCommandLineLogString(args);
+        assertEquals("-a, Access id", filteredArgs);
+    }
+
+    @Test
+    public void testThatWeDontLogSecretKeyInMiddle() {
+        final String[] args = { "-c", "Gracie", "-k", "Secret key", "-a", "Access id" };
+        final String filteredArgs = Main.filterSecretKeyOutOfCommandLineLogString(args);
+        assertEquals("-c, Gracie, -a, Access id", filteredArgs);
+    }
+
+    @Test
+    public void testThatWeDontLogSecretKeyInMiddleOfAFewArgs() {
+        final String[] args = { "-x", "A Proxy", "-c", "Gracie", "-k", "Secret key", "-a", "Access id" };
+        final String filteredArgs = Main.filterSecretKeyOutOfCommandLineLogString(args);
+        assertEquals("-x, A Proxy, -c, Gracie, -a, Access id", filteredArgs);
+    }
 }

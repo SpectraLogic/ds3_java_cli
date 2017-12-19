@@ -27,7 +27,6 @@ import ch.qos.logback.core.rolling.RollingFileAppender;
 import ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy;
 import ch.qos.logback.core.rolling.TriggeringPolicy;
 import ch.qos.logback.core.util.FileSize;
-import com.google.common.base.Joiner;
 import com.spectralogic.ds3cli.command.CliCommand;
 import com.spectralogic.ds3cli.command.CliCommandFactory;
 import com.spectralogic.ds3cli.exceptions.*;
@@ -46,10 +45,12 @@ import java.nio.file.Path;
 import java.util.Properties;
 
 import static com.spectralogic.ds3cli.ArgumentFactory.COMMAND;
+import static com.spectralogic.ds3cli.ArgumentFactory.SECRET_KEY;
 
 public final class Main {
 
     private final static String PROPERTY_FILE = "ds3_cli.properties";
+    private final static String ARG_JOINER_DELIMITER = ", ";
 
     // initialize and add appenders to root logger
     private final static ch.qos.logback.classic.Logger LOG =  (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
@@ -157,7 +158,7 @@ public final class Main {
 
             LOG.info("Version: {}", CliUtils.getVersion(props));
             LOG.info("Build Date: {}", CliUtils.getBuildDate(props));
-            LOG.info("Command line args: {}", Joiner.on(", ").join(args));
+            LOG.info("Command line args: {}", filterSecretKeyOutOfCommandLineLogString(args));
             LOG.info("Console log level: {}", arguments.getConsoleLogLevel().toString());
             LOG.info("Log file log level: {}", arguments.getFileLogLevel().toString());
             LOG.info(CliCommand.getPlatformInformation());
@@ -202,6 +203,22 @@ public final class Main {
             EXCEPTION.handleException(e);
             System.exit(2);
         }
+    }
+
+    static String filterSecretKeyOutOfCommandLineLogString(final String[] args) {
+        final StringBuilder stringBuilder = new StringBuilder();
+
+        final int numArgElements = args.length;
+
+        for (int i = 0; i < numArgElements; ++i) {
+            if (Arguments.matchesOption(SECRET_KEY, args[i])) {
+                ++i;
+            } else {
+                stringBuilder.append(args[i]).append(ARG_JOINER_DELIMITER);
+            }
+        }
+
+        return stringBuilder.toString().replaceAll(", $", "");
     }
 
     private static void printHelp(final Arguments arguments) throws CommandException, BadArgumentException {
