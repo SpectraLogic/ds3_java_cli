@@ -39,17 +39,22 @@ import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.networking.FailedRequestException;
 import org.apache.commons.cli.MissingOptionException;
+import org.apache.commons.cli.Option;
 import org.slf4j.LoggerFactory;
 
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 import static com.spectralogic.ds3cli.ArgumentFactory.COMMAND;
+import static com.spectralogic.ds3cli.ArgumentFactory.SECRET_KEY;
 
 public final class Main {
 
     private final static String PROPERTY_FILE = "ds3_cli.properties";
+    private final static String ARG_JOINER_DELIMITER = ", ";
 
     // initialize and add appenders to root logger
     private final static ch.qos.logback.classic.Logger LOG =  (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
@@ -157,7 +162,7 @@ public final class Main {
 
             LOG.info("Version: {}", CliUtils.getVersion(props));
             LOG.info("Build Date: {}", CliUtils.getBuildDate(props));
-            LOG.info("Command line args: {}", Joiner.on(", ").join(args));
+            LOG.info("Command line args: {}", filterSecretKeyOutOfCommandLineLogString(args));
             LOG.info("Console log level: {}", arguments.getConsoleLogLevel().toString());
             LOG.info("Log file log level: {}", arguments.getFileLogLevel().toString());
             LOG.info(CliCommand.getPlatformInformation());
@@ -202,6 +207,30 @@ public final class Main {
             EXCEPTION.handleException(e);
             System.exit(2);
         }
+    }
+
+    static String filterSecretKeyOutOfCommandLineLogString(final String[] args) {
+        return joinArgsToString(filterOptionAndValueOutOfCommandLineLogString(SECRET_KEY, args));
+    }
+
+    private static String joinArgsToString(final String[] args) {
+        return Joiner.on(ARG_JOINER_DELIMITER).join(args);
+    }
+
+    private static String[] filterOptionAndValueOutOfCommandLineLogString(final Option option, final String[] args) {
+        final List<String> filteredList = new ArrayList<>();
+
+        final int numArgs = args.length;
+
+        for (int i = 0; i < numArgs; ++i) {
+            if (Arguments.matchesOption(option, args[i])) {
+                ++i;
+            } else {
+                filteredList.add(args[i]);
+            }
+        }
+
+        return filteredList.toArray(new String[0]);
     }
 
     private static void printHelp(final Arguments arguments) throws CommandException, BadArgumentException {
