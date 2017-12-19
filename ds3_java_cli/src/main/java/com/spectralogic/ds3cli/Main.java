@@ -38,6 +38,7 @@ import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.networking.FailedRequestException;
 import org.apache.commons.cli.MissingOptionException;
+import org.apache.commons.cli.Option;
 import org.slf4j.LoggerFactory;
 
 import java.nio.file.FileSystems;
@@ -206,12 +207,16 @@ public final class Main {
     }
 
     static String filterSecretKeyOutOfCommandLineLogString(final String[] args) {
+        return filterOptionAndValueOutOfCommandLineLogString(SECRET_KEY, args);
+    }
+
+    private static String filterOptionAndValueOutOfCommandLineLogString(final Option option, final String[] args) {
         final StringBuilder stringBuilder = new StringBuilder();
 
         final int numArgElements = args.length;
 
         for (int i = 0; i < numArgElements; ++i) {
-            if (Arguments.matchesOption(SECRET_KEY, args[i])) {
+            if (Arguments.matchesOption(option, args[i])) {
                 ++i;
             } else {
                 stringBuilder.append(args[i]).append(ARG_JOINER_DELIMITER);
