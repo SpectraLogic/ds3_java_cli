@@ -27,6 +27,7 @@ import ch.qos.logback.core.rolling.RollingFileAppender;
 import ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy;
 import ch.qos.logback.core.rolling.TriggeringPolicy;
 import ch.qos.logback.core.util.FileSize;
+import com.google.common.base.Joiner;
 import com.spectralogic.ds3cli.command.CliCommand;
 import com.spectralogic.ds3cli.command.CliCommandFactory;
 import com.spectralogic.ds3cli.exceptions.*;
@@ -43,6 +44,8 @@ import org.slf4j.LoggerFactory;
 
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 import static com.spectralogic.ds3cli.ArgumentFactory.COMMAND;
@@ -207,23 +210,27 @@ public final class Main {
     }
 
     static String filterSecretKeyOutOfCommandLineLogString(final String[] args) {
-        return filterOptionAndValueOutOfCommandLineLogString(SECRET_KEY, args);
+        return joinArgsToString(filterOptionAndValueOutOfCommandLineLogString(SECRET_KEY, args));
     }
 
-    private static String filterOptionAndValueOutOfCommandLineLogString(final Option option, final String[] args) {
-        final StringBuilder stringBuilder = new StringBuilder();
+    private static String joinArgsToString(final String[] args) {
+        return Joiner.on(ARG_JOINER_DELIMITER).join(args);
+    }
 
-        final int numArgElements = args.length;
+    private static String[] filterOptionAndValueOutOfCommandLineLogString(final Option option, final String[] args) {
+        final List<String> filteredList = new ArrayList<>();
 
-        for (int i = 0; i < numArgElements; ++i) {
+        final int numArgs = args.length;
+
+        for (int i = 0; i < numArgs; ++i) {
             if (Arguments.matchesOption(option, args[i])) {
                 ++i;
             } else {
-                stringBuilder.append(args[i]).append(ARG_JOINER_DELIMITER);
+                filteredList.add(args[i]);
             }
         }
 
-        return stringBuilder.toString().replaceAll(ARG_JOINER_DELIMITER + "$", "");
+        return filteredList.toArray(new String[0]);
     }
 
     private static void printHelp(final Arguments arguments) throws CommandException, BadArgumentException {
