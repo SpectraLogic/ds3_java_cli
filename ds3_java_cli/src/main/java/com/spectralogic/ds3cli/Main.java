@@ -44,9 +44,10 @@ import org.slf4j.LoggerFactory;
 
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.AbstractMap;
 import java.util.Properties;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import static com.spectralogic.ds3cli.ArgumentFactory.COMMAND;
 import static com.spectralogic.ds3cli.ArgumentFactory.SECRET_KEY;
@@ -210,27 +211,26 @@ public final class Main {
     }
 
     static String filterSecretKeyOutOfCommandLineLogString(final String[] args) {
-        return joinArgsToString(filterOptionAndValueOutOfCommandLineLogString(SECRET_KEY, args));
+        return joinArgsToString(filterOptionAndValueOutOfArgs(SECRET_KEY, args));
     }
 
     private static String joinArgsToString(final String[] args) {
-        return Joiner.on(ARG_JOINER_DELIMITER).join(args);
+        return Joiner.on(ARG_JOINER_DELIMITER).join(args).replaceAll(ARG_JOINER_DELIMITER + "$", "");
     }
 
-    private static String[] filterOptionAndValueOutOfCommandLineLogString(final Option option, final String[] args) {
-        final List<String> filteredList = new ArrayList<>();
-
-        final int numArgs = args.length;
-
-        for (int i = 0; i < numArgs; ++i) {
-            if (Arguments.matchesOption(option, args[i])) {
-                ++i;
-            } else {
-                filteredList.add(args[i]);
-            }
-        }
-
-        return filteredList.toArray(new String[0]);
+    private static String[] filterOptionAndValueOutOfArgs(final Option option, final String[] args) {
+        return IntStream.range(0, args.length)
+                .filter(index -> index % 2 == 0)
+                .mapToObj(index -> {
+                    try {
+                        return new AbstractMap.SimpleEntry<>(args[index], args[index + 1]);
+                    } catch (final Throwable t) {
+                        return new AbstractMap.SimpleEntry<>(args[index], "");
+                    }
+                })
+                .filter(optionPair -> ! Arguments.matchesOption(option, optionPair.getKey()))
+                .flatMap(optionPair -> Stream.of(optionPair.getKey(), optionPair.getValue()))
+                .toArray(String[]::new);
     }
 
     private static void printHelp(final Arguments arguments) throws CommandException, BadArgumentException {
