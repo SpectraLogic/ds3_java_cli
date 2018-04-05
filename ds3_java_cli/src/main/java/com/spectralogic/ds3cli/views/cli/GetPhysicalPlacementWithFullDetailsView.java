@@ -85,7 +85,7 @@ public class GetPhysicalPlacementWithFullDetailsView  implements View<GetPhysica
             bulkObjectArray[3] = nullGuardToString(obj.getLength());
             bulkObjectArray[4] = nullGuardToString(obj.getOffset());
             bulkObjectArray[5] = nullGuardToString(obj.getLatest());
-            bulkObjectArray[6] = nullGuardToString(obj.getVersion());
+            bulkObjectArray[6] = nullGuardToString(obj.getVersionId());
             formatArray[0] = bulkObjectArray;
 
         return formatArray;

@@ -54,7 +54,7 @@ public class EjectStorageDomain extends CliCommand<DefaultResult> {
     public DefaultResult call() throws Exception {
 
         final EjectStorageDomainSpectraS3Request request
-                = new EjectStorageDomainSpectraS3Request(id)
+                = new EjectStorageDomainSpectraS3Request(id.toString())
                 .withBucketId(bucket).withEjectLabel(ejectLabel).withEjectLocation(ejectLocation);
 
         this.getClient().ejectStorageDomainSpectraS3(request);

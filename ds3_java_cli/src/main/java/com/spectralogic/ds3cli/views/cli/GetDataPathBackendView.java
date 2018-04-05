@@ -39,7 +39,7 @@ public class GetDataPathBackendView extends TableView<GetDataPathBackendResult> 
             return "No valid Data Path Backend on remote appliance";
         }
 
-        initTable(ImmutableList.of("Activated", "Auto Timeout", "Auto Inspect", "Conflict Resolution", "ID",
+        initTable(ImmutableList.of("Activated", "Auto Timeout", "Auto Inspect", "ID",
                 "Last Heartbeat", "Unavailable Media Policy", "Unavailable Pool Retry Mins", "Unavailable Partition Retry Mins"));
 
         return ASCIITable.getInstance().getTable(getHeaders(), formatTableContents());
@@ -51,12 +51,11 @@ public class GetDataPathBackendView extends TableView<GetDataPathBackendResult> 
         attributesArray[0] = nullGuardToString(dataPathBackend.getActivated());
         attributesArray[1] = nullGuardToString(dataPathBackend.getAutoActivateTimeoutInMins());
         attributesArray[2] = nullGuardToString(dataPathBackend.getAutoInspect());
-        attributesArray[3] = nullGuardToString(dataPathBackend.getDefaultImportConflictResolutionMode());
-        attributesArray[4] = nullGuardToString(dataPathBackend.getId());
-        attributesArray[5] = nullGuardFromDate(dataPathBackend.getLastHeartbeat(), DATE_FORMAT);
-        attributesArray[6] = nullGuardToString(dataPathBackend.getUnavailableMediaPolicy());
-        attributesArray[7] = nullGuardToString(dataPathBackend.getUnavailablePoolMaxJobRetryInMins());
-        attributesArray[8] = nullGuardToString(dataPathBackend.getUnavailableTapePartitionMaxJobRetryInMins());
+        attributesArray[3] = nullGuardToString(dataPathBackend.getId());
+        attributesArray[4] = nullGuardFromDate(dataPathBackend.getLastHeartbeat(), DATE_FORMAT);
+        attributesArray[5] = nullGuardToString(dataPathBackend.getUnavailableMediaPolicy());
+        attributesArray[6] = nullGuardToString(dataPathBackend.getUnavailablePoolMaxJobRetryInMins());
+        attributesArray[7] = nullGuardToString(dataPathBackend.getUnavailableTapePartitionMaxJobRetryInMins());
         contents.add(attributesArray);
         return contents.toArray(new String[contents.size()][]);
     }

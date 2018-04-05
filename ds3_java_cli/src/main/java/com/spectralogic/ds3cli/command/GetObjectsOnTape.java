@@ -56,7 +56,7 @@ public class GetObjectsOnTape extends CliCommand<GetObjectsOnTapeResult> {
         try {
 
             final GetBlobsOnTapeSpectraS3Response response
-                        = getClient().getBlobsOnTapeSpectraS3(new GetBlobsOnTapeSpectraS3Request(null, this.tapeId));
+                        = getClient().getBlobsOnTapeSpectraS3(new GetBlobsOnTapeSpectraS3Request(this.tapeId));
 
             return new GetObjectsOnTapeResult(this.tapeId, response.getBulkObjectListResult().getObjects());
         } catch (final FailedRequestException e) {
