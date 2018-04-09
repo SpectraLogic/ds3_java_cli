@@ -30,10 +30,7 @@ import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.models.common.Credentials;
 import com.spectralogic.ds3client.networking.FailedRequestException;
 import org.apache.commons.io.FileUtils;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.FixMethodOrder;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runners.MethodSorters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,6 +42,7 @@ import java.nio.file.Path;
 import java.util.*;
 
 import static com.spectralogic.ds3cli.certification.CertificationUtil.*;
+import static com.spectralogic.ds3cli.helpers.TempStorageUtil.setupDataPolicy;
 import static com.spectralogic.ds3cli.helpers.TempStorageUtil.verifyAvailableTapePartition;
 import static junit.framework.TestCase.assertFalse;
 import static org.hamcrest.CoreMatchers.is;
@@ -368,14 +366,18 @@ public class Certification_Test {
         final Long fileSize = 1024L;
         final String bucketName = CertificationUtil.getBucketName(testDescription);
         boolean success = false;
+        final UUID dataPolicy = setupDataPolicy(testDescription, false, ChecksumType.Type.NONE, client);
 
         OUT.startNewTest(testDescription);
         try {
+
             OUT.insertLog("Set data policy to use versioning");
-            final String enableDataPolicyVersioningCmd = "--http -c modify_data_policy --modify-params versioning:KEEP_LATEST -i " + envDataPolicyId;
+            final String enableDataPolicyVersioningCmd = "--http -c modify_data_policy --modify-params versioning:KEEP_LATEST -i " + dataPolicy;
             final CommandResponse modifyDataPolicyResponse = Util.command(client, enableDataPolicyVersioningCmd);
             OUT.insertCommand(enableDataPolicyVersioningCmd, modifyDataPolicyResponse.getMessage());
             assertThat(modifyDataPolicyResponse.getReturnCode(), is(0));
+            client.modifyUserSpectraS3(new ModifyUserSpectraS3Request("Administrator")
+                    .withDefaultDataPolicyId(dataPolicy));
 
             // create and store one file
             Path bulkPutLocalTempDir = CertificationUtil.createTempFiles(bucketName, numFiles, fileSize);
@@ -409,9 +411,9 @@ public class Certification_Test {
         } finally {
             Util.deleteBucket(client, bucketName);
 
-            // undo versioning
-            Util.command(client, "--http -c modify_data_policy --modify-params versioning:NONE -i " + envDataPolicyId);
-
+            client.modifyUserSpectraS3(new ModifyUserSpectraS3Request("Administrator")
+                    .withDefaultDataPolicyId(envDataPolicyId));
+            client.deleteDataPolicySpectraS3(new DeleteDataPolicySpectraS3Request(dataPolicy));
             OUT.finishTest(testDescription, success);
             assertTrue(testDescription + " did not complete", success);
         }
