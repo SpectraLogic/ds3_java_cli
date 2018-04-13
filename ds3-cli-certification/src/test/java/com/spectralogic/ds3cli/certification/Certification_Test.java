@@ -366,7 +366,7 @@ public class Certification_Test {
         final Long fileSize = 1024L;
         final String bucketName = CertificationUtil.getBucketName(testDescription);
         boolean success = false;
-        final UUID dataPolicy = setupDataPolicy(testDescription, false, ChecksumType.Type.NONE, client);
+        final UUID dataPolicy = setupDataPolicy(testDescription, false, ChecksumType.Type.CRC_32, client);
 
         OUT.startNewTest(testDescription);
         try {
