@@ -1575,7 +1575,7 @@ public class Ds3Cli_Test {
         tape1.setStorageDomainId(tape1StorageDomainId);
         tape1.setTakeOwnershipPending(false);
         tape1.setTotalRawCapacity(20000L);
-        tape1.setType(TapeType.LTO6);
+        tape1.setType("LTO6");
         tape1.setWriteProtected(false);
         tape1.setEjectLabel("Tape1EjectLabel");
         tape1.setEjectLocation("Tape1EjectLocation");
@@ -1594,7 +1594,7 @@ public class Ds3Cli_Test {
         tape2.setStorageDomainId(tape2StorageDomainId);
         tape2.setTakeOwnershipPending(false);
         tape2.setTotalRawCapacity(20000L);
-        tape2.setType(TapeType.LTO7);
+        tape2.setType("LTO7");
         tape2.setWriteProtected(false);
         tape2.setEjectLabel("Tape2EjectLabel");
         tape2.setEjectLocation("Tape2EjectLocation");

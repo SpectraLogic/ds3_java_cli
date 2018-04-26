@@ -13,3 +13,4 @@ bin/
 classes/
 build/
 out/
+\.gradletasknamecache
