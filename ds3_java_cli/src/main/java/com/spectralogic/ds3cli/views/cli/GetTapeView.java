@@ -34,7 +34,7 @@ public class GetTapeView implements View<GetTapeResult> {
         return String.format("Tape Bar Code: %s, ID: %s, Tape Type: %s, Serial Number: %s, State: %s, Partition Id %s, Available Space: %s, Full: %b, Write Protected: %b, Last Modified: %s, Last Verification: %s",
             nullGuard(tape.getBarCode()),
             nullGuardToString(tape.getId()),
-            nullGuard(tape.getType().name()),
+            nullGuard(tape.getType()),
             nullGuard(tape.getSerialNumber()),
             nullGuardToString(tape.getState()),
             nullGuardToString(tape.getPartitionId()),
