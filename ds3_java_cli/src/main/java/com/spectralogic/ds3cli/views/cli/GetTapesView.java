@@ -79,7 +79,7 @@ public class GetTapesView extends TableView<GetTapesResult> {
 
     private String storageDomainName(final Tape tape) {
         try {
-            return getTapesResult.getResult().getStorageDomainIdNameMap().get(tape.getStorageDomainId());
+            return getTapesResult.getResult().getStorageDomainIdNameMap().get(tape.getStorageDomainMemberId());
         } catch (final Throwable t) {
             LOG.debug("Error getting storage domain name for tape.", t);
         }

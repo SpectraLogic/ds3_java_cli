@@ -20,6 +20,8 @@ import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
 import com.spectralogic.ds3cli.CommandResponse;
 import com.spectralogic.ds3cli.exceptions.*;
+import com.spectralogic.ds3cli.helpers.TempStorageIds;
+import com.spectralogic.ds3cli.helpers.TempStorageUtil;
 import com.spectralogic.ds3cli.helpers.Util;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.Ds3ClientBuilder;
@@ -30,10 +32,7 @@ import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.models.common.Credentials;
 import com.spectralogic.ds3client.networking.FailedRequestException;
 import org.apache.commons.io.FileUtils;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.FixMethodOrder;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runners.MethodSorters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,6 +44,7 @@ import java.nio.file.Path;
 import java.util.*;
 
 import static com.spectralogic.ds3cli.certification.CertificationUtil.*;
+import static com.spectralogic.ds3cli.helpers.TempStorageUtil.setupDataPolicy;
 import static com.spectralogic.ds3cli.helpers.TempStorageUtil.verifyAvailableTapePartition;
 import static junit.framework.TestCase.assertFalse;
 import static org.hamcrest.CoreMatchers.is;
@@ -56,10 +56,10 @@ import static org.junit.Assume.assumeThat;
 
 /**
  * Implement tests to automate the BlackPearl Certification process for the JavaCLI.
- *
+ * <p>
  * For details, refer to
- *   https://developer.spectralogic.com/certification/
- *   https://developer.spectralogic.com/test-plan/
+ * https://developer.spectralogic.com/certification/
+ * https://developer.spectralogic.com/test-plan/
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING) // Order only matters for manually verifying the results
 
@@ -74,6 +74,7 @@ public class Certification_Test {
     private static UUID envDataPolicyId;
 
     private final static Ds3ExceptionHandlerMapper EXCEPTION_MAPPER = Ds3ExceptionHandlerMapper.getInstance();
+
     static {
         EXCEPTION_MAPPER.addHandler(FailedRequestException.class, new FailedRequestExceptionHandler());
         EXCEPTION_MAPPER.addHandler(RuntimeException.class, new RuntimeExceptionHandler());
@@ -133,7 +134,7 @@ public class Certification_Test {
 
         try {
             Util.command(invalid_client, "--http -c get_service");
-        } catch(final FailedRequestException e) {
+        } catch (final FailedRequestException e) {
             final String formattedException = FailedRequestExceptionHandler.format(e);
             OUT.insertPreformat(formattedException);
             final String expectedError = "permissions / authorization error";
@@ -155,7 +156,7 @@ public class Certification_Test {
         boolean success = false;
         try {
             Util.command(invalid_client, "--http -c get_service");
-        } catch(final UnknownHostException uhe) {
+        } catch (final UnknownHostException uhe) {
             final String formattedException = ExceptionFormatter.format(uhe);
             final String expectedError = "UnknownHost";
             assertThat(formattedException, containsString(expectedError));
@@ -177,7 +178,7 @@ public class Certification_Test {
 
         try {
             Util.command(client, "--http -c get_bucket -b " + bucketName);
-        } catch(final CommandException ce) {
+        } catch (final CommandException ce) {
             final String formattedException = ExceptionFormatter.format(ce);
             assertThat(formattedException, containsString("Error: Unknown bucket."));
             OUT.insertLog("CommandResponse for 7.3.1 failed attempt to list nonexistent bucket:");
@@ -212,7 +213,7 @@ public class Certification_Test {
             // Attempt to access the bucket with the new user, which should fail
             final String listBucketCmd = "--http -c get_bucket -b " + bucketName;
             Util.command(invalid_client, listBucketCmd);
-        } catch(final FailedRequestException e) {
+        } catch (final FailedRequestException e) {
             final String formattedException = FailedRequestExceptionHandler.format(e);
             final String expectedError = "permissions / authorization error";
             assertThat(formattedException, containsString(expectedError));
@@ -250,7 +251,7 @@ public class Certification_Test {
             final CommandResponse getNonExtandObjectResponse = Util.command(client, getNonExtantObject);
             OUT.insertCommand(getNonExtantObject, getNonExtandObjectResponse.getMessage());
 
-        } catch(final FailedRequestException fre) {
+        } catch (final FailedRequestException fre) {
             final String formattedException = FailedRequestExceptionHandler.format(fre);
             final String expectedError = "not found";
             assertThat(formattedException, containsString(expectedError));
@@ -266,6 +267,7 @@ public class Certification_Test {
 
     /**
      * 7.5-7: Archive and Restore 3 objects larger than the chunk size to BP simultaneously.
+     *
      * @throws Exception
      */
     @Test
@@ -282,6 +284,7 @@ public class Certification_Test {
 
     /**
      * 7.7-8: Archive 250 objects of approximately 1GB size to BP.
+     *
      * @throws Exception
      */
     @Test
@@ -323,7 +326,7 @@ public class Certification_Test {
 
             OUT.insertLog("Bulk PUT from bucket " + bucketName);
             final long startPutTime = getCurrentTime();
-            final String putBulkCmd = "--http -c put_bulk -b " + bucketName + " -d "  + bulkPutLocalTempDir.toString();
+            final String putBulkCmd = "--http -c put_bulk -b " + bucketName + " -d " + bulkPutLocalTempDir.toString();
             final CommandResponse putBulkResponse = Util.command(client, putBulkCmd);
             OUT.insertCommand(putBulkCmd, putBulkResponse.getMessage());
             final long endPutTime = getCurrentTime();
@@ -368,14 +371,20 @@ public class Certification_Test {
         final Long fileSize = 1024L;
         final String bucketName = CertificationUtil.getBucketName(testDescription);
         boolean success = false;
+        final UUID dataPolicy = setupDataPolicy(testDescription, false, ChecksumType.Type.MD5, client);
+        final TempStorageIds tempStorageIds = TempStorageUtil.setup(testDescription, dataPolicy, client);
+
 
         OUT.startNewTest(testDescription);
         try {
+
             OUT.insertLog("Set data policy to use versioning");
-            final String enableDataPolicyVersioningCmd = "--http -c modify_data_policy --modify-params versioning:KEEP_LATEST -i " + envDataPolicyId;
+            final String enableDataPolicyVersioningCmd = "--http -c modify_data_policy --modify-params versioning:KEEP_LATEST -i " + dataPolicy;
             final CommandResponse modifyDataPolicyResponse = Util.command(client, enableDataPolicyVersioningCmd);
             OUT.insertCommand(enableDataPolicyVersioningCmd, modifyDataPolicyResponse.getMessage());
             assertThat(modifyDataPolicyResponse.getReturnCode(), is(0));
+            client.modifyUserSpectraS3(new ModifyUserSpectraS3Request("Administrator")
+                    .withDefaultDataPolicyId(dataPolicy));
 
             // create and store one file
             Path bulkPutLocalTempDir = CertificationUtil.createTempFiles(bucketName, numFiles, fileSize);
@@ -407,11 +416,9 @@ public class Certification_Test {
         } catch (final Exception e) {
             LOG.error("Exception: {}", e.getMessage(), e);
         } finally {
-            Util.deleteBucket(client, bucketName);
-
-            // undo versioning
-            Util.command(client, "--http -c modify_data_policy --modify-params versioning:NONE -i " + envDataPolicyId);
-
+            client.modifyUserSpectraS3(new ModifyUserSpectraS3Request("Administrator")
+                    .withDefaultDataPolicyId(envDataPolicyId));
+            TempStorageUtil.teardown(testDescription, tempStorageIds, client);
             OUT.finishTest(testDescription, success);
             assertTrue(testDescription + " did not complete", success);
         }
@@ -432,7 +439,7 @@ public class Certification_Test {
         try {
             final Path bulkPutLocalTempDir = CertificationUtil.createTempFiles(bucketName, numFiles, fileSize);
 
-            final String putBulkCmd = "--http -c put_bulk -b " + bucketName + " -d "  + bulkPutLocalTempDir.toString();
+            final String putBulkCmd = "--http -c put_bulk -b " + bucketName + " -d " + bulkPutLocalTempDir.toString();
             final CommandResponse putBulkResponse = Util.command(client, putBulkCmd);
             OUT.insertCommand(putBulkCmd, putBulkResponse.getMessage());
             assertThat(putBulkResponse.getReturnCode(), is(0));
@@ -445,7 +452,7 @@ public class Certification_Test {
             OUT.insertPreformat(objectName);
 
             // restore first 100 bytes
-            final String getPartialObjectCmd = "--http -c get_object --range-offset 0 --range-length 100 -b " + bucketName + " -o " + objectName + " -d "  + bulkPutLocalTempDir.toString();
+            final String getPartialObjectCmd = "--http -c get_object --range-offset 0 --range-length 100 -b " + bucketName + " -o " + objectName + " -d " + bulkPutLocalTempDir.toString();
             final CommandResponse getPartialResponse = Util.command(client, getPartialObjectCmd);
             OUT.insertCommand(getPartialObjectCmd, getPartialResponse.getMessage());
             assertThat(getPartialResponse.getReturnCode(), is(0));
@@ -455,11 +462,11 @@ public class Certification_Test {
             final com.spectralogic.ds3cli.util.FileUtils.ObjectsToPut objectsToPut = com.spectralogic.ds3cli.util.FileUtils.getObjectsToPut(filesToPut, bulkPutLocalTempDir, "", true);
             final Ds3Object obj = objectsToPut.getDs3Objects().get(0);
             assertTrue(obj.getSize() < 150);
-            OUT.insertLog(obj.getName()  + " size: " + Long.toString(obj.getSize()));
+            OUT.insertLog(obj.getName() + " size: " + Long.toString(obj.getSize()));
             success = true;
 
         } catch (final Exception e) {
-            LOG.error("Exception in " + testDescription, e );
+            LOG.error("Exception in " + testDescription, e);
         } finally {
             OUT.finishTest(testDescription, success);
             Util.deleteBucket(client, bucketName);
@@ -501,7 +508,7 @@ public class Certification_Test {
             success = true;
 
         } catch (final Exception e) {
-            LOG.error("Exception in " + testDescription, e );
+            LOG.error("Exception in " + testDescription, e);
         } finally {
             OUT.finishTest(testDescription, success);
             CertificationUtil.deleteJob(client, jobId);
@@ -551,7 +558,7 @@ public class Certification_Test {
             assertTrue(postEjectResponse.getMessage().contains(ejectLocation));
             success = true;
         } catch (final Exception e) {
-            LOG.error("Exception in " + testDescription, e );
+            LOG.error("Exception in " + testDescription, e);
         } finally {
             CertificationUtil.cancelTapeEject(client, barcode);
             OUT.finishTest(testDescription, success);
@@ -587,7 +594,7 @@ public class Certification_Test {
             // Create temp files for BULK_PUT
             final Path bulkPutLocalTempDir = CertificationUtil.createTempFiles(bucketName, numFiles, fileSize);
 
-            final String putBulkCmd = "--http -c put_bulk -b " + bucketName + " -d "  + bulkPutLocalTempDir.toString();
+            final String putBulkCmd = "--http -c put_bulk -b " + bucketName + " -d " + bulkPutLocalTempDir.toString();
             final CommandResponse putBulkResponse = Util.command(client, putBulkCmd);
             assertThat(putBulkResponse.getReturnCode(), is(0));
 
@@ -620,7 +627,7 @@ public class Certification_Test {
             final CommandResponse getPhysicalPlacementAfterResponse = Util.command(client, getPhysicalPlacementCmd);
             OUT.insertCommand(getPhysicalPlacementCmd, getPhysicalPlacementAfterResponse.getMessage());
         } catch (final Exception e) {
-            LOG.error("Exception in " + testDescription, e );
+            LOG.error("Exception in " + testDescription, e);
         } finally {
             OUT.finishTest(testDescription, success);
             Util.deleteBucket(client, bucketName);
@@ -642,16 +649,16 @@ public class Certification_Test {
         boolean success = false;
         try {
             // Put 500 files into bucket
-            final CommandResponse performanceResponse = Util.putPerformanceFiles(client, bucketName,  numFiles, fileSize);
+            final CommandResponse performanceResponse = Util.putPerformanceFiles(client, bucketName, numFiles, fileSize);
             assertThat(performanceResponse.getReturnCode(), is(0));
 
             final String listBucketArgs = "--http -c get_bucket -b " + bucketName;
-            final CommandResponse getBucketResponseAfterBulkPut =  Util.command(client, listBucketArgs);
+            final CommandResponse getBucketResponseAfterBulkPut = Util.command(client, listBucketArgs);
             OUT.insertCommand(listBucketArgs, getBucketResponseAfterBulkPut.getMessage());
             assertThat(getBucketResponseAfterBulkPut.getReturnCode(), is(0));
             success = true;
         } catch (final Exception e) {
-            LOG.error("Exception in " + testDescription, e );
+            LOG.error("Exception in " + testDescription, e);
         } finally {
             OUT.finishTest(testDescription, success);
             Util.deleteBucket(client, bucketName);

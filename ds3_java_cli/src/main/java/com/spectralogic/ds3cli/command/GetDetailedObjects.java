@@ -90,7 +90,7 @@ public class GetDetailedObjects extends CliCommand<GetDetailedObjectsResult> {
     public GetDetailedObjectsResult call() throws Exception {
 
         final FluentIterable<DetailedS3Object> detailedObjects = FluentIterable.from(new LazyIterable<>(
-                new GetObjectsFullDetailsLoaderFactory(getClient(), this.bucketName, this.prefix, 100, 5, true)))
+                new GetObjectsFullDetailsLoaderFactory(getClient(), this.bucketName, 100, 5, true)))
                 .filter(Predicates.and(getDatePredicate(), getSizePredicate(), getNamePredicate(), getOwnerPredicate()));
 
         return new GetDetailedObjectsResult(detailedObjects);

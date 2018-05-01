@@ -43,6 +43,7 @@ import com.spectralogic.ds3client.commands.GetBucketRequest;
 import com.spectralogic.ds3client.commands.GetBucketResponse;
 import com.spectralogic.ds3client.commands.GetObjectRequest;
 import com.spectralogic.ds3client.commands.GetObjectResponse;
+import com.spectralogic.ds3client.commands.spectrads3.CancelJobSpectraS3Request;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.helpers.FileObjectPutter;
 import com.spectralogic.ds3client.helpers.FolderNameFilter;
@@ -833,9 +834,9 @@ public class FeatureIntegration_Test {
 
             final Arguments args = new Arguments(new String[]{"--http", "-c", "get_physical_placement", "-b", bucketName, "-o", "beowulf.txt" });
             final CommandResponse response = Util.command(client, args);
-            assertTrue(response.getMessage().contains("| Object Name |                  ID                  | In Cache | Length | Offset | Latest | Version |"));
+            assertTrue(response.getMessage().contains("| Object Name |                  ID                  | In Cache | Length | Offset | Latest |                Version               |"));
             assertTrue(response.getMessage().contains("| beowulf.txt |"));
-            assertTrue(response.getMessage().contains("| true     | 294059 | 0      | true   | 1       |"));
+            assertTrue(response.getMessage().contains("| true     | 294059 | 0      | true   |"));
 
         } finally {
             Util.deleteBucket(client, bucketName);
@@ -1254,6 +1255,7 @@ public class FeatureIntegration_Test {
             assertNotNull(response);
             assertNotNull(response.getMessage());
             assertFalse(response.getMessage().isEmpty());
+            client.cancelJobSpectraS3(new CancelJobSpectraS3Request(job.getJobId()));
         } finally {
             Util.deleteBucket(client, bucketName);
         }

@@ -41,7 +41,7 @@ public class GetDataPoliciesView extends TableView<GetDataPoliciesResult> {
 
         initTable(ImmutableList.of("Name", "Created", "Versioning", "Checksum Type", "End-to-End CRC Required",
                 "Blobbing Enabled", "Default Blob Size", "Default Get Job Priority","Default Put Job Priority",
-                "Default Verify Job Priority", "Id", "LTFS Object Naming"));
+                "Default Verify Job Priority", "Id"));
         setTableDataAlignment(ImmutableList.of(ASCIITable.ALIGN_LEFT, ASCIITable.ALIGN_LEFT, ASCIITable.ALIGN_RIGHT , ASCIITable.ALIGN_RIGHT, ASCIITable.ALIGN_RIGHT,
                 ASCIITable.ALIGN_RIGHT, ASCIITable.ALIGN_RIGHT, ASCIITable.ALIGN_RIGHT, ASCIITable.ALIGN_RIGHT, ASCIITable.ALIGN_RIGHT, ASCIITable.ALIGN_RIGHT, ASCIITable.ALIGN_RIGHT, ASCIITable.ALIGN_RIGHT));
         return ASCIITable.getInstance().getTable(getHeaders(), formatTableContents());
@@ -64,7 +64,6 @@ public class GetDataPoliciesView extends TableView<GetDataPoliciesResult> {
             arrayEntry[8] = nullGuardToString(dataPolicy.getDefaultPutJobPriority());
             arrayEntry[9] = nullGuardToString(dataPolicy.getDefaultVerifyJobPriority());
             arrayEntry[10] = nullGuardToString(dataPolicy.getId());
-            arrayEntry[11] = nullGuardToString(dataPolicy.getLtfsObjectNamingAllowed());
             builder.add(arrayEntry);
         }
 

@@ -59,7 +59,7 @@ public class VerifyBulkJobView extends TableView<VerifyBulkJobResult> {
                 arrayEntry[0] = nullGuardToString(chunk);
                 arrayEntry[1] = nullGuard(bulkObject.getName());
                 arrayEntry[2] = nullGuardToString(bulkObject.getLength());
-                arrayEntry[3] = nullGuardToString(bulkObject.getVersion());
+                arrayEntry[3] = nullGuardToString(bulkObject.getVersionId());
                 contents.add(arrayEntry);
             }
         }

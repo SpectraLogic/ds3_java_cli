@@ -38,6 +38,7 @@ import com.spectralogic.ds3client.serializer.XmlOutput;
 import org.apache.commons.cli.MissingOptionException;
 import org.apache.commons.cli.UnrecognizedOptionException;
 import org.apache.commons.io.IOUtils;
+import org.hamcrest.CoreMatchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.invocation.InvocationOnMock;
@@ -57,6 +58,8 @@ import java.util.*;
 
 import static com.spectralogic.ds3cli.util.Constants.DATE_FORMAT;
 import static com.spectralogic.ds3client.utils.ResponseUtils.toImmutableIntList;
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.*;
@@ -394,88 +397,99 @@ public class Ds3Cli_Test {
         assertTrue(command instanceof GetBucket);
         final View view = command.getView();
 
-        final String expected =
-                "  \"Data\" : {\n" +
-                        "    \"bucket\" : {\n" +
-                        "      \"CreationDate\" : \"2016-11-18T15:48:08.000Z\",\n" +
-                        "      \"DataPolicyId\" : \"8a5d5e56-8d54-4098-b790-6002730b3d96\",\n" +
-                        "      \"Empty\" : null,\n" +
-                        "      \"Id\" : \"07cbc080-16ae-46ea-a275-ec8cb27e178c\",\n" +
-                        "      \"LastPreferredChunkSizeInBytes\" : 19004340787,\n" +
-                        "      \"LogicalUsedCapacity\" : 1928234,\n" +
-                        "      \"Name\" : \"mountain\",\n" +
-                        "      \"UserId\" : \"5079e312-bcff-43c7-bd54-d8148af0a515\"\n" +
-                        "    },\n" +
-                        "    \"result\" : [ {\n" +
-                        "      \"etag\" : \"3d1bc5d88e795c5b23da7f812c073870\",\n" +
-                        "      \"ETag\" : \"3d1bc5d88e795c5b23da7f812c073870\",\n" +
-                        "      \"Key\" : \"YouDontKnowMe_295x166.jpg\",\n" +
-                        "      \"LastModified\" : \"2016-11-18T15:48:10.000Z\",\n" +
-                        "      \"Owner\" : {\n" +
-                        "        \"DisplayName\" : \"jk\",\n" +
-                        "        \"ID\" : \"5079e312-bcff-43c7-bd54-d8148af0a515\"\n" +
-                        "      },\n" +
-                        "      \"Size\" : 10634,\n" +
-                        "      \"StorageClass\" : null\n" +
-                        "    }, {\n" +
-                        "      \"etag\" : \"ef751d03b7fe4fb2013be56c5a8da26e\",\n" +
-                        "      \"ETag\" : \"ef751d03b7fe4fb2013be56c5a8da26e\",\n" +
-                        "      \"Key\" : \"sky_bandana.jpg\",\n" +
-                        "      \"LastModified\" : \"2016-11-18T15:48:10.000Z\",\n" +
-                        "      \"Owner\" : {\n" +
-                        "        \"DisplayName\" : \"jk\",\n" +
-                        "        \"ID\" : \"5079e312-bcff-43c7-bd54-d8148af0a515\"\n" +
-                        "      },\n" +
-                        "      \"Size\" : 142164,\n" +
-                        "      \"StorageClass\" : null\n" +
-                        "    }, {\n" +
-                        "      \"etag\" : \"a2750043425399804e83288f5f97d112\",\n" +
-                        "      \"ETag\" : \"a2750043425399804e83288f5f97d112\",\n" +
-                        "      \"Key\" : \"sky_point,web.jpg\",\n" +
-                        "      \"LastModified\" : \"2016-11-18T15:48:10.000Z\",\n" +
-                        "      \"Owner\" : {\n" +
-                        "        \"DisplayName\" : \"jk\",\n" +
-                        "        \"ID\" : \"5079e312-bcff-43c7-bd54-d8148af0a515\"\n" +
-                        "      },\n" +
-                        "      \"Size\" : 17120,\n" +
-                        "      \"StorageClass\" : null\n" +
-                        "    }, {\n" +
-                        "      \"etag\" : \"71e93f1026d0362aa0b7dccedf031d8c\",\n" +
-                        "      \"ETag\" : \"71e93f1026d0362aa0b7dccedf031d8c\",\n" +
-                        "      \"Key\" : \"skylark,l5ct2.bmp\",\n" +
-                        "      \"LastModified\" : \"2016-11-18T15:48:10.000Z\",\n" +
-                        "      \"Owner\" : {\n" +
-                        "        \"DisplayName\" : \"jk\",\n" +
-                        "        \"ID\" : \"5079e312-bcff-43c7-bd54-d8148af0a515\"\n" +
-                        "      },\n" +
-                        "      \"Size\" : 921654,\n" +
-                        "      \"StorageClass\" : null\n" +
-                        "    }, {\n" +
-                        "      \"etag\" : \"777fd3670853d4f197c52cfa6a21f773\",\n" +
-                        "      \"ETag\" : \"777fd3670853d4f197c52cfa6a21f773\",\n" +
-                        "      \"Key\" : \"skylark--car 001.jpg\",\n" +
-                        "      \"LastModified\" : \"2016-11-18T15:48:10.000Z\",\n" +
-                        "      \"Owner\" : {\n" +
-                        "        \"DisplayName\" : \"jk\",\n" +
-                        "        \"ID\" : \"5079e312-bcff-43c7-bd54-d8148af0a515\"\n" +
-                        "      },\n" +
-                        "      \"Size\" : 391998,\n" +
-                        "      \"StorageClass\" : null\n" +
-                        "    }, {\n" +
-                        "      \"etag\" : \"6dc0c5e59418d651777c8432e13e9539\",\n" +
-                        "      \"ETag\" : \"6dc0c5e59418d651777c8432e13e9539\",\n" +
-                        "      \"Key\" : \"skylark004.jpg\",\n" +
-                        "      \"LastModified\" : \"2016-11-18T15:48:10.000Z\",\n" +
-                        "      \"Owner\" : {\n" +
-                        "        \"DisplayName\" : \"jk\",\n" +
-                        "        \"ID\" : \"5079e312-bcff-43c7-bd54-d8148af0a515\"\n" +
-                        "      },\n" +
-                        "      \"Size\" : 444664,\n" +
-                        "      \"StorageClass\" : null\n" +
-                        "    } ]\n" +
-                        "  },\n" +
-                        "  \"Status\" : \"OK\"\n" +
-                        "}";
+        final String expected = "  \"Data\" : {\n" +
+                "    \"bucket\" : {\n" +
+                "      \"CreationDate\" : \"2016-11-18T15:48:08.000Z\",\n" +
+                "      \"DataPolicyId\" : \"8a5d5e56-8d54-4098-b790-6002730b3d96\",\n" +
+                "      \"Empty\" : null,\n" +
+                "      \"Id\" : \"07cbc080-16ae-46ea-a275-ec8cb27e178c\",\n" +
+                "      \"LastPreferredChunkSizeInBytes\" : 19004340787,\n" +
+                "      \"LogicalUsedCapacity\" : 1928234,\n" +
+                "      \"Name\" : \"mountain\",\n" +
+                "      \"UserId\" : \"5079e312-bcff-43c7-bd54-d8148af0a515\"\n" +
+                "    },\n" +
+                "    \"result\" : [ {\n" +
+                "      \"etag\" : \"3d1bc5d88e795c5b23da7f812c073870\",\n" +
+                "      \"ETag\" : \"3d1bc5d88e795c5b23da7f812c073870\",\n" +
+                "      \"IsLatest\" : null,\n" +
+                "      \"Key\" : \"YouDontKnowMe_295x166.jpg\",\n" +
+                "      \"LastModified\" : \"2016-11-18T15:48:10.000Z\",\n" +
+                "      \"Owner\" : {\n" +
+                "        \"DisplayName\" : \"jk\",\n" +
+                "        \"ID\" : \"5079e312-bcff-43c7-bd54-d8148af0a515\"\n" +
+                "      },\n" +
+                "      \"Size\" : 10634,\n" +
+                "      \"StorageClass\" : null,\n" +
+                "      \"VersionId\" : null\n" +
+                "    }, {\n" +
+                "      \"etag\" : \"ef751d03b7fe4fb2013be56c5a8da26e\",\n" +
+                "      \"ETag\" : \"ef751d03b7fe4fb2013be56c5a8da26e\",\n" +
+                "      \"IsLatest\" : null,\n" +
+                "      \"Key\" : \"sky_bandana.jpg\",\n" +
+                "      \"LastModified\" : \"2016-11-18T15:48:10.000Z\",\n" +
+                "      \"Owner\" : {\n" +
+                "        \"DisplayName\" : \"jk\",\n" +
+                "        \"ID\" : \"5079e312-bcff-43c7-bd54-d8148af0a515\"\n" +
+                "      },\n" +
+                "      \"Size\" : 142164,\n" +
+                "      \"StorageClass\" : null,\n" +
+                "      \"VersionId\" : null\n" +
+                "    }, {\n" +
+                "      \"etag\" : \"a2750043425399804e83288f5f97d112\",\n" +
+                "      \"ETag\" : \"a2750043425399804e83288f5f97d112\",\n" +
+                "      \"IsLatest\" : null,\n" +
+                "      \"Key\" : \"sky_point,web.jpg\",\n" +
+                "      \"LastModified\" : \"2016-11-18T15:48:10.000Z\",\n" +
+                "      \"Owner\" : {\n" +
+                "        \"DisplayName\" : \"jk\",\n" +
+                "        \"ID\" : \"5079e312-bcff-43c7-bd54-d8148af0a515\"\n" +
+                "      },\n" +
+                "      \"Size\" : 17120,\n" +
+                "      \"StorageClass\" : null,\n" +
+                "      \"VersionId\" : null\n" +
+                "    }, {\n" +
+                "      \"etag\" : \"71e93f1026d0362aa0b7dccedf031d8c\",\n" +
+                "      \"ETag\" : \"71e93f1026d0362aa0b7dccedf031d8c\",\n" +
+                "      \"IsLatest\" : null,\n" +
+                "      \"Key\" : \"skylark,l5ct2.bmp\",\n" +
+                "      \"LastModified\" : \"2016-11-18T15:48:10.000Z\",\n" +
+                "      \"Owner\" : {\n" +
+                "        \"DisplayName\" : \"jk\",\n" +
+                "        \"ID\" : \"5079e312-bcff-43c7-bd54-d8148af0a515\"\n" +
+                "      },\n" +
+                "      \"Size\" : 921654,\n" +
+                "      \"StorageClass\" : null,\n" +
+                "      \"VersionId\" : null\n" +
+                "    }, {\n" +
+                "      \"etag\" : \"777fd3670853d4f197c52cfa6a21f773\",\n" +
+                "      \"ETag\" : \"777fd3670853d4f197c52cfa6a21f773\",\n" +
+                "      \"IsLatest\" : null,\n" +
+                "      \"Key\" : \"skylark--car 001.jpg\",\n" +
+                "      \"LastModified\" : \"2016-11-18T15:48:10.000Z\",\n" +
+                "      \"Owner\" : {\n" +
+                "        \"DisplayName\" : \"jk\",\n" +
+                "        \"ID\" : \"5079e312-bcff-43c7-bd54-d8148af0a515\"\n" +
+                "      },\n" +
+                "      \"Size\" : 391998,\n" +
+                "      \"StorageClass\" : null,\n" +
+                "      \"VersionId\" : null\n" +
+                "    }, {\n" +
+                "      \"etag\" : \"6dc0c5e59418d651777c8432e13e9539\",\n" +
+                "      \"ETag\" : \"6dc0c5e59418d651777c8432e13e9539\",\n" +
+                "      \"IsLatest\" : null,\n" +
+                "      \"Key\" : \"skylark004.jpg\",\n" +
+                "      \"LastModified\" : \"2016-11-18T15:48:10.000Z\",\n" +
+                "      \"Owner\" : {\n" +
+                "        \"DisplayName\" : \"jk\",\n" +
+                "        \"ID\" : \"5079e312-bcff-43c7-bd54-d8148af0a515\"\n" +
+                "      },\n" +
+                "      \"Size\" : 444664,\n" +
+                "      \"StorageClass\" : null,\n" +
+                "      \"VersionId\" : null\n" +
+                "    } ]\n" +
+                "  },\n" +
+                "  \"Status\" : \"OK\"\n" +
+                "}";
 
         final String packet = "<ListBucketResult><Contents><ETag>3d1bc5d88e795c5b23da7f812c073870</ETag><Key>YouDontKnowMe_295x166.jpg</Key><LastModified>2016-11-18T15:48:10.000Z</LastModified><Owner><DisplayName>jk</DisplayName><ID>5079e312-bcff-43c7-bd54-d8148af0a515</ID></Owner><Size>10634</Size><StorageClass/></Contents><Contents><ETag>ef751d03b7fe4fb2013be56c5a8da26e</ETag><Key>sky_bandana.jpg</Key><LastModified>2016-11-18T15:48:10.000Z</LastModified><Owner><DisplayName>jk</DisplayName><ID>5079e312-bcff-43c7-bd54-d8148af0a515</ID></Owner><Size>142164</Size><StorageClass/></Contents><Contents><ETag>a2750043425399804e83288f5f97d112</ETag><Key>sky_point,web.jpg</Key><LastModified>2016-11-18T15:48:10.000Z</LastModified><Owner><DisplayName>jk</DisplayName><ID>5079e312-bcff-43c7-bd54-d8148af0a515</ID></Owner><Size>17120</Size><StorageClass/></Contents><Contents><ETag>71e93f1026d0362aa0b7dccedf031d8c</ETag><Key>skylark,l5ct2.bmp</Key><LastModified>2016-11-18T15:48:10.000Z</LastModified><Owner><DisplayName>jk</DisplayName><ID>5079e312-bcff-43c7-bd54-d8148af0a515</ID></Owner><Size>921654</Size><StorageClass/></Contents><Contents><ETag>777fd3670853d4f197c52cfa6a21f773</ETag><Key>skylark--car 001.jpg</Key><LastModified>2016-11-18T15:48:10.000Z</LastModified><Owner><DisplayName>jk</DisplayName><ID>5079e312-bcff-43c7-bd54-d8148af0a515</ID></Owner><Size>391998</Size><StorageClass/></Contents><Contents><ETag>6dc0c5e59418d651777c8432e13e9539</ETag><Key>skylark004.jpg</Key><LastModified>2016-11-18T15:48:10.000Z</LastModified><Owner><DisplayName>jk</DisplayName><ID>5079e312-bcff-43c7-bd54-d8148af0a515</ID></Owner><Size>444664</Size><StorageClass/></Contents><CreationDate>2016-11-18T15:48:08.000Z</CreationDate><Delimiter/><IsTruncated>false</IsTruncated><Marker/><MaxKeys>1000</MaxKeys><Name>mountain</Name><NextMarker/><Prefix/></ListBucketResult>";
 
@@ -492,7 +506,7 @@ public class Ds3Cli_Test {
         final GetBucketResult getBucketResult = new GetBucketResult(bucket, objects.getObjects());
 
         final String result = view.render(getBucketResult);
-        assertTrue(result.endsWith(expected));
+        assert(result.endsWith(expected));
     }
 
     @Test
@@ -747,7 +761,7 @@ public class Ds3Cli_Test {
         final View view = command.getView();
 
         final String expected = "JobId: " + jobId + " | Name: Good Job | Status: COMPLETED | Bucket: bucket | Type: GET | Priority: HIGH | User Name: spectra | Creation Date: 2015-09-28T17:30:43.000Z | Total Size: 32 | Total Transferred: 0";
-        final String packet = "<MasterObjectList BucketName=\"bucket\" CachedSizeInBytes=\"0\" ChunkClientProcessingOrderGuarantee=\"NONE\" CompletedSizeInBytes=\"0\" JobId=\"aa5df0cc-b03a-4cb9-b69d-56e7367e917f\" OriginalSizeInBytes=\"32\" Priority=\"HIGH\" RequestType=\"GET\" StartDate=\"2015-09-28T17:30:43.000Z\" Status=\"COMPLETED\" UserId=\"c2581493-058c-40d7-a3a1-9a50b20d6d3b\" UserName=\"spectra\" WriteOptimization=\"CAPACITY\" Name=\"Good Job\"></MasterObjectList>";
+        final String packet = "<MasterObjectList BucketName=\"bucket\" CachedSizeInBytes=\"0\" ChunkClientProcessingOrderGuarantee=\"NONE\" CompletedSizeInBytes=\"0\" JobId=\"aa5df0cc-b03a-4cb9-b69d-56e7367e917f\" OriginalSizeInBytes=\"32\" Priority=\"HIGH\" RequestType=\"GET\" StartDate=\"2015-09-28T17:30:43.000Z\" Status=\"COMPLETED\" UserId=\"c2581493-058c-40d7-a3a1-9a50b20d6d3b\" UserName=\"spectra\" Name=\"Good Job\"></MasterObjectList>";
 
         final MasterObjectList objects = XmlOutput.fromXml(packet, MasterObjectList.class);
         final GetJobResult getJobResult = new GetJobResult(objects);
@@ -772,7 +786,7 @@ public class Ds3Cli_Test {
                 "      \"cachedSizeInBytes\" : 0,\n" +
                 "      \"chunkClientProcessingOrderGuarantee\" : \"NONE\",\n" +
                 "      \"completedSizeInBytes\" : 0,\n" +
-                "      \"entirelyInCache\" : false,\n" +
+                "      \"entirelyInCache\" : null,\n" +
                 "      \"jobId\" : \"aa5df0cc-b03a-4cb9-b69d-56e7367e917f\",\n" +
                 "      \"naked\" : false,\n" +
                 "      \"name\" : null,\n" +
@@ -790,7 +804,7 @@ public class Ds3Cli_Test {
                 "  \"Status\" : \"OK\"\n" +
                 "}";
 
-        final String packet = "<MasterObjectList BucketName=\"bucket\" CachedSizeInBytes=\"0\" ChunkClientProcessingOrderGuarantee=\"NONE\" CompletedSizeInBytes=\"0\" JobId=\"aa5df0cc-b03a-4cb9-b69d-56e7367e917f\" OriginalSizeInBytes=\"32\" Priority=\"HIGH\" RequestType=\"GET\" StartDate=\"2015-09-28T17:30:43.000Z\" Status=\"COMPLETED\" UserId=\"c2581493-058c-40d7-a3a1-9a50b20d6d3b\" UserName=\"spectra\" WriteOptimization=\"CAPACITY\"></MasterObjectList>";
+        final String packet = "<MasterObjectList BucketName=\"bucket\" CachedSizeInBytes=\"0\" ChunkClientProcessingOrderGuarantee=\"NONE\" CompletedSizeInBytes=\"0\" JobId=\"aa5df0cc-b03a-4cb9-b69d-56e7367e917f\" OriginalSizeInBytes=\"32\" Priority=\"HIGH\" RequestType=\"GET\" StartDate=\"2015-09-28T17:30:43.000Z\" Status=\"COMPLETED\" UserId=\"c2581493-058c-40d7-a3a1-9a50b20d6d3b\" UserName=\"spectra\"></MasterObjectList>";
 
         final MasterObjectList objects = XmlOutput.fromXml(packet, MasterObjectList.class);
         final GetJobResult getJobResult = new GetJobResult(objects);
@@ -1572,10 +1586,10 @@ public class Ds3Cli_Test {
         tape1.setPartitionId(tape1PartitionId);
         tape1.setState(TapeState.PENDING_INSPECTION);
         final UUID tape1StorageDomainId = UUID.randomUUID();
-        tape1.setStorageDomainId(tape1StorageDomainId);
+        tape1.setStorageDomainMemberId(tape1StorageDomainId);
         tape1.setTakeOwnershipPending(false);
         tape1.setTotalRawCapacity(20000L);
-        tape1.setType("LTO6");
+        tape1.setType(TapeDriveType.LTO6.toString());
         tape1.setWriteProtected(false);
         tape1.setEjectLabel("Tape1EjectLabel");
         tape1.setEjectLocation("Tape1EjectLocation");
@@ -1591,10 +1605,10 @@ public class Ds3Cli_Test {
         tape2.setPartitionId(tape2PartitionId);
         tape2.setState(TapeState.PENDING_INSPECTION);
         final UUID tape2StorageDomainId = UUID.randomUUID();
-        tape2.setStorageDomainId(tape2StorageDomainId);
+        tape2.setStorageDomainMemberId(tape2StorageDomainId);
         tape2.setTakeOwnershipPending(false);
         tape2.setTotalRawCapacity(20000L);
-        tape2.setType("LTO7");
+        tape2.setType(TapeDriveType.LTO7.toString());
         tape2.setWriteProtected(false);
         tape2.setEjectLabel("Tape2EjectLabel");
         tape2.setEjectLocation("Tape2EjectLocation");
@@ -1618,8 +1632,7 @@ public class Ds3Cli_Test {
         final String result = view.render(new GetPhysicalPlacementWithFullDetailsResult(bulkObjectList));
 
         assertTrue(result.contains("| Object Name | ID | In Cache | Length | Offset | Latest | Version |"));
-        assertTrue(result.contains("| testObject  |    | Unknown  | 1024   | 0      | false  | 0       |"));
-
+        assertTrue(result.contains("| testObject  |    | Unknown  | 1024   | 0      | false  | N/A     |"));
         assertTrue(result.contains("| Tape Bar Code |        State       | Type | Description |   Eject Label   |   Eject Location   |"));
         assertTrue(result.contains("| 121557L6      | PENDING_INSPECTION | LTO6 | N/A         | Tape1EjectLabel | Tape1EjectLocation |"));
         assertTrue(result.contains("| 421555L7      | PENDING_INSPECTION | LTO7 | N/A         | Tape2EjectLabel | Tape2EjectLocation |"));
@@ -1640,7 +1653,7 @@ public class Ds3Cli_Test {
         pool1.setReservedCapacity(0L);
         pool1.setState(PoolState.NORMAL);
         final UUID pool1StorageDomainId = UUID.randomUUID();
-        pool1.setStorageDomainId(pool1StorageDomainId);
+        pool1.setStorageDomainMemberId(pool1StorageDomainId);
         pool1.setTotalCapacity(420000L);
         pool1.setType(PoolType.NEARLINE);
         pool1.setUsedCapacity(6L*7L);
@@ -1658,7 +1671,7 @@ public class Ds3Cli_Test {
         pool2.setReservedCapacity(0L);
         pool2.setState(PoolState.NORMAL);
         final UUID pool2StorageDomainId = UUID.randomUUID();
-        pool2.setStorageDomainId(pool2StorageDomainId);
+        pool2.setStorageDomainMemberId(pool2StorageDomainId);
         pool2.setTotalCapacity(420000L);
         pool2.setType(PoolType.NEARLINE);
         pool2.setUsedCapacity(6L*7L);
@@ -1682,7 +1695,7 @@ public class Ds3Cli_Test {
         final String result = view.render(new GetPhysicalPlacementWithFullDetailsResult(bulkObjectList));
 
         assertTrue(result.contains("| Object Name | ID | In Cache | Length | Offset | Latest | Version |"));
-        assertTrue(result.contains("| testObject  |    | Unknown  | 1024   | 0      | false  | 0       |"));
+        assertTrue(result.contains("| testObject  |    | Unknown  | 1024   | 0      | false  | N/A     |"));
 
         assertTrue(result.contains("| Pool Name |                  ID                  | Bucket ID |  State | Health |   Type   | Partition ID |"));
         assertTrue(result.contains("| pool1     | " + pool1Id.toString() +            " |           | NORMAL | OK     | NEARLINE |              |"));
@@ -1691,17 +1704,19 @@ public class Ds3Cli_Test {
 
     @Test
     public void testGetPhysicalPlacementOnCloud() throws Exception {
+        final String uuid = "a231d751-b1ae-4569-b59c-230892363d7f";
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_physical_placement", "-b", "bothclouds", "-o", "VBoxSVC.log"});
         final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
         command.init(args);
         assertTrue(command instanceof GetPhysicalPlacement);
         final View view = command.getView();
 
-        final String expected = "+-------------+--------------------------------------+----------+--------+--------+--------+---------+\n" +
-                "| Object Name |                  ID                  | In Cache | Length | Offset | Latest | Version |\n" +
-                "+-------------+--------------------------------------+----------+--------+--------+--------+---------+\n" +
-                "| VBoxSVC.log | 809e1e66-13e7-4441-8eda-10b1ddb528ca | false    | 8611   | 0      | true   | 1       |\n" +
-                "+-------------+--------------------------------------+----------+--------+--------+--------+---------+\n" +
+        final String expected =
+                "+-------------+--------------------------------------+----------+--------+--------+--------+--------------------------------------+\n" +
+                "| Object Name |                  ID                  | In Cache | Length | Offset | Latest |                Version               |\n" +
+                "+-------------+--------------------------------------+----------+--------+--------+--------+--------------------------------------+\n" +
+                "| VBoxSVC.log | 809e1e66-13e7-4441-8eda-10b1ddb528ca | false    | 8611   | 0      | true   | a231d751-b1ae-4569-b59c-230892363d7f |\n" +
+                "+-------------+--------------------------------------+----------+--------+--------+--------+--------------------------------------+\n" +
                 "+------------------------------------+--------------------------------------+-----------+--------+--------+----------+--------------------------------------+\n" +
                 "|              Pool Name             |                  ID                  | Bucket ID |  State | Health |   Type   |             Partition ID             |\n" +
                 "+------------------------------------+--------------------------------------+-----------+--------+--------+----------+--------------------------------------+\n" +
@@ -1719,7 +1734,7 @@ public class Ds3Cli_Test {
                 "+-------------+--------+--------------------------------------+----------+-----------+--------------------+\n";
 
         final String packet = "<Data>" +
-                "<Object Bucket=\"bothclouds\" Id=\"809e1e66-13e7-4441-8eda-10b1ddb528ca\" InCache=\"false\" Latest=\"true\" Length=\"8611\" Name=\"VBoxSVC.log\" Offset=\"0\" Version=\"1\">" +
+                "<Object Bucket=\"bothclouds\" Id=\"809e1e66-13e7-4441-8eda-10b1ddb528ca\" InCache=\"false\" Latest=\"true\" Length=\"8611\" Name=\"VBoxSVC.log\" Offset=\"0\" VersionId=\"" + uuid + "\">" +
                 "<PhysicalPlacement>" +
                 "<AzureTargets>" +
                 "<AzureTarget><AccountKey>/h/NVMdssiwLKQBAGd+AGMFhDbesFTRziWQJw1eYjL5x9zvYInCLsxZO/SuMizasrULUEJccTD3fCuXH8OpE4Q==</AccountKey>" +
@@ -1743,7 +1758,7 @@ public class Ds3Cli_Test {
                 "<Name>Arctic_Blue_1_13867492206260533141</Name>" +
                 "<PartitionId>fa827f71-b9a7-451a-98cf-c3392bad9323</PartitionId><PoweredOn>true</PoweredOn>" +
                 "<Quiesced>NO</Quiesced><ReservedCapacity>14209583782297</ReservedCapacity>" +
-                "<State>NORMAL</State><StorageDomainId>8253863e-8818-4677-8e6b-60b1d398dd1e</StorageDomainId>" +
+                "<State>NORMAL</State><StorageDomainMemberId>8253863e-8818-4677-8e6b-60b1d398dd1e</StorageDomainMemberId>" +
                 "<TotalCapacity>142095837822976</TotalCapacity><Type>NEARLINE</Type>" +
                 "<UsedCapacity>790121185760</UsedCapacity></Pool></Pools>" +
                 "<S3Targets><S3Target>" +
@@ -1774,11 +1789,11 @@ public class Ds3Cli_Test {
         final View view = command.getView();
 
         final String expected =
-            "+-------------+--------------------------------------+----------+--------+--------+--------+---------+\n" +
-            "| Object Name |                  ID                  | In Cache | Length | Offset | Latest | Version |\n" +
-            "+-------------+--------------------------------------+----------+--------+--------+--------+---------+\n" +
-            "| VBox.log    | 35e2c6ba-95f9-47ff-947c-194923633232 | false    | 102363 | 0      | true   | 1       |\n" +
-            "+-------------+--------------------------------------+----------+--------+--------+--------+---------+\n" +
+            "+-------------+--------------------------------------+----------+--------+--------+--------+--------------------------------------+\n" +
+            "| Object Name |                  ID                  | In Cache | Length | Offset | Latest |                Version               |\n" +
+            "+-------------+--------------------------------------+----------+--------+--------+--------+--------------------------------------+\n" +
+            "| VBox.log    | 35e2c6ba-95f9-47ff-947c-194923633232 | false    | 102363 | 0      | true   | 17af634d-7955-4e1b-a16a-cfa9292f01ae |\n" +
+            "+-------------+--------------------------------------+----------+--------+--------+--------+--------------------------------------+\n" +
             "+------------------------------------+--------------------------------------+-----------+--------+--------+----------+--------------------------------------+\n" +
             "|              Pool Name             |                  ID                  | Bucket ID |  State | Health |   Type   |             Partition ID             |\n" +
             "+------------------------------------+--------------------------------------+-----------+--------+--------+----------+--------------------------------------+\n" +
@@ -1791,7 +1806,7 @@ public class Ds3Cli_Test {
             "+------------------+--------+--------------------------------------+----------+--------------------+\n";
 
          final String packet = "<Data>" +
-                 "<Object Bucket=\"ReplicationOnly\" Id=\"35e2c6ba-95f9-47ff-947c-194923633232\" InCache=\"false\" Latest=\"true\" Length=\"102363\" Name=\"VBox.log\" Offset=\"0\" Version=\"1\">" +
+                 "<Object Bucket=\"ReplicationOnly\" Id=\"35e2c6ba-95f9-47ff-947c-194923633232\" InCache=\"false\" Latest=\"true\" Length=\"102363\" Name=\"VBox.log\" Offset=\"0\" VersionId=\"17af634d-7955-4e1b-a16a-cfa9292f01ae\">" +
                  "<PhysicalPlacement><AzureTargets/>" +
                  "<Ds3Targets><Ds3Target><AccessControlReplication>NONE</AccessControlReplication>" +
                  "<AdminAuthId>c3BlY3RyYQ==</AdminAuthId><AdminSecretKey>MFri35Rk</AdminSecretKey>" +
@@ -1808,7 +1823,7 @@ public class Ds3Cli_Test {
                  "<LastVerified/><Mountpoint>/pool/Arctic_Blue_1_13867492206260533141/vol/data/ds3</Mountpoint>" +
                  "<Name>Arctic_Blue_1_13867492206260533141</Name><PartitionId>fa827f71-b9a7-451a-98cf-c3392bad9323</PartitionId>" +
                  "<PoweredOn>true</PoweredOn><Quiesced>NO</Quiesced><ReservedCapacity>14209583782297</ReservedCapacity>" +
-                 "<State>NORMAL</State><StorageDomainId>8253863e-8818-4677-8e6b-60b1d398dd1e</StorageDomainId>" +
+                 "<State>NORMAL</State><StorageDomainMemberId>8253863e-8818-4677-8e6b-60b1d398dd1e</StorageDomainMemberId>" +
                  "<TotalCapacity>142095837822976</TotalCapacity><Type>NEARLINE</Type><UsedCapacity>790121185760</UsedCapacity>" +
                  "</Pool></Pools>" +
                  "<S3Targets/><Tapes/></PhysicalPlacement>" +
@@ -1828,11 +1843,11 @@ public class Ds3Cli_Test {
         assertTrue(command instanceof GetDataPolicies);
         final View view = command.getView();
 
-        final String expected = "+------+--------------------------+------------+---------------+-------------------------+------------------+-------------------+--------------------------+--------------------------+-----------------------------+--------------------------------------+--------------------+\n"
-                +"| Name |          Created         | Versioning | Checksum Type | End-to-End CRC Required | Blobbing Enabled | Default Blob Size | Default Get Job Priority | Default Put Job Priority | Default Verify Job Priority |                  Id                  | LTFS Object Naming |\n"
-                +"+------+--------------------------+------------+---------------+-------------------------+------------------+-------------------+--------------------------+--------------------------+-----------------------------+--------------------------------------+--------------------+\n"
-                +"| fred | 2016-04-26T14:17:04.000Z |       NONE |           MD5 |                   false |            false |        1073741824 |                     HIGH |                   NORMAL |                         LOW | d3e6e795-fc85-4163-9d2f-4bc271d995d0 |               true |\n"
-                +"+------+--------------------------+------------+---------------+-------------------------+------------------+-------------------+--------------------------+--------------------------+-----------------------------+--------------------------------------+--------------------+\n";
+        final String expected = "+------+--------------------------+------------+---------------+-------------------------+------------------+-------------------+--------------------------+--------------------------+-----------------------------+--------------------------------------+\n"
+                +"| Name |          Created         | Versioning | Checksum Type | End-to-End CRC Required | Blobbing Enabled | Default Blob Size | Default Get Job Priority | Default Put Job Priority | Default Verify Job Priority |                  Id                  |\n"
+                +"+------+--------------------------+------------+---------------+-------------------------+------------------+-------------------+--------------------------+--------------------------+-----------------------------+--------------------------------------+\n"
+                +"| fred | 2016-04-26T14:17:04.000Z |       NONE |           MD5 |                   false |            false |        1073741824 |                     HIGH |                   NORMAL |                         LOW | d3e6e795-fc85-4163-9d2f-4bc271d995d0 |\n"
+                +"+------+--------------------------+------------+---------------+-------------------------+------------------+-------------------+--------------------------+--------------------------+-----------------------------+--------------------------------------+\n";
 
         final String packet = "<Data><DataPolicy>" +
                 "<BlobbingEnabled>false</BlobbingEnabled>" +
@@ -1844,7 +1859,6 @@ public class Ds3Cli_Test {
                 "<DefaultVerifyJobPriority>LOW</DefaultVerifyJobPriority>" +
                 "<EndToEndCrcRequired>false</EndToEndCrcRequired>" +
                 "<Id>d3e6e795-fc85-4163-9d2f-4bc271d995d0</Id>" +
-                "<LtfsObjectNamingAllowed>true</LtfsObjectNamingAllowed>" +
                 "<Name>fred</Name>" +
                 "<RebuildPriority>LOW</RebuildPriority>" +
                 "<Versioning>NONE</Versioning></DataPolicy></Data>";
@@ -1863,11 +1877,11 @@ public class Ds3Cli_Test {
         assertTrue(command instanceof GetDataPolicy);
         final View view = command.getView();
 
-        final String expected = "+------+--------------------------+------------+---------------+-------------------------+------------------+-------------------+--------------------------+--------------------------+-----------------------------+--------------------------------------+--------------------+\n"
-                +"| Name |          Created         | Versioning | Checksum Type | End-to-End CRC Required | Blobbing Enabled | Default Blob Size | Default Get Job Priority | Default Put Job Priority | Default Verify Job Priority |                  Id                  | LTFS Object Naming |\n"
-                +"+------+--------------------------+------------+---------------+-------------------------+------------------+-------------------+--------------------------+--------------------------+-----------------------------+--------------------------------------+--------------------+\n"
-                +"| fake | 2016-04-26T14:17:04.000Z |       NONE |           MD5 |                   false |            false |        1073741824 |                     HIGH |                   NORMAL |                         LOW | d3e6e795-fc85-4163-9d2f-4bc271d995d0 |               true |\n"
-                +"+------+--------------------------+------------+---------------+-------------------------+------------------+-------------------+--------------------------+--------------------------+-----------------------------+--------------------------------------+--------------------+\n";
+        final String expected = "+------+--------------------------+------------+---------------+-------------------------+------------------+-------------------+--------------------------+--------------------------+-----------------------------+--------------------------------------+\n"
+                +"| Name |          Created         | Versioning | Checksum Type | End-to-End CRC Required | Blobbing Enabled | Default Blob Size | Default Get Job Priority | Default Put Job Priority | Default Verify Job Priority |                  Id                  |\n"
+                +"+------+--------------------------+------------+---------------+-------------------------+------------------+-------------------+--------------------------+--------------------------+-----------------------------+--------------------------------------+\n"
+                +"| fake | 2016-04-26T14:17:04.000Z |       NONE |           MD5 |                   false |            false |        1073741824 |                     HIGH |                   NORMAL |                         LOW | d3e6e795-fc85-4163-9d2f-4bc271d995d0 |\n"
+                +"+------+--------------------------+------------+---------------+-------------------------+------------------+-------------------+--------------------------+--------------------------+-----------------------------+--------------------------------------+\n";
 
         final String packet = "<Data>" +
                 "<BlobbingEnabled>false</BlobbingEnabled>" +
@@ -1879,7 +1893,6 @@ public class Ds3Cli_Test {
                 "<DefaultVerifyJobPriority>LOW</DefaultVerifyJobPriority>" +
                 "<EndToEndCrcRequired>false</EndToEndCrcRequired>" +
                 "<Id>d3e6e795-fc85-4163-9d2f-4bc271d995d0</Id>" +
-                "<LtfsObjectNamingAllowed>true</LtfsObjectNamingAllowed>" +
                 "<Name>fake</Name>" +
                 "<RebuildPriority>LOW</RebuildPriority>" +
                 "<Versioning>NONE</Versioning></Data>";
@@ -1899,11 +1912,11 @@ public class Ds3Cli_Test {
         assertTrue(command instanceof ModifyDataPolicy);
         final View view = command.getView();
 
-        final String expected = "+------+--------------------------+------------+---------------+-------------------------+------------------+-------------------+--------------------------+--------------------------+-----------------------------+--------------------------------------+--------------------+\n"
-                +"| Name |          Created         | Versioning | Checksum Type | End-to-End CRC Required | Blobbing Enabled | Default Blob Size | Default Get Job Priority | Default Put Job Priority | Default Verify Job Priority |                  Id                  | LTFS Object Naming |\n"
-                +"+------+--------------------------+------------+---------------+-------------------------+------------------+-------------------+--------------------------+--------------------------+-----------------------------+--------------------------------------+--------------------+\n"
-                +"| fred | 2016-04-26T14:17:04.000Z |       NONE |           MD5 |                   false |            false |        1073741824 |                     HIGH |                   NORMAL |                         LOW | d3e6e795-fc85-4163-9d2f-4bc271d995d0 |               true |\n"
-                +"+------+--------------------------+------------+---------------+-------------------------+------------------+-------------------+--------------------------+--------------------------+-----------------------------+--------------------------------------+--------------------+\n";
+        final String expected = "+------+--------------------------+------------+---------------+-------------------------+------------------+-------------------+--------------------------+--------------------------+-----------------------------+--------------------------------------+\n"
+                +"| Name |          Created         | Versioning | Checksum Type | End-to-End CRC Required | Blobbing Enabled | Default Blob Size | Default Get Job Priority | Default Put Job Priority | Default Verify Job Priority |                  Id                  |\n"
+                +"+------+--------------------------+------------+---------------+-------------------------+------------------+-------------------+--------------------------+--------------------------+-----------------------------+--------------------------------------+\n"
+                +"| fred | 2016-04-26T14:17:04.000Z |       NONE |           MD5 |                   false |            false |        1073741824 |                     HIGH |                   NORMAL |                         LOW | d3e6e795-fc85-4163-9d2f-4bc271d995d0 |\n"
+                +"+------+--------------------------+------------+---------------+-------------------------+------------------+-------------------+--------------------------+--------------------------+-----------------------------+--------------------------------------+\n";
 
         final String packet = "<Data>" +
                 "<BlobbingEnabled>false</BlobbingEnabled>" +
@@ -1915,7 +1928,7 @@ public class Ds3Cli_Test {
                 "<DefaultVerifyJobPriority>LOW</DefaultVerifyJobPriority>" +
                 "<EndToEndCrcRequired>false</EndToEndCrcRequired>" +
                 "<Id>d3e6e795-fc85-4163-9d2f-4bc271d995d0</Id>" +
-                "<LtfsObjectNamingAllowed>true</LtfsObjectNamingAllowed>" +
+//                "<LtfsObjectNamingAllowed>true</LtfsObjectNamingAllowed>" +
                 "<Name>fred</Name>" +
                 "<RebuildPriority>LOW</RebuildPriority>" +
                 "<Versioning>NONE</Versioning>" +
@@ -2073,7 +2086,8 @@ public class Ds3Cli_Test {
         final View view = command.getView();
 
 
-        final String expected = "+-------------------------------------------------+-------------+-----------+--------------------------------------+\n" +
+        final String expected =
+                "+-------------------------------------------------+-------------+-----------+--------------------------------------+\n" +
                 "|                       Name                      |    Bucket   |    Size   |                  Id                  |\n" +
                 "+-------------------------------------------------+-------------+-----------+--------------------------------------+\n" +
                 "| 123456789.txt                                   | coffeehouse |         9 | 53452a07-699a-4c27-8de5-95aa0a431df1 |\n" +
@@ -2104,31 +2118,31 @@ public class Ds3Cli_Test {
                 "+-------------------------------------------------+-------------+-----------+--------------------------------------+\n";
 
         final String packet = "<Data>" +
-                "<Object Bucket=\"coffeehouse\" Id=\"53452a07-699a-4c27-8de5-95aa0a431df1\" Latest=\"true\" Length=\"9\" Name=\"123456789.txt\" Offset=\"0\" Version=\"1\"/>" +
-                "<Object Bucket=\"coffeehouse\" Id=\"7989ad4a-47a5-41ac-8814-3746e4e20679\" Latest=\"true\" Length=\"9172\" Name=\"Always_295x166.jpg\" Offset=\"0\" Version=\"1\"/>" +
-                "<Object Bucket=\"coffeehouse\" Id=\"6649c2cb-6e83-4c58-9fb8-9b4aec8b014b\" Latest=\"true\" Length=\"29895\" Name=\"Chapter 9.docx\" Offset=\"0\" Version=\"1\"/>" +
-                "<Object Bucket=\"coffeehouse\" Id=\"f725ef08-7e6f-4fe0-a256-798e561d878f\" Latest=\"true\" Length=\"9114\" Name=\"RedRiverValley_295x166.jpg\" Offset=\"0\" Version=\"1\"/>" +
-                "<Object Bucket=\"coffeehouse\" Id=\"dff0cbed-5b7f-480f-aa94-8adea7c59a3e\" Latest=\"true\" Length=\"774741\" Name=\"Softphone Install.docx\" Offset=\"0\" Version=\"1\"/>" +
-                "<Object Bucket=\"coffeehouse\" Id=\"ffd8266d-cdc5-4e49-81d4-d08314fcee5a\" Latest=\"true\" Length=\"11059\" Name=\"ThinkingOutLoud_295x166.jpg\" Offset=\"0\" Version=\"1\"/>" +
-                "<Object Bucket=\"coffeehouse\" Id=\"897b7e5b-59d8-4645-bc7a-f5c4b8154a0f\" Latest=\"true\" Length=\"10724\" Name=\"UnforgetWonderful_295x166.jpg\" Offset=\"0\" Version=\"1\"/>" +
-                "<Object Bucket=\"coffeehouse\" Id=\"7bb970d3-113f-413b-87d5-00b072059451\" Latest=\"true\" Length=\"10634\" Name=\"YouDontKnowMe_295x166.jpg\" Offset=\"0\" Version=\"1\"/>" +
-                "<Object Bucket=\"coffeehouse\" Id=\"1e293dc9-3257-4277-9c40-b50a6e63b71e\" Latest=\"true\" Length=\"294056\" Name=\"beowulf.txt\" Offset=\"0\" Version=\"1\"/>" +
-                "<Object Bucket=\"coffeehouse\" Id=\"d759f10d-05c6-498c-b4ce-2475027fbeae\" Latest=\"true\" Length=\"3309717\" Name=\"coffeehouse/im_in_the_mood.mp3\" Offset=\"0\" Version=\"1\"/>" +
-                "<Object Bucket=\"coffeehouse\" Id=\"d9b342ae-311c-4cbc-a000-75686c174471\" Latest=\"true\" Length=\"45872985\" Name=\"coffeehouse/jk/ColumbinesGrow.m4a\" Offset=\"0\" Version=\"1\"/>" +
-                "<Object Bucket=\"coffeehouse\" Id=\"c85fc175-116a-4bcf-a77a-5ea240a5de3a\" Latest=\"true\" Length=\"5050747\" Name=\"coffeehouse/jk/ColumbinesGrow.mp3\" Offset=\"0\" Version=\"1\"/>" +
-                "<Object Bucket=\"coffeehouse\" Id=\"b70bd4ab-90d2-41fd-83d2-572fb3d1c8ca\" Latest=\"true\" Length=\"10528\" Name=\"coffeehouse/jk/Columbines_295x166.jpg\" Offset=\"0\" Version=\"1\"/>" +
-                "<Object Bucket=\"coffeehouse\" Id=\"e4769cd2-3aa6-4628-887c-ad51768656c5\" Latest=\"true\" Length=\"10396369\" Name=\"coffeehouse/jk/Misty_2015.m4a\" Offset=\"0\" Version=\"1\"/>" +
-                "<Object Bucket=\"coffeehouse\" Id=\"9ffa7e9c-6939-4808-996e-e42fcf8bacb5\" Latest=\"true\" Length=\"77080710\" Name=\"coffeehouse/jk/RedRiverValley.m4a\" Offset=\"0\" Version=\"1\"/>" +
-                "<Object Bucket=\"coffeehouse\" Id=\"564a1bc1-33a0-41f3-af28-fbf79f331d0e\" Latest=\"true\" Length=\"6363965\" Name=\"coffeehouse/jk/RedRiverValley.mp3\" Offset=\"0\" Version=\"1\"/>" +
-                "<Object Bucket=\"coffeehouse\" Id=\"b2671db7-1a4a-4577-8419-f17ead63d321\" Latest=\"true\" Length=\"10724\" Name=\"coffeehouse/jk/UnforgetWonderful_295x166.jpg\" Offset=\"0\" Version=\"1\"/>" +
-                "<Object Bucket=\"coffeehouse\" Id=\"71807ee9-2db9-4145-b01d-3d2aaae37061\" Latest=\"true\" Length=\"110054089\" Name=\"coffeehouse/jk/Unforgettable-WonderfulWorld.m4a\" Offset=\"0\" Version=\"1\"/>" +
-                "<Object Bucket=\"coffeehouse\" Id=\"e50d5fc8-8fbf-4206-b495-05bb8be539ec\" Latest=\"true\" Length=\"7520930\" Name=\"coffeehouse/jk/Unforgettable-WonderfulWorld.mp3\" Offset=\"0\" Version=\"1\"/>" +
-                "<Object Bucket=\"coffeehouse\" Id=\"9156aab6-88fa-49b0-a0e1-c230d247957e\" Latest=\"true\" Length=\"51272203\" Name=\"coffeehouse/jk/WhereOrWhen.m4a\" Offset=\"0\" Version=\"1\"/>" +
-                "<Object Bucket=\"coffeehouse\" Id=\"0f5541b9-8c4d-4ed8-bd1d-9e62173bdf4a\" Latest=\"true\" Length=\"5647581\" Name=\"coffeehouse/jk/WhereOrWhen.mp3\" Offset=\"0\" Version=\"1\"/>" +
-                "<Object Bucket=\"coffeehouse\" Id=\"03b2e1c7-f80c-437a-912d-b09015dba484\" Latest=\"true\" Length=\"11263\" Name=\"coffeehouse/jk/WhereOrWhen_295x166.jpg\" Offset=\"0\" Version=\"1\"/>" +
-                "<Object Bucket=\"coffeehouse\" Id=\"667d94f6-b341-45f7-bd91-706af52d8e77\" Latest=\"true\" Length=\"11207247\" Name=\"coffeehouse/jk/im_in_the_mood.m4a\" Offset=\"0\" Version=\"1\"/>" +
-                "<Object Bucket=\"coffeehouse\" Id=\"f7f65e20-4ea2-4629-9c22-ddf9cbc76b99\" Latest=\"true\" Length=\"8621\" Name=\"coffeehouse/jk/im_in_the_mood_200.jpg\" Offset=\"0\" Version=\"1\"/>" +
-                "<Object Bucket=\"coffeehouse\" Id=\"92a40cff-63a6-4520-81a9-80afa03a1973\" Latest=\"true\" Length=\"6409093\" Name=\"coffeehouse/witchcraft.mp3\" Offset=\"0\" Version=\"1\"/>" +
+                "<Object Bucket=\"coffeehouse\" Id=\"53452a07-699a-4c27-8de5-95aa0a431df1\" Latest=\"true\" Length=\"9\" Name=\"123456789.txt\" Offset=\"0\" VersionId=\"53452a07-699a-4c27-8de5-95aa0a431df1\"/>" +
+                "<Object Bucket=\"coffeehouse\" Id=\"7989ad4a-47a5-41ac-8814-3746e4e20679\" Latest=\"true\" Length=\"9172\" Name=\"Always_295x166.jpg\" Offset=\"0\" VersionId=\"7989ad4a-47a5-41ac-8814-3746e4e20679 \"/>" +
+                "<Object Bucket=\"coffeehouse\" Id=\"6649c2cb-6e83-4c58-9fb8-9b4aec8b014b\" Latest=\"true\" Length=\"29895\" Name=\"Chapter 9.docx\" Offset=\"0\" VersionId=\"6649c2cb-6e83-4c58-9fb8-9b4aec8b014b\"/>" +
+                "<Object Bucket=\"coffeehouse\" Id=\"f725ef08-7e6f-4fe0-a256-798e561d878f\" Latest=\"true\" Length=\"9114\" Name=\"RedRiverValley_295x166.jpg\" Offset=\"0\" VersionId=\"f725ef08-7e6f-4fe0-a256-798e561d878f\"/>" +
+                "<Object Bucket=\"coffeehouse\" Id=\"dff0cbed-5b7f-480f-aa94-8adea7c59a3e\" Latest=\"true\" Length=\"774741\" Name=\"Softphone Install.docx\" Offset=\"0\" VersionId=\"dff0cbed-5b7f-480f-aa94-8adea7c59a3e\"/>" +
+                "<Object Bucket=\"coffeehouse\" Id=\"ffd8266d-cdc5-4e49-81d4-d08314fcee5a\" Latest=\"true\" Length=\"11059\" Name=\"ThinkingOutLoud_295x166.jpg\" Offset=\"0\" VersionId=\"ffd8266d-cdc5-4e49-81d4-d08314fcee5a\"/>" +
+                "<Object Bucket=\"coffeehouse\" Id=\"897b7e5b-59d8-4645-bc7a-f5c4b8154a0f\" Latest=\"true\" Length=\"10724\" Name=\"UnforgetWonderful_295x166.jpg\" Offset=\"0\" VersionId=\"897b7e5b-59d8-4645-bc7a-f5c4b8154a0f\"/>" +
+                "<Object Bucket=\"coffeehouse\" Id=\"7bb970d3-113f-413b-87d5-00b072059451\" Latest=\"true\" Length=\"10634\" Name=\"YouDontKnowMe_295x166.jpg\" Offset=\"0\" VersionId=\"7bb970d3-113f-413b-87d5-00b072059451\"/>" +
+                "<Object Bucket=\"coffeehouse\" Id=\"1e293dc9-3257-4277-9c40-b50a6e63b71e\" Latest=\"true\" Length=\"294056\" Name=\"beowulf.txt\" Offset=\"0\" VersionId=\"1e293dc9-3257-4277-9c40-b50a6e63b71e\"/>" +
+                "<Object Bucket=\"coffeehouse\" Id=\"d759f10d-05c6-498c-b4ce-2475027fbeae\" Latest=\"true\" Length=\"3309717\" Name=\"coffeehouse/im_in_the_mood.mp3\" Offset=\"0\" VersionId=\"d759f10d-05c6-498c-b4ce-2475027fbeae\"/>" +
+                "<Object Bucket=\"coffeehouse\" Id=\"d9b342ae-311c-4cbc-a000-75686c174471\" Latest=\"true\" Length=\"45872985\" Name=\"coffeehouse/jk/ColumbinesGrow.m4a\" Offset=\"0\" VersionId=\"d9b342ae-311c-4cbc-a000-75686c174471\"/>" +
+                "<Object Bucket=\"coffeehouse\" Id=\"c85fc175-116a-4bcf-a77a-5ea240a5de3a\" Latest=\"true\" Length=\"5050747\" Name=\"coffeehouse/jk/ColumbinesGrow.mp3\" Offset=\"0\" VersionId=\"c85fc175-116a-4bcf-a77a-5ea240a5de3a\"/>" +
+                "<Object Bucket=\"coffeehouse\" Id=\"b70bd4ab-90d2-41fd-83d2-572fb3d1c8ca\" Latest=\"true\" Length=\"10528\" Name=\"coffeehouse/jk/Columbines_295x166.jpg\" Offset=\"0\" VersionId=\"b70bd4ab-90d2-41fd-83d2-572fb3d1c8ca\"/>" +
+                "<Object Bucket=\"coffeehouse\" Id=\"e4769cd2-3aa6-4628-887c-ad51768656c5\" Latest=\"true\" Length=\"10396369\" Name=\"coffeehouse/jk/Misty_2015.m4a\" Offset=\"0\" VersionId=\"e4769cd2-3aa6-4628-887c-ad51768656c5\"/>" +
+                "<Object Bucket=\"coffeehouse\" Id=\"9ffa7e9c-6939-4808-996e-e42fcf8bacb5\" Latest=\"true\" Length=\"77080710\" Name=\"coffeehouse/jk/RedRiverValley.m4a\" Offset=\"0\" VersionId=\"9ffa7e9c-6939-4808-996e-e42fcf8bacb5\"/>" +
+                "<Object Bucket=\"coffeehouse\" Id=\"564a1bc1-33a0-41f3-af28-fbf79f331d0e\" Latest=\"true\" Length=\"6363965\" Name=\"coffeehouse/jk/RedRiverValley.mp3\" Offset=\"0\" VersionId=\"564a1bc1-33a0-41f3-af28-fbf79f331d0e\"/>" +
+                "<Object Bucket=\"coffeehouse\" Id=\"b2671db7-1a4a-4577-8419-f17ead63d321\" Latest=\"true\" Length=\"10724\" Name=\"coffeehouse/jk/UnforgetWonderful_295x166.jpg\" Offset=\"0\" VersionId=\"b2671db7-1a4a-4577-8419-f17ead63d321\"/>" +
+                "<Object Bucket=\"coffeehouse\" Id=\"71807ee9-2db9-4145-b01d-3d2aaae37061\" Latest=\"true\" Length=\"110054089\" Name=\"coffeehouse/jk/Unforgettable-WonderfulWorld.m4a\" Offset=\"0\" VersionId=\"71807ee9-2db9-4145-b01d-3d2aaae37061\"/>" +
+                "<Object Bucket=\"coffeehouse\" Id=\"e50d5fc8-8fbf-4206-b495-05bb8be539ec\" Latest=\"true\" Length=\"7520930\" Name=\"coffeehouse/jk/Unforgettable-WonderfulWorld.mp3\" Offset=\"0\" VersionId=\"e50d5fc8-8fbf-4206-b495-05bb8be539ec\"/>" +
+                "<Object Bucket=\"coffeehouse\" Id=\"9156aab6-88fa-49b0-a0e1-c230d247957e\" Latest=\"true\" Length=\"51272203\" Name=\"coffeehouse/jk/WhereOrWhen.m4a\" Offset=\"0\" VersionId=\"9156aab6-88fa-49b0-a0e1-c230d247957e\"/>" +
+                "<Object Bucket=\"coffeehouse\" Id=\"0f5541b9-8c4d-4ed8-bd1d-9e62173bdf4a\" Latest=\"true\" Length=\"5647581\" Name=\"coffeehouse/jk/WhereOrWhen.mp3\" Offset=\"0\" VersionId=\"0f5541b9-8c4d-4ed8-bd1d-9e62173bdf4a\"/>" +
+                "<Object Bucket=\"coffeehouse\" Id=\"03b2e1c7-f80c-437a-912d-b09015dba484\" Latest=\"true\" Length=\"11263\" Name=\"coffeehouse/jk/WhereOrWhen_295x166.jpg\" Offset=\"0\" VersionId=\"03b2e1c7-f80c-437a-912d-b09015dba484\"/>" +
+                "<Object Bucket=\"coffeehouse\" Id=\"667d94f6-b341-45f7-bd91-706af52d8e77\" Latest=\"true\" Length=\"11207247\" Name=\"coffeehouse/jk/im_in_the_mood.m4a\" Offset=\"0\" VersionId=\"667d94f6-b341-45f7-bd91-706af52d8e77\"/>" +
+                "<Object Bucket=\"coffeehouse\" Id=\"f7f65e20-4ea2-4629-9c22-ddf9cbc76b99\" Latest=\"true\" Length=\"8621\" Name=\"coffeehouse/jk/im_in_the_mood_200.jpg\" Offset=\"0\" VersionId=\"f7f65e20-4ea2-4629-9c22-ddf9cbc76b99\"/>" +
+                "<Object Bucket=\"coffeehouse\" Id=\"92a40cff-63a6-4520-81a9-80afa03a1973\" Latest=\"true\" Length=\"6409093\" Name=\"coffeehouse/witchcraft.mp3\" Offset=\"0\" VersionId=\"92a40cff-63a6-4520-81a9-80afa03a1973\"/>" +
                 "</Data>";
 
         final BulkObjectList blobs = XmlOutput.fromXml(packet, BulkObjectList.class);
@@ -2182,6 +2196,7 @@ public class Ds3Cli_Test {
 
    @Test
     public void verifyBulkJob() throws Exception {
+       final String uuid = "c823f683-6789-4fd7-912c-8060fed0cdad";
        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "verify_bulk_job", "-b", "coffeehouse" });
        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
        command.init(args);
@@ -2189,65 +2204,65 @@ public class Ds3Cli_Test {
        final View view = command.getView();
 
        final String expected =
-                        "+-------+-------------------------------------------------+-----------+---------+\n" +
-                        "| Chunk |                       Name                      |    Size   | Version |\n" +
-                        "+-------+-------------------------------------------------+-----------+---------+\n" +
-                        "| 0     | 123456789.txt                                   |         9 |       1 |\n" +
-                        "| 0     | Always_295x166.jpg                              |      9172 |       1 |\n" +
-                        "| 0     | Chapter 9.docx                                  |     29895 |       1 |\n" +
-                        "| 0     | RedRiverValley_295x166.jpg                      |      9114 |       1 |\n" +
-                        "| 0     | Softphone Install.docx                          |    774741 |       1 |\n" +
-                        "| 0     | ThinkingOutLoud_295x166.jpg                     |     11059 |       1 |\n" +
-                        "| 0     | UnforgetWonderful_295x166.jpg                   |     10724 |       1 |\n" +
-                        "| 0     | YouDontKnowMe_295x166.jpg                       |     10634 |       1 |\n" +
-                        "| 0     | beowulf.txt                                     |    294056 |       1 |\n" +
-                        "| 0     | coffeehouse/im_in_the_mood.mp3                  |   3309717 |       1 |\n" +
-                        "| 0     | coffeehouse/jk/ColumbinesGrow.m4a               |  45872985 |       1 |\n" +
-                        "| 0     | coffeehouse/jk/ColumbinesGrow.mp3               |   5050747 |       1 |\n" +
-                        "| 0     | coffeehouse/jk/Columbines_295x166.jpg           |     10528 |       1 |\n" +
-                        "| 0     | coffeehouse/jk/Misty_2015.m4a                   |  10396369 |       1 |\n" +
-                        "| 0     | coffeehouse/jk/RedRiverValley.m4a               |  77080710 |       1 |\n" +
-                        "| 0     | coffeehouse/jk/RedRiverValley.mp3               |   6363965 |       1 |\n" +
-                        "| 0     | coffeehouse/jk/UnforgetWonderful_295x166.jpg    |     10724 |       1 |\n" +
-                        "| 0     | coffeehouse/jk/Unforgettable-WonderfulWorld.m4a | 110054089 |       1 |\n" +
-                        "| 0     | coffeehouse/jk/Unforgettable-WonderfulWorld.mp3 |   7520930 |       1 |\n" +
-                        "| 0     | coffeehouse/jk/WhereOrWhen.m4a                  |  51272203 |       1 |\n" +
-                        "| 0     | coffeehouse/jk/WhereOrWhen.mp3                  |   5647581 |       1 |\n" +
-                        "| 0     | coffeehouse/jk/WhereOrWhen_295x166.jpg          |     11263 |       1 |\n" +
-                        "| 0     | coffeehouse/jk/im_in_the_mood.m4a               |  11207247 |       1 |\n" +
-                        "| 0     | coffeehouse/jk/im_in_the_mood_200.jpg           |      8621 |       1 |\n" +
-                        "| 0     | coffeehouse/witchcraft.mp3                      |   6409093 |       1 |\n" +
-                        "+-------+-------------------------------------------------+-----------+---------+\n";
+                        "+-------+-------------------------------------------------+-----------+--------------------------------------+\n" +
+                        "| Chunk |                       Name                      |    Size   |                Version               |\n" +
+                        "+-------+-------------------------------------------------+-----------+--------------------------------------+\n" +
+                        "| 0     | 123456789.txt                                   |         9 | c823f683-6789-4fd7-912c-8060fed0cdad |\n" +
+                        "| 0     | Always_295x166.jpg                              |      9172 | c823f683-6789-4fd7-912c-8060fed0cdad |\n" +
+                        "| 0     | Chapter 9.docx                                  |     29895 | c823f683-6789-4fd7-912c-8060fed0cdad |\n" +
+                        "| 0     | RedRiverValley_295x166.jpg                      |      9114 | c823f683-6789-4fd7-912c-8060fed0cdad |\n" +
+                        "| 0     | Softphone Install.docx                          |    774741 | c823f683-6789-4fd7-912c-8060fed0cdad |\n" +
+                        "| 0     | ThinkingOutLoud_295x166.jpg                     |     11059 | c823f683-6789-4fd7-912c-8060fed0cdad |\n" +
+                        "| 0     | UnforgetWonderful_295x166.jpg                   |     10724 | c823f683-6789-4fd7-912c-8060fed0cdad |\n" +
+                        "| 0     | YouDontKnowMe_295x166.jpg                       |     10634 | c823f683-6789-4fd7-912c-8060fed0cdad |\n" +
+                        "| 0     | beowulf.txt                                     |    294056 | c823f683-6789-4fd7-912c-8060fed0cdad |\n" +
+                        "| 0     | coffeehouse/im_in_the_mood.mp3                  |   3309717 | c823f683-6789-4fd7-912c-8060fed0cdad |\n" +
+                        "| 0     | coffeehouse/jk/ColumbinesGrow.m4a               |  45872985 | c823f683-6789-4fd7-912c-8060fed0cdad |\n" +
+                        "| 0     | coffeehouse/jk/ColumbinesGrow.mp3               |   5050747 | c823f683-6789-4fd7-912c-8060fed0cdad |\n" +
+                        "| 0     | coffeehouse/jk/Columbines_295x166.jpg           |     10528 | c823f683-6789-4fd7-912c-8060fed0cdad |\n" +
+                        "| 0     | coffeehouse/jk/Misty_2015.m4a                   |  10396369 | c823f683-6789-4fd7-912c-8060fed0cdad |\n" +
+                        "| 0     | coffeehouse/jk/RedRiverValley.m4a               |  77080710 | c823f683-6789-4fd7-912c-8060fed0cdad |\n" +
+                        "| 0     | coffeehouse/jk/RedRiverValley.mp3               |   6363965 | c823f683-6789-4fd7-912c-8060fed0cdad |\n" +
+                        "| 0     | coffeehouse/jk/UnforgetWonderful_295x166.jpg    |     10724 | c823f683-6789-4fd7-912c-8060fed0cdad |\n" +
+                        "| 0     | coffeehouse/jk/Unforgettable-WonderfulWorld.m4a | 110054089 | c823f683-6789-4fd7-912c-8060fed0cdad |\n" +
+                        "| 0     | coffeehouse/jk/Unforgettable-WonderfulWorld.mp3 |   7520930 | c823f683-6789-4fd7-912c-8060fed0cdad |\n" +
+                        "| 0     | coffeehouse/jk/WhereOrWhen.m4a                  |  51272203 | c823f683-6789-4fd7-912c-8060fed0cdad |\n" +
+                        "| 0     | coffeehouse/jk/WhereOrWhen.mp3                  |   5647581 | c823f683-6789-4fd7-912c-8060fed0cdad |\n" +
+                        "| 0     | coffeehouse/jk/WhereOrWhen_295x166.jpg          |     11263 | c823f683-6789-4fd7-912c-8060fed0cdad |\n" +
+                        "| 0     | coffeehouse/jk/im_in_the_mood.m4a               |  11207247 | c823f683-6789-4fd7-912c-8060fed0cdad |\n" +
+                        "| 0     | coffeehouse/jk/im_in_the_mood_200.jpg           |      8621 | c823f683-6789-4fd7-912c-8060fed0cdad |\n" +
+                        "| 0     | coffeehouse/witchcraft.mp3                      |   6409093 | c823f683-6789-4fd7-912c-8060fed0cdad |\n" +
+                        "+-------+-------------------------------------------------+-----------+--------------------------------------+\n";
 
 
         final String packet = "<MasterObjectList Aggregating=\"false\" BucketName=\"coffeehouse\" CachedSizeInBytes=\"0\" ChunkClientProcessingOrderGuarantee=\"NONE\" CompletedSizeInBytes=\"0\" EntirelyInCache=\"false\" JobId=\"e0db4a7e-9957-4cf6-81c5-d3c320f8d56d\" Naked=\"false\" Name=\"VERIFY by 192.168.20.19\" OriginalSizeInBytes=\"341376176\" Priority=\"LOW\" RequestType=\"VERIFY\" StartDate=\"2016-06-16T18:13:34.000Z\" Status=\"IN_PROGRESS\" UserId=\"67235923-f684-4621-a958-1815e0bbf895\" UserName=\"spectra\">" +
                 "<Nodes><Node EndPoint=\"10.1.20.88\" HttpPort=\"80\" HttpsPort=\"443\" Id=\"b272e757-31b0-11e6-948b-0007432b8090\"/></Nodes>" +
                 "<Objects ChunkId=\"db94b108-6d0e-4f46-993c-b2f459e4b88f\" ChunkNumber=\"0\" NodeId=\"b272e757-31b0-11e6-948b-0007432b8090\">" +
-                    "<Object Id=\"53452a07-699a-4c27-8de5-95aa0a431df1\" InCache=\"true\" Latest=\"true\" Length=\"9\" Name=\"123456789.txt\" Offset=\"0\" Version=\"1\"/>" +
-                    "<Object Id=\"7989ad4a-47a5-41ac-8814-3746e4e20679\" InCache=\"true\" Latest=\"true\" Length=\"9172\" Name=\"Always_295x166.jpg\" Offset=\"0\" Version=\"1\"/>" +
-                    "<Object Id=\"6649c2cb-6e83-4c58-9fb8-9b4aec8b014b\" InCache=\"true\" Latest=\"true\" Length=\"29895\" Name=\"Chapter 9.docx\" Offset=\"0\" Version=\"1\"/>" +
-                    "<Object Id=\"f725ef08-7e6f-4fe0-a256-798e561d878f\" InCache=\"true\" Latest=\"true\" Length=\"9114\" Name=\"RedRiverValley_295x166.jpg\" Offset=\"0\" Version=\"1\"/>" +
-                    "<Object Id=\"dff0cbed-5b7f-480f-aa94-8adea7c59a3e\" InCache=\"true\" Latest=\"true\" Length=\"774741\" Name=\"Softphone Install.docx\" Offset=\"0\" Version=\"1\"/>" +
-                    "<Object Id=\"ffd8266d-cdc5-4e49-81d4-d08314fcee5a\" InCache=\"true\" Latest=\"true\" Length=\"11059\" Name=\"ThinkingOutLoud_295x166.jpg\" Offset=\"0\" Version=\"1\"/>" +
-                    "<Object Id=\"897b7e5b-59d8-4645-bc7a-f5c4b8154a0f\" InCache=\"true\" Latest=\"true\" Length=\"10724\" Name=\"UnforgetWonderful_295x166.jpg\" Offset=\"0\" Version=\"1\"/>" +
-                    "<Object Id=\"7bb970d3-113f-413b-87d5-00b072059451\" InCache=\"true\" Latest=\"true\" Length=\"10634\" Name=\"YouDontKnowMe_295x166.jpg\" Offset=\"0\" Version=\"1\"/>" +
-                    "<Object Id=\"1e293dc9-3257-4277-9c40-b50a6e63b71e\" InCache=\"true\" Latest=\"true\" Length=\"294056\" Name=\"beowulf.txt\" Offset=\"0\" Version=\"1\"/>" +
-                    "<Object Id=\"d759f10d-05c6-498c-b4ce-2475027fbeae\" InCache=\"true\" Latest=\"true\" Length=\"3309717\" Name=\"coffeehouse/im_in_the_mood.mp3\" Offset=\"0\" Version=\"1\"/>" +
-                    "<Object Id=\"d9b342ae-311c-4cbc-a000-75686c174471\" InCache=\"true\" Latest=\"true\" Length=\"45872985\" Name=\"coffeehouse/jk/ColumbinesGrow.m4a\" Offset=\"0\" Version=\"1\"/>" +
-                    "<Object Id=\"c85fc175-116a-4bcf-a77a-5ea240a5de3a\" InCache=\"true\" Latest=\"true\" Length=\"5050747\" Name=\"coffeehouse/jk/ColumbinesGrow.mp3\" Offset=\"0\" Version=\"1\"/>" +
-                    "<Object Id=\"b70bd4ab-90d2-41fd-83d2-572fb3d1c8ca\" InCache=\"true\" Latest=\"true\" Length=\"10528\" Name=\"coffeehouse/jk/Columbines_295x166.jpg\" Offset=\"0\" Version=\"1\"/>" +
-                    "<Object Id=\"e4769cd2-3aa6-4628-887c-ad51768656c5\" InCache=\"true\" Latest=\"true\" Length=\"10396369\" Name=\"coffeehouse/jk/Misty_2015.m4a\" Offset=\"0\" Version=\"1\"/>" +
-                    "<Object Id=\"9ffa7e9c-6939-4808-996e-e42fcf8bacb5\" InCache=\"true\" Latest=\"true\" Length=\"77080710\" Name=\"coffeehouse/jk/RedRiverValley.m4a\" Offset=\"0\" Version=\"1\"/>" +
-                    "<Object Id=\"564a1bc1-33a0-41f3-af28-fbf79f331d0e\" InCache=\"true\" Latest=\"true\" Length=\"6363965\" Name=\"coffeehouse/jk/RedRiverValley.mp3\" Offset=\"0\" Version=\"1\"/>" +
-                    "<Object Id=\"b2671db7-1a4a-4577-8419-f17ead63d321\" InCache=\"true\" Latest=\"true\" Length=\"10724\" Name=\"coffeehouse/jk/UnforgetWonderful_295x166.jpg\" Offset=\"0\" Version=\"1\"/>" +
-                    "<Object Id=\"71807ee9-2db9-4145-b01d-3d2aaae37061\" InCache=\"true\" Latest=\"true\" Length=\"110054089\" Name=\"coffeehouse/jk/Unforgettable-WonderfulWorld.m4a\" Offset=\"0\" Version=\"1\"/>" +
-                    "<Object Id=\"e50d5fc8-8fbf-4206-b495-05bb8be539ec\" InCache=\"true\" Latest=\"true\" Length=\"7520930\" Name=\"coffeehouse/jk/Unforgettable-WonderfulWorld.mp3\" Offset=\"0\" Version=\"1\"/>" +
-                    "<Object Id=\"9156aab6-88fa-49b0-a0e1-c230d247957e\" InCache=\"true\" Latest=\"true\" Length=\"51272203\" Name=\"coffeehouse/jk/WhereOrWhen.m4a\" Offset=\"0\" Version=\"1\"/>" +
-                    "<Object Id=\"0f5541b9-8c4d-4ed8-bd1d-9e62173bdf4a\" InCache=\"true\" Latest=\"true\" Length=\"5647581\" Name=\"coffeehouse/jk/WhereOrWhen.mp3\" Offset=\"0\" Version=\"1\"/>" +
-                    "<Object Id=\"03b2e1c7-f80c-437a-912d-b09015dba484\" InCache=\"true\" Latest=\"true\" Length=\"11263\" Name=\"coffeehouse/jk/WhereOrWhen_295x166.jpg\" Offset=\"0\" Version=\"1\"/>" +
-                    "<Object Id=\"667d94f6-b341-45f7-bd91-706af52d8e77\" InCache=\"true\" Latest=\"true\" Length=\"11207247\" Name=\"coffeehouse/jk/im_in_the_mood.m4a\" Offset=\"0\" Version=\"1\"/>" +
-                    "<Object Id=\"f7f65e20-4ea2-4629-9c22-ddf9cbc76b99\" InCache=\"true\" Latest=\"true\" Length=\"8621\" Name=\"coffeehouse/jk/im_in_the_mood_200.jpg\" Offset=\"0\" Version=\"1\"/>" +
-                    "<Object Id=\"92a40cff-63a6-4520-81a9-80afa03a1973\" InCache=\"true\" Latest=\"true\" Length=\"6409093\" Name=\"coffeehouse/witchcraft.mp3\" Offset=\"0\" Version=\"1\"/>" +
+                    "<Object Id=\"53452a07-699a-4c27-8de5-95aa0a431df1\" InCache=\"true\" Latest=\"true\" Length=\"9\" Name=\"123456789.txt\" Offset=\"0\" VersionId=\"" + uuid + "\"/>" +
+                    "<Object Id=\"7989ad4a-47a5-41ac-8814-3746e4e20679\" InCache=\"true\" Latest=\"true\" Length=\"9172\" Name=\"Always_295x166.jpg\" Offset=\"0\" VersionId=\"" + uuid + "\"/>" +
+                    "<Object Id=\"6649c2cb-6e83-4c58-9fb8-9b4aec8b014b\" InCache=\"true\" Latest=\"true\" Length=\"29895\" Name=\"Chapter 9.docx\" Offset=\"0\" VersionId=\"" + uuid + "\"/>" +
+                    "<Object Id=\"f725ef08-7e6f-4fe0-a256-798e561d878f\" InCache=\"true\" Latest=\"true\" Length=\"9114\" Name=\"RedRiverValley_295x166.jpg\" Offset=\"0\" VersionId=\"" + uuid + "\"/>" +
+                    "<Object Id=\"dff0cbed-5b7f-480f-aa94-8adea7c59a3e\" InCache=\"true\" Latest=\"true\" Length=\"774741\" Name=\"Softphone Install.docx\" Offset=\"0\" VersionId=\"" + uuid + "\"/>" +
+                    "<Object Id=\"ffd8266d-cdc5-4e49-81d4-d08314fcee5a\" InCache=\"true\" Latest=\"true\" Length=\"11059\" Name=\"ThinkingOutLoud_295x166.jpg\" Offset=\"0\" VersionId=\"" + uuid + "\"/>" +
+                    "<Object Id=\"897b7e5b-59d8-4645-bc7a-f5c4b8154a0f\" InCache=\"true\" Latest=\"true\" Length=\"10724\" Name=\"UnforgetWonderful_295x166.jpg\" Offset=\"0\" VersionId=\"" + uuid + "\"/>" +
+                    "<Object Id=\"7bb970d3-113f-413b-87d5-00b072059451\" InCache=\"true\" Latest=\"true\" Length=\"10634\" Name=\"YouDontKnowMe_295x166.jpg\" Offset=\"0\" VersionId=\"" + uuid + "\"/>" +
+                    "<Object Id=\"1e293dc9-3257-4277-9c40-b50a6e63b71e\" InCache=\"true\" Latest=\"true\" Length=\"294056\" Name=\"beowulf.txt\" Offset=\"0\" VersionId=\"" + uuid + "\"/>" +
+                    "<Object Id=\"d759f10d-05c6-498c-b4ce-2475027fbeae\" InCache=\"true\" Latest=\"true\" Length=\"3309717\" Name=\"coffeehouse/im_in_the_mood.mp3\" Offset=\"0\" VersionId=\"" + uuid + "\"/>" +
+                    "<Object Id=\"d9b342ae-311c-4cbc-a000-75686c174471\" InCache=\"true\" Latest=\"true\" Length=\"45872985\" Name=\"coffeehouse/jk/ColumbinesGrow.m4a\" Offset=\"0\" VersionId=\"" + uuid + "\"/>" +
+                    "<Object Id=\"c85fc175-116a-4bcf-a77a-5ea240a5de3a\" InCache=\"true\" Latest=\"true\" Length=\"5050747\" Name=\"coffeehouse/jk/ColumbinesGrow.mp3\" Offset=\"0\" VersionId=\"" + uuid + "\"/>" +
+                    "<Object Id=\"b70bd4ab-90d2-41fd-83d2-572fb3d1c8ca\" InCache=\"true\" Latest=\"true\" Length=\"10528\" Name=\"coffeehouse/jk/Columbines_295x166.jpg\" Offset=\"0\" VersionId=\"" + uuid + "\"/>" +
+                    "<Object Id=\"e4769cd2-3aa6-4628-887c-ad51768656c5\" InCache=\"true\" Latest=\"true\" Length=\"10396369\" Name=\"coffeehouse/jk/Misty_2015.m4a\" Offset=\"0\" VersionId=\"" + uuid + "\"/>" +
+                    "<Object Id=\"9ffa7e9c-6939-4808-996e-e42fcf8bacb5\" InCache=\"true\" Latest=\"true\" Length=\"77080710\" Name=\"coffeehouse/jk/RedRiverValley.m4a\" Offset=\"0\" VersionId=\"" + uuid + "\"/>" +
+                    "<Object Id=\"564a1bc1-33a0-41f3-af28-fbf79f331d0e\" InCache=\"true\" Latest=\"true\" Length=\"6363965\" Name=\"coffeehouse/jk/RedRiverValley.mp3\" Offset=\"0\" VersionId=\"" + uuid + "\"/>" +
+                    "<Object Id=\"b2671db7-1a4a-4577-8419-f17ead63d321\" InCache=\"true\" Latest=\"true\" Length=\"10724\" Name=\"coffeehouse/jk/UnforgetWonderful_295x166.jpg\" Offset=\"0\" VersionId=\"" + uuid + "\"/>" +
+                    "<Object Id=\"71807ee9-2db9-4145-b01d-3d2aaae37061\" InCache=\"true\" Latest=\"true\" Length=\"110054089\" Name=\"coffeehouse/jk/Unforgettable-WonderfulWorld.m4a\" Offset=\"0\" VersionId=\"" + uuid + "\"/>" +
+                    "<Object Id=\"e50d5fc8-8fbf-4206-b495-05bb8be539ec\" InCache=\"true\" Latest=\"true\" Length=\"7520930\" Name=\"coffeehouse/jk/Unforgettable-WonderfulWorld.mp3\" Offset=\"0\" VersionId=\"" + uuid + "\"/>" +
+                    "<Object Id=\"9156aab6-88fa-49b0-a0e1-c230d247957e\" InCache=\"true\" Latest=\"true\" Length=\"51272203\" Name=\"coffeehouse/jk/WhereOrWhen.m4a\" Offset=\"0\" VersionId=\"" + uuid + "\"/>" +
+                    "<Object Id=\"0f5541b9-8c4d-4ed8-bd1d-9e62173bdf4a\" InCache=\"true\" Latest=\"true\" Length=\"5647581\" Name=\"coffeehouse/jk/WhereOrWhen.mp3\" Offset=\"0\" VersionId=\"" + uuid + "\"/>" +
+                    "<Object Id=\"03b2e1c7-f80c-437a-912d-b09015dba484\" InCache=\"true\" Latest=\"true\" Length=\"11263\" Name=\"coffeehouse/jk/WhereOrWhen_295x166.jpg\" Offset=\"0\" VersionId=\"" + uuid + "\"/>" +
+                    "<Object Id=\"667d94f6-b341-45f7-bd91-706af52d8e77\" InCache=\"true\" Latest=\"true\" Length=\"11207247\" Name=\"coffeehouse/jk/im_in_the_mood.m4a\" Offset=\"0\" VersionId=\"" + uuid + "\"/>" +
+                    "<Object Id=\"f7f65e20-4ea2-4629-9c22-ddf9cbc76b99\" InCache=\"true\" Latest=\"true\" Length=\"8621\" Name=\"coffeehouse/jk/im_in_the_mood_200.jpg\" Offset=\"0\" VersionId=\"" + uuid + "\"/>" +
+                    "<Object Id=\"92a40cff-63a6-4520-81a9-80afa03a1973\" InCache=\"true\" Latest=\"true\" Length=\"6409093\" Name=\"coffeehouse/witchcraft.mp3\" Offset=\"0\" VersionId=\"" + uuid + "\"/>" +
                 "</Objects>" +
             "</MasterObjectList>";
 
@@ -2388,7 +2403,7 @@ public class Ds3Cli_Test {
                 "<Id>52741a53-24d5-4391-87a9-9cce703d7ed7</Id><LastAccessed>2016-06-29T20:28:45.000Z</LastAccessed>" +
                 "<LastCheckpoint>6fc8a8c6-0b14-4ef6-a4ec-b7246028fa8e:2</LastCheckpoint><LastModified>2016-06-29T20:24:35.000Z</LastModified><LastVerified/>" +
                 "<PartitionId>f3a7b5dd-af2d-4dc3-84d9-6ac69fab135c</PartitionId><PreviousState/>" +
-                "<SerialNumber>HP-Y140125415</SerialNumber><State>NORMAL</State><StorageDomainId/>" +
+                "<SerialNumber>HP-Y140125415</SerialNumber><State>NORMAL</State><StorageDomainMemberId/>" +
                 "<TakeOwnershipPending>false</TakeOwnershipPending><TotalRawCapacity>2408088338432</TotalRawCapacity>" +
                 "<Type>LTO6</Type><VerifyPending/><WriteProtected>false</WriteProtected></Tape>" +
                 "<Tape>" +
@@ -2401,7 +2416,7 @@ public class Ds3Cli_Test {
                 "<LastModified>2016-07-18T03:04:30.000Z</LastModified><LastVerified/>" +
                 "<PartitionId>f3a7b5dd-af2d-4dc3-84d9-6ac69fab135c</PartitionId><PreviousState/>" +
                 "<SerialNumber>HP-Y140125438</SerialNumber><State>NORMAL</State>" +
-                "<StorageDomainId>" + storageDoamin1Id + "</StorageDomainId>" +
+                "<StorageDomainMemberId>" + storageDoamin1Id + "</StorageDomainMemberId>" +
                 "<TakeOwnershipPending>false</TakeOwnershipPending><TotalRawCapacity>2408088338432</TotalRawCapacity>" +
                 "<Type>LTO6</Type><VerifyPending/><WriteProtected>false</WriteProtected></Tape>" +
                 "<Tape>" +
@@ -2413,7 +2428,7 @@ public class Ds3Cli_Test {
                 "<LastCheckpoint>723aeba4-2fbe-43e2-a14c-cd8975d56c0c:2</LastCheckpoint>" +
                 "<LastModified>2016-06-29T20:18:44.000Z</LastModified><LastVerified/>" +
                 "<PartitionId>f3a7b5dd-af2d-4dc3-84d9-6ac69fab135c</PartitionId><PreviousState/>" +
-                "<SerialNumber>HP-S140125234</SerialNumber><State>NORMAL</State><StorageDomainId/>" +
+                "<SerialNumber>HP-S140125234</SerialNumber><State>NORMAL</State><StorageDomainMemberId/>" +
                 "<TakeOwnershipPending>false</TakeOwnershipPending><TotalRawCapacity>2408088338432</TotalRawCapacity>" +
                 "<Type>LTO6</Type><VerifyPending/><WriteProtected>false</WriteProtected></Tape>" +
                 "<Tape>" +
@@ -2430,7 +2445,7 @@ public class Ds3Cli_Test {
                 "<PartitionId>f3a7b5dd-af2d-4dc3-84d9-6ac69fab135c</PartitionId><PreviousState/>" +
                 "<SerialNumber>HP-X131014007</SerialNumber>" +
                 "<State>NORMAL</State>" +
-                "<StorageDomainId>" + storageDoamin2Id + "</StorageDomainId>" +
+                "<StorageDomainMemberId>" + storageDoamin2Id + "</StorageDomainMemberId>" +
                 "<TakeOwnershipPending>false</TakeOwnershipPending>" +
                 "<TotalRawCapacity>2408088338432</TotalRawCapacity>" +
                 "<Type>LTO6</Type><VerifyPending/>" +
@@ -2467,7 +2482,7 @@ public class Ds3Cli_Test {
                 "<Id>52741a53-24d5-4391-87a9-9cce703d7ed7</Id><LastAccessed>2016-06-29T20:28:45.000Z</LastAccessed>" +
                 "<LastCheckpoint>6fc8a8c6-0b14-4ef6-a4ec-b7246028fa8e:2</LastCheckpoint><LastModified>2016-06-29T20:24:35.000Z</LastModified><LastVerified/>" +
                 "<PartitionId>f3a7b5dd-af2d-4dc3-84d9-6ac69fab135c</PartitionId><PreviousState/>" +
-                "<SerialNumber>HP-Y140125415</SerialNumber><State>NORMAL</State><StorageDomainId/>" +
+                "<SerialNumber>HP-Y140125415</SerialNumber><State>NORMAL</State><StorageDomainMemberId/>" +
                 "<TakeOwnershipPending>false</TakeOwnershipPending><TotalRawCapacity>2408088338432</TotalRawCapacity>" +
                 "<Type>LTO6</Type><VerifyPending/><WriteProtected>false</WriteProtected></Tape>" +
                 "</Data>", "utf-8");
@@ -2514,7 +2529,7 @@ public class Ds3Cli_Test {
                 "<LastModified>2017-01-19T22:16:09.000Z</LastModified><LastVerified/>" +
                 "<PartiallyVerifiedEndOfTape/><PartitionId>9bccaba8-440a-431f-9357-5a66c48d09f2</PartitionId>" +
                 "<PreviousState>FOREIGN</PreviousState><SerialNumber>HP-G140314442</SerialNumber>" +
-                "<State>FORMAT_IN_PROGRESS</State><StorageDomainId/>" +
+                "<State>FORMAT_IN_PROGRESS</State><StorageDomainMemberId/>" +
                 "<TakeOwnershipPending>false</TakeOwnershipPending><TotalRawCapacity>1425000103936</TotalRawCapacity>" +
                 "<Type>LTO5</Type><VerifyPending/><WriteProtected>false</WriteProtected>" +
                 "</Data>", "utf-8");
@@ -2643,13 +2658,11 @@ public class Ds3Cli_Test {
         final InputStream packet = IOUtils.toInputStream("<Data>" +
                 "<Pool>" +
                 "<PhysicalAllocated>9</PhysicalAllocated>" +
-                "<PhysicalAvailable>0</PhysicalAvailable>" +
                 "<PhysicalFree>2</PhysicalFree>" +
                 "<PhysicalUsed>7</PhysicalUsed>" +
                 "</Pool>" +
                 "<Tape>" +
                 "<PhysicalAllocated>8</PhysicalAllocated>" +
-                "<PhysicalAvailable>0</PhysicalAvailable>" +
                 "<PhysicalFree>3</PhysicalFree>" +
                 "<PhysicalUsed>5</PhysicalUsed>" +
                 "</Tape>" +
@@ -2688,13 +2701,11 @@ public class Ds3Cli_Test {
         final InputStream packet = IOUtils.toInputStream("<Data>" +
                 "<Pool>" +
                 "<PhysicalAllocated>9</PhysicalAllocated>" +
-                "<PhysicalAvailable>0</PhysicalAvailable>" +
                 "<PhysicalFree>2</PhysicalFree>" +
                 "<PhysicalUsed>7</PhysicalUsed>" +
                 "</Pool>" +
                 "<Tape>" +
                 "<PhysicalAllocated>8</PhysicalAllocated>" +
-                "<PhysicalAvailable>0</PhysicalAvailable>" +
                 "<PhysicalFree>3</PhysicalFree>" +
                 "<PhysicalUsed>5</PhysicalUsed>" +
                 "</Tape>" +
@@ -2715,17 +2726,16 @@ public class Ds3Cli_Test {
         final View view = command.getView();
 
         final String expected =
-                "+-----------+--------------+--------------+---------------------+--------------------------------------+--------------------------+--------------------------+-----------------------------+----------------------------------+\n" +
-                "| Activated | Auto Timeout | Auto Inspect | Conflict Resolution |                  ID                  |      Last Heartbeat      | Unavailable Media Policy | Unavailable Pool Retry Mins | Unavailable Partition Retry Mins |\n" +
-                "+-----------+--------------+--------------+---------------------+--------------------------------------+--------------------------+--------------------------+-----------------------------+----------------------------------+\n" +
-                "| true      | 30           | FULL         | CANCEL              | 5d45ab7a-b83f-4dc1-95d5-a45b59e48718 | 2016-09-07T22:09:55.000Z | DISALLOW                 | 20                          | 20                               |\n" +
-                "+-----------+--------------+--------------+---------------------+--------------------------------------+--------------------------+--------------------------+-----------------------------+----------------------------------+\n";
+                "+-----------+--------------+--------------+--------------------------------------+--------------------------+--------------------------+-----------------------------+----------------------------------+\n" +
+                "| Activated | Auto Timeout | Auto Inspect |                  ID                  |      Last Heartbeat      | Unavailable Media Policy | Unavailable Pool Retry Mins | Unavailable Partition Retry Mins |\n" +
+                "+-----------+--------------+--------------+--------------------------------------+--------------------------+--------------------------+-----------------------------+----------------------------------+\n" +
+                "| true      | 30           | FULL         | 5d45ab7a-b83f-4dc1-95d5-a45b59e48718 | 2016-09-07T22:09:55.000Z | DISALLOW                 | 20                          | 20                               |\n" +
+                "+-----------+--------------+--------------+--------------------------------------+--------------------------+--------------------------+-----------------------------+----------------------------------+\n";
 
         final InputStream packet = IOUtils.toInputStream("<Data>" +
                 "<Activated>true</Activated>" +
                 "<AutoActivateTimeoutInMins>30</AutoActivateTimeoutInMins>" +
                 "<AutoInspect>FULL</AutoInspect>" +
-                "<DefaultImportConflictResolutionMode>CANCEL</DefaultImportConflictResolutionMode>" +
                 "<Id>5d45ab7a-b83f-4dc1-95d5-a45b59e48718</Id>" +
                 "<InstanceId>5d45ab7a-b83f-4dc1-95d5-a45b59e48718</InstanceId>" +
                 "<LastHeartbeat>2016-09-07T22:09:55.000Z</LastHeartbeat>" +
@@ -2749,30 +2759,30 @@ public class Ds3Cli_Test {
         assertTrue(command instanceof GetDataPathBackend);
         final View view = command.getView();
 
-        final String expected =
-                "  \"Data\" : {\n" +
-                        "    \"Activated\" : true,\n" +
-                        "    \"AutoActivateTimeoutInMins\" : 30,\n" +
-                        "    \"AutoInspect\" : \"NEVER\",\n" +
-                        "    \"DefaultImportConflictResolutionMode\" : \"CANCEL\",\n" +
-                        "    \"DefaultVerifyDataAfterImport\" : null,\n" +
-                        "    \"DefaultVerifyDataPriorToImport\" : false,\n" +
-                        "    \"Id\" : \"5d45ab7a-b83f-4dc1-95d5-a45b59e48718\",\n" +
-                        "    \"InstanceId\" : \"5d45ab7a-b83f-4dc1-95d5-a45b59e48718\",\n" +
-                        "    \"LastHeartbeat\" : \"2016-09-07T22:09:55.000Z\",\n" +
-                        "    \"PartiallyVerifyLastPercentOfTapes\" : null,\n" +
-                        "    \"UnavailableMediaPolicy\" : \"DISALLOW\",\n" +
-                        "    \"UnavailablePoolMaxJobRetryInMins\" : 20,\n" +
-                        "    \"UnavailableTapePartitionMaxJobRetryInMins\" : 20\n" +
-                        "  },\n" +
-                        "  \"Status\" : \"OK\"\n" +
-                        "}";
+        final String expected = "  \"Data\" : {\n" +
+                "    \"Activated\" : true,\n" +
+                "    \"AllowNewJobRequests\" : false,\n" +
+                "    \"AutoActivateTimeoutInMins\" : 30,\n" +
+                "    \"AutoInspect\" : \"NEVER\",\n" +
+                "    \"CacheAvailableRetryAfterInSeconds\" : 0,\n" +
+                "    \"DefaultVerifyDataAfterImport\" : null,\n" +
+                "    \"DefaultVerifyDataPriorToImport\" : false,\n" +
+                "    \"Id\" : \"5d45ab7a-b83f-4dc1-95d5-a45b59e48718\",\n" +
+                "    \"InstanceId\" : \"5d45ab7a-b83f-4dc1-95d5-a45b59e48718\",\n" +
+                "    \"IomEnabled\" : false,\n" +
+                "    \"LastHeartbeat\" : \"2016-09-07T22:09:55.000Z\",\n" +
+                "    \"PartiallyVerifyLastPercentOfTapes\" : null,\n" +
+                "    \"UnavailableMediaPolicy\" : \"DISALLOW\",\n" +
+                "    \"UnavailablePoolMaxJobRetryInMins\" : 20,\n" +
+                "    \"UnavailableTapePartitionMaxJobRetryInMins\" : 20\n" +
+                "  },\n" +
+                "  \"Status\" : \"OK\"\n" +
+                "}";
 
         final InputStream packet = IOUtils.toInputStream("<Data>" +
                 "<Activated>true</Activated>" +
                 "<AutoActivateTimeoutInMins>30</AutoActivateTimeoutInMins>" +
                 "<AutoInspect>NEVER</AutoInspect>" +
-                "<DefaultImportConflictResolutionMode>CANCEL</DefaultImportConflictResolutionMode>" +
                 "<Id>5d45ab7a-b83f-4dc1-95d5-a45b59e48718</Id>" +
                 "<InstanceId>5d45ab7a-b83f-4dc1-95d5-a45b59e48718</InstanceId>" +
                 "<LastHeartbeat>2016-09-07T22:09:55.000Z</LastHeartbeat>" +
@@ -2785,7 +2795,7 @@ public class Ds3Cli_Test {
         final DataPathBackend backendInfo = XmlOutput.fromXml(packet, DataPathBackend.class);
         final GetDataPathBackendResult backendResult = new GetDataPathBackendResult(backendInfo);
         final String result = view.render(backendResult);
-        assertTrue(result.endsWith(expected));
+        assertThat(result, CoreMatchers.endsWith(expected));
     }
 
     @Test
@@ -2882,7 +2892,7 @@ public class Ds3Cli_Test {
                 "        \"cachedSizeInBytes\" : 343479386,\n" +
                 "        \"chunkClientProcessingOrderGuarantee\" : \"IN_ORDER\",\n" +
                 "        \"completedSizeInBytes\" : 0,\n" +
-                "        \"entirelyInCache\" : false,\n" +
+                "        \"entirelyInCache\" : null,\n" +
                 "        \"jobId\" : \"52dc72a9-7876-4024-9034-d2f6e886f7e7\",\n" +
                 "        \"naked\" : false,\n" +
                 "        \"name\" : \"PUT by 192.168.1.12\",\n" +
@@ -2915,7 +2925,7 @@ public class Ds3Cli_Test {
         final JobList jobs = XmlOutput.fromXml(packet, JobList.class);
         final GetJobsResult jobsResult = new GetJobsResult(jobs);
         final String result = view.render(jobsResult);
-        assertTrue(result.endsWith(expected));
+        assert(result.endsWith(expected));
     }
 
     /**
@@ -3137,7 +3147,7 @@ public class Ds3Cli_Test {
                 "<LastModified>2017-02-21T21:37:31.000Z</LastModified><LastVerified/>" +
                 "<PartiallyVerifiedEndOfTape/><PartitionId>2e705e0c-7608-4179-b794-de1f30059081</PartitionId>" +
                 "<PreviousState/><SerialNumber>HP-G140314442</SerialNumber>" +
-                "<State>NORMAL</State><StorageDomainId>785c194c-1844-4f2a-8896-95f9418bbc4d</StorageDomainId>" +
+                "<State>NORMAL</State><StorageDomainMemberId>785c194c-1844-4f2a-8896-95f9418bbc4d</StorageDomainMemberId>" +
                 "<TakeOwnershipPending>false</TakeOwnershipPending><TotalRawCapacity>1425000103936</TotalRawCapacity>" +
                 "<Type>LTO5</Type><VerifyPending/><WriteProtected>false</WriteProtected>" +
                 "</Data>", "utf-8");
@@ -3173,7 +3183,7 @@ public class Ds3Cli_Test {
                 "<LastModified>2017-02-21T21:37:31.000Z</LastModified><LastVerified/>" +
                 "<PartiallyVerifiedEndOfTape/><PartitionId>2e705e0c-7608-4179-b794-de1f30059081</PartitionId>" +
                 "<PreviousState/><SerialNumber>HP-G140314442</SerialNumber>" +
-                "<State>NORMAL</State><StorageDomainId>785c194c-1844-4f2a-8896-95f9418bbc4d</StorageDomainId>" +
+                "<State>NORMAL</State><StorageDomainMemberId>785c194c-1844-4f2a-8896-95f9418bbc4d</StorageDomainMemberId>" +
                 "<TakeOwnershipPending>false</TakeOwnershipPending><TotalRawCapacity>1425000103936</TotalRawCapacity>" +
                 "<Type>LTO5</Type><VerifyPending/><WriteProtected>false</WriteProtected>" +
                 "</Data>", "utf-8");
@@ -3220,7 +3230,7 @@ public class Ds3Cli_Test {
                 "<PartitionId>1982c83f-ee80-434f-ae5b-19415faa5b01</PartitionId>" +
                 "<PoweredOn>true</PoweredOn><Quiesced>NO</Quiesced>" +
                 "<ReservedCapacity>386117455052</ReservedCapacity><State>NORMAL</State>" +
-                "<StorageDomainId>896dcbf3-66a6-4f4f-a163-0210c6e0ab4b</StorageDomainId>" +
+                "<StorageDomainMemberId>896dcbf3-66a6-4f4f-a163-0210c6e0ab4b</StorageDomainMemberId>" +
                 "<TotalCapacity>3861174550528</TotalCapacity><Type>ONLINE</Type>" +
                 "<UsedCapacity>44370332160</UsedCapacity></Pool>" +
                 "</Data>", "utf-8");
@@ -3267,7 +3277,7 @@ public class Ds3Cli_Test {
                 "<PartitionId>fa827f71-b9a7-451a-98cf-c3392bad9323</PartitionId>" +
                 "<PoweredOn>true</PoweredOn><Quiesced>NO</Quiesced>" +
                 "<ReservedCapacity>14209583782297</ReservedCapacity>" +
-                "<State>NORMAL</State><StorageDomainId>8253863e-8818-4677-8e6b-60b1d398dd1e</StorageDomainId>" +
+                "<State>NORMAL</State><StorageDomainMemberId>8253863e-8818-4677-8e6b-60b1d398dd1e</StorageDomainMemberId>" +
                 "<TotalCapacity>142095837822976</TotalCapacity><Type>NEARLINE</Type>" +
                 "<UsedCapacity>789712094144</UsedCapacity></Pool>" +
                 "<Pool>" +
@@ -3282,7 +3292,7 @@ public class Ds3Cli_Test {
                 "<PartitionId>1982c83f-ee80-434f-ae5b-19415faa5b01</PartitionId>" +
                 "<PoweredOn>true</PoweredOn><Quiesced>NO</Quiesced>" +
                 "<ReservedCapacity>386117455052</ReservedCapacity><State>NORMAL</State>" +
-                "<StorageDomainId>896dcbf3-66a6-4f4f-a163-0210c6e0ab4b</StorageDomainId>" +
+                "<StorageDomainMemberId>896dcbf3-66a6-4f4f-a163-0210c6e0ab4b</StorageDomainMemberId>" +
                 "<TotalCapacity>3861174550528</TotalCapacity><Type>ONLINE</Type>" +
                 "<UsedCapacity>44370332160</UsedCapacity></Pool>" +
                 "</Data>", "utf-8");
