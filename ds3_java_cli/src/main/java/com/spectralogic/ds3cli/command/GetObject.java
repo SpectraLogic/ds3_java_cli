@@ -51,7 +51,7 @@ public class GetObject extends CliCommand<DefaultResult> {
 
     private final static ImmutableList<Option> requiredArgs = ImmutableList.of(BUCKET, OBJECT_NAME);
     private final static ImmutableList<Option> optionalArgs = ImmutableList.of(DIRECTORY, SYNC,
-            FORCE, NUMBER_OF_THREADS, PRIORITY, RANGE_OFFSET, RANGE_LENGTH, DISCARD, FILE_METADATA);
+            FORCE, NUMBER_OF_THREADS, PRIORITY, RANGE_OFFSET, RANGE_LENGTH, DISCARD, FILE_METADATA, VERSIONID);
 
     private String bucketName;
     private String objectName;
@@ -63,10 +63,12 @@ public class GetObject extends CliCommand<DefaultResult> {
     private long rangeLength = 0L;
     private boolean discard;
     private boolean restoreMetadata;
+    private String versionId;
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
         processCommandOptions(requiredArgs, optionalArgs, args);
+        this.versionId = args.getVersionId();
         this.bucketName = args.getBucket();
         this.priority = args.getPriority();
         this.objectName = args.getObjectName();
@@ -116,7 +118,11 @@ public class GetObject extends CliCommand<DefaultResult> {
             ds3Obj = new PartialDs3Object(this.objectName.replace("\\", "/"),
                     Range.byLength(this.rangeOffset, this.rangeLength));
         } else {
-            ds3Obj = new Ds3Object(this.objectName.replace("\\", "/"));
+            if (Guard.isStringNullOrEmpty(versionId)) {
+                ds3Obj = new Ds3Object(this.objectName.replace("\\", "/"));
+            } else {
+                ds3Obj = new Ds3Object(this.objectName.replace("\\", "/"), versionId);
+            }
         }
 
         if (this.sync && FileUtils.fileExists(filePath)) {

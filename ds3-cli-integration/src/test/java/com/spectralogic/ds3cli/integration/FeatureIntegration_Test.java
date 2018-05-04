@@ -44,11 +44,13 @@ import com.spectralogic.ds3client.commands.GetBucketResponse;
 import com.spectralogic.ds3client.commands.GetObjectRequest;
 import com.spectralogic.ds3client.commands.GetObjectResponse;
 import com.spectralogic.ds3client.commands.spectrads3.CancelJobSpectraS3Request;
+import com.spectralogic.ds3client.commands.spectrads3.PutBucketSpectraS3Request;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.helpers.FileObjectPutter;
 import com.spectralogic.ds3client.helpers.FolderNameFilter;
 import com.spectralogic.ds3client.models.ChecksumType;
 import com.spectralogic.ds3client.models.Contents;
+import com.spectralogic.ds3client.models.VersioningLevel;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.utils.Platform;
 import com.spectralogic.ds3client.utils.ResourceUtils;
@@ -93,7 +95,7 @@ public class FeatureIntegration_Test {
 
     @BeforeClass
     public static void startup() throws IOException {
-        final UUID envDataPolicyId = TempStorageUtil.setupDataPolicy(TEST_ENV_NAME, false, ChecksumType.Type.MD5, client);
+        final UUID envDataPolicyId = TempStorageUtil.setupDataPolicy(TEST_ENV_NAME, false, ChecksumType.Type.MD5, VersioningLevel.NONE, client);
         envStorageIds = TempStorageUtil.setup(TEST_ENV_NAME, envDataPolicyId, client);
     }
 
@@ -714,6 +716,33 @@ public class FeatureIntegration_Test {
 
             assertThat(collection.size(), is(1));
             assertThat(collection.asList().get(0), is("value"));
+
+        } finally {
+            Util.deleteBucket(client, bucketName);
+        }
+    }
+
+    @Test
+    public void testPutObjectWithVersion() throws Exception {
+        final String bucketName = "test_put_object_with_version";
+
+        try {
+            TempStorageUtil.setupDataPolicy(bucketName, false, ChecksumType.Type.CRC_32, VersioningLevel.KEEP_MULTIPLE_VERSIONS, client);
+            client.putBucketSpectraS3(new PutBucketSpectraS3Request(bucketName).withDataPolicyId(bucketName));
+
+            final Arguments args = new Arguments(new String[]{"-http", "-c", "put_object", "-b", bucketName, "-o", Paths.get(Util.RESOURCE_BASE_NAME + "beowulf.txt").toString() });
+            final CommandResponse response = Util.command(client, args);
+            final CommandResponse responseAgain = Util.command(client,args);
+
+            assertThat(response.getReturnCode(), is(0));
+            assertThat(responseAgain.getReturnCode(), is(0));
+
+            final Arguments getBucket = new Arguments(new String[]{"--http", "-c", "get_bucket", "-b", bucketName, "-v"});
+            final CommandResponse getBucketResponse = Util.command(client, getBucket);
+            final String bucketMessage = getBucketResponse.getMessage();
+            assertThat(bucketMessage, is(""));
+
+
 
         } finally {
             Util.deleteBucket(client, bucketName);

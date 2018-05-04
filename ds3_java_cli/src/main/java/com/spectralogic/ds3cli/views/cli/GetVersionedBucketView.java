@@ -25,21 +25,21 @@ import static com.spectralogic.ds3cli.util.Constants.DATE_FORMAT;
 import static com.spectralogic.ds3cli.util.Guard.nullGuard;
 import static com.spectralogic.ds3cli.util.Guard.nullGuardFromDate;
 
-public class GetBucketView extends TableView<GetBucketResult> {
+public class GetVersionedBucketView extends TableView<GetBucketResult> {
 
     private Iterable<Contents> contents;
 
     @Override
     public String render(final GetBucketResult br) {
         // Bucket details
-        final String bucketDesc = new com.spectralogic.ds3cli.views.cli.GetBucketDetailsView().render(br);
+        final String bucketDesc = new GetBucketDetailsView().render(br);
 
         if (null == br.getResult() || Iterables.isEmpty(br.getResult())) {
             return "No objects were reported in bucket.";
         }
         this.contents = br.getResult();
-        initTable(ImmutableList.of("File Name", "Size", "Owner", "Last Modified", "ETag"));
-        setTableDataAlignment(ImmutableList.of(ASCIITable.ALIGN_LEFT, ASCIITable.ALIGN_RIGHT, ASCIITable.ALIGN_RIGHT ,ASCIITable.ALIGN_LEFT, ASCIITable.ALIGN_RIGHT));
+        initTable(ImmutableList.of("File Name", "Size", "Owner", "Last Modified", "ETag", "Version Id"));
+        setTableDataAlignment(ImmutableList.of(ASCIITable.ALIGN_LEFT, ASCIITable.ALIGN_RIGHT, ASCIITable.ALIGN_RIGHT ,ASCIITable.ALIGN_LEFT, ASCIITable.ALIGN_RIGHT, ASCIITable.ALIGN_LEFT ));
 
         final String bucketContents =  ASCIITable.getInstance().getTable(getHeaders(), formatTableContents());
 
@@ -51,12 +51,13 @@ public class GetBucketView extends TableView<GetBucketResult> {
         final ImmutableList.Builder<String[]> builder = ImmutableList.builder();
 
         for (final Contents content : contents) {
-            final String[] arrayEntry = new String[5];
+            final String[] arrayEntry = new String[6];
             arrayEntry[0] = nullGuard(content.getKey());
             arrayEntry[1] = nullGuard(Long.toString(content.getSize()));
             arrayEntry[2] = nullGuard(content.getOwner().getDisplayName());
             arrayEntry[3] = nullGuardFromDate(content.getLastModified(), DATE_FORMAT);
             arrayEntry[4] = nullGuard(content.getETag());
+            arrayEntry[5] = nullGuard(content.getVersionId().toString());
             builder.add(arrayEntry);
         }
 
