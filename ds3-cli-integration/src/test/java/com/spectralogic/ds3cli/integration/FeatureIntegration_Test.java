@@ -91,10 +91,11 @@ public class FeatureIntegration_Test {
     private static final Ds3ClientHelpers HELPERS = Ds3ClientHelpers.wrap(client);
     private static final String TEST_ENV_NAME = "FeatureIntegration_Test";
     private static TempStorageIds envStorageIds;
+    private static UUID envDataPolicyId;
 
     @BeforeClass
     public static void startup() throws IOException {
-        final UUID envDataPolicyId = TempStorageUtil.setupDataPolicy(TEST_ENV_NAME, false, ChecksumType.Type.MD5, VersioningLevel.NONE, client);
+        envDataPolicyId = TempStorageUtil.setupDataPolicy(TEST_ENV_NAME, false, ChecksumType.Type.MD5, VersioningLevel.NONE, client);
         envStorageIds = TempStorageUtil.setup(TEST_ENV_NAME, envDataPolicyId, client);
     }
 
@@ -759,6 +760,8 @@ public class FeatureIntegration_Test {
         } finally {
             client.deleteBucketSpectraS3(new DeleteBucketSpectraS3Request(bucketName).withForce(true));
             TempStorageUtil.teardown(bucketName, tempStorageIds, client);
+            client.modifyUserSpectraS3(new ModifyUserSpectraS3Request("Administrator")
+                    .withDefaultDataPolicyId(envDataPolicyId));
         }
     }
 
