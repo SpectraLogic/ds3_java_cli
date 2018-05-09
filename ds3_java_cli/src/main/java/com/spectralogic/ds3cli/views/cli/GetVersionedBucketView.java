@@ -57,7 +57,7 @@ public class GetVersionedBucketView extends TableView<GetBucketResult> {
             arrayEntry[2] = nullGuard(content.getOwner().getDisplayName());
             arrayEntry[3] = nullGuardFromDate(content.getLastModified(), DATE_FORMAT);
             arrayEntry[4] = nullGuard(content.getETag());
-            arrayEntry[5] = nullGuard(content.getVersionId().toString());
+            arrayEntry[5] = nullGuard(content.getVersionId());
             builder.add(arrayEntry);
         }
 

@@ -29,6 +29,14 @@ public final class Guard {
         return message;
     }
 
+    public static String nullGuard(final Object o) {
+        if (o == null) {
+            return "N/A";
+        } else {
+            return o.toString();
+        }
+    }
+
     public static String nullGuardToString(final Object o) {
         // default alternate
         return nullGuardToString(o, "N/A");
