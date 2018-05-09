@@ -43,12 +43,13 @@ import com.spectralogic.ds3client.commands.GetBucketRequest;
 import com.spectralogic.ds3client.commands.GetBucketResponse;
 import com.spectralogic.ds3client.commands.GetObjectRequest;
 import com.spectralogic.ds3client.commands.GetObjectResponse;
-import com.spectralogic.ds3client.commands.spectrads3.CancelJobSpectraS3Request;
+import com.spectralogic.ds3client.commands.spectrads3.*;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.helpers.FileObjectPutter;
 import com.spectralogic.ds3client.helpers.FolderNameFilter;
 import com.spectralogic.ds3client.models.ChecksumType;
 import com.spectralogic.ds3client.models.Contents;
+import com.spectralogic.ds3client.models.VersioningLevel;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.utils.Platform;
 import com.spectralogic.ds3client.utils.ResourceUtils;
@@ -90,10 +91,11 @@ public class FeatureIntegration_Test {
     private static final Ds3ClientHelpers HELPERS = Ds3ClientHelpers.wrap(client);
     private static final String TEST_ENV_NAME = "FeatureIntegration_Test";
     private static TempStorageIds envStorageIds;
+    private static UUID envDataPolicyId;
 
     @BeforeClass
     public static void startup() throws IOException {
-        final UUID envDataPolicyId = TempStorageUtil.setupDataPolicy(TEST_ENV_NAME, false, ChecksumType.Type.MD5, client);
+        envDataPolicyId = TempStorageUtil.setupDataPolicy(TEST_ENV_NAME, false, ChecksumType.Type.MD5, VersioningLevel.NONE, client);
         envStorageIds = TempStorageUtil.setup(TEST_ENV_NAME, envDataPolicyId, client);
     }
 
@@ -260,7 +262,7 @@ public class FeatureIntegration_Test {
 
             final String expectedBeginning = "JobId: " + readJob.getJobId() + " | Name: ";
             final String expectedMiddle = "Status: COMPLETED | Bucket: " + bucketName + " | Type: GET | Priority:";
-            final String expectedEnding = " | Total Size: " + objSize + " | Total Transferred: " ;
+            final String expectedEnding = " | Total Size: " + objSize + " | Total Transferred: ";
 
             assertTrue(getJobResponse.getMessage().startsWith(expectedBeginning));
             assertTrue(getJobResponse.getMessage().contains(expectedMiddle));
@@ -546,7 +548,7 @@ public class FeatureIntegration_Test {
                     "-c", "put_bulk",
                     "-b", bucketName,
                     "-d", Util.RESOURCE_BASE_NAME,
-                    "-p" , prefix,
+                    "-p", prefix,
                     "--sync"});
             final CommandResponse response = Util.command(client, args);
             assertThat(response.getMessage(), is(String.format("SUCCESS: Wrote all the files in %s to bucket %s", "." + File.separator + "src" + File.separator + "test" + File.separator + "resources" + File.separator + "books", bucketName)));
@@ -721,6 +723,49 @@ public class FeatureIntegration_Test {
     }
 
     @Test
+    public void testPutObjectWithVersion() throws Exception {
+        final String bucketName = "test_put_object_with_version";
+        final UUID setupDataPolicy = TempStorageUtil.setupDataPolicy(bucketName, false, ChecksumType.Type.CRC_32, VersioningLevel.KEEP_MULTIPLE_VERSIONS, client);
+        final TempStorageIds tempStorageIds = TempStorageUtil.setup(bucketName, setupDataPolicy, client);
+
+        try {
+            client.putBucketSpectraS3(new PutBucketSpectraS3Request(bucketName).withDataPolicyId(setupDataPolicy.toString()));
+
+            final Arguments args = new Arguments(new String[]{"--http", "-c", "put_object", "-b", bucketName, "-o", "src/test/resources/books/beowulf.txt"});
+            final CommandResponse response = Util.command(client, args);
+            final CommandResponse responseAgain = Util.command(client, args);
+
+            assertThat(response.getReturnCode(), is(0));
+            assertThat(responseAgain.getReturnCode(), is(0));
+
+            final Arguments getBucket = new Arguments(new String[]{"--http", "-c", "get_bucket", "-b", bucketName, "-v"});
+            final CommandResponse getBucketResponse = Util.command(client, getBucket);
+            final String bucketMessage = getBucketResponse.getMessage();
+            final String[] lines = bucketMessage.split("\\n");
+            final String line9 = lines[9];
+            final String line10 = lines[10];
+            final String[] line9Split = line9.split("\\|");
+            final String[] line10Split = line10.split("\\|");
+            final String versionIdOne = line9Split[6].trim();
+            final String versionIdTwo = line10Split[6].trim();
+            assertThat(versionIdOne, not(versionIdTwo));
+
+            final Arguments getFirst = new Arguments(new String[]{"--http", "-c", "get_object", "-b", bucketName, "-o", "src/test/resources/books/beowulf.txt", "--versionId", versionIdOne});
+            final Arguments getSecond = new Arguments(new String[]{"--http", "-c", "get_object", "-b", bucketName, "-o", "src/test/resources/books/beowulf.txt", "--versionId", versionIdTwo});
+            final CommandResponse getFirstResponse = Util.command(client, getFirst);
+            final CommandResponse getSecondResponse = Util.command(client, getSecond);
+
+            assertThat(getFirstResponse.getReturnCode(), is(0));
+            assertThat(getSecondResponse.getReturnCode(), is(0));
+        } finally {
+            client.deleteBucketSpectraS3(new DeleteBucketSpectraS3Request(bucketName).withForce(true));
+            TempStorageUtil.teardown(bucketName, tempStorageIds, client);
+            client.modifyUserSpectraS3(new ModifyUserSpectraS3Request("Administrator")
+                    .withDefaultDataPolicyId(envDataPolicyId));
+        }
+    }
+
+    @Test
     public void testPutObjectWithFileMetadata() throws Exception {
         Assume.assumeFalse(Platform.isWindows());
 
@@ -832,7 +877,7 @@ public class FeatureIntegration_Test {
             Util.createBucket(client, bucketName);
             Util.loadBookTestData(client, bucketName);
 
-            final Arguments args = new Arguments(new String[]{"--http", "-c", "get_physical_placement", "-b", bucketName, "-o", "beowulf.txt" });
+            final Arguments args = new Arguments(new String[]{"--http", "-c", "get_physical_placement", "-b", bucketName, "-o", "beowulf.txt"});
             final CommandResponse response = Util.command(client, args);
             assertTrue(response.getMessage().contains("| Object Name |                  ID                  | In Cache | Length | Offset | Latest |                Version               |"));
             assertTrue(response.getMessage().contains("| beowulf.txt |"));
@@ -901,7 +946,7 @@ public class FeatureIntegration_Test {
         }
     }
 
-    @Test (expected = com.spectralogic.ds3client.helpers.JobRecoveryNotActiveException.class)
+    @Test(expected = com.spectralogic.ds3client.helpers.JobRecoveryNotActiveException.class)
     public void recoverGetBulk() throws Exception {
         assumeThat(Util.getBlackPearlVersion(client), greaterThan(1.2));
 
@@ -1084,7 +1129,7 @@ public class FeatureIntegration_Test {
         final Path filePath = Paths.get(fileName);
         final Path createdFilePath = Files.createFile(filePath);
 
-        write(createdFilePath, new byte[] { 0 });
+        write(createdFilePath, new byte[]{0});
 
         return createdFilePath;
     }

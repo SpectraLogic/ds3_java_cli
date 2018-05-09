@@ -104,10 +104,11 @@ public class TempStorageUtil {
             final String testSetName,
             final boolean withEndToEndCrcRequired,
             final ChecksumType.Type checksumType,
+            final VersioningLevel versioningLevel,
             final Ds3Client client) throws IOException {
         final PutDataPolicySpectraS3Response dataPolicyResponse = createDataPolicy(
                 testSetName + DATA_POLICY_NAME,
-                VersioningLevel.NONE,
+                versioningLevel,
                 checksumType,
                 withEndToEndCrcRequired,
                 false,

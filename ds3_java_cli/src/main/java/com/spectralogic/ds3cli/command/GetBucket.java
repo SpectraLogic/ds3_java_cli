@@ -25,6 +25,8 @@ import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.GetBucketResult;
 import com.spectralogic.ds3cli.views.cli.GetBucketView;
 import com.spectralogic.ds3cli.views.json.DataView;
+import com.spectralogic.ds3client.commands.GetBucketRequest;
+import com.spectralogic.ds3client.commands.GetBucketResponse;
 import com.spectralogic.ds3client.commands.spectrads3.GetBucketSpectraS3Request;
 import com.spectralogic.ds3client.commands.spectrads3.GetBucketSpectraS3Response;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
@@ -34,16 +36,20 @@ import com.spectralogic.ds3client.networking.FailedRequestException;
 import com.spectralogic.ds3client.utils.Guard;
 import org.apache.commons.cli.Option;
 
+import java.util.List;
+
 import static com.spectralogic.ds3cli.ArgumentFactory.BUCKET;
 import static com.spectralogic.ds3cli.ArgumentFactory.PREFIX;
+import static com.spectralogic.ds3cli.ArgumentFactory.VERSION;
 
 public class GetBucket extends CliCommand<GetBucketResult> {
 
     private final static ImmutableList<Option> requiredArgs = ImmutableList.of(BUCKET);
-    private final static ImmutableList<Option> optionalArgs = ImmutableList.of(PREFIX);
+    private final static ImmutableList<Option> optionalArgs = ImmutableList.of(PREFIX, VERSION);
 
     private String bucket;
     private String prefix;
+    private boolean version;
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
@@ -51,6 +57,7 @@ public class GetBucket extends CliCommand<GetBucketResult> {
 
         this.bucket = args.getBucket();
         this.prefix = args.getPrefix();
+        this.version = args.getVersion();
         return this;
     }
 
@@ -59,21 +66,22 @@ public class GetBucket extends CliCommand<GetBucketResult> {
 
         try {
             // GetBucketDetail to get both name and id
-            final GetBucketSpectraS3Response response = getClient().getBucketSpectraS3(new GetBucketSpectraS3Request(bucket));
+            GetBucketRequest getBucketRequest = new GetBucketRequest(bucket);
+            getBucketRequest.withVersions(version);
+            getBucketRequest.withPrefix(prefix);
+            final GetBucketSpectraS3Request getBucketSpectraS3Request = new GetBucketSpectraS3Request(bucket);
+            final GetBucketSpectraS3Response response = getClient().getBucketSpectraS3(getBucketSpectraS3Request);
             final Bucket bucketDetails = response.getBucketResult();
-            // helper.listObjects only takes bucket name
-            this.bucket = response.getBucketResult().getName();
+            final GetBucketResponse bucket = getClient().getBucket(getBucketRequest);
 
-            final Ds3ClientHelpers helper = Ds3ClientHelpers.wrap(getClient());
-            final Iterable<Contents> objects;
-            if (this.prefix == null) {
-                objects = helper.listObjects(bucket);
-            }
-            else {
-                objects = helper.listObjects(bucket, this.prefix);
+            final List<Contents> contents;
+            if (version) {
+                contents = bucket.getListBucketResult().getVersionedObjects();
+            } else {
+                contents = bucket.getListBucketResult().getObjects();
             }
 
-            return new GetBucketResult(bucketDetails, objects);
+            return new GetBucketResult(bucketDetails, contents);
         } catch(final FailedRequestException e) {
             if(e.getStatusCode() == 404) {
                 throw new CommandException("Error: Unknown bucket.", e);
@@ -88,7 +96,11 @@ public class GetBucket extends CliCommand<GetBucketResult> {
             case JSON:
                 return new DataView();
             default:
-                return new com.spectralogic.ds3cli.views.cli.GetBucketView();
+                if(version) {
+                    return new com.spectralogic.ds3cli.views.cli.GetVersionedBucketView();
+                } else {
+                    return new com.spectralogic.ds3cli.views.cli.GetBucketView();
+                }
         }
     }
 
