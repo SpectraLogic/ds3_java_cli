@@ -27,7 +27,7 @@ buildscript {
 }
 
 allprojects {
-    version = '3.5.1'
+    version = '5.0.0'
     group = 'com.spectralogic'
 }
 
@@ -88,5 +88,5 @@ project(':ds3-cli-certification') {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '4.7'
+    gradleVersion = '4.8'
 }
