@@ -19,7 +19,6 @@ import ch.qos.logback.classic.Level;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.spectralogic.ds3cli.exceptions.BadArgumentException;
-import com.spectralogic.ds3cli.util.MetadataUtils;
 import com.spectralogic.ds3client.models.Priority;
 import com.spectralogic.ds3client.models.WriteOptimization;
 import org.apache.commons.cli.*;
@@ -306,8 +305,8 @@ public class Arguments {
 
     // convenience getters for public options
     public String getBucket() { return this.getOptionValue(BUCKET.getOpt()); }
-    public boolean getVersion() { return this.optionExists(VERSION.getOpt());}
-    public String getVersionId() { return this.getOptionValue(VERSIONID.getLongOpt());}
+    public boolean isShowVersions() { return this.optionExists(SHOW_VERSIONS.getOpt());}
+    public String getVersionId() { return this.getOptionValue(VERSION_ID.getLongOpt());}
     public String getDirectory() { return this.getOptionValue(DIRECTORY.getOpt()); }
     public String getObjectName()  { return this.getOptionValue(OBJECT_NAME.getOpt()); }
     public boolean isForce() { return this.optionExists(FORCE.getLongOpt()); }
