@@ -51,7 +51,7 @@ public class GetObject extends CliCommand<DefaultResult> {
 
     private final static ImmutableList<Option> requiredArgs = ImmutableList.of(BUCKET, OBJECT_NAME);
     private final static ImmutableList<Option> optionalArgs = ImmutableList.of(DIRECTORY, SYNC,
-            FORCE, NUMBER_OF_THREADS, PRIORITY, RANGE_OFFSET, RANGE_LENGTH, DISCARD, FILE_METADATA, VERSIONID);
+            FORCE, NUMBER_OF_THREADS, PRIORITY, RANGE_OFFSET, RANGE_LENGTH, DISCARD, FILE_METADATA, VERSION_ID);
 
     private String bucketName;
     private String objectName;

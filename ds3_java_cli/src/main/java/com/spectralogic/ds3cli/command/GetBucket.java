@@ -35,16 +35,16 @@ import java.util.List;
 
 import static com.spectralogic.ds3cli.ArgumentFactory.BUCKET;
 import static com.spectralogic.ds3cli.ArgumentFactory.PREFIX;
-import static com.spectralogic.ds3cli.ArgumentFactory.SHOWVERSION;
+import static com.spectralogic.ds3cli.ArgumentFactory.SHOW_VERSIONS;
 
 public class GetBucket extends CliCommand<GetBucketResult> {
 
     private final static ImmutableList<Option> requiredArgs = ImmutableList.of(BUCKET);
-    private final static ImmutableList<Option> optionalArgs = ImmutableList.of(PREFIX, SHOWVERSION);
+    private final static ImmutableList<Option> optionalArgs = ImmutableList.of(PREFIX, SHOW_VERSIONS);
 
     private String bucket;
     private String prefix;
-    private boolean version;
+    private boolean showVersion;
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
@@ -52,7 +52,7 @@ public class GetBucket extends CliCommand<GetBucketResult> {
 
         this.bucket = args.getBucket();
         this.prefix = args.getPrefix();
-        this.version = args.getVersion();
+        this.showVersion = args.isShowVersions();
         return this;
     }
 
@@ -62,7 +62,7 @@ public class GetBucket extends CliCommand<GetBucketResult> {
         try {
             // GetBucketDetail to get both name and id
             GetBucketRequest getBucketRequest = new GetBucketRequest(bucket);
-            getBucketRequest.withVersions(version);
+            getBucketRequest.withVersions(showVersion);
             getBucketRequest.withPrefix(prefix);
             final GetBucketSpectraS3Request getBucketSpectraS3Request = new GetBucketSpectraS3Request(bucket);
             final GetBucketSpectraS3Response response = getClient().getBucketSpectraS3(getBucketSpectraS3Request);
@@ -70,7 +70,7 @@ public class GetBucket extends CliCommand<GetBucketResult> {
             final GetBucketResponse bucket = getClient().getBucket(getBucketRequest);
 
             final List<Contents> contents;
-            if (version) {
+            if (showVersion) {
                 contents = bucket.getListBucketResult().getVersionedObjects();
             } else {
                 contents = bucket.getListBucketResult().getObjects();
@@ -91,7 +91,7 @@ public class GetBucket extends CliCommand<GetBucketResult> {
             case JSON:
                 return new DataView();
             default:
-                if (version) {
+                if (showVersion) {
                     return new com.spectralogic.ds3cli.views.cli.GetVersionedBucketView();
                 } else {
                     return new com.spectralogic.ds3cli.views.cli.GetBucketView();
