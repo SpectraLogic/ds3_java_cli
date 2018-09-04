@@ -78,6 +78,7 @@ import static com.spectralogic.ds3cli.metadata.FileMetadataFieldNames.LAST_MODIF
 import static java.nio.file.Files.write;
 import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.number.OrderingComparison.greaterThan;
+import static org.hamcrest.number.OrderingComparison.greaterThanOrEqualTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertThat;
@@ -738,20 +739,25 @@ public class FeatureIntegration_Test {
             assertThat(response.getReturnCode(), is(0));
             assertThat(responseAgain.getReturnCode(), is(0));
 
-            final Arguments getBucket = new Arguments(new String[]{"--http", "-c", "get_bucket", "-b", bucketName, "-v"});
+            final Arguments getBucket = new Arguments(new String[]{"--http", "-c", "get_bucket", "-b", bucketName, "-sv"});
             final CommandResponse getBucketResponse = Util.command(client, getBucket);
             final String bucketMessage = getBucketResponse.getMessage();
             final String[] lines = bucketMessage.split("\\n");
+
+            assertThat(lines.length, greaterThanOrEqualTo(10));
             final String line9 = lines[9];
             final String line10 = lines[10];
             final String[] line9Split = line9.split("\\|");
             final String[] line10Split = line10.split("\\|");
+
+            assertThat(line9Split.length, greaterThanOrEqualTo(6));
+            assertThat(line10Split.length, greaterThanOrEqualTo(6));
             final String versionIdOne = line9Split[6].trim();
             final String versionIdTwo = line10Split[6].trim();
             assertThat(versionIdOne, not(versionIdTwo));
 
-            final Arguments getFirst = new Arguments(new String[]{"--http", "-c", "get_object", "-b", bucketName, "-o", "src/test/resources/books/beowulf.txt", "--versionId", versionIdOne});
-            final Arguments getSecond = new Arguments(new String[]{"--http", "-c", "get_object", "-b", bucketName, "-o", "src/test/resources/books/beowulf.txt", "--versionId", versionIdTwo});
+            final Arguments getFirst = new Arguments(new String[]{"--http", "-c", "get_object", "-b", bucketName, "-o", "src/test/resources/books/beowulf.txt", "--version-id", versionIdOne});
+            final Arguments getSecond = new Arguments(new String[]{"--http", "-c", "get_object", "-b", bucketName, "-o", "src/test/resources/books/beowulf.txt", "--version-id", versionIdTwo});
             final CommandResponse getFirstResponse = Util.command(client, getFirst);
             final CommandResponse getSecondResponse = Util.command(client, getSecond);
 
