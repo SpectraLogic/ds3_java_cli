@@ -16,7 +16,10 @@
 package com.spectralogic.ds3cli.command;
 
 import com.google.common.base.Joiner;
-import com.google.common.collect.*;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Iterables;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.Main;
 import com.spectralogic.ds3cli.exceptions.BadArgumentException;
@@ -29,6 +32,7 @@ import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.helpers.FileObjectGetter;
 import com.spectralogic.ds3client.helpers.FolderNameFilter;
 import com.spectralogic.ds3client.helpers.options.ReadJobOptions;
+import com.spectralogic.ds3client.helpers.pagination.GetBucketKeyLoaderFactory;
 import com.spectralogic.ds3client.helpers.pagination.GetBucketLoaderFactory;
 import com.spectralogic.ds3client.models.Contents;
 import com.spectralogic.ds3client.models.Priority;
@@ -43,10 +47,13 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.channels.SeekableByteChannel;
-import java.nio.file.*;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 
 import static com.spectralogic.ds3cli.ArgumentFactory.*;
+import static com.spectralogic.ds3client.helpers.pagination.GetBucketKeyLoaderFactory.contentsFunction;
 
 public class GetBulk extends CliCommand<DefaultResult> {
 
@@ -170,13 +177,13 @@ public class GetBulk extends CliCommand<DefaultResult> {
         return new LoggingFileObjectGetter(getter);
     }
 
-    private  Ds3ClientHelpers.Job buildRestoreJob(final Ds3ClientHelpers helper) throws IOException, CommandException {
+    private Ds3ClientHelpers.Job buildRestoreJob(final Ds3ClientHelpers helper) throws IOException, CommandException {
         // restore all
         if (!this.pipe && !this.sync && Guard.isNullOrEmpty(this.prefixes)) {
             return helper.startReadAllJob(this.bucketName, ReadJobOptions.create().withPriority(this.priority));
         }
         // restore some
-        final Iterable<Ds3Object>objects = helper.toDs3Iterable(getObjects(helper), FolderNameFilter.filter());
+        final Iterable<Ds3Object> objects = helper.toDs3Iterable(getObjects(helper), FolderNameFilter.filter());
         return helper.startReadJob(this.bucketName, objects,
                 ReadJobOptions.create().withPriority(this.priority));
     }
@@ -262,7 +269,7 @@ public class GetBulk extends CliCommand<DefaultResult> {
 
     private Iterable<Contents> getAllObjectsInBucket() {
         return new LazyIterable<>(
-                    new GetBucketLoaderFactory(getClient(), this.bucketName, null, null, 100, 5));
+                new GetBucketLoaderFactory(getClient(), this.bucketName, null, null, 100, 5));
     }
 
     private Iterable<Contents> getObjectsByPrefix() {
@@ -280,13 +287,14 @@ public class GetBulk extends CliCommand<DefaultResult> {
                 = FileUtils.normalizedObjectNames(this.pipedFileNames);
 
         final FluentIterable<Contents> objectList = FluentIterable
-            .from(new LazyIterable<>(new GetBucketLoaderFactory(getClient(), this.bucketName, null, null, 100, 5)))
-            .filter(bulkObject -> pipedObjectMap.containsKey(bulkObject.getKey()));
+                .from(new LazyIterable<>(new GetBucketKeyLoaderFactory<>(getClient(), this.bucketName, null, null, null, 100, 5, contentsFunction)))
+                .filter(bulkObject -> pipedObjectMap.containsKey(bulkObject.getKey()));
+
 
         // look for objects in the piped list not in bucket
         final FluentIterable<String> objectNameList = FluentIterable.from(objectList).transform(bulkObject -> bulkObject.getKey());
 
-        for (final String object: pipedObjectMap.keySet()) {
+        for (final String object : pipedObjectMap.keySet()) {
             if (objectNameList.contains(object)) {
                 LOG.info("Restore: {}", object);
             } else {
@@ -309,10 +317,10 @@ public class GetBulk extends CliCommand<DefaultResult> {
     }
 
     public boolean isOtherArgs(final Arguments args) {
-        return  args.isDiscard() || // --discard
+        return args.isDiscard() || // --discard
                 !Guard.isStringNullOrEmpty(args.getObjectName()) || //-o
                 (args.getOptionValues(PREFIXES.getOpt()) != null
-                 && args.getOptionValues(PREFIXES.getOpt()).length > 0); // --prefixes
+                        && args.getOptionValues(PREFIXES.getOpt()).length > 0); // --prefixes
     }
 
     private class PipedFileObjectGetter implements Ds3ClientHelpers.ObjectChannelBuilder {
