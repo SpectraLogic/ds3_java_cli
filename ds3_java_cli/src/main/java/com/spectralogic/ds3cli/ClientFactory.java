@@ -44,16 +44,16 @@ public final class ClientFactory {
         return builder.build();
     }
 
-    private static String getEndpoint(final Arguments arguments) throws MissingOptionException{
+    private static String getEndpoint(final Arguments arguments) throws MissingOptionException {
         return getOptionOrEnv(arguments, ENDPOINT, "DS3_ENDPOINT");
     }
 
-    private static String getAccessKey(final Arguments arguments) throws MissingOptionException{
+    private static String getAccessKey(final Arguments arguments) throws MissingOptionException {
         return getOptionOrEnv(arguments, ACCESS_KEY, "DS3_ACCESS_KEY");
     }
 
-    private static String getSecretKey(final Arguments arguments) throws MissingOptionException{
-        return getOptionOrEnv(arguments,  SECRET_KEY, "DS3_SECRET_KEY");
+    private static String getSecretKey(final Arguments arguments) throws MissingOptionException {
+        return getOptionOrEnv(arguments, SECRET_KEY, "DS3_SECRET_KEY");
     }
 
     private static String getProxy(final Arguments arguments) {
@@ -67,11 +67,11 @@ public final class ClientFactory {
     // use argument if provided, else use environment variable, else throw exception
     private static String getOptionOrEnv(final Arguments arguments, final Option option, final String envName)
             throws MissingOptionException {
-        String value =  arguments.getOptionValue(option.getOpt());
+        String value = arguments.getOptionValue(option.getOpt());
         if (Guard.isStringNullOrEmpty(value)) {
             value = System.getenv(envName);
             if (Guard.isStringNullOrEmpty(value)) {
-                throw new MissingOptionException("Missing Endpoint: define " + envName +  "or use " + option.getOpt());
+                throw new MissingOptionException("Missing Endpoint: define " + envName + " or use " + option.getOpt());
             }
         }
         return value;
