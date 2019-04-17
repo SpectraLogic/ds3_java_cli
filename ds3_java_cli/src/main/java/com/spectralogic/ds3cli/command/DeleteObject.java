@@ -19,33 +19,72 @@ import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.models.DefaultResult;
 import com.spectralogic.ds3client.commands.DeleteObjectRequest;
+import com.spectralogic.ds3client.commands.spectrads3.GetObjectsDetailsSpectraS3Request;
+import com.spectralogic.ds3client.commands.spectrads3.GetObjectsDetailsSpectraS3Response;
+import com.spectralogic.ds3client.models.S3Object;
 import org.apache.commons.cli.Option;
 
-import static com.spectralogic.ds3cli.ArgumentFactory.BUCKET;
-import static com.spectralogic.ds3cli.ArgumentFactory.OBJECT_NAME;
+import java.io.IOException;
+import java.util.UUID;
+
+import static com.spectralogic.ds3cli.ArgumentFactory.*;
 
 public class DeleteObject extends CliCommand<DefaultResult> {
-    
-    private String bucketName;
-    private String objectName;
 
     private final static ImmutableList<Option> requiredArgs = ImmutableList.of(BUCKET, OBJECT_NAME);
+    private final static ImmutableList<Option> optionalArgs = ImmutableList.of(VERSION_ID, ALL_VERSIONS);
+
+    private String bucketName;
+    private String objectName;
+    private String versionId;
+    private boolean allVersions;
 
     public DeleteObject() {
     }
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
-        processCommandOptions(requiredArgs, EMPTY_LIST, args);
+        processCommandOptions(requiredArgs, optionalArgs, args);
 
         this.bucketName = args.getBucket();
         this.objectName = args.getObjectName();
+        this.versionId = args.getVersionId();
+        this.allVersions = args.isAllVersions();
         return this;
     }
 
     @Override
     public DefaultResult call() throws Exception {
-        getClient().deleteObject(new DeleteObjectRequest(bucketName, objectName));
-        return new DefaultResult("Success: Deleted object '" + this.objectName + "' from bucket '" + this.bucketName + "'.");
+
+        if (allVersions) {
+            final GetObjectsDetailsSpectraS3Request getObjectsDetailsSpectraS3Request = new GetObjectsDetailsSpectraS3Request()
+                    .withName(objectName)
+                    .withBucketId(bucketName);
+            final GetObjectsDetailsSpectraS3Response spectraS3Response = getClient().getObjectsDetailsSpectraS3(getObjectsDetailsSpectraS3Request);
+
+            for (final S3Object objectVersion : spectraS3Response.getS3ObjectListResult().getS3Objects()) {
+                deleteObject(bucketName, objectName, objectVersion.getId());
+            }
+
+            return new DefaultResult("Success: Deleted object '" + this.objectName + "' and all of it's versions from bucket '" + this.bucketName + "'.");
+        } else {
+            final UUID version;
+            if (versionId != null) {
+                version = UUID.fromString(versionId);
+            } else {
+                version = null;
+            }
+            deleteObject(bucketName, objectName, version);
+
+            return new DefaultResult("Success: Deleted object '" + this.objectName + "' from bucket '" + this.bucketName + "'.");
+        }
+    }
+
+    private void deleteObject(final String bucketName, final String objectName, final UUID version) throws IOException {
+        final DeleteObjectRequest deleteObjectRequest = new DeleteObjectRequest(bucketName, objectName);
+        if (version != null) {
+            deleteObjectRequest.withVersionId(version);
+        }
+        getClient().deleteObject(deleteObjectRequest);
     }
 }

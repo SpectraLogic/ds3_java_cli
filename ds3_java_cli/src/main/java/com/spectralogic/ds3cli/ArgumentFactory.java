@@ -59,7 +59,8 @@ public final class ArgumentFactory {
                     + "and with put operations, to prepend a prefix to object name(s)").build();
     public static final Option SHOW_VERSIONS = Option.builder("sv").argName("show-versions").longOpt("show-versions")
             .desc("Show version information").build();
-    public static final Option VERSION_ID = Option.builder().longOpt("version-id").desc("Version ID value").hasArg(true)
+    public final static Option ALL_VERSIONS = Option.builder().argName("all-versions").longOpt("all-versions").build();
+    public static final Option VERSION_ID = Option.builder("vid").longOpt("version-id").desc("Version ID value").hasArg(true)
             .build();
     public static final Option OBJECT_NAME = Option.builder("o").hasArg(true).argName("objectFileName")
             .desc("The name of the object to be retrieved or stored").build();
