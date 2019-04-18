@@ -306,6 +306,7 @@ public class Arguments {
     // convenience getters for public options
     public String getBucket() { return this.getOptionValue(BUCKET.getOpt()); }
     public boolean isShowVersions() { return this.optionExists(SHOW_VERSIONS.getOpt());}
+    public boolean isAllVersions() { return this.optionExists(ALL_VERSIONS.getLongOpt());}
     public String getVersionId() { return this.getOptionValue(VERSION_ID.getLongOpt());}
     public String getDirectory() { return this.getOptionValue(DIRECTORY.getOpt()); }
     public String getObjectName()  { return this.getOptionValue(OBJECT_NAME.getOpt()); }

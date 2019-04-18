@@ -61,7 +61,7 @@ public class GetBucket extends CliCommand<GetBucketResult> {
 
         try {
             // GetBucketDetail to get both name and id
-            GetBucketRequest getBucketRequest = new GetBucketRequest(bucket);
+            final GetBucketRequest getBucketRequest = new GetBucketRequest(bucket);
             getBucketRequest.withVersions(showVersion);
             getBucketRequest.withPrefix(prefix);
             final GetBucketSpectraS3Request getBucketSpectraS3Request = new GetBucketSpectraS3Request(bucket);
