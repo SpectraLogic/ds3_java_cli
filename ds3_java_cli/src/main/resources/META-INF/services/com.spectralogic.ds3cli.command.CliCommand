@@ -84,3 +84,4 @@ com.spectralogic.ds3cli.command.CancelVerifyAllPools
 com.spectralogic.ds3cli.command.VerifyAllTapes
 com.spectralogic.ds3cli.command.VerifyTape
 com.spectralogic.ds3cli.command.Recover
+com.spectralogic.ds3cli.command.GetObjectVersions
