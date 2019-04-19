@@ -50,7 +50,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.ParseException;
@@ -58,8 +57,6 @@ import java.util.*;
 
 import static com.spectralogic.ds3cli.util.Constants.DATE_FORMAT;
 import static com.spectralogic.ds3client.utils.ResponseUtils.toImmutableIntList;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.*;
@@ -597,7 +594,7 @@ public class Ds3Cli_Test {
                 "<Now>1485294219767</Now><SerialNumber>5003048001dbd7b3</SerialNumber>" +
                 "</Data>";
 
-        com.spectralogic.ds3client.models.SystemInformation sysInfo = XmlOutput.fromXml(packet, SystemInformation.class);
+        final com.spectralogic.ds3client.models.SystemInformation sysInfo = XmlOutput.fromXml(packet, SystemInformation.class);
         final BuildInformation buildInfo = sysInfo.getBuildInformation();
         final String result = view.render(new DefaultResult(String.format("Build Number: %s.%s, API Version: %s, Serial Number: %s", buildInfo.getVersion(), buildInfo.getRevision(), sysInfo.getApiVersion(), sysInfo.getSerialNumber())));
         assertThat(result, is(expected));
@@ -887,7 +884,7 @@ public class Ds3Cli_Test {
 
     @Test
     public void recoverGetBulk() throws Exception {
-        UUID jobId = UUID.randomUUID();
+        final UUID jobId = UUID.randomUUID();
         final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "recover_get_bulk", "-b", "bucketName", "-i", jobId.toString()});
         final Ds3ClientHelpers helpers = mock(Ds3ClientHelpers.class);
         final Ds3ClientHelpers.Job mockedGetJob = mock(Ds3ClientHelpers.Job.class);
@@ -2087,62 +2084,16 @@ public class Ds3Cli_Test {
 
 
         final String expected =
-                "+-------------------------------------------------+-------------+-----------+--------------------------------------+\n" +
-                "|                       Name                      |    Bucket   |    Size   |                  Id                  |\n" +
-                "+-------------------------------------------------+-------------+-----------+--------------------------------------+\n" +
-                "| 123456789.txt                                   | coffeehouse |         9 | 53452a07-699a-4c27-8de5-95aa0a431df1 |\n" +
-                "| Always_295x166.jpg                              | coffeehouse |      9172 | 7989ad4a-47a5-41ac-8814-3746e4e20679 |\n" +
-                "| Chapter 9.docx                                  | coffeehouse |     29895 | 6649c2cb-6e83-4c58-9fb8-9b4aec8b014b |\n" +
-                "| RedRiverValley_295x166.jpg                      | coffeehouse |      9114 | f725ef08-7e6f-4fe0-a256-798e561d878f |\n" +
-                "| Softphone Install.docx                          | coffeehouse |    774741 | dff0cbed-5b7f-480f-aa94-8adea7c59a3e |\n" +
-                "| ThinkingOutLoud_295x166.jpg                     | coffeehouse |     11059 | ffd8266d-cdc5-4e49-81d4-d08314fcee5a |\n" +
-                "| UnforgetWonderful_295x166.jpg                   | coffeehouse |     10724 | 897b7e5b-59d8-4645-bc7a-f5c4b8154a0f |\n" +
-                "| YouDontKnowMe_295x166.jpg                       | coffeehouse |     10634 | 7bb970d3-113f-413b-87d5-00b072059451 |\n" +
-                "| beowulf.txt                                     | coffeehouse |    294056 | 1e293dc9-3257-4277-9c40-b50a6e63b71e |\n" +
-                "| coffeehouse/im_in_the_mood.mp3                  | coffeehouse |   3309717 | d759f10d-05c6-498c-b4ce-2475027fbeae |\n" +
-                "| coffeehouse/jk/ColumbinesGrow.m4a               | coffeehouse |  45872985 | d9b342ae-311c-4cbc-a000-75686c174471 |\n" +
-                "| coffeehouse/jk/ColumbinesGrow.mp3               | coffeehouse |   5050747 | c85fc175-116a-4bcf-a77a-5ea240a5de3a |\n" +
-                "| coffeehouse/jk/Columbines_295x166.jpg           | coffeehouse |     10528 | b70bd4ab-90d2-41fd-83d2-572fb3d1c8ca |\n" +
-                "| coffeehouse/jk/Misty_2015.m4a                   | coffeehouse |  10396369 | e4769cd2-3aa6-4628-887c-ad51768656c5 |\n" +
-                "| coffeehouse/jk/RedRiverValley.m4a               | coffeehouse |  77080710 | 9ffa7e9c-6939-4808-996e-e42fcf8bacb5 |\n" +
-                "| coffeehouse/jk/RedRiverValley.mp3               | coffeehouse |   6363965 | 564a1bc1-33a0-41f3-af28-fbf79f331d0e |\n" +
-                "| coffeehouse/jk/UnforgetWonderful_295x166.jpg    | coffeehouse |     10724 | b2671db7-1a4a-4577-8419-f17ead63d321 |\n" +
-                "| coffeehouse/jk/Unforgettable-WonderfulWorld.m4a | coffeehouse | 110054089 | 71807ee9-2db9-4145-b01d-3d2aaae37061 |\n" +
-                "| coffeehouse/jk/Unforgettable-WonderfulWorld.mp3 | coffeehouse |   7520930 | e50d5fc8-8fbf-4206-b495-05bb8be539ec |\n" +
-                "| coffeehouse/jk/WhereOrWhen.m4a                  | coffeehouse |  51272203 | 9156aab6-88fa-49b0-a0e1-c230d247957e |\n" +
-                "| coffeehouse/jk/WhereOrWhen.mp3                  | coffeehouse |   5647581 | 0f5541b9-8c4d-4ed8-bd1d-9e62173bdf4a |\n" +
-                "| coffeehouse/jk/WhereOrWhen_295x166.jpg          | coffeehouse |     11263 | 03b2e1c7-f80c-437a-912d-b09015dba484 |\n" +
-                "| coffeehouse/jk/im_in_the_mood.m4a               | coffeehouse |  11207247 | 667d94f6-b341-45f7-bd91-706af52d8e77 |\n" +
-                "| coffeehouse/jk/im_in_the_mood_200.jpg           | coffeehouse |      8621 | f7f65e20-4ea2-4629-9c22-ddf9cbc76b99 |\n" +
-                "| coffeehouse/witchcraft.mp3                      | coffeehouse |   6409093 | 92a40cff-63a6-4520-81a9-80afa03a1973 |\n" +
-                "+-------------------------------------------------+-------------+-----------+--------------------------------------+\n";
+                "+--------------------+-------------+------+--------------------------------------+--------------------------------------+\n" +
+                "|        Name        |    Bucket   | Size |                  Id                  |              Version-Id              |\n" +
+                "+--------------------+-------------+------+--------------------------------------+--------------------------------------+\n" +
+                "| 123456789.txt      | coffeehouse |    9 | 53452a07-699a-4c27-8de5-95aa0a431df1 | 53452a07-699a-4c27-8de5-95aa0a431df1 |\n" +
+                "| Always_295x166.jpg | coffeehouse | 9172 | 7989ad4a-47a5-41ac-8814-3746e4e20679 | 7989ad4a-47a5-41ac-8814-3746e4e20679 |\n" +
+                "+--------------------+-------------+------+--------------------------------------+--------------------------------------+\n";
 
         final String packet = "<Data>" +
                 "<Object Bucket=\"coffeehouse\" Id=\"53452a07-699a-4c27-8de5-95aa0a431df1\" Latest=\"true\" Length=\"9\" Name=\"123456789.txt\" Offset=\"0\" VersionId=\"53452a07-699a-4c27-8de5-95aa0a431df1\"/>" +
                 "<Object Bucket=\"coffeehouse\" Id=\"7989ad4a-47a5-41ac-8814-3746e4e20679\" Latest=\"true\" Length=\"9172\" Name=\"Always_295x166.jpg\" Offset=\"0\" VersionId=\"7989ad4a-47a5-41ac-8814-3746e4e20679 \"/>" +
-                "<Object Bucket=\"coffeehouse\" Id=\"6649c2cb-6e83-4c58-9fb8-9b4aec8b014b\" Latest=\"true\" Length=\"29895\" Name=\"Chapter 9.docx\" Offset=\"0\" VersionId=\"6649c2cb-6e83-4c58-9fb8-9b4aec8b014b\"/>" +
-                "<Object Bucket=\"coffeehouse\" Id=\"f725ef08-7e6f-4fe0-a256-798e561d878f\" Latest=\"true\" Length=\"9114\" Name=\"RedRiverValley_295x166.jpg\" Offset=\"0\" VersionId=\"f725ef08-7e6f-4fe0-a256-798e561d878f\"/>" +
-                "<Object Bucket=\"coffeehouse\" Id=\"dff0cbed-5b7f-480f-aa94-8adea7c59a3e\" Latest=\"true\" Length=\"774741\" Name=\"Softphone Install.docx\" Offset=\"0\" VersionId=\"dff0cbed-5b7f-480f-aa94-8adea7c59a3e\"/>" +
-                "<Object Bucket=\"coffeehouse\" Id=\"ffd8266d-cdc5-4e49-81d4-d08314fcee5a\" Latest=\"true\" Length=\"11059\" Name=\"ThinkingOutLoud_295x166.jpg\" Offset=\"0\" VersionId=\"ffd8266d-cdc5-4e49-81d4-d08314fcee5a\"/>" +
-                "<Object Bucket=\"coffeehouse\" Id=\"897b7e5b-59d8-4645-bc7a-f5c4b8154a0f\" Latest=\"true\" Length=\"10724\" Name=\"UnforgetWonderful_295x166.jpg\" Offset=\"0\" VersionId=\"897b7e5b-59d8-4645-bc7a-f5c4b8154a0f\"/>" +
-                "<Object Bucket=\"coffeehouse\" Id=\"7bb970d3-113f-413b-87d5-00b072059451\" Latest=\"true\" Length=\"10634\" Name=\"YouDontKnowMe_295x166.jpg\" Offset=\"0\" VersionId=\"7bb970d3-113f-413b-87d5-00b072059451\"/>" +
-                "<Object Bucket=\"coffeehouse\" Id=\"1e293dc9-3257-4277-9c40-b50a6e63b71e\" Latest=\"true\" Length=\"294056\" Name=\"beowulf.txt\" Offset=\"0\" VersionId=\"1e293dc9-3257-4277-9c40-b50a6e63b71e\"/>" +
-                "<Object Bucket=\"coffeehouse\" Id=\"d759f10d-05c6-498c-b4ce-2475027fbeae\" Latest=\"true\" Length=\"3309717\" Name=\"coffeehouse/im_in_the_mood.mp3\" Offset=\"0\" VersionId=\"d759f10d-05c6-498c-b4ce-2475027fbeae\"/>" +
-                "<Object Bucket=\"coffeehouse\" Id=\"d9b342ae-311c-4cbc-a000-75686c174471\" Latest=\"true\" Length=\"45872985\" Name=\"coffeehouse/jk/ColumbinesGrow.m4a\" Offset=\"0\" VersionId=\"d9b342ae-311c-4cbc-a000-75686c174471\"/>" +
-                "<Object Bucket=\"coffeehouse\" Id=\"c85fc175-116a-4bcf-a77a-5ea240a5de3a\" Latest=\"true\" Length=\"5050747\" Name=\"coffeehouse/jk/ColumbinesGrow.mp3\" Offset=\"0\" VersionId=\"c85fc175-116a-4bcf-a77a-5ea240a5de3a\"/>" +
-                "<Object Bucket=\"coffeehouse\" Id=\"b70bd4ab-90d2-41fd-83d2-572fb3d1c8ca\" Latest=\"true\" Length=\"10528\" Name=\"coffeehouse/jk/Columbines_295x166.jpg\" Offset=\"0\" VersionId=\"b70bd4ab-90d2-41fd-83d2-572fb3d1c8ca\"/>" +
-                "<Object Bucket=\"coffeehouse\" Id=\"e4769cd2-3aa6-4628-887c-ad51768656c5\" Latest=\"true\" Length=\"10396369\" Name=\"coffeehouse/jk/Misty_2015.m4a\" Offset=\"0\" VersionId=\"e4769cd2-3aa6-4628-887c-ad51768656c5\"/>" +
-                "<Object Bucket=\"coffeehouse\" Id=\"9ffa7e9c-6939-4808-996e-e42fcf8bacb5\" Latest=\"true\" Length=\"77080710\" Name=\"coffeehouse/jk/RedRiverValley.m4a\" Offset=\"0\" VersionId=\"9ffa7e9c-6939-4808-996e-e42fcf8bacb5\"/>" +
-                "<Object Bucket=\"coffeehouse\" Id=\"564a1bc1-33a0-41f3-af28-fbf79f331d0e\" Latest=\"true\" Length=\"6363965\" Name=\"coffeehouse/jk/RedRiverValley.mp3\" Offset=\"0\" VersionId=\"564a1bc1-33a0-41f3-af28-fbf79f331d0e\"/>" +
-                "<Object Bucket=\"coffeehouse\" Id=\"b2671db7-1a4a-4577-8419-f17ead63d321\" Latest=\"true\" Length=\"10724\" Name=\"coffeehouse/jk/UnforgetWonderful_295x166.jpg\" Offset=\"0\" VersionId=\"b2671db7-1a4a-4577-8419-f17ead63d321\"/>" +
-                "<Object Bucket=\"coffeehouse\" Id=\"71807ee9-2db9-4145-b01d-3d2aaae37061\" Latest=\"true\" Length=\"110054089\" Name=\"coffeehouse/jk/Unforgettable-WonderfulWorld.m4a\" Offset=\"0\" VersionId=\"71807ee9-2db9-4145-b01d-3d2aaae37061\"/>" +
-                "<Object Bucket=\"coffeehouse\" Id=\"e50d5fc8-8fbf-4206-b495-05bb8be539ec\" Latest=\"true\" Length=\"7520930\" Name=\"coffeehouse/jk/Unforgettable-WonderfulWorld.mp3\" Offset=\"0\" VersionId=\"e50d5fc8-8fbf-4206-b495-05bb8be539ec\"/>" +
-                "<Object Bucket=\"coffeehouse\" Id=\"9156aab6-88fa-49b0-a0e1-c230d247957e\" Latest=\"true\" Length=\"51272203\" Name=\"coffeehouse/jk/WhereOrWhen.m4a\" Offset=\"0\" VersionId=\"9156aab6-88fa-49b0-a0e1-c230d247957e\"/>" +
-                "<Object Bucket=\"coffeehouse\" Id=\"0f5541b9-8c4d-4ed8-bd1d-9e62173bdf4a\" Latest=\"true\" Length=\"5647581\" Name=\"coffeehouse/jk/WhereOrWhen.mp3\" Offset=\"0\" VersionId=\"0f5541b9-8c4d-4ed8-bd1d-9e62173bdf4a\"/>" +
-                "<Object Bucket=\"coffeehouse\" Id=\"03b2e1c7-f80c-437a-912d-b09015dba484\" Latest=\"true\" Length=\"11263\" Name=\"coffeehouse/jk/WhereOrWhen_295x166.jpg\" Offset=\"0\" VersionId=\"03b2e1c7-f80c-437a-912d-b09015dba484\"/>" +
-                "<Object Bucket=\"coffeehouse\" Id=\"667d94f6-b341-45f7-bd91-706af52d8e77\" Latest=\"true\" Length=\"11207247\" Name=\"coffeehouse/jk/im_in_the_mood.m4a\" Offset=\"0\" VersionId=\"667d94f6-b341-45f7-bd91-706af52d8e77\"/>" +
-                "<Object Bucket=\"coffeehouse\" Id=\"f7f65e20-4ea2-4629-9c22-ddf9cbc76b99\" Latest=\"true\" Length=\"8621\" Name=\"coffeehouse/jk/im_in_the_mood_200.jpg\" Offset=\"0\" VersionId=\"f7f65e20-4ea2-4629-9c22-ddf9cbc76b99\"/>" +
-                "<Object Bucket=\"coffeehouse\" Id=\"92a40cff-63a6-4520-81a9-80afa03a1973\" Latest=\"true\" Length=\"6409093\" Name=\"coffeehouse/witchcraft.mp3\" Offset=\"0\" VersionId=\"92a40cff-63a6-4520-81a9-80afa03a1973\"/>" +
                 "</Data>";
 
         final BulkObjectList blobs = XmlOutput.fromXml(packet, BulkObjectList.class);
