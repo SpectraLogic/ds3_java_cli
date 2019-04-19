@@ -21,18 +21,16 @@ import com.spectralogic.ds3client.utils.Guard;
 import com.spectralogic.ds3client.utils.Platform;
 import org.junit.Assume;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
 
 import static java.nio.file.Files.readAllBytes;
 import static java.nio.file.Files.write;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertNull;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.junit.Assert.*;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
 import java.util.Collections;
@@ -40,6 +38,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.spectralogic.ds3client.networking.Metadata;
+import org.junit.rules.TemporaryFolder;
 
 public class PosixFileMetadata_Test {
     @BeforeClass
@@ -49,31 +48,23 @@ public class PosixFileMetadata_Test {
 
     private final FileMetadata fileMetadata = GuiceInjector.INSTANCE.injector().getInstance(FileMetadataFactory.class).fileMetadata();
 
+    @Rule
+    public final TemporaryFolder tempFolder = new TemporaryFolder();
+
     @Test
     public void testFileModifiedTime() throws Exception {
         final FileNamePathTuple fileNamePathTuple = createAFile("Twitch.txt", true);
+        Runtime.getRuntime().exec("touch " + fileNamePathTuple.filePath().toAbsolutePath().toString()).waitFor();
 
-        try {
-            Runtime.getRuntime().exec("touch " + fileNamePathTuple.fileName()).waitFor();
+        final FileTime modifiedTimeAfterTouch = Files.readAttributes(fileNamePathTuple.filePath(), BasicFileAttributes.class).lastModifiedTime();
+        fileMetadata.writeMetadataTo(fileNamePathTuple.filePath(), fileNamePathTuple.metadata());
 
-            final FileTime modifedTimeAfterTouch = Files.readAttributes(fileNamePathTuple.filePath(), BasicFileAttributes.class).lastModifiedTime();
-
-            fileMetadata.writeMetadataTo(fileNamePathTuple.filePath(), fileNamePathTuple.metadata());
-
-            final FileTime modifiedTimeAfterRestore = Files.readAttributes(fileNamePathTuple.filePath(), BasicFileAttributes.class).lastModifiedTime();
-
-            assertTrue(modifedTimeAfterTouch.compareTo(modifiedTimeAfterRestore) > 0);
-
-        } finally {
-            if (fileNamePathTuple.filePath() != null) {
-                Files.deleteIfExists(fileNamePathTuple.filePath());
-            }
-        }
+        final FileTime modifiedTimeAfterRestore = Files.readAttributes(fileNamePathTuple.filePath(), BasicFileAttributes.class).lastModifiedTime();
+        assertThat(modifiedTimeAfterTouch.compareTo(modifiedTimeAfterRestore), greaterThan(0));
     }
 
     private FileNamePathTuple createAFile(final String fileName, final boolean recordMetaData) throws Exception {
-        final Path filePath = Paths.get(fileName);
-        final Path createdFilePath = Files.createFile(filePath);
+        final Path filePath = tempFolder.newFile(fileName).toPath();
 
         Thread.sleep(1000);
 
@@ -89,8 +80,10 @@ public class PosixFileMetadata_Test {
 
         Thread.sleep(1000);
 
+        final Metadata metadata;
+
         if (recordMetaData) {
-            final Metadata metadata = new Metadata() {
+            metadata = new Metadata() {
                 @Override
                 public List<String> get(final String s) {
                     return Collections.singletonList(metadataMap.get(s));
@@ -102,9 +95,8 @@ public class PosixFileMetadata_Test {
                 }
             };
 
-            return new FileNamePathTuple(fileName, createdFilePath, metadata);
         } else {
-            final Metadata metadata = new Metadata() {
+            metadata = new Metadata() {
                 @Override
                 public List<String> get(final String s) {
                     return Collections.emptyList();
@@ -115,24 +107,18 @@ public class PosixFileMetadata_Test {
                     return Collections.emptySet();
                 }
             };
-
-            return new FileNamePathTuple(fileName, createdFilePath, metadata);
         }
+
+        return new FileNamePathTuple(filePath, metadata);
     }
 
     private static class FileNamePathTuple {
-        private final String fileName;
         private final Path filePath;
         private final Metadata metadata;
 
-        private FileNamePathTuple(final String fileName, final Path filePath, final Metadata metadata) {
-            this.fileName = fileName;
+        private FileNamePathTuple(final Path filePath, final Metadata metadata) {
             this.filePath = filePath;
             this.metadata = metadata;
-        }
-
-        private String fileName() {
-            return fileName;
         }
 
         private Path filePath() {
@@ -147,73 +133,47 @@ public class PosixFileMetadata_Test {
     @Test
     public void testFileAccessedTime() throws Exception {
         final FileNamePathTuple fileNamePathTuple = createAFile("Gracie.txt", true);
+        readAllBytes(fileNamePathTuple.filePath);
 
-        try {
-            readAllBytes(fileNamePathTuple.filePath);
+        final FileTime accessedTimeAfterRead = Files.readAttributes(fileNamePathTuple.filePath(), BasicFileAttributes.class).lastAccessTime();
+        fileMetadata.writeMetadataTo(fileNamePathTuple.filePath(), fileNamePathTuple.metadata());
 
-            final FileTime accessedTimeAfterRead = Files.readAttributes(fileNamePathTuple.filePath(), BasicFileAttributes.class).lastAccessTime();
-
-            fileMetadata.writeMetadataTo(fileNamePathTuple.filePath(), fileNamePathTuple.metadata());
-
-            final FileTime accessedTimeAfterRestore = Files.readAttributes(fileNamePathTuple.filePath(), BasicFileAttributes.class).lastAccessTime();
-
-            assertTrue(accessedTimeAfterRead.compareTo(accessedTimeAfterRestore) > 0);
-        } finally {
-            if (fileNamePathTuple.filePath() != null) {
-                Files.deleteIfExists(fileNamePathTuple.filePath());
-            }
-        }
+        final FileTime accessedTimeAfterRestore = Files.readAttributes(fileNamePathTuple.filePath(), BasicFileAttributes.class).lastAccessTime();
+        assertThat(accessedTimeAfterRead.compareTo(accessedTimeAfterRestore), greaterThan(0));
     }
 
     @Test
     public void testFileCreatedTime() throws Exception {
         final String fileName = "Shasta.txt";
-
         final FileNamePathTuple fileNamePathTuple = createAFile(fileName, true);
+        final FileTime lastModified = Files.readAttributes(fileNamePathTuple.filePath(), BasicFileAttributes.class).lastModifiedTime();
+        Files.deleteIfExists(fileNamePathTuple.filePath);
+        createAFile(fileName, false);
 
-        try {
-            final FileTime lastModified = Files.readAttributes(fileNamePathTuple.filePath(), BasicFileAttributes.class).lastModifiedTime();
+        final FileTime createdAfterDeletion = Files.readAttributes(fileNamePathTuple.filePath(), BasicFileAttributes.class).creationTime();
+        fileMetadata.writeMetadataTo(fileNamePathTuple.filePath(), fileNamePathTuple.metadata());
 
-            Files.deleteIfExists(fileNamePathTuple.filePath);
+        final FileTime lastModifiedAfterRestore = Files.readAttributes(fileNamePathTuple.filePath(), BasicFileAttributes.class).lastModifiedTime();
+        assertEquals(lastModified, lastModifiedAfterRestore);
 
-            createAFile(fileName, false);
+        final FileTime createdTimeAfterRestore = Files.readAttributes(fileNamePathTuple.filePath(), BasicFileAttributes.class).creationTime();
+        assertThat(createdAfterDeletion.compareTo(createdTimeAfterRestore), greaterThan(0));
 
-            final FileTime createdAfterDeletion = Files.readAttributes(fileNamePathTuple.filePath(), BasicFileAttributes.class).creationTime();
-
-            fileMetadata.writeMetadataTo(fileNamePathTuple.filePath(), fileNamePathTuple.metadata());
-
-            final FileTime lastModifiedAfterRestore = Files.readAttributes(fileNamePathTuple.filePath(), BasicFileAttributes.class).lastModifiedTime();
-            assertEquals(lastModified, lastModifiedAfterRestore);
-
-            final FileTime createdTimeAfterRestore = Files.readAttributes(fileNamePathTuple.filePath(), BasicFileAttributes.class).creationTime();
-
-            assertTrue(createdAfterDeletion.compareTo(createdTimeAfterRestore) > 0);
-        } finally {
-            if (fileNamePathTuple.filePath() != null) {
-                Files.deleteIfExists(fileNamePathTuple.filePath());
-            }
-        }
     }
 
     @Test
     public void testFileMode() throws Exception {
         final FileNamePathTuple fileNamePathTuple = createAFile("Nibbles.txt", true);
 
-        try {
-            final int fileModeBeforeChmod = (int)Files.getAttribute(fileNamePathTuple.filePath(), "unix:mode");
-            Runtime.getRuntime().exec("chmod 400 " + fileNamePathTuple.fileName()).waitFor();
-            final int fileModeAfterChmod = (int)Files.getAttribute(fileNamePathTuple.filePath(), "unix:mode");
-            assertFalse(fileModeAfterChmod == fileModeBeforeChmod);
+        final int fileModeBeforeChmod = (int)Files.getAttribute(fileNamePathTuple.filePath(), "unix:mode");
+        Runtime.getRuntime().exec("chmod 400 " + fileNamePathTuple.filePath().toAbsolutePath().toString()).waitFor();
+        final int fileModeAfterChmod = (int)Files.getAttribute(fileNamePathTuple.filePath(), "unix:mode");
+        assertNotEquals(fileModeAfterChmod, fileModeBeforeChmod);
 
-            fileMetadata.writeMetadataTo(fileNamePathTuple.filePath(), fileNamePathTuple.metadata());
+        fileMetadata.writeMetadataTo(fileNamePathTuple.filePath(), fileNamePathTuple.metadata());
 
-            final int fileModeAfterRestore = (int)Files.getAttribute(fileNamePathTuple.filePath(), "unix:mode");
-            assertTrue(fileModeAfterRestore == fileModeBeforeChmod);
-        } finally {
-            if (fileNamePathTuple.filePath() != null) {
-                Files.deleteIfExists(fileNamePathTuple.filePath());
-            }
-        }
+        final int fileModeAfterRestore = (int)Files.getAttribute(fileNamePathTuple.filePath(), "unix:mode");
+        assertEquals(fileModeAfterRestore, fileModeBeforeChmod);
     }
 
     /**
