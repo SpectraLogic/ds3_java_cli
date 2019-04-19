@@ -19,7 +19,6 @@ import com.bethecoder.ascii_table.ASCIITable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.spectralogic.ds3cli.models.GetObjectsOnTapeResult;
-import com.spectralogic.ds3cli.util.Guard;
 import com.spectralogic.ds3client.models.BulkObject;
 
 import java.util.ArrayList;
@@ -40,8 +39,8 @@ public class GetObjectsOnTapeView extends TableView<GetObjectsOnTapeResult> {
         }
         this.objectIterable = bulkObjects;
 
-        initTable(ImmutableList.of("Name", "Bucket", "Size", "Id"));
-        setTableDataAlignment(ImmutableList.of(ASCIITable.ALIGN_LEFT, ASCIITable.ALIGN_LEFT, ASCIITable.ALIGN_RIGHT, ASCIITable.ALIGN_RIGHT));
+        initTable(ImmutableList.of("Name", "Bucket", "Size", "Id", "Version-Id"));
+        setTableDataAlignment(ImmutableList.of(ASCIITable.ALIGN_LEFT, ASCIITable.ALIGN_LEFT, ASCIITable.ALIGN_RIGHT, ASCIITable.ALIGN_RIGHT, ASCIITable.ALIGN_RIGHT));
         return ASCIITable.getInstance().getTable(getHeaders(), formatTableContents());
     }
 
@@ -54,6 +53,7 @@ public class GetObjectsOnTapeView extends TableView<GetObjectsOnTapeResult> {
             arrayEntry[1] = nullGuard(content.getBucket());
             arrayEntry[2] = nullGuardToString(content.getLength());
             arrayEntry[3] = nullGuardToString(content.getId());
+            arrayEntry[4] = nullGuardToString(content.getVersionId());
             contents.add(arrayEntry);
         }
 
