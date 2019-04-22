@@ -25,10 +25,10 @@ import org.apache.commons.cli.Option;
 
 import static com.spectralogic.ds3cli.ArgumentFactory.*;
 
-public final class ClientFactory {
+final class ClientFactory {
 
     // build client from Arguments
-    public static Ds3Client createClient(final Arguments arguments) throws MissingOptionException, BadArgumentException {
+    static Ds3Client createClient(final Arguments arguments) throws MissingOptionException, BadArgumentException {
         final Ds3ClientBuilder builder = Ds3ClientBuilder.create(
                 getEndpoint(arguments),
                 new Credentials(getAccessKey(arguments), getSecretKey(arguments))

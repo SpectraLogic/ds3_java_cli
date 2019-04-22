@@ -58,7 +58,6 @@ public class GetDetailedObjects extends CliCommand<GetDetailedObjectsResult> {
 
     private ImmutableMap<String, String> filterParams;
     private String bucketName;
-    private String prefix;
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
@@ -68,7 +67,6 @@ public class GetDetailedObjects extends CliCommand<GetDetailedObjectsResult> {
         checkFilterParams();
         this.bucketName = args.getBucket();
 
-        this.prefix = null; // doesn't work
         return this;
     }
 

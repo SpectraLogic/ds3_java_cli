@@ -57,6 +57,7 @@ import java.util.*;
 
 import static com.spectralogic.ds3cli.util.Constants.DATE_FORMAT;
 import static com.spectralogic.ds3client.utils.ResponseUtils.toImmutableIntList;
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.*;
@@ -2927,7 +2928,7 @@ public class Ds3Cli_Test {
 
         // MockingDetails dets = mockingDetails(command);
         // builds the proper command from args
-        assertTrue(command.getClass() == GetDetailedObjects.class);
+        assertThat(command.getClass(), is(equalTo(GetDetailedObjects.class)));
 
         final ImmutableList.Builder<DetailedS3Object> objects = new ImmutableList.Builder<>();
         final String[] barcodes = new String[] {"362447L5", "362453L5"};
@@ -2964,7 +2965,7 @@ public class Ds3Cli_Test {
 
         // MockingDetails dets = mockingDetails(command);
         // builds the proper command from args
-        assertTrue(command.getClass() == GetDetailedObjects.class);
+        assertThat(command.getClass(), is(equalTo(GetDetailedObjects.class)));
 
         final ImmutableList.Builder<DetailedS3Object> objects = new ImmutableList.Builder<>();
         final String[] barcodes = new String[] {"362447L5", "362453L5"};
@@ -2992,7 +2993,7 @@ public class Ds3Cli_Test {
         final Arguments args = new Arguments( new String[] {"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_detailed_objects_physical", "-b", "jktwocopies", "--filter-params", "largerthan:1000000", "--output-format", "csv"});
         final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
         command.init(args);
-        assertTrue(command.getClass() == GetDetailedObjectsPhysical.class);
+        assertThat(command.getClass(), is(equalTo(GetDetailedObjectsPhysical.class)));
 
         final ImmutableList.Builder<DetailedS3Object> objects = new ImmutableList.Builder<>();
         final String[] barcodes = new String[] {"362447L5", "362453L5"};
@@ -3012,7 +3013,7 @@ public class Ds3Cli_Test {
         final Arguments args = new Arguments( new String[] {"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "get_detailed_objects_physical", "-b", "jktwocopies", "--filter-params", "largerthan:1000000"});
         final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand());
         command.init(args);
-        assertTrue(command.getClass() == GetDetailedObjectsPhysical.class);
+        assertThat(command.getClass(), is(equalTo(GetDetailedObjectsPhysical.class)));
 
         final ImmutableList.Builder<DetailedS3Object> objects = new ImmutableList.Builder<>();
         final String[] barcodes = new String[] {};
@@ -3332,17 +3333,17 @@ public class Ds3Cli_Test {
                 RecoveryFileManager.writeRecoveryJob(job);
             }
             Iterable<Path> allFiles = RecoveryFileManager.searchFiles(null, null, null);
-            assertTrue("Saved and found all files", com.google.common.collect.Iterables.size(allFiles) == numFiles);
+            assertThat("Saved and found all files", com.google.common.collect.Iterables.size(allFiles), is(equalTo( numFiles)));
             allFiles = RecoveryFileManager.searchFiles(null, "bucket3", null);
-            assertTrue("Found all files for one bucket", com.google.common.collect.Iterables.size(allFiles) == 1);
+            assertThat("Found all files for one bucket", com.google.common.collect.Iterables.size(allFiles), is(equalTo(1)));
             final Iterable<Path> allGets = RecoveryFileManager.searchFiles(null, null, BulkJobType.GET_BULK);
-            assertTrue("Found all gets", com.google.common.collect.Iterables.size(allGets) == numFiles / 2);
+            assertThat("Found all gets", com.google.common.collect.Iterables.size(allGets), is(equalTo(numFiles / 2)));
             RecoveryFileManager.deleteFiles(null, null, BulkJobType.PUT_BULK);
             allFiles = RecoveryFileManager.searchFiles(null, null, null);
-            assertTrue("All files after puts are deleted", com.google.common.collect.Iterables.size(allFiles) == numFiles / 2);
+            assertThat("All files after puts are deleted", com.google.common.collect.Iterables.size(allFiles), is(equalTo(numFiles / 2)));
             RecoveryFileManager.deleteFiles(null, null, null);
             allFiles = RecoveryFileManager.searchFiles(null, null, null);
-            assertTrue("Deleted all files", com.google.common.collect.Iterables.size(allFiles) == 0);
+            assertThat("Deleted all files", com.google.common.collect.Iterables.size(allFiles), is(equalTo(0)));
         } finally {
             RecoveryFileManager.deleteFiles(null, null, null);
         }

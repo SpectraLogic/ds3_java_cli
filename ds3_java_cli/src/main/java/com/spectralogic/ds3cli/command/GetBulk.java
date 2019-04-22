@@ -203,7 +203,7 @@ public class GetBulk extends CliCommand<DefaultResult> {
         return contentMatches;
     }
 
-    private Iterable<Contents> getContentMatches() throws IOException, CommandException {
+    private Iterable<Contents> getContentMatches() throws CommandException {
         if (this.pipe) {
             return getObjectsByPipe();
         }
@@ -216,7 +216,7 @@ public class GetBulk extends CliCommand<DefaultResult> {
     private String buildResponse() {
         final StringBuilder response = new StringBuilder("SUCCESS: ");
         response.append(this.sync ? "Synced" : this.discard ? "Retrieved and discarded" : "Wrote");
-        response.append((!this.pipe && !this.sync && Guard.isNullOrEmpty(this.prefixes))
+        response.append(!this.pipe && !this.sync && Guard.isNullOrEmpty(this.prefixes)
                 ? " all objects" : this.pipe ? " object names listed in stdin" :
                 Guard.isNullOrEmpty(this.prefixes) ? " all the objects" :
                         " all the objects that start with '" + Joiner.on(" ").join(this.prefixes) + "'");
@@ -305,7 +305,7 @@ public class GetBulk extends CliCommand<DefaultResult> {
     }
 
     private void createRecoveryCommand(final UUID jobId) {
-        RecoveryJob recoveryJob = new RecoveryJob(BulkJobType.GET_BULK);
+        final RecoveryJob recoveryJob = new RecoveryJob(BulkJobType.GET_BULK);
         recoveryJob.setBucketName(bucketName);
         recoveryJob.setId(jobId);
         recoveryJob.setNumberOfThreads(numberOfThreads);
@@ -316,25 +316,23 @@ public class GetBulk extends CliCommand<DefaultResult> {
         }
     }
 
-    public boolean isOtherArgs(final Arguments args) {
+    private boolean isOtherArgs(final Arguments args) {
         return args.isDiscard() || // --discard
                 !Guard.isStringNullOrEmpty(args.getObjectName()) || //-o
-                (args.getOptionValues(PREFIXES.getOpt()) != null
-                        && args.getOptionValues(PREFIXES.getOpt()).length > 0); // --prefixes
+                args.getOptionValues(PREFIXES.getOpt()) != null
+                        && args.getOptionValues(PREFIXES.getOpt()).length > 0; // --prefixes
     }
 
     private class PipedFileObjectGetter implements Ds3ClientHelpers.ObjectChannelBuilder {
         private final ImmutableMap<String, String> mapNormalizedObjectNameToObjectName;
-        private final Path root;
         private final FileObjectGetter fileObjectGetter;
 
-        public PipedFileObjectGetter(final Path rootPath, final ImmutableMap<String, String> normalizedObjectNames) {
+        PipedFileObjectGetter(final Path rootPath, final ImmutableMap<String, String> normalizedObjectNames) {
             this.mapNormalizedObjectNameToObjectName = normalizedObjectNames;
-            this.root = rootPath;
             this.fileObjectGetter = new FileObjectGetter(rootPath);
         }
 
-        public SeekableByteChannel buildChannel(String key) throws IOException {
+        public SeekableByteChannel buildChannel(final String key) throws IOException {
             LOG.info("Piped name: {}", key);
             final String normalizedName = this.mapNormalizedObjectNameToObjectName.get(key);
             if (normalizedName == null) {

@@ -18,7 +18,6 @@ package com.spectralogic.ds3cli.views.cli;
 import com.bethecoder.ascii_table.ASCIITable;
 import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3cli.models.GetUsersResult;
-import com.spectralogic.ds3cli.util.Guard;
 import com.spectralogic.ds3client.models.SpectraUser;
 
 import java.util.ArrayList;

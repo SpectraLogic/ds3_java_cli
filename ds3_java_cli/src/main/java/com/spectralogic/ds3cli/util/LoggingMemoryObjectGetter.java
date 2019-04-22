@@ -16,7 +16,6 @@
 package com.spectralogic.ds3cli.util;
 
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
-import com.spectralogic.ds3client.networking.Metadata;
 
 import java.io.IOException;
 import java.nio.channels.SeekableByteChannel;

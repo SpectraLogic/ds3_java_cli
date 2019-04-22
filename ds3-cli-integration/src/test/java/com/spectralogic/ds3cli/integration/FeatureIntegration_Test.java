@@ -629,7 +629,7 @@ public class FeatureIntegration_Test {
                     "-b", bucketName,
                     "-d", Util.RESOURCE_BASE_NAME,
                     "--file-metadata"});
-            CommandResponse response = Util.command(client, args);
+            final CommandResponse response = Util.command(client, args);
 
             assertThat(response.getMessage(), is(String.format("SUCCESS: Wrote all the files in %s to bucket %s", "." + File.separator + "src" + File.separator + "test" + File.separator + "resources" + File.separator + "books", bucketName)));
 
@@ -674,7 +674,7 @@ public class FeatureIntegration_Test {
                     "-c", "put_bulk",
                     "-b", bucketName,
                     "-d", Util.RESOURCE_BASE_NAME});
-            CommandResponse response = Util.command(client, args);
+            final CommandResponse response = Util.command(client, args);
 
             assertThat(response.getMessage(), is(String.format("SUCCESS: Wrote all the files in %s to bucket %s", "." + File.separator + "src" + File.separator + "test" + File.separator + "resources" + File.separator + "books", bucketName)));
 

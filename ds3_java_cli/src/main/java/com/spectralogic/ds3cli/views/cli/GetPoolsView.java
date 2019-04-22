@@ -16,16 +16,12 @@
 package com.spectralogic.ds3cli.views.cli;
 
 import com.bethecoder.ascii_table.ASCIITable;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.models.GetPoolsResult;
 import com.spectralogic.ds3client.models.Pool;
-import com.spectralogic.ds3client.models.SpectraUser;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import static com.spectralogic.ds3cli.util.Constants.DATE_FORMAT;
@@ -50,10 +46,7 @@ public class GetPoolsView extends TableView<GetPoolsResult> {
         protected String[][] formatTableContents() {
             final List<String[]> contents = new ArrayList<>();
 
-            final Iterator<Pool> pools = this.poolIterator.iterator();
-
-            while(pools.hasNext()) {
-                final Pool content = pools.next();
+            for (final Pool content : this.poolIterator) {
                 final String[] arrayEntry = new String[this.columnCount];
                 arrayEntry[0] = nullGuardToString(content.getName());
                 arrayEntry[1] = nullGuardToString(content.getId());

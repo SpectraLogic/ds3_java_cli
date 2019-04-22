@@ -22,7 +22,7 @@ public final class SterilizeString {
 
     private SterilizeString() {}
 
-    public static String toUnix(final String str) {
+    static String toUnix(final String str) {
         if(isWindows) {
             return str.replace("\r\n", "\n");
         }

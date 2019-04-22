@@ -21,7 +21,6 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
-import com.spectralogic.ds3client.utils.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -228,12 +227,12 @@ public final class FileUtils {
         }
 
         private List<Ds3Object> appendPrefixToObjectList(final ImmutableList<Ds3Object> ds3Objects, final String prefix) {
-            FluentIterable<Ds3Object> appendedObjects = FluentIterable
+            final FluentIterable<Ds3Object> appendedObjects = FluentIterable
                     .from(ds3Objects)
                     .transform(new Function<Ds3Object, Ds3Object>() {
                         @Nullable
                         @Override
-                        public Ds3Object apply(@Nullable Ds3Object input) {
+                        public Ds3Object apply(@Nullable final Ds3Object input) {
                             return new Ds3Object(prefix + input.getName(), input.getSize());
                         }
                     });
