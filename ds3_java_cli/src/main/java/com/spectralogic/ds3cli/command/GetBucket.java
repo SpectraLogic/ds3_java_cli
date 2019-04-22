@@ -19,6 +19,7 @@ package com.spectralogic.ds3cli.command;
 import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.View;
+import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.GetBucketResult;
 import com.spectralogic.ds3cli.views.json.DataView;
@@ -58,7 +59,6 @@ public class GetBucket extends CliCommand<GetBucketResult> {
 
     @Override
     public GetBucketResult call() throws Exception {
-
         try {
             // GetBucketDetail to get both name and id
             final GetBucketRequest getBucketRequest = new GetBucketRequest(bucket);
@@ -87,15 +87,13 @@ public class GetBucket extends CliCommand<GetBucketResult> {
 
     @Override
     public View<GetBucketResult> getView() {
-        switch (viewType) {
-            case JSON:
-                return new DataView();
-            default:
-                if (showVersion) {
-                    return new com.spectralogic.ds3cli.views.cli.GetVersionedBucketView();
-                } else {
-                    return new com.spectralogic.ds3cli.views.cli.GetBucketView();
-                }
+        if (viewType == ViewType.JSON) {
+            return new DataView<>();
+        }
+        if (showVersion) {
+            return new com.spectralogic.ds3cli.views.cli.GetVersionedBucketView();
+        } else {
+            return new com.spectralogic.ds3cli.views.cli.GetBucketView();
         }
     }
 
