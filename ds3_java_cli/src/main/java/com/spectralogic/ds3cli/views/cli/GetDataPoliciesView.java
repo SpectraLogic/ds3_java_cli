@@ -19,7 +19,6 @@ import com.bethecoder.ascii_table.ASCIITable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.spectralogic.ds3cli.models.GetDataPoliciesResult;
-import com.spectralogic.ds3cli.util.Guard;
 import com.spectralogic.ds3client.models.DataPolicy;
 import com.spectralogic.ds3client.models.DataPolicyList;
 

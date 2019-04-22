@@ -31,10 +31,10 @@ import java.util.*;
 
 public final class RecoveryFileManager {
 
-    public static String GET_PREFIX = "ds3Get_";
-    public static String PUT_PREFIX = "ds3Put_";
-    public static String DIR_PREFIX = "ds3";
-    public static String RECOVERY_FILE_EXTENSION = ".json";
+    private final static String GET_PREFIX = "ds3Get_";
+    private final static String PUT_PREFIX = "ds3Put_";
+    private final static String DIR_PREFIX = "ds3";
+    public final static String RECOVERY_FILE_EXTENSION = ".json";
 
     private final static Logger LOG = LoggerFactory.getLogger(RecoveryFileManager.class);
 
@@ -57,24 +57,16 @@ public final class RecoveryFileManager {
         ensureDirExists();
         return new File(getTempdir().toFile(), GET_PREFIX + id + RECOVERY_FILE_EXTENSION);
     }
-    public static File createPutFile(final String id) throws IOException {
+    private static File createPutFile(final String id) throws IOException {
         ensureDirExists();
         return new File(getTempdir().toFile(), PUT_PREFIX + id + RECOVERY_FILE_EXTENSION);
     }
 
-    public static String getFileList() {
-        try {
-            return printFileList(searchFiles(null,null,null));
-        } catch (final IOException e) {
-            return e.getMessage();
-        }
-    }
-
-    public static String printFileList(final Iterable<Path> files) {
+    private static String printFileList(final Iterable<Path> files) {
         if (Iterables.isEmpty(files)) {
             return "No matching recovery files found.";
         }
-        final StringBuffer fileList = new StringBuffer();
+        final StringBuilder fileList = new StringBuilder();
         try {
             for (final Path file : files) {
                 final RecoveryJob job = getRecoveryJobByName(file.getFileName().toString());
@@ -87,11 +79,11 @@ public final class RecoveryFileManager {
         }
     }
 
-    public static String deleteFileList(final Iterable<Path> files) {
+    private static String deleteFileList(final Iterable<Path> files) {
         if (Iterables.isEmpty(files)) {
             return "No matching recovery files found.";
         }
-        final StringBuffer fileList = new StringBuffer("Deleted:\n");
+        final StringBuilder fileList = new StringBuilder("Deleted:\n");
         try {
             for (final Path file : files) {
                 final RecoveryJob job = getRecoveryJobByName(file.getFileName().toString());
@@ -102,19 +94,6 @@ public final class RecoveryFileManager {
             return fileList.toString();
         } catch (final IOException e) {
             return e.getMessage();
-        }
-    }
-
-    public static File getFileById(final String id) throws IOException {
-        ensureDirExists();
-        try (final DirectoryStream<Path> stream = Files.newDirectoryStream(getTempdir(), "*" + id + RECOVERY_FILE_EXTENSION)) {
-            final Iterator<Path> iterator = stream.iterator();
-            if (iterator.hasNext()) {
-                return iterator.next().toFile();
-            }
-            throw new IOException("File not found matching ID: " + id);
-        } catch (final IOException e) {
-            throw new IOException("Could not open file for ID:" + id, e);
         }
     }
 
@@ -147,7 +126,7 @@ public final class RecoveryFileManager {
         return matches;
     }
 
-    public static RecoveryJob getRecoveryJobByName(final String fileName) throws IOException {
+    private static RecoveryJob getRecoveryJobByName(final String fileName) throws IOException {
         return getRecoveryJobByFile( new File(getTempdir().toFile(), fileName));
     }
 
@@ -167,9 +146,8 @@ public final class RecoveryFileManager {
             }
             try (final BufferedWriter writer = com.google.common.io.Files.newWriter(file, Charset.forName("utf-8"))) {
                 writer.write(JsonMapper.toJson(job));
-            } catch (final Exception inner) {
-                throw inner;
             }
+
             return true;
         } catch (final IOException e) {
             LOG.error("Could not create recovery file", e);

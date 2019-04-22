@@ -37,7 +37,7 @@ import static org.junit.Assume.assumeTrue;
  * and partition for use in the integration tests to avoid error if the BP does not currently
  * have a partition available for running the unit tests.
  */
-public class TempStorageUtil {
+public final class TempStorageUtil {
 
     private static final String DATA_POLICY_NAME = "_dp";
     private static final String STORAGE_DOMAIN_NAME = "_sd";
@@ -132,7 +132,7 @@ public class TempStorageUtil {
         final Iterable<DataPolicy> preferredPolicies =
                 Iterables.filter(getDataPoliciesResponse.getDataPolicyListResult().getDataPolicies(), new Predicate<DataPolicy>() {
                 @Override
-                public boolean apply(@Nullable DataPolicy input) {
+                public boolean apply(@Nullable final DataPolicy input) {
                     return input.getName().equals(PREFERRED_DATA_POLICY_NAME);
                 };});
         final Iterator<DataPolicy> policies = preferredPolicies.iterator();

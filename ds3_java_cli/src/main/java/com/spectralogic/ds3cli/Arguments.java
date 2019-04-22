@@ -49,18 +49,6 @@ public class Arguments {
     private static final int DEFAULT_BUFFERSIZE = 1024 * 1024;
     private static final int DEFAULT_NUMBEROFTHREADS = 10;
 
-    /**
-     * add an argument option
-     * @param opt Option to add to Arguments Options
-     */
-    public void addOption(final Option opt) {
-        this.options.addOption(opt);
-    }
-    /**
-     * add an argument option and set its argument name
-     * @param opt Option to add to Arguments Options
-     * @param argName argument name in help display
-     */
     public void addOption(final Option opt, final String argName) {
         opt.setArgName(argName);
         this.options.addOption(opt);
@@ -114,7 +102,7 @@ public class Arguments {
      * @param defaultValue Object to return if not specified
      * @return option value as Object if specified on COMMAND, else defaultValue
      */
-    public Object getOptionValueWithDefault(final String optionName, final Object defaultValue) {
+    private Object getOptionValueWithDefault(final String optionName, final Object defaultValue) {
         final Object returnValue = this.getOptionValue(optionName);
         if (returnValue != null) {
             return returnValue;
@@ -122,7 +110,7 @@ public class Arguments {
         return defaultValue;
     }
 
-    public static boolean matchesOption(final Option opt, final String token) {
+    static boolean matchesOption(final Option opt, final String token) {
         return token.equals('-' + opt.getOpt()) || token.equals("--" + opt.getLongOpt());
     }
 
@@ -139,7 +127,7 @@ public class Arguments {
         this.processCommandLine();
     }
 
-    void addRootArguments() {
+    private void addRootArguments() {
         for (final Option optionRoot : rootArgs) {
             optionRoot.setRequired(false);
             addOption(optionRoot, optionRoot.getArgName());
@@ -231,24 +219,8 @@ public class Arguments {
         helpFormatter.printHelp("ds3_java_cli", this.options);
     }
 
-    private String getEndpoint() {
-        return this.getOptionValue(ENDPOINT.getOpt());
-    }
-
-    private String getAccessKey() {
-        return this.getOptionValue(ACCESS_KEY.getOpt());
-    }
-
-    private String getSecretKey() {
-        return this.getOptionValue(SECRET_KEY.getOpt());
-    }
-
-    private String getProxy() {
-        return this.getOptionValue(PROXY.getOpt());
-    }
-
     // convenience getters for private options
-    public boolean isPrintVersion() { return this.optionExists(PRINT_VERSION.getLongOpt()); }
+    boolean isPrintVersion() { return this.optionExists(PRINT_VERSION.getLongOpt()); }
     public String getCommand() {
         return cmd.getOptionValue(COMMAND.getOpt());
     }
@@ -262,15 +234,15 @@ public class Arguments {
         return this.optionExists(COMMAND_HELP.getLongOpt()) || this.optionExists(PRINT_HELP.getOpt());
     }
 
-    public boolean isCertificateVerification() {
+    boolean isCertificateVerification() {
         return !this.optionExists(INSECURE.getLongOpt());
     }
 
-    public boolean isHttps() {
+    boolean isHttps() {
         return !this.optionExists(HTTP.getLongOpt());
     }
 
-    public int getRetries() throws BadArgumentException {
+    int getRetries() throws BadArgumentException {
         final String retryString = this.getOptionValueWithDefault(RETRIES.getOpt(), DEFAULT_RETRIES).toString();
         try {
             return Integer.parseInt(retryString);
@@ -297,10 +269,10 @@ public class Arguments {
         }
     }
 
-    public Level getConsoleLogLevel() { return this.consoleLogLevel; }
-    void setConsoleLogLevel(final Level console) {this.consoleLogLevel = console; }
-    public Level getFileLogLevel() { return this.fileLogLevel; }
-    void setFileLogLevel(final Level file) {this.fileLogLevel = file; }
+    Level getConsoleLogLevel() { return this.consoleLogLevel; }
+    private void setConsoleLogLevel(final Level console) {this.consoleLogLevel = console; }
+    Level getFileLogLevel() { return this.fileLogLevel; }
+    private void setFileLogLevel(final Level file) {this.fileLogLevel = file; }
 
 
     // convenience getters for public options

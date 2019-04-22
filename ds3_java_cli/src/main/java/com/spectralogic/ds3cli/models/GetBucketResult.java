@@ -15,8 +15,6 @@
 
 package com.spectralogic.ds3cli.models;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.spectralogic.ds3client.models.Bucket;
 import com.spectralogic.ds3client.models.Contents;
 

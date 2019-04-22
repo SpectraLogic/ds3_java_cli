@@ -30,7 +30,7 @@ public class FilteringIterable_Test {
     @Test
     public void noFilter() {
         final ImmutableList<String> list = ImmutableList.of("test", "test2", "test3");
-        final Iterable<String> filteredIterable = new FilteringIterable<>(list, new NoFilter<String>());
+        final Iterable<String> filteredIterable = new FilteringIterable<>(list, new NoFilter<>());
 
         assertThat(Iterables.size(filteredIterable), is(3));
     }
@@ -38,7 +38,7 @@ public class FilteringIterable_Test {
     @Test
     public void emptyList() {
         final ImmutableList<String> list = ImmutableList.of();
-        final Iterable<String> filteredIterable = new FilteringIterable<>(list, new NoFilter<String>());
+        final Iterable<String> filteredIterable = new FilteringIterable<>(list, new NoFilter<>());
 
         assertThat(Iterables.size(filteredIterable), is(0));
     }
@@ -46,7 +46,7 @@ public class FilteringIterable_Test {
     @Test
     public void filterAll() {
         final ImmutableList<String> list = ImmutableList.of();
-        final Iterable<String> filteredIterable = new FilteringIterable<>(list, new FilterAll<String>());
+        final Iterable<String> filteredIterable = new FilteringIterable<>(list, new FilterAll<>());
 
         assertThat(Iterables.size(filteredIterable), is(0));
     }

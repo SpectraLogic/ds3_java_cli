@@ -26,7 +26,6 @@ import com.spectralogic.ds3cli.views.json.DataView;
 import com.spectralogic.ds3client.commands.spectrads3.*;
 import com.spectralogic.ds3client.models.*;
 import com.spectralogic.ds3client.utils.Guard;
-import org.apache.commons.cli.MissingArgumentException;
 import org.apache.commons.cli.Option;
 
 import java.io.IOException;

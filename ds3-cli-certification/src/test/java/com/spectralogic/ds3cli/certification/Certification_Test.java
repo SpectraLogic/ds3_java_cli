@@ -367,8 +367,8 @@ public class Certification_Test {
     @Test
     public void test_8_1_versioning() throws Exception {
         final String testDescription = "8.1: Updating an existing object in BlackPearl";
-        final Integer numFiles = 1;
-        final Long fileSize = 1024L;
+        final int numFiles = 1;
+        final long fileSize = 1024L;
         final String bucketName = CertificationUtil.getBucketName(testDescription);
         boolean success = false;
         final UUID dataPolicy = setupDataPolicy(testDescription, false, ChecksumType.Type.MD5, VersioningLevel.NONE, client);
@@ -430,8 +430,8 @@ public class Certification_Test {
     @Test
     public void test_8_2_partial_restore() throws Exception {
         final String testDescription = "8.2: Partial Restore";
-        final Integer numFiles = 1;
-        final Long fileSize = 1024L;
+        final int numFiles = 1;
+        final long fileSize = 1024L;
         final String bucketName = CertificationUtil.getBucketName(testDescription);
         boolean success = false;
 
@@ -572,8 +572,8 @@ public class Certification_Test {
     @Test
     public void test_8_6_fully_persisted() throws Exception {
         final String testDescription = "8.6: Show Fully Persisted";
-        final Integer numFiles = 6;
-        final Long fileSize = 1 * GB_IN_BYTES;
+        final int numFiles = 6;
+        final long fileSize = GB_IN_BYTES;
         final String bucketName = CertificationUtil.getBucketName(testDescription);
         boolean success = false;
 
