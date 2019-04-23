@@ -49,7 +49,7 @@ public class GetTapesView extends TableView<GetTapesResult> {
 
         this.getTapesResult = getTapesResult;
 
-        initTable(ImmutableList.of("Bar Code", "ID", "State", "Last Modified", "Available Raw Capacity", "BucketID", "Assigned to Storage Domain", "Ejection Date", "Ejection Location", "Ejection Label", "Ejection Pending"));
+        initTable(ImmutableList.of("Bar Code", "ID", "State", "Last Modified", "Last Verified", "Available Raw Capacity", "BucketID", "Assigned to Storage Domain", "Ejection Date", "Ejection Location", "Ejection Label", "Ejection Pending"));
 
         return ASCIITable.getInstance().getTable(getHeaders(), formatTableContents());
     }
@@ -65,13 +65,14 @@ public class GetTapesView extends TableView<GetTapesResult> {
             bucketArray[1] = nullGuardToString(tape.getId());
             bucketArray[2] = nullGuardToString(tape.getState());
             bucketArray[3] = nullGuardFromDate(tape.getLastModified(), DATE_FORMAT);
-            bucketArray[4] = nullGuardToString(tape.getAvailableRawCapacity());
-            bucketArray[5] = nullGuardToString(tape.getBucketId());
-            bucketArray[6] = nullGuardToString(storageDomainName(tape));
-            bucketArray[7] = nullGuardFromDate(tape.getEjectDate(), DATE_FORMAT);
-            bucketArray[8] = nullGuard(tape.getEjectLocation());
-            bucketArray[9] = nullGuard(tape.getEjectLabel());
-            bucketArray[10] = nullGuardFromDate(tape.getEjectPending(), DATE_FORMAT);
+            bucketArray[4] = nullGuardFromDate(tape.getLastVerified(), DATE_FORMAT);
+            bucketArray[5] = nullGuardToString(tape.getAvailableRawCapacity());
+            bucketArray[6] = nullGuardToString(tape.getBucketId());
+            bucketArray[7] = nullGuardToString(storageDomainName(tape));
+            bucketArray[8] = nullGuardFromDate(tape.getEjectDate(), DATE_FORMAT);
+            bucketArray[9] = nullGuard(tape.getEjectLocation());
+            bucketArray[10] = nullGuard(tape.getEjectLabel());
+            bucketArray[11] = nullGuardFromDate(tape.getEjectPending(), DATE_FORMAT);
             formatArray[i++] = bucketArray;
         }
         return formatArray;
