@@ -1,4 +1,6 @@
 language: java
+sudo: false
+dist: trusty
 jdk:
-  - oraclejdk8
+  - openjdk8
 script: ./gradlew -S clean ds3_java_cli:test --info
