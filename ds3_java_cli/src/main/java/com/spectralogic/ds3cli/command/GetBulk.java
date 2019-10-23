@@ -16,12 +16,12 @@
 package com.spectralogic.ds3cli.command;
 
 import com.google.common.base.Joiner;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.spectralogic.ds3cli.Arguments;
 import com.spectralogic.ds3cli.Main;
+import com.spectralogic.ds3cli.PipeUtils;
 import com.spectralogic.ds3cli.exceptions.BadArgumentException;
 import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.BulkJobType;
@@ -32,7 +32,6 @@ import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.helpers.FileObjectGetter;
 import com.spectralogic.ds3client.helpers.FolderNameFilter;
 import com.spectralogic.ds3client.helpers.options.ReadJobOptions;
-import com.spectralogic.ds3client.helpers.pagination.GetBucketKeyLoaderFactory;
 import com.spectralogic.ds3client.helpers.pagination.GetBucketLoaderFactory;
 import com.spectralogic.ds3client.models.Contents;
 import com.spectralogic.ds3client.models.Priority;
@@ -53,7 +52,6 @@ import java.nio.file.Paths;
 import java.util.*;
 
 import static com.spectralogic.ds3cli.ArgumentFactory.*;
-import static com.spectralogic.ds3client.helpers.pagination.GetBucketKeyLoaderFactory.contentsFunction;
 
 public class GetBulk extends CliCommand<DefaultResult> {
 
@@ -183,12 +181,12 @@ public class GetBulk extends CliCommand<DefaultResult> {
             return helper.startReadAllJob(this.bucketName, ReadJobOptions.create().withPriority(this.priority));
         }
         // restore some
-        final Iterable<Ds3Object> objects = helper.toDs3Iterable(getObjects(helper), FolderNameFilter.filter());
+        final Iterable<Ds3Object> objects = helper.toDs3Iterable(getObjects(), FolderNameFilter.filter());
         return helper.startReadJob(this.bucketName, objects,
                 ReadJobOptions.create().withPriority(this.priority));
     }
 
-    private Iterable<Contents> getObjects(final Ds3ClientHelpers helper) throws IOException, CommandException {
+    private Iterable<Contents> getObjects() throws IOException, CommandException {
         final Iterable<Contents> contentMatches = getContentMatches();
         if (Iterables.isEmpty(contentMatches)) {
             throw new CommandException("No matching objects in bucket " + this.bucketName);
@@ -205,7 +203,7 @@ public class GetBulk extends CliCommand<DefaultResult> {
 
     private Iterable<Contents> getContentMatches() throws CommandException {
         if (this.pipe) {
-            return getObjectsByPipe();
+            return PipeUtils.getObjectsByPipe(pipedFileNames, getClient(), bucketName);
         }
         if (Guard.isNullOrEmpty(prefixes)) {
             return getAllObjectsInBucket();
@@ -280,28 +278,6 @@ public class GetBulk extends CliCommand<DefaultResult> {
             allPrefixMatches = Iterables.concat(allPrefixMatches, prefixMatch);
         }
         return allPrefixMatches;
-    }
-
-    private Iterable<Contents> getObjectsByPipe() throws CommandException {
-        final ImmutableMap<String, String> pipedObjectMap
-                = FileUtils.normalizedObjectNames(this.pipedFileNames);
-
-        final FluentIterable<Contents> objectList = FluentIterable
-                .from(new LazyIterable<>(new GetBucketKeyLoaderFactory<>(getClient(), this.bucketName, null, null, null, 100, 5, contentsFunction)))
-                .filter(bulkObject -> pipedObjectMap.containsKey(bulkObject.getKey()));
-
-
-        // look for objects in the piped list not in bucket
-        final FluentIterable<String> objectNameList = FluentIterable.from(objectList).transform(bulkObject -> bulkObject.getKey());
-
-        for (final String object : pipedObjectMap.keySet()) {
-            if (objectNameList.contains(object)) {
-                LOG.info("Restore: {}", object);
-            } else {
-                throw new CommandException("Object: " + object + " not found in bucket");
-            }
-        }
-        return objectList;
     }
 
     private void createRecoveryCommand(final UUID jobId) {
