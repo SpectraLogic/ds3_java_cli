@@ -96,5 +96,4 @@ public class GetBucket extends CliCommand<GetBucketResult> {
             return new com.spectralogic.ds3cli.views.cli.GetBucketView();
         }
     }
-
 }
