@@ -51,8 +51,7 @@ public class PosixFileMetadata implements FileMetadata {
     private static FileTime makeLocalFileTime(final String metadataValue) {
         final Instant timeReadBack = LocalDateTime.parse(metadataValue, DATE_TIME_FORMATTER).toInstant(ZoneOffset.UTC);
         final LocalDateTime localDateTime = LocalDateTime.ofInstant(timeReadBack, ZoneId.systemDefault());
-        final Date localDate = Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
-        return FileTime.fromMillis(localDate.getTime());
+        return FileTime.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
     }
 
     private static UserPrincipalLookupService userPrincipalLookupService(final Path filePath) {
