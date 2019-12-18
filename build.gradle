@@ -57,7 +57,7 @@ subprojects {
         compile 'ch.qos.logback:logback-core:1.2.3'
         compile 'ch.qos.logback:logback-classic:1.2.3'
         compile 'com.google.guava:guava:23.0-jre'
-        compile 'com.spectralogic.ds3:ds3-sdk:5.0.5'
+        compile 'com.spectralogic.ds3:ds3-sdk:5.1.2'
         compile 'com.google.inject:guice:4.2.0'
         compile 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.2'
 
@@ -91,8 +91,4 @@ project(':ds3-cli-certification') {
         testCompile project(':ds3-cli-helpers')
         testCompile project(path: ':ds3-cli-helpers', configuration: 'testOutput')
     }
-}
-
-task wrapper(type: Wrapper) {
-    gradleVersion = '4.8'
 }
