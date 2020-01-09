@@ -24,7 +24,7 @@ import com.spectralogic.ds3client.utils.Guard;
 
 import java.util.List;
 
-public class GetCacheStateView implements View<GetCacheStateResult> {
+public class GetCacheStateView extends View<GetCacheStateResult> {
 
     @Override
     public String render(final GetCacheStateResult obj) throws JsonProcessingException {

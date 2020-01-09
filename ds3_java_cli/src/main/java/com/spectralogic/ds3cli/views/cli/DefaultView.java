@@ -20,7 +20,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.models.Result;
 
-public class DefaultView<T extends Result> implements View<T> {
+public class DefaultView<T extends Result> extends View<T> {
     @Override
     public String render(final T result) throws JsonProcessingException {
         return result.getResult().toString();

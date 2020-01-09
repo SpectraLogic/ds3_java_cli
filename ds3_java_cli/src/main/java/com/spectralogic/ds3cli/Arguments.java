@@ -361,6 +361,8 @@ public class Arguments {
 
     public String getRangeLength() {return this.getOptionValue(RANGE_LENGTH.getLongOpt()); }
 
+    public String getNextMaker() {return this.getOptionValue(NEXT_MARKER.getLongOpt()); }
+
     public boolean doFileMetadata() { return this.optionExists(FILE_METADATA.getLongOpt()); }
 }
 

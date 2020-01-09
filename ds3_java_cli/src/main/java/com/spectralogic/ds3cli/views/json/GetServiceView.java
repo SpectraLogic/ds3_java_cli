@@ -21,7 +21,7 @@ import com.spectralogic.ds3cli.models.GetServiceResult;
 import com.spectralogic.ds3cli.util.JsonMapper;
 import com.spectralogic.ds3client.models.ListAllMyBucketsResult;
 
-public class GetServiceView implements View<GetServiceResult> {
+public class GetServiceView extends View<GetServiceResult> {
 
     @Override
     public String render(final GetServiceResult obj) throws JsonProcessingException {

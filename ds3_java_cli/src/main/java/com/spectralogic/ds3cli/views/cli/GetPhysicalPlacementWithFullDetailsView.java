@@ -28,7 +28,7 @@ import static com.spectralogic.ds3cli.util.Guard.nullGuard;
 import static com.spectralogic.ds3cli.util.Guard.nullGuardToString;
 import static com.spectralogic.ds3client.utils.Guard.isNullOrEmpty;
 
-public class GetPhysicalPlacementWithFullDetailsView  implements View<GetPhysicalPlacementWithFullDetailsResult> {
+public class GetPhysicalPlacementWithFullDetailsView extends View<GetPhysicalPlacementWithFullDetailsResult> {
 
     @Override
     public String render(final GetPhysicalPlacementWithFullDetailsResult obj) throws JsonProcessingException {

@@ -34,7 +34,7 @@ import static com.spectralogic.ds3cli.util.Guard.nullGuard;
 import static com.spectralogic.ds3cli.util.Guard.nullGuardFromDate;
 import static com.spectralogic.ds3cli.util.Guard.nullGuardToString;
 
-public class DetailedObjectsPhysicalView implements View<GetDetailedObjectsResult> {
+public class DetailedObjectsPhysicalView extends View<GetDetailedObjectsResult> {
 
     @Override
     public String render(final GetDetailedObjectsResult obj) {

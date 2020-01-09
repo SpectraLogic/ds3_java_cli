@@ -21,7 +21,7 @@ import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.models.Result;
 
-public abstract class TableView<T extends Result> implements View<T> {
+public abstract class TableView<T extends Result> extends View<T> {
 
     protected ASCIITableHeader[] header;
     protected int columnCount;

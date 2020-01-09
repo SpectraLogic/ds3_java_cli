@@ -22,7 +22,7 @@ import com.spectralogic.ds3cli.models.TapeListStorageDomainMapTuple;
 import com.spectralogic.ds3cli.util.JsonMapper;
 import com.spectralogic.ds3client.utils.Guard;
 
-public class GetTapesView implements View<GetTapesResult> {
+public class GetTapesView extends View<GetTapesResult> {
     @Override
     public String render(final GetTapesResult obj) throws JsonProcessingException {
         final TapeListStorageDomainMapTuple result = obj.getResult();

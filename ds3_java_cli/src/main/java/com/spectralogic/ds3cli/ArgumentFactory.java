@@ -135,7 +135,11 @@ public final class ArgumentFactory {
             .desc("Set the length in bytes for partial object recovery; use with " + RANGE_OFFSET.getLongOpt())
             .hasArg(true)
             .build();
-
+    public static final Option NEXT_MARKER = Option.builder()
+            .longOpt("next-marker")
+            .desc("Used for paginating larger results.  Specifies the object name to start listing results after.")
+            .hasArg(true)
+            .build();
 }
 
 

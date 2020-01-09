@@ -20,7 +20,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.models.GetConfigSummaryResult;
 
-public class GetConfigSummaryView implements View<GetConfigSummaryResult> {
+public class GetConfigSummaryView extends View<GetConfigSummaryResult> {
     @Override
     public String render(final GetConfigSummaryResult result) throws JsonProcessingException {
         return result.getSummary();

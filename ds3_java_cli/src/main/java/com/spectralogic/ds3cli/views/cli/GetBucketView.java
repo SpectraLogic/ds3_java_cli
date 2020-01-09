@@ -37,7 +37,7 @@ public class GetBucketView extends TableView<GetBucketResult> {
         if (null == br.getResult() || Iterables.isEmpty(br.getResult())) {
             return "No objects were reported in bucket.";
         }
-        this.contents = br.getResult();
+        this.contents = Iterables.limit(br.getResult(), 1000);
         initTable(ImmutableList.of("File Name", "Size", "Owner", "Last Modified", "ETag"));
         setTableDataAlignment(ImmutableList.of(ASCIITable.ALIGN_LEFT, ASCIITable.ALIGN_RIGHT, ASCIITable.ALIGN_RIGHT ,ASCIITable.ALIGN_LEFT, ASCIITable.ALIGN_RIGHT));
 

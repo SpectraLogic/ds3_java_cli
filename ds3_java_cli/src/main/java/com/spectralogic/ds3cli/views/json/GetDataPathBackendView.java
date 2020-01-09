@@ -21,7 +21,7 @@ import com.spectralogic.ds3cli.models.GetDataPathBackendResult;
 import com.spectralogic.ds3cli.util.JsonMapper;
 import com.spectralogic.ds3client.models.DataPathBackend;
 
-public class GetDataPathBackendView implements View<GetDataPathBackendResult> {
+public class GetDataPathBackendView extends View<GetDataPathBackendResult> {
 
     @Override
     public String render(final GetDataPathBackendResult obj) throws JsonProcessingException {

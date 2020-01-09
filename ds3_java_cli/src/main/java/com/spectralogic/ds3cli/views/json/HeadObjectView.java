@@ -26,7 +26,7 @@ import com.spectralogic.ds3client.networking.Metadata;
 
 import java.util.List;
 
-public class HeadObjectView implements View<HeadObjectResult> {
+public class HeadObjectView extends View<HeadObjectResult> {
     @Override
     public String render(final HeadObjectResult obj) throws JsonProcessingException {
         final CommonJsonView view = CommonJsonView.newView(CommonJsonView.Status.OK);

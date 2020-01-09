@@ -33,7 +33,7 @@ import static com.spectralogic.ds3cli.util.Guard.nullGuard;
 import static com.spectralogic.ds3cli.util.Guard.nullGuardFromDate;
 import static com.spectralogic.ds3cli.util.Guard.nullGuardToString;
 
-public class DetailedObjectsView implements View<GetDetailedObjectsResult> {
+public class DetailedObjectsView extends View<GetDetailedObjectsResult> {
 
     private static final String TAPE_SEPARATOR = " | ";
 

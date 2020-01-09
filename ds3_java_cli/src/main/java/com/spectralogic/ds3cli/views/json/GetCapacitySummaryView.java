@@ -21,7 +21,7 @@ import com.spectralogic.ds3cli.models.GetCapacitySummaryResult;
 import com.spectralogic.ds3cli.util.JsonMapper;
 import com.spectralogic.ds3client.models.CapacitySummaryContainer;
 
-public class GetCapacitySummaryView implements View<GetCapacitySummaryResult> {
+public class GetCapacitySummaryView extends View<GetCapacitySummaryResult> {
 
     @Override
     public String render(final GetCapacitySummaryResult obj) throws JsonProcessingException {

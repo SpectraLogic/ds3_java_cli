@@ -20,12 +20,6 @@ import com.spectralogic.ds3cli.models.Result;
 
 import java.io.PrintStream;
 
-
-public abstract class View<T extends Result> implements RawView<T> {
-    public abstract String render(final T obj) throws JsonProcessingException;
-
-    @Override
-    public void renderToStream(final PrintStream out, final T result) throws JsonProcessingException {
-        out.print(render(result));
-    }
+public interface RawView<T extends Result> {
+    void renderToStream(PrintStream out, T result) throws JsonProcessingException;
 }

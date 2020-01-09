@@ -22,7 +22,7 @@ import com.spectralogic.ds3cli.util.JsonMapper;
 import com.spectralogic.ds3client.models.StorageDomainList;
 import com.spectralogic.ds3client.utils.Guard;
 
-public class GetStorageDomainsView implements View<GetStorageDomainsResult> {
+public class GetStorageDomainsView extends View<GetStorageDomainsResult> {
 
     @Override
     public String render(final GetStorageDomainsResult obj) throws JsonProcessingException {

@@ -200,9 +200,8 @@ public final class Main {
             final CliCommand command = CliCommandFactory.getCommandExecutor(arguments.getCommand()).withProvider(provider, fileSystemProvider);
             command.init(arguments);
 
-            final CommandResponse response = command.render();
-            System.out.println(response.getMessage());
-            System.exit(response.getReturnCode());
+            command.render(System.out);
+            System.exit(0);
         } catch (final Exception e) {
             EXCEPTION.handleException(e);
             System.exit(2);

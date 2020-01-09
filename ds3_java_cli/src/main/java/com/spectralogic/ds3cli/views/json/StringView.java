@@ -20,7 +20,7 @@ import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.models.Result;
 import com.spectralogic.ds3cli.util.JsonMapper;
 
-public class StringView<T extends Result> implements View<T> {
+public class StringView<T extends Result> extends View<T> {
     @Override
     public String render(final T obj) throws JsonProcessingException {
         final CommonJsonView view = CommonJsonView.newView(CommonJsonView.Status.OK);

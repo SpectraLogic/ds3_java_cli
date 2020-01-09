@@ -31,6 +31,8 @@ import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.ParseException;
 
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -173,9 +175,8 @@ public abstract class CliCommand<T extends Result> implements Callable<T> {
      * @return CommandResponse with status and message
      * @throws Exception
      */
-    public CommandResponse render() throws Exception {
-        final String message = getView().render(call());
-        return new CommandResponse(message, 0);
+    public void render(final PrintStream out) throws Exception {
+        getView().renderToStream(out, call());
     }
 
     public static String getPlatformInformation() {

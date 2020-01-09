@@ -18,6 +18,7 @@ package com.spectralogic.ds3cli.command;
 
 import com.google.common.collect.ImmutableList;
 import com.spectralogic.ds3cli.Arguments;
+import com.spectralogic.ds3cli.PagingUtils;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.exceptions.CommandException;
@@ -34,26 +35,26 @@ import org.apache.commons.cli.Option;
 
 import java.util.List;
 
-import static com.spectralogic.ds3cli.ArgumentFactory.BUCKET;
-import static com.spectralogic.ds3cli.ArgumentFactory.PREFIX;
-import static com.spectralogic.ds3cli.ArgumentFactory.SHOW_VERSIONS;
+import static com.spectralogic.ds3cli.ArgumentFactory.*;
 
 public class GetBucket extends CliCommand<GetBucketResult> {
 
     private final static ImmutableList<Option> requiredArgs = ImmutableList.of(BUCKET);
-    private final static ImmutableList<Option> optionalArgs = ImmutableList.of(PREFIX, SHOW_VERSIONS);
+    private final static ImmutableList<Option> optionalArgs = ImmutableList.of(PREFIX, SHOW_VERSIONS, NEXT_MARKER);
 
-    private String bucket;
+    private String bucketName;
     private String prefix;
     private boolean showVersion;
+    private String nextMarker;
 
     @Override
     public CliCommand init(final Arguments args) throws Exception {
         processCommandOptions(requiredArgs, optionalArgs, args);
 
-        this.bucket = args.getBucket();
+        this.bucketName = args.getBucket();
         this.prefix = args.getPrefix();
         this.showVersion = args.isShowVersions();
+        this.nextMarker = args.getNextMaker();
         return this;
     }
 
@@ -61,20 +62,11 @@ public class GetBucket extends CliCommand<GetBucketResult> {
     public GetBucketResult call() throws Exception {
         try {
             // GetBucketDetail to get both name and id
-            final GetBucketRequest getBucketRequest = new GetBucketRequest(bucket);
-            getBucketRequest.withVersions(showVersion);
-            getBucketRequest.withPrefix(prefix);
-            final GetBucketSpectraS3Request getBucketSpectraS3Request = new GetBucketSpectraS3Request(bucket);
+            final GetBucketSpectraS3Request getBucketSpectraS3Request = new GetBucketSpectraS3Request(bucketName);
             final GetBucketSpectraS3Response response = getClient().getBucketSpectraS3(getBucketSpectraS3Request);
             final Bucket bucketDetails = response.getBucketResult();
-            final GetBucketResponse bucket = getClient().getBucket(getBucketRequest);
 
-            final List<Contents> contents;
-            if (showVersion) {
-                contents = bucket.getListBucketResult().getVersionedObjects();
-            } else {
-                contents = bucket.getListBucketResult().getObjects();
-            }
+            final Iterable<Contents> contents = PagingUtils.pageBucket(getClient(), bucketName, prefix, showVersion, nextMarker);
 
             return new GetBucketResult(bucketDetails, contents);
         } catch (final FailedRequestException e) {

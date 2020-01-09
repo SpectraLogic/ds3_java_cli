@@ -25,7 +25,7 @@ import static com.spectralogic.ds3cli.util.Guard.nullGuard;
 import static com.spectralogic.ds3cli.util.Guard.nullGuardFromDate;
 import static com.spectralogic.ds3cli.util.Guard.nullGuardToString;
 
-public class GetTapeView implements View<GetTapeResult> {
+public class GetTapeView extends View<GetTapeResult> {
     @Override
     public String render(final GetTapeResult obj) throws JsonProcessingException {
 
