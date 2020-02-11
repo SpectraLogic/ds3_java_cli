@@ -18,6 +18,7 @@ package com.spectralogic.ds3cli;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.spectralogic.ds3cli.models.Result;
 
+import java.io.IOException;
 import java.io.PrintStream;
 
 
@@ -25,7 +26,7 @@ public abstract class View<T extends Result> implements RawView<T> {
     public abstract String render(final T obj) throws JsonProcessingException;
 
     @Override
-    public void renderToStream(final PrintStream out, final T result) throws JsonProcessingException {
-        out.print(render(result));
+    public void renderToStream(final Appendable out, final T result) throws IOException {
+        out.append(render(result));
     }
 }

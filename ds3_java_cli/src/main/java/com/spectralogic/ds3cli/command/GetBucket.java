@@ -17,12 +17,10 @@ package com.spectralogic.ds3cli.command;
 
 
 import com.google.common.collect.ImmutableList;
-import com.spectralogic.ds3cli.Arguments;
-import com.spectralogic.ds3cli.PagingUtils;
-import com.spectralogic.ds3cli.View;
-import com.spectralogic.ds3cli.ViewType;
+import com.spectralogic.ds3cli.*;
 import com.spectralogic.ds3cli.exceptions.CommandException;
 import com.spectralogic.ds3cli.models.GetBucketResult;
+import com.spectralogic.ds3cli.views.csv.GetBucketView;
 import com.spectralogic.ds3cli.views.json.DataView;
 import com.spectralogic.ds3client.commands.GetBucketRequest;
 import com.spectralogic.ds3client.commands.GetBucketResponse;
@@ -78,9 +76,12 @@ public class GetBucket extends CliCommand<GetBucketResult> {
     }
 
     @Override
-    public View<GetBucketResult> getView() {
+    public RawView<GetBucketResult> getView() {
         if (viewType == ViewType.JSON) {
             return new DataView<>();
+        }
+        if (viewType == ViewType.CSV) {
+            return new GetBucketView();
         }
         if (showVersion) {
             return new com.spectralogic.ds3cli.views.cli.GetVersionedBucketView();

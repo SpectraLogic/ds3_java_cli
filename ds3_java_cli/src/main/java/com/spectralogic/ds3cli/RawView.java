@@ -15,11 +15,10 @@
 
 package com.spectralogic.ds3cli;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.spectralogic.ds3cli.models.Result;
 
-import java.io.PrintStream;
+import java.io.IOException;
 
 public interface RawView<T extends Result> {
-    void renderToStream(PrintStream out, T result) throws JsonProcessingException;
+    void renderToStream(Appendable out, T result) throws IOException;
 }

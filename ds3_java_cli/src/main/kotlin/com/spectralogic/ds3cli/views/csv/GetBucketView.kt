@@ -29,7 +29,7 @@ class GetBucketView : RawView<GetBucketResult> {
         private val HEADERS = listOf("name", "size", "lastModified", "isLatest", "versionId", "owner", "etag")
         private val UTC = ZoneId.of("UTC")
     }
-    override fun renderToStream(out: PrintStream, result: GetBucketResult) {
+    override fun renderToStream(out: Appendable, result: GetBucketResult) {
         CSVPrinter(out, CSVFormat.EXCEL).use { printer ->
             printer.printRecord(HEADERS)
             result.result.asSequence()

@@ -28,6 +28,7 @@ import com.spectralogic.ds3client.utils.Guard;
 import org.apache.commons.cli.Option;
 
 import java.io.IOException;
+import java.io.StringWriter;
 import java.nio.file.Path;
 
 import static com.spectralogic.ds3cli.ArgumentFactory.*;
@@ -113,8 +114,7 @@ public class Recover extends CliCommand<DefaultResult> {
     private String recover(final RecoveryJob job) throws Exception {
         final CliCommand command = CliCommandFactory.getCommandExecutor(job.getRecoveryCommand()).withProvider(getProvider(), getFileSystemProvider());
         ((RecoverableCommand)command).init(job);
-        return command.render().getMessage();
+        return command.render();
     }
-
 }
 

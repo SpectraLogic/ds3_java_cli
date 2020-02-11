@@ -15,10 +15,7 @@
 
 package com.spectralogic.ds3cli.command;
 
-import com.spectralogic.ds3cli.Arguments;
-import com.spectralogic.ds3cli.CommandResponse;
-import com.spectralogic.ds3cli.View;
-import com.spectralogic.ds3cli.ViewType;
+import com.spectralogic.ds3cli.*;
 import com.spectralogic.ds3cli.exceptions.BadArgumentException;
 import com.spectralogic.ds3cli.models.Result;
 import com.spectralogic.ds3cli.util.CommandHelpText;
@@ -33,6 +30,7 @@ import org.apache.commons.cli.ParseException;
 
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.io.StringWriter;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -163,7 +161,7 @@ public abstract class CliCommand<T extends Result> implements Callable<T> {
      * get the appropriate View to parse and format response
      * @return The View which formats the response.
      */
-    public View<T> getView() {
+    public RawView<T> getView() {
         if (this.viewType == ViewType.JSON) {
             return new StringView<>();
         }
@@ -175,8 +173,15 @@ public abstract class CliCommand<T extends Result> implements Callable<T> {
      * @return CommandResponse with status and message
      * @throws Exception
      */
-    public void render(final PrintStream out) throws Exception {
+    public void render(final Appendable out) throws Exception {
         getView().renderToStream(out, call());
+    }
+
+    public String render() throws Exception {
+        try (final StringWriter writer = new StringWriter()) {
+            render(writer);
+            return writer.toString();
+        }
     }
 
     public static String getPlatformInformation() {

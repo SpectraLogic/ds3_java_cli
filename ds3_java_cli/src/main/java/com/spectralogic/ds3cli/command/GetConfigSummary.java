@@ -16,6 +16,7 @@
 package com.spectralogic.ds3cli.command;
 
 import com.spectralogic.ds3cli.Arguments;
+import com.spectralogic.ds3cli.RawView;
 import com.spectralogic.ds3cli.View;
 import com.spectralogic.ds3cli.ViewType;
 import com.spectralogic.ds3cli.exceptions.CommandException;
@@ -25,6 +26,7 @@ import com.spectralogic.ds3cli.models.Result;
 import com.spectralogic.ds3cli.views.cli.GetConfigSummaryView;
 import com.spectralogic.ds3cli.views.json.DataView;
 
+import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -67,8 +69,12 @@ public class GetConfigSummary extends CliCommand<GetConfigSummaryResult> {
             final Result result =  (Result)command.init(this.mainArgs).call();
             resultsMap.put(commandName, result);
             if (viewType.equals(ViewType.CLI)) {
-                final View view = command.getView();
-                appendResult(commandName, view.render(result));
+                final RawView view = command.getView();
+                try (final StringWriter writer = new StringWriter()) {
+                    view.renderToStream(writer, result);
+                    final String resultMessage = writer.toString();
+                    appendResult(commandName, resultMessage);
+                }
             }
         }
         return new GetConfigSummaryResult(resultsMap, completeResult.toString());
