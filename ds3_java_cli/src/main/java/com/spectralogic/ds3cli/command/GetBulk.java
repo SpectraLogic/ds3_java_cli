@@ -32,6 +32,8 @@ import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.helpers.FileObjectGetter;
 import com.spectralogic.ds3client.helpers.FolderNameFilter;
 import com.spectralogic.ds3client.helpers.options.ReadJobOptions;
+import com.spectralogic.ds3client.helpers.pagination.GetBucketKeyLoaderFactory;
+import static com.spectralogic.ds3client.helpers.pagination.GetBucketKeyLoaderFactory.contentsFunction;
 import com.spectralogic.ds3client.helpers.pagination.GetBucketLoaderFactory;
 import com.spectralogic.ds3client.models.Contents;
 import com.spectralogic.ds3client.models.Priority;
@@ -274,7 +276,8 @@ public class GetBulk extends CliCommand<DefaultResult> {
         Iterable<Contents> allPrefixMatches = Collections.emptyList();
         for (final String prefix : prefixes) {
             final Iterable<Contents> prefixMatch = new LazyIterable<>(
-                    new GetBucketLoaderFactory(getClient(), this.bucketName, prefix, null, 100, 5));
+                    new GetBucketKeyLoaderFactory(getClient(), this.bucketName, prefix, null, null, 100, 5, contentsFunction)
+            );
             allPrefixMatches = Iterables.concat(allPrefixMatches, prefixMatch);
         }
         return allPrefixMatches;
