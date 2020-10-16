@@ -40,7 +40,7 @@ import static com.spectralogic.ds3cli.ArgumentFactory.PREFIX;
 public class GetObjectsOnTape extends CliCommand<GetObjectsOnTapeResult> {
 
     private final static ImmutableList<Option> requiredArgs = ImmutableList.of(ID);
-    private final static int maxKeys = 1;
+    private final static int maxKeys = 1000;
 
     // Barcode or tape ID
     private String tapeId;
