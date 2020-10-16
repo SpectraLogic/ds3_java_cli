@@ -25,17 +25,22 @@ import com.spectralogic.ds3cli.views.cli.GetObjectsOnTapeView;
 import com.spectralogic.ds3cli.views.json.DataView;
 import com.spectralogic.ds3client.commands.spectrads3.GetBlobsOnTapeSpectraS3Request;
 import com.spectralogic.ds3client.commands.spectrads3.GetBlobsOnTapeSpectraS3Response;
+import com.spectralogic.ds3client.models.BulkObject;
 import com.spectralogic.ds3client.networking.FailedRequestException;
 import org.apache.commons.cli.Option;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.spectralogic.ds3cli.ArgumentFactory.ID;
+import static com.spectralogic.ds3cli.ArgumentFactory.PREFIX;
 
 
 public class GetObjectsOnTape extends CliCommand<GetObjectsOnTapeResult> {
 
     private final static ImmutableList<Option> requiredArgs = ImmutableList.of(ID);
+    private final static int maxKeys = 1;
 
     // Barcode or tape ID
     private String tapeId;
@@ -48,20 +53,31 @@ public class GetObjectsOnTape extends CliCommand<GetObjectsOnTapeResult> {
         processCommandOptions(requiredArgs, EMPTY_LIST, args);
 
         this.tapeId = args.getId();
-        return  this;
+        return this;
     }
 
     @Override
     public GetObjectsOnTapeResult call() throws CommandException, IOException {
+        final List<BulkObject> objects = new ArrayList<>();
+        int offset = 0;
         try {
-
-            final GetBlobsOnTapeSpectraS3Response response
-                        = getClient().getBlobsOnTapeSpectraS3(new GetBlobsOnTapeSpectraS3Request(this.tapeId));
-
-            return new GetObjectsOnTapeResult(this.tapeId, response.getBulkObjectListResult().getObjects());
+            while (true) {
+                final GetBlobsOnTapeSpectraS3Request request = new GetBlobsOnTapeSpectraS3Request(this.tapeId)
+                        .withPageOffset(offset)
+                        .withPageLength(maxKeys);
+                final GetBlobsOnTapeSpectraS3Response response = getClient().getBlobsOnTapeSpectraS3(request);
+                final List<BulkObject> objectList = response.getBulkObjectListResult().getObjects();
+                if (objectList.isEmpty()) {
+                    break;
+                } else {
+                    objects.addAll(response.getBulkObjectListResult().getObjects());
+                }
+                offset = objects.size();
+            }
+            return new GetObjectsOnTapeResult(this.tapeId, objects);
         } catch (final FailedRequestException e) {
             if (e.getStatusCode() == 404) {
-                throw new CommandException("Unknown tape '" + this.tapeId +"'", e);
+                throw new CommandException("Unknown tape '" + this.tapeId + "'", e);
             }
             throw e;
         }
