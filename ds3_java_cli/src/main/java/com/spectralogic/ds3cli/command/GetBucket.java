@@ -31,7 +31,7 @@ import com.spectralogic.ds3client.models.Bucket;
 import com.spectralogic.ds3client.models.Contents;
 import com.spectralogic.ds3client.networking.FailedRequestException;
 import org.apache.commons.cli.Option;
-
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.spectralogic.ds3cli.ArgumentFactory.BUCKET;
@@ -42,6 +42,7 @@ public class GetBucket extends CliCommand<GetBucketResult> {
 
     private final static ImmutableList<Option> requiredArgs = ImmutableList.of(BUCKET);
     private final static ImmutableList<Option> optionalArgs = ImmutableList.of(PREFIX, SHOW_VERSIONS);
+    private final static int maxKeys = 1000;
 
     private String bucket;
     private String prefix;
@@ -60,22 +61,42 @@ public class GetBucket extends CliCommand<GetBucketResult> {
     @Override
     public GetBucketResult call() throws Exception {
         try {
+            final List<Contents> contents = new ArrayList<>();
             // GetBucketDetail to get both name and id
-            final GetBucketRequest getBucketRequest = new GetBucketRequest(bucket);
-            getBucketRequest.withVersions(showVersion);
-            getBucketRequest.withPrefix(prefix);
-            final GetBucketSpectraS3Request getBucketSpectraS3Request = new GetBucketSpectraS3Request(bucket);
-            final GetBucketSpectraS3Response response = getClient().getBucketSpectraS3(getBucketSpectraS3Request);
-            final Bucket bucketDetails = response.getBucketResult();
-            final GetBucketResponse bucket = getClient().getBucket(getBucketRequest);
+            GetBucketRequest getBucketRequest = new GetBucketRequest(bucket)
+                    .withVersions(showVersion)
+                    .withPrefix(prefix)
+                    .withMaxKeys(maxKeys);
 
-            final List<Contents> contents;
+            GetBucketResponse bucketResponse = getClient().getBucket(getBucketRequest);
+
             if (showVersion) {
-                contents = bucket.getListBucketResult().getVersionedObjects();
+                contents.addAll(bucketResponse.getListBucketResult().getVersionedObjects());
             } else {
-                contents = bucket.getListBucketResult().getObjects();
+                contents.addAll(bucketResponse.getListBucketResult().getObjects());
             }
 
+            String marker = bucketResponse.getListBucketResult().getNextMarker();
+            while (marker != null) {
+                getBucketRequest = new GetBucketRequest(this.bucket)
+                        .withVersions(showVersion)
+                        .withPrefix(prefix)
+                        .withMaxKeys(maxKeys)
+                        .withMarker(marker);
+
+                bucketResponse = getClient().getBucket(getBucketRequest);
+
+                if (showVersion) {
+                    contents.addAll(bucketResponse.getListBucketResult().getVersionedObjects());
+                } else {
+                    contents.addAll(bucketResponse.getListBucketResult().getObjects());
+                }
+                marker = bucketResponse.getListBucketResult().getNextMarker();
+            }
+
+            final GetBucketSpectraS3Request getBucketSpectraS3Request = new GetBucketSpectraS3Request(this.bucket);
+            final GetBucketSpectraS3Response response = getClient().getBucketSpectraS3(getBucketSpectraS3Request);
+            final Bucket bucketDetails = response.getBucketResult();
             return new GetBucketResult(bucketDetails, contents);
         } catch (final FailedRequestException e) {
             if (e.getStatusCode() == 404) {
