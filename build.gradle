@@ -34,6 +34,10 @@ buildscript {
 allprojects {
     version = '5.1.2'
     group = 'com.spectralogic'
+
+    repositories {
+        maven { url 'https://jitpack.io' }
+    }
 }
 
 subprojects {
@@ -48,16 +52,13 @@ subprojects {
         mavenCentral()
         jcenter()
         mavenLocal()
-        maven {
-            url 'http://dl.bintray.com/spectralogic/ds3'
-        }
     }
 
     dependencies {
         compile 'ch.qos.logback:logback-core:1.2.3'
         compile 'ch.qos.logback:logback-classic:1.2.3'
         compile 'com.google.guava:guava:23.0-jre'
-        compile 'com.spectralogic.ds3:ds3-sdk:5.1.2'
+        implementation 'com.github.spectralogic.ds3_java_sdk:ds3-sdk:5.1.2'
         compile 'com.google.inject:guice:4.2.0'
         compile 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.2'
 
