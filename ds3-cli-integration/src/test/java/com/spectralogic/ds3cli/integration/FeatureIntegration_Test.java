@@ -371,7 +371,7 @@ public class FeatureIntegration_Test {
             Util.createBucket(client, bucketName);
             Util.loadBookTestData(client, bucketName);
             final File newFile = new File(Util.DOWNLOAD_BASE_NAME + File.separator + objectName);
-            final DateTime now = new DateTime();
+            final DateTime now = new DateTime().plusHours(1);
             newFile.setLastModified(now.getMillis());
 
             final Arguments args = new Arguments(
