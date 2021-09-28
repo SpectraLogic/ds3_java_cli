@@ -904,7 +904,7 @@ public class FeatureIntegration_Test {
             Util.createBucket(client, bucketName);
             Util.loadBookTestData(client, bucketName);
 
-            final String pipedInput = "beowulf.txt\nulysses.txt";
+            final String pipedInput = "beowulf.txt\nulysses.txt\ntest.json";
             final InputStream testFile = new ByteArrayInputStream(pipedInput.getBytes("UTF-8"));
             System.setIn(testFile);
 
