@@ -18,14 +18,10 @@ package com.spectralogic.ds3cli
 import com.google.common.collect.ImmutableList
 import com.spectralogic.ds3cli.exceptions.CommandException
 import com.spectralogic.ds3client.Ds3Client
-import com.spectralogic.ds3client.commands.spectrads3.GetObjectDetailsSpectraS3Request
+import com.spectralogic.ds3client.commands.spectrads3.GetObjectsWithFullDetailsSpectraS3Request
 import com.spectralogic.ds3client.models.Contents
 import com.spectralogic.ds3client.networking.FailedRequestException
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.supervisorScope
+import kotlinx.coroutines.*
 import org.slf4j.LoggerFactory
 import java.io.IOException
 
@@ -42,14 +38,19 @@ object PipeUtils {
                  pipedFileNames.map { objName ->
                     async(Dispatchers.IO) {
                         try {
-                            val result = client.getObjectDetailsSpectraS3(GetObjectDetailsSpectraS3Request(objName, bucketName)).s3ObjectResult
+                            val result = client.getObjectsWithFullDetailsSpectraS3(
+                                    GetObjectsWithFullDetailsSpectraS3Request().withBucketId(bucketName).withName(objName));
 
-                            GetObjectResponse.Success(Contents().apply {
-                                key = result.name
-                                lastModified = result.creationDate
-                            })
-
-
+                            if (result.detailedS3ObjectListResult.detailedS3Objects == null || result.detailedS3ObjectListResult.detailedS3Objects.size == 0) {
+                                GetObjectResponse.NotFound(objName)
+                            } else if (result.detailedS3ObjectListResult.detailedS3Objects.size > 1) {
+                                GetObjectResponse.Error(IOException("There are multiple versions of object with name: $objName"))
+                            } else {
+                                GetObjectResponse.Success(Contents().apply {
+                                    key = result.detailedS3ObjectListResult.detailedS3Objects[0].name
+                                    lastModified = result.detailedS3ObjectListResult.detailedS3Objects[0].creationDate
+                                })
+                            }
                         } catch (f: FailedRequestException) {
                             if (f.statusCode == 404) {
                                 GetObjectResponse.NotFound(objName)
