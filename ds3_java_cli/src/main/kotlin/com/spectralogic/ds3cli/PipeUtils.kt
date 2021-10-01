@@ -18,7 +18,8 @@ package com.spectralogic.ds3cli
 import com.google.common.collect.ImmutableList
 import com.spectralogic.ds3cli.exceptions.CommandException
 import com.spectralogic.ds3client.Ds3Client
-import com.spectralogic.ds3client.commands.spectrads3.GetObjectsWithFullDetailsSpectraS3Request
+import com.spectralogic.ds3client.commands.spectrads3.GetObjectDetailsSpectraS3Request
+import com.spectralogic.ds3client.commands.spectrads3.GetObjectsDetailsSpectraS3Request
 import com.spectralogic.ds3client.models.Contents
 import com.spectralogic.ds3client.networking.FailedRequestException
 import kotlinx.coroutines.*
@@ -38,17 +39,28 @@ object PipeUtils {
                  pipedFileNames.map { objName ->
                     async(Dispatchers.IO) {
                         try {
-                            val result = client.getObjectsWithFullDetailsSpectraS3(
-                                    GetObjectsWithFullDetailsSpectraS3Request().withBucketId(bucketName).withName(objName));
+                            if (objName.endsWith(".json", ignoreCase = true)) {
+                                // If this is an object that ends in .json, then perform the more expensive call that
+                                // bypasses the json formatting feature of response payloads in BP
+                                val result = client.getObjectsDetailsSpectraS3(
+                                        GetObjectsDetailsSpectraS3Request().withBucketId(bucketName).withName(objName).withLatest(true))
 
-                            if (result.detailedS3ObjectListResult.detailedS3Objects == null || result.detailedS3ObjectListResult.detailedS3Objects.size == 0) {
-                                GetObjectResponse.NotFound(objName)
-                            } else if (result.detailedS3ObjectListResult.detailedS3Objects.size > 1) {
-                                GetObjectResponse.Error(IOException("There are multiple versions of object with name: $objName"))
+                                if (result.s3ObjectListResult.s3Objects == null || result.s3ObjectListResult.s3Objects.size == 0) {
+                                    GetObjectResponse.NotFound(objName)
+                                } else if (result.s3ObjectListResult.s3Objects.size > 1) {
+                                    GetObjectResponse.Error(IOException("There are multiple versions of object with name: $objName"))
+                                } else {
+                                    GetObjectResponse.Success(Contents().apply {
+                                        key = result.s3ObjectListResult.s3Objects[0].name
+                                        lastModified = result.s3ObjectListResult.s3Objects[0].creationDate
+                                    })
+                                }
                             } else {
+                                val result = client.getObjectDetailsSpectraS3(GetObjectDetailsSpectraS3Request(objName, bucketName)).s3ObjectResult
+
                                 GetObjectResponse.Success(Contents().apply {
-                                    key = result.detailedS3ObjectListResult.detailedS3Objects[0].name
-                                    lastModified = result.detailedS3ObjectListResult.detailedS3Objects[0].creationDate
+                                    key = result.name
+                                    lastModified = result.creationDate
                                 })
                             }
                         } catch (f: FailedRequestException) {
