@@ -91,3 +91,8 @@ project(':ds3-cli-certification') {
         testCompile project(path: ':ds3-cli-helpers', configuration: 'testOutput')
     }
 }
+
+wrapper {
+    // to upgrade the gradle wrapper, bump the version below and run ./gradlew wrapper
+    gradleVersion = '6.0.1'
+}
