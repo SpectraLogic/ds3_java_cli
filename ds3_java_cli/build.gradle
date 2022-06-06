@@ -22,17 +22,16 @@ apply plugin: 'kotlin'
 mainClassName = 'com.spectralogic.ds3cli.Main'
 
 dependencies {
-    compile (
-      [group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.9.0'],
-      [group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: '2.9.0'],
-      [group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.9.0'],
-      [group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-guava', version: '2.9.0']
+    api 'com.fasterxml.jackson.datatype:jackson-datatype-guava:2.9.0'
+    api 'commons-cli:commons-cli:1.4'
+    api 'joda-time:joda-time:2.9.9'
 
-    )
-    compile 'commons-cli:commons-cli:1.4'
-    compile group: 'org.apache.commons', name: 'commons-csv', version: '1.5'
-    compile 'joda-time:joda-time:2.9.9'
-    compile fileTree(dir: 'lib', include: '*.jar')
+    implementation 'com.fasterxml.jackson.core:jackson-core:2.9.0'
+    implementation 'com.fasterxml.jackson.core:jackson-annotations:2.9.0'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.9.0'
+
+    implementation group: 'org.apache.commons', name: 'commons-csv', version: '1.5'
+    implementation fileTree(dir: 'lib', include: '*.jar')
 }
 
 task genConfigProperties {
