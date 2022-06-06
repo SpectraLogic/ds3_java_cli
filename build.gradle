@@ -50,8 +50,6 @@ subprojects {
 
     repositories {
         mavenCentral()
-        jcenter()
-        mavenLocal()
     }
 
     dependencies {
