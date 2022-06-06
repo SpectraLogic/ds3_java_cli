@@ -22,15 +22,15 @@ apply plugin: 'kotlin'
 mainClassName = 'com.spectralogic.ds3cli.Main'
 
 dependencies {
-    api 'com.fasterxml.jackson.datatype:jackson-datatype-guava:2.9.0'
-    api 'commons-cli:commons-cli:1.4'
-    api 'joda-time:joda-time:2.9.9'
+    api libs.jacksonDatatypeGuava
+    api libs.commonsCli
+    api libs.jodaTime
 
-    implementation 'com.fasterxml.jackson.core:jackson-core:2.9.0'
-    implementation 'com.fasterxml.jackson.core:jackson-annotations:2.9.0'
-    implementation 'com.fasterxml.jackson.core:jackson-databind:2.9.0'
+    implementation libs.jacksonCore
+    implementation libs.jacksonAnnotations
+    implementation libs.jacksonDatabind
 
-    implementation group: 'org.apache.commons', name: 'commons-csv', version: '1.5'
+    implementation libs.commonsCsv
     implementation fileTree(dir: 'lib', include: '*.jar')
 }
 
