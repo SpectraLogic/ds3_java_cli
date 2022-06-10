@@ -52,16 +52,8 @@ If you would like to contribute to the source code, sign the [Contributors Agree
 
 ## Build
 
-To build the CLI, you need to make sure that the [ds3_java_sdk](https://github.com/SpectraLogic/ds3_java_sdk) is installed and accessible via maven (see [Installing ds3_java_sdk](https://github.com/SpectraLogic/ds3_java_sdk#install)).  You must also have cloned the latest version of the CLI source.  Then run `gradlew` from the root of the project:
+To build the CLI, make sure you have cloned and checked out the latest version of this repository.  Then run `gradlew` from the root of the project:
 
-    ./gradlew clean distTar
-    
-Or:
+    ./gradlew clean assembleDist
 
-    ./gradlew clean distZip
-    
-Both `distZip` and `distTar` will build the bundle and place it in `build/distributions` in the root of the project directory.  To build both versions at the same time run:
-
-    ./gradlew clean distTar distZip
-
-`distZip` will create a zip version of the bundle, and `distTar` will create a tar version of the bundle.  The bundles contain the same exact binaries.
+This command will build and create both zip and tar distribution bundles that containing the CLI. The distribution bundles can be found in under `ds3_java_cli/build/distributions/`.  The distribution bundles contain the same exact binaries.
