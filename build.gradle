@@ -82,5 +82,5 @@ project(':ds3-cli-certification') {
 
 wrapper {
     // to upgrade the gradle wrapper, bump the version below and run ./gradlew wrapper
-    gradleVersion = '7.4.2'
+    gradleVersion = '7.6'
 }
