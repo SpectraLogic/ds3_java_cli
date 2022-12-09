@@ -37,4 +37,4 @@ powermockJunit4 = { module = "org.powermock:powermock-module-junit4", version.re
 [plugins]
 gradleDepVers = { id = "com.github.ben-manes.versions", version = "0.17.0" }
 kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlinVersion" }
-owaspDepCheck = { id = "org.owasp.dependencycheck", version =  "7.1.0.1" }
+owaspDepCheck = { id = "org.owasp.dependencycheck", version =  "7.4.1" }
