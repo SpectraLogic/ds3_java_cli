@@ -39,6 +39,7 @@ subprojects {
     }
 
     dependencies {
+        implementation platform(libs.jacksonBom)
         implementation libs.logbackCore
         implementation libs.logbackClassic
         implementation libs.guava

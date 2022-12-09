@@ -44,6 +44,7 @@ import org.junit.runner.RunWith;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -61,11 +62,13 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.isNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-
+@PowerMockIgnore({"javax.xml.*"})
 @PrepareForTest({CliUtils.class, SyncUtils.class, FileUtils.class, Guard.class, GetPhysicalPlacementForObjectsWithFullDetailsSpectraS3Response.class})
 @RunWith(PowerMockRunner.class)
 public class Ds3Cli_Test {
@@ -624,7 +627,9 @@ public class Ds3Cli_Test {
         when(SyncUtils.isSyncSupported(any(Ds3Client.class))).thenReturn(true);
         when(SyncUtils.needToSync(any(Ds3ClientHelpers.class), any(String.class), any(Path.class), any(String.class), any(Boolean.class))).thenReturn(true);
 
-        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(null, helpers), mockedFileSystemProvider);
+        final Ds3Client client = mock(Ds3Client.class);
+
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, helpers), mockedFileSystemProvider);
         command.init(args);
         CommandResponse result = command.render();
         assertThat(result.getMessage(), is("Success: Finished syncing file to ds3 appliance."));
@@ -1089,8 +1094,10 @@ public class Ds3Cli_Test {
         when(FileUtils.getFileName(any(Path.class), eq(p2))).thenReturn("obj2.txt");
         when(SyncUtils.isNewFile(any(Path.class), any(Contents.class), any(Boolean.class))).thenReturn(false);
 
+        final Ds3Client client = mock(Ds3Client.class);
+
         final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand())
-                .withProvider(new Ds3ProviderImpl(null, helpers), mockedFileSystemProvider);
+                .withProvider(new Ds3ProviderImpl(client, helpers), mockedFileSystemProvider);
         command.init(args);
         CommandResponse result = command.render();
         assertThat(result.getMessage(), is("SUCCESS: All files are up to date"));
@@ -1429,7 +1436,7 @@ public class Ds3Cli_Test {
 
     @Test
     public void putBulkWithPipe() throws Exception {
-        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "put_bulk", "-b", "bucketName"});
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "put_bulk", "-b", "bucketName", "-nt", "1"});
         final Ds3ClientHelpers helpers = mock(Ds3ClientHelpers.class);
         final Ds3ClientHelpers.Job mockedPutJob = mock(Ds3ClientHelpers.Job.class);
         final FileSystemProvider mockedFileSystemProvider = mock(FileSystemProvider.class);
@@ -1455,10 +1462,10 @@ public class Ds3Cli_Test {
         when(CliUtils.isPipe()).thenReturn(true);
         when(mockedPutJob.withMetadata((MetadataAccess) isNotNull())).thenReturn(mockedPutJob);
         when(FileUtils.getPipedFilesFromStdin(any(FileSystemProvider.class))).thenReturn(retPath);
-        when(FileUtils.getObjectsToPut((Iterable<Path>) isNotNull(), any(Path.class), any(String.class), any(Boolean.class))).thenCallRealMethod();
-        when(FileUtils.getFileName(any(Path.class), eq(p1))).thenReturn(p1.toString());
+        when(FileUtils.getObjectsToPut((Iterable<Path>)isNotNull(), any(), any(), any(Boolean.class))).thenCallRealMethod();
+        when(FileUtils.getFileName(any(), eq(p1))).thenReturn(p1.toString());
         when(FileUtils.getFileSize(eq(p1))).thenReturn(1245L);
-        when(FileUtils.getFileName(any(Path.class), eq(p2))).thenReturn(p2.toString());
+        when(FileUtils.getFileName(any(), eq(p2))).thenReturn(p2.toString());
         when(FileUtils.getFileSize(eq(p2))).thenReturn(12345L);
 
         final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand())
@@ -1471,7 +1478,7 @@ public class Ds3Cli_Test {
 
     @Test
     public void putBulkWithPipeAndSync() throws Exception {
-        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "put_bulk", "-b", "bucketName", "--sync"});
+        final Arguments args = new Arguments(new String[]{"ds3_java_cli", "-e", "localhost:8080", "-k", "key!", "-a", "access", "-c", "put_bulk", "-b", "bucketName", "-nt", "1", "--sync"});
         final Ds3ClientHelpers helpers = mock(Ds3ClientHelpers.class);
         final Ds3ClientHelpers.Job mockedPutJob = mock(Ds3ClientHelpers.Job.class);
         final FileSystemProvider mockedFileSystemProvider = mock(FileSystemProvider.class);
@@ -1501,17 +1508,18 @@ public class Ds3Cli_Test {
         when(mockedPutJob.withMetadata((MetadataAccess) isNotNull())).thenReturn(mockedPutJob);
         when(CliUtils.isPipe()).thenReturn(true);
         when(FileUtils.getPipedFilesFromStdin(any(FileSystemProvider.class))).thenReturn(retPath);
-        when(FileUtils.getObjectsToPut((Iterable<Path>)isNotNull(), any(Path.class), any(String.class), any(Boolean.class))).thenCallRealMethod();
-        when(FileUtils.getFileName(any(Path.class), eq(p1))).thenReturn(p1.toString());
+        when(FileUtils.getObjectsToPut((Iterable<Path>)isNotNull(), any(), any(), any(Boolean.class))).thenCallRealMethod();
+        when(FileUtils.getFileName(any(), eq(p1))).thenReturn(p1.toString());
         when(FileUtils.getFileSize(eq(p1))).thenReturn(1245L);
-        when(FileUtils.getFileName(any(Path.class), eq(p2))).thenReturn(p2.toString());
+        when(FileUtils.getFileName(any(), eq(p2))).thenReturn(p2.toString());
         when(FileUtils.getFileSize(eq(p2))).thenReturn(12345L);
 
         PowerMockito.mockStatic(SyncUtils.class);
         when(SyncUtils.isSyncSupported(any(Ds3Client.class))).thenReturn(true);
 
+        final Ds3Client client = mock(Ds3Client.class);
 
-        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(null, helpers), mockedFileSystemProvider);
+        final CliCommand command = CliCommandFactory.getCommandExecutor(args.getCommand()).withProvider(new Ds3ProviderImpl(client, helpers), mockedFileSystemProvider);
         command.init(args);
         final CommandResponse result = command.render();
         assertThat(result.getMessage(), is("SUCCESS: Wrote all piped files to bucket bucketName"));
