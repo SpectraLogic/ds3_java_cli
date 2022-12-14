@@ -29,9 +29,12 @@ dependencies {
     implementation libs.jacksonCore
     implementation libs.jacksonAnnotations
     implementation libs.jacksonDatabind
+    implementation libs.guava
 
     implementation libs.commonsCsv
     implementation fileTree(dir: 'lib', include: '*.jar')
+
+    testImplementation libs.ds3Sdk
 }
 
 task genConfigProperties {
@@ -54,5 +57,18 @@ jar.dependsOn genConfigProperties
 run {
     if(project.hasProperty('args')){
         args project.args.split('\\s')
+    }
+}
+
+test {
+    if(JavaVersion.current() >= JavaVersion.VERSION_11) {
+        // powermock warnings for Java >= 11
+        jvmArgs += ["--add-opens", "java.base/java.lang=ALL-UNNAMED",
+                    "--add-opens", "java.base/java.util.regex=ALL-UNNAMED",
+                    "--add-opens", "java.base/java.text=ALL-UNNAMED",
+                    "--add-opens", "java.base/java.io=ALL-UNNAMED",
+                    "--add-opens", "java.base/sun.nio.fs=ALL-UNNAMED",
+                    "--add-opens", "java.base/java.util=ALL-UNNAMED",
+        ]
     }
 }

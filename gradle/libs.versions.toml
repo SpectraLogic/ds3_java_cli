@@ -1,18 +1,18 @@
 [versions]
-commonsCliVersion = "1.4"
-commonsCsvVersion = "1.5"
-ds3SdkVersion = "5.1.2"
-guavaVersion = "23.0-jre"
-guiceVersion = "4.2.0"
-hamcrestVersion = "1.3"
-jacksonVersion = "2.9.0"
+commonsCliVersion = "1.5.0"
+commonsCsvVersion = "1.9.0"
+ds3SdkVersion = "5.1.3"
+guavaVersion="31.1-jre"
+guiceVersion="5.1.0"
+hamcrestVersion = "2.2"
+jacksonVersion = "2.11.4"
 jodaTimeVersion = "2.9.9"
-junitVersion = "4.12"
-kotlincoroutineVersion = "1.3.2"
-kotlinVersion = "1.4.10"
-logbackVersion = "1.2.3"
-mockitoVersion = "1.10.19"
-powermockVersion = "1.6.4"
+junitVersion = "4.13.2"
+kotlincoroutineVersion = "1.6.4"
+kotlinVersion = "1.6.20"
+logbackVersion = "1.3.5"
+mockitoVersion = "3.12.4"
+powermockVersion = "2.0.9"
 
 [libraries]
 commonsCli = { module = "commons-cli:commons-cli", version.ref = "commonsCliVersion" }
@@ -21,20 +21,21 @@ ds3Sdk = { module = "com.github.spectralogic.ds3_java_sdk:ds3-sdk", version.ref 
 guava = { module = "com.google.guava:guava", version.ref = "guavaVersion" }
 guiceCore = { module = "com.google.inject:guice" , version.ref = "guiceVersion" }
 hamcrestLib = { module = "org.hamcrest:hamcrest-library", version.ref = "hamcrestVersion" }
-jacksonAnnotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version.ref = "jacksonVersion" }
-jacksonCore = { module = "com.fasterxml.jackson.core:jackson-core", version.ref = "jacksonVersion" }
-jacksonDatabind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jacksonVersion" }
-jacksonDatatypeGuava = { module = "com.fasterxml.jackson.datatype:jackson-datatype-guava", version.ref = "jacksonVersion" }
+jacksonBom = { module = "com.fasterxml.jackson:jackson-bom", version.ref = "jacksonVersion" }
+jacksonAnnotations = { module = "com.fasterxml.jackson.core:jackson-annotations" }
+jacksonCore = { module = "com.fasterxml.jackson.core:jackson-core" }
+jacksonDatabind = { module = "com.fasterxml.jackson.core:jackson-databind" }
+jacksonDatatypeGuava = { module = "com.fasterxml.jackson.datatype:jackson-datatype-guava" }
 jodaTime = { module = "joda-time:joda-time", version.ref = "jodaTimeVersion" }
 junit = { module = "junit:junit", version.ref = "junitVersion" }
 kotlinCoroutinesCore = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlincoroutineVersion" }
 logbackCore = { module = "ch.qos.logback:logback-core", version.ref = "logbackVersion" }
 logbackClassic = { module = "ch.qos.logback:logback-classic", version.ref = "logbackVersion" }
 mockitoCore = { module = "org.mockito:mockito-core", version.ref = "mockitoVersion" }
-powermockMockito = { module = "org.powermock:powermock-api-mockito", version.ref = "powermockVersion" }
+powermockMockito = { module = "org.powermock:powermock-api-mockito2", version.ref = "powermockVersion" }
 powermockJunit4 = { module = "org.powermock:powermock-module-junit4", version.ref = "powermockVersion" }
 
 [plugins]
 gradleDepVers = { id = "com.github.ben-manes.versions", version = "0.17.0" }
 kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlinVersion" }
-owaspDepCheck = { id = "org.owasp.dependencycheck", version =  "7.1.0.1" }
+owaspDepCheck = { id = "org.owasp.dependencycheck", version =  "7.4.1" }
