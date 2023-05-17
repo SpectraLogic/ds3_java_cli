@@ -15,6 +15,7 @@
 
 plugins {
     id("base-compile-conventions")
+    `java-test-fixtures`
 }
 
 dependencies {
@@ -24,14 +25,8 @@ dependencies {
 
     implementation(libs.ds3Sdk)
 
-    testImplementation(libs.hamcrestLib)
-    testImplementation(libs.junit)
-}
+    testFixturesApi(libs.hamcrestLib)
+    testFixturesApi(libs.ds3Sdk)
 
-configurations {
-    create("testOutput")
-}
-
-dependencies {
-    "testOutput"(sourceSets.test.get().output)
+    testFixturesImplementation(libs.junit)
 }

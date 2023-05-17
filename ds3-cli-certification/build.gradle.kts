@@ -15,6 +15,7 @@
 
 plugins {
     id("base-compile-conventions")
+    `java-test-fixtures`
 }
 
 dependencies {
@@ -25,7 +26,7 @@ dependencies {
 
     implementation(libs.ds3Sdk)
 
-    testImplementation(project(":ds3-cli-helpers", configuration = "testOutput"))
+    testImplementation(testFixtures(project(":ds3-cli-helpers")))
 
     testImplementation(libs.junit)
     testImplementation(libs.hamcrestLib)

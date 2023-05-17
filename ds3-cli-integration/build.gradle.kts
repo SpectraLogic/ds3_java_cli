@@ -22,7 +22,8 @@ dependencies {
 
     testImplementation(project(":ds3_java_cli"))
     testImplementation(project(":ds3-cli-helpers"))
-    testImplementation(project(":ds3-cli-helpers", configuration = "testOutput"))
+
+    testImplementation(testFixtures(project(":ds3-cli-helpers")))
 
     testImplementation(libs.ds3Sdk)
     testImplementation(libs.junit)
