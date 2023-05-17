@@ -79,6 +79,14 @@ tasks.register<Test>("test11") {
     javaLauncher.set(javaToolchains.launcherFor {
         languageVersion.set(JavaLanguageVersion.of(11))
         vendor.set(JvmVendorSpec.ADOPTIUM)
+        // powermock warnings for Java >= 11
+        jvmArgs = listOf("--add-opens", "java.base/java.lang=ALL-UNNAMED",
+            "--add-opens", "java.base/java.util.regex=ALL-UNNAMED",
+            "--add-opens", "java.base/java.text=ALL-UNNAMED",
+            "--add-opens", "java.base/java.io=ALL-UNNAMED",
+            "--add-opens", "java.base/sun.nio.fs=ALL-UNNAMED",
+            "--add-opens", "java.base/java.util=ALL-UNNAMED",
+        )
     })
 }
 
@@ -86,5 +94,13 @@ tasks.register<Test>("test17") {
     javaLauncher.set(javaToolchains.launcherFor {
         languageVersion.set(JavaLanguageVersion.of(17))
         vendor.set(JvmVendorSpec.ADOPTIUM)
+        // powermock warnings for Java >= 11
+        jvmArgs = listOf("--add-opens", "java.base/java.lang=ALL-UNNAMED",
+            "--add-opens", "java.base/java.util.regex=ALL-UNNAMED",
+            "--add-opens", "java.base/java.text=ALL-UNNAMED",
+            "--add-opens", "java.base/java.io=ALL-UNNAMED",
+            "--add-opens", "java.base/sun.nio.fs=ALL-UNNAMED",
+            "--add-opens", "java.base/java.util=ALL-UNNAMED",
+            )
     })
 }
