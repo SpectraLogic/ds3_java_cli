@@ -21,7 +21,7 @@ dependencyCheck {
     skipConfigurations = listOf("ktlint", "ktlintBaselineReporter", "detekt")
     // fail the build if any vulnerable dependencies are identified (CVSS score > 0)
     failBuildOnCVSS = 0F
-    suppressionFile = "project_files/owasp/dependency-check-suppression.xml"
+    //suppressionFile = "project_files/owasp/dependency-check-suppression.xml"
     // node audit for yarn was recently enabled and it's not quite working yet.
     // try again when updating the dependency check plugin.
     // last tried: v8.1.2
