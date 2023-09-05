@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
+    <suppress>
+        <notes><![CDATA[
+      file name: jackson-databind-2.15.2.jar
+      reason: DISPUTED: the vendor's perspective is that this is not a valid vulnerability report, because
+              the steps of constructing a cyclic data structure and trying to serialize it cannot be
+              achieved by an external attacker. See:
+              https://github.com/FasterXML/jackson-databind/issues/3972
+      ]]></notes>
+        <packageUrl regex="true">^pkg:maven/com\.fasterxml\.jackson\.core/jackson\-databind@.*$</packageUrl>
+        <cve>CVE-2023-35116</cve>
+    </suppress>
+</suppressions>

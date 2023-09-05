@@ -19,6 +19,7 @@ plugins {
 }
 
 dependencies {
+    implementation(platform(libs.ds3Bom))
     implementation(platform(libs.jacksonBom))
 
     implementation(project(":ds3_java_cli"))

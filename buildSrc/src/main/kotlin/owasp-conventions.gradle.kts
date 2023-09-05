@@ -18,7 +18,8 @@ plugins {
 }
 
 dependencyCheck {
-    skipConfigurations = listOf("ktlint", "ktlintBaselineReporter", "detekt")
+    //skipConfigurations = listOf("ktlint", "ktlintBaselineReporter", "detekt")
+    suppressionFile = "project_files/owasp/dependency-check-suppression.xml"
     // fail the build if any vulnerable dependencies are identified (CVSS score > 0)
     failBuildOnCVSS = 0F
     //suppressionFile = "project_files/owasp/dependency-check-suppression.xml"

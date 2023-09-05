@@ -24,9 +24,6 @@ dependencyResolutionManagement {
         mavenCentral()
         // If you really need to resolve a dependency from your local maven cache, uncomment the line below.
         // mavenLocal()
-        maven {
-            url = uri("https://jitpack.io")
-        }
     }
     versionCatalogs {
         create("libs") {

@@ -18,6 +18,7 @@ plugins {
 }
 
 dependencies {
+    testImplementation(platform(libs.ds3Bom))
     testImplementation(platform(libs.jacksonBom))
 
     testImplementation(project(":ds3_java_cli"))

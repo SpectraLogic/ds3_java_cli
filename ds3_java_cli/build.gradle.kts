@@ -21,6 +21,7 @@ plugins {
 }
 
 dependencies {
+    implementation(platform(libs.ds3Bom))
     implementation(platform(libs.jacksonBom))
 
     api(libs.jacksonDatatypeGuava)
