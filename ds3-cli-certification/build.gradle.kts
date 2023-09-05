@@ -26,9 +26,11 @@ dependencies {
     implementation(project(":ds3-cli-helpers"))
 
     implementation(libs.ds3Sdk)
+    implementation(libs.slf4jApi)
 
     testImplementation(testFixtures(project(":ds3-cli-helpers")))
 
+    testImplementation(libs.commonsIo)
     testImplementation(libs.junit)
     testImplementation(libs.hamcrestLib)
 }
