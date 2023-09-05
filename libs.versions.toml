@@ -45,6 +45,6 @@ powermockJunit4 = { module = "org.powermock:powermock-module-junit4", version.re
 #
 # plugins used in buildSrc/
 #
-gradleDepVersPlugin = { group = "com.github.ben-manes", name = "gradle-versions-plugin", version = "0.46.0" }
+gradleDepVersPlugin = { group = "com.github.ben-manes", name = "gradle-versions-plugin", version = "0.47.0" }
 kotlinJvmPlugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlinVersion" }
-owaspDepCheckPlugin = { group = "org.owasp", name = "dependency-check-gradle", version = "8.1.2" }
+owaspDepCheckPlugin = { group = "org.owasp", name = "dependency-check-gradle", version = "8.4.0" }
