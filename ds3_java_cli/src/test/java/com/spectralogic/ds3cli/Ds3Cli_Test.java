@@ -400,6 +400,7 @@ public class Ds3Cli_Test {
 
         final String expected = "  \"Data\" : {\n" +
                 "    \"bucket\" : {\n" +
+                "      \"protected\" : false,\n" +
                 "      \"CreationDate\" : \"2016-11-18T15:48:08.000Z\",\n" +
                 "      \"DataPolicyId\" : \"8a5d5e56-8d54-4098-b790-6002730b3d96\",\n" +
                 "      \"Empty\" : null,\n" +
@@ -407,6 +408,7 @@ public class Ds3Cli_Test {
                 "      \"LastPreferredChunkSizeInBytes\" : 19004340787,\n" +
                 "      \"LogicalUsedCapacity\" : 1928234,\n" +
                 "      \"Name\" : \"mountain\",\n" +
+                "      \"Protected\" : false,\n" +
                 "      \"UserId\" : \"5079e312-bcff-43c7-bd54-d8148af0a515\"\n" +
                 "    },\n" +
                 "    \"result\" : [ {\n" +
@@ -2561,6 +2563,7 @@ public class Ds3Cli_Test {
                         "      \"AutoReclaimInitiateThreshold\" : 0.82,\n" +
                         "      \"AutoReclaimTerminateThreshold\" : 0.72,\n" +
                         "      \"BurstThreshold\" : 0.85,\n" +
+                        "      \"CacheSafetyEnabled\" : false,\n" +
                         "      \"Id\" : \"a1c27433-74f2-11e6-8d1e-002590c31f18\",\n" +
                         "      \"MaxCapacityInBytes\" : null,\n" +
                         "      \"MaxPercentUtilizationOfFilesystem\" : 0.9,\n" +
@@ -2568,6 +2571,7 @@ public class Ds3Cli_Test {
                         "      \"Path\" : \"/usr/local/bluestorm/frontend/cachedir/\"\n" +
                         "    },\n" +
                         "    \"Entries\" : [ ],\n" +
+                        "    \"JobLockedCacheInBytes\" : 0,\n" +
                         "    \"Summary\" : \"12378 blobs allocated by cache (1475975 max): 159 GB allocated, 12715 GB available (0 B pending reclaim), 12874 GB total.  Cache throttling starts at 10943 GB.  Auto-reclaims start at 10557 GB and stop early once usage drops below 9269 GB.\",\n" +
                         "    \"TotalCapacityInBytes\" : 13823995270348,\n" +
                         "    \"UnavailableCapacityInBytes\" : 0,\n" +
@@ -2729,12 +2733,16 @@ public class Ds3Cli_Test {
                 "    \"DefaultVerifyDataPriorToImport\" : false,\n" +
                 "    \"Id\" : \"5d45ab7a-b83f-4dc1-95d5-a45b59e48718\",\n" +
                 "    \"InstanceId\" : \"5d45ab7a-b83f-4dc1-95d5-a45b59e48718\",\n" +
+                "    \"IomCacheLimitationPercent\" : 0.0,\n" +
                 "    \"IomEnabled\" : false,\n" +
                 "    \"LastHeartbeat\" : \"2016-09-07T22:09:55.000Z\",\n" +
+                "    \"MaxAggregatedBlobsPerChunk\" : 0,\n" +
                 "    \"PartiallyVerifyLastPercentOfTapes\" : null,\n" +
+                "    \"PoolSafetyEnabled\" : false,\n" +
                 "    \"UnavailableMediaPolicy\" : \"DISALLOW\",\n" +
                 "    \"UnavailablePoolMaxJobRetryInMins\" : 20,\n" +
-                "    \"UnavailableTapePartitionMaxJobRetryInMins\" : 20\n" +
+                "    \"UnavailableTapePartitionMaxJobRetryInMins\" : 20,\n" +
+                "    \"VerifyCheckpointBeforeRead\" : false\n" +
                 "  },\n" +
                 "  \"Status\" : \"OK\"\n" +
                 "}";
