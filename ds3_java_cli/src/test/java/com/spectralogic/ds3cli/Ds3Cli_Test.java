@@ -2567,6 +2567,7 @@ public class Ds3Cli_Test {
                         "      \"Id\" : \"a1c27433-74f2-11e6-8d1e-002590c31f18\",\n" +
                         "      \"MaxCapacityInBytes\" : null,\n" +
                         "      \"MaxPercentUtilizationOfFilesystem\" : 0.9,\n" +
+                        "      \"NeedsReconcile\" : false,\n" +
                         "      \"NodeId\" : \"a1c27433-74f2-11e6-8d1e-002590c31f18\",\n" +
                         "      \"Path\" : \"/usr/local/bluestorm/frontend/cachedir/\"\n" +
                         "    },\n" +
