@@ -26,6 +26,7 @@ dependencies {
     implementation(project(":ds3-cli-helpers"))
 
     implementation(libs.ds3Sdk)
+    implementation(libs.findbugs)
     implementation(libs.slf4jApi)
 
     testImplementation(testFixtures(project(":ds3-cli-helpers")))
