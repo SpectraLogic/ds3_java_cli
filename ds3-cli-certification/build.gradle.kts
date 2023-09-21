@@ -19,15 +19,19 @@ plugins {
 }
 
 dependencies {
+    implementation(platform(libs.ds3Bom))
     implementation(platform(libs.jacksonBom))
 
     implementation(project(":ds3_java_cli"))
     implementation(project(":ds3-cli-helpers"))
 
     implementation(libs.ds3Sdk)
+    implementation(libs.findbugs)
+    implementation(libs.slf4jApi)
 
     testImplementation(testFixtures(project(":ds3-cli-helpers")))
 
+    testImplementation(libs.commonsIo)
     testImplementation(libs.junit)
     testImplementation(libs.hamcrestLib)
 }

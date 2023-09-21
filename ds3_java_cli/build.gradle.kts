@@ -21,6 +21,7 @@ plugins {
 }
 
 dependencies {
+    implementation(platform(libs.ds3Bom))
     implementation(platform(libs.jacksonBom))
 
     api(libs.jacksonDatatypeGuava)
@@ -34,6 +35,7 @@ dependencies {
     implementation(libs.jacksonAnnotations)
     implementation(libs.jacksonCore)
     implementation(libs.jacksonDatabind)
+    implementation(libs.jacksonDataformatXml)
     implementation(libs.kotlinCoroutinesCore)
     implementation(libs.logbackClassic)
 
@@ -41,6 +43,7 @@ dependencies {
         include("*.jar")
     })
 
+    testImplementation(libs.commonsIo)
     testImplementation(libs.junit)
     testImplementation(libs.hamcrestLib)
     testImplementation(libs.powermockMockito)

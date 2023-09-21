@@ -14,7 +14,7 @@
  */
 
 plugins {
-    id("org.gradle.toolchains.foojay-resolver-convention").version("0.5.0")
+    id("org.gradle.toolchains.foojay-resolver-convention").version("0.7.0")
 }
 
 rootProject.name = "ds3_java_cli"
@@ -24,9 +24,6 @@ dependencyResolutionManagement {
         mavenCentral()
         // If you really need to resolve a dependency from your local maven cache, uncomment the line below.
         // mavenLocal()
-        maven {
-            url = uri("https://jitpack.io")
-        }
     }
     versionCatalogs {
         create("libs") {

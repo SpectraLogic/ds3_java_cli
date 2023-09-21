@@ -19,14 +19,21 @@ plugins {
 }
 
 dependencies {
+    implementation(platform(libs.ds3Bom))
     implementation(platform(libs.jacksonBom))
+
+    testFixturesImplementation(platform(libs.ds3Bom))
 
     implementation(project(":ds3_java_cli"))
 
     implementation(libs.ds3Sdk)
+    implementation(libs.jacksonDataformatXml)
 
-    testFixturesApi(libs.hamcrestLib)
     testFixturesApi(libs.ds3Sdk)
+    testFixturesApi(libs.guava)
+    testFixturesApi(libs.hamcrestLib)
+    testFixturesApi(libs.httpclient)
+    testFixturesApi(libs.slf4jApi)
 
     testFixturesImplementation(libs.junit)
 }
