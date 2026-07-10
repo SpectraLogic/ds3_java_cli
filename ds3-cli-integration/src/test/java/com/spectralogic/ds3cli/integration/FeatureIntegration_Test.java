@@ -1311,4 +1311,51 @@ public class FeatureIntegration_Test {
             Util.deleteBucket(client, bucketName);
         }
     }
+
+    @Test
+    public void getObjectVersions() throws Exception {
+        final String bucketName = "test_get_object_versions";
+        final String objectName = "beowulf.txt";
+        try {
+            Util.createBucket(client, bucketName);
+            Util.loadBookTestData(client, bucketName);
+
+            final GetBucketSpectraS3Response bucketResponse = client.getBucketSpectraS3(new GetBucketSpectraS3Request(bucketName));
+            final String bucketId = bucketResponse.getBucketResult().getId().toString();
+
+            final GetObjectDetailsSpectraS3Response objectResponse = client.getObjectDetailsSpectraS3(new GetObjectDetailsSpectraS3Request(objectName, bucketName));
+            final String versionId = objectResponse.getS3ObjectResult().getId().toString();
+
+            final Arguments args = new Arguments(new String[]{"--http", "-c", "get_object_versions", "-b", bucketName, "-o", objectName});
+            final CommandResponse response = Util.command(client, args);
+
+            final String message = response.getMessage();
+
+            final String[] lines = message.split("\n");
+            boolean foundHeader = false;
+            boolean foundData = false;
+
+            for (final String line : lines) {
+                if (line.contains("Bucket Id") && line.contains("Version Id")) {
+                    foundHeader = true;
+                    final String[] headerParts = line.split("\\|");
+                    assertTrue("Bucket Id header should be in first column", headerParts[1].contains("Bucket Id"));
+                    assertTrue("Name header should be in second column", headerParts[2].contains("Name"));
+                    assertTrue("Version Id header should be in fifth column", headerParts[5].contains("Version Id"));
+                }
+                if (line.contains(objectName)) {
+                    foundData = true;
+                    final String[] dataParts = line.split("\\|");
+                    assertEquals("Bucket ID should be in the first column", bucketId, dataParts[1].trim());
+                    assertEquals("Object name should be in the second column", objectName, dataParts[2].trim());
+                    assertEquals("Version ID should be in the fifth column", versionId, dataParts[5].trim());
+                }
+            }
+            assertTrue("Should have found header in output", foundHeader);
+            assertTrue("Should have found object in output", foundData);
+
+        } finally {
+            Util.deleteBucket(client, bucketName);
+        }
+    }
 }
