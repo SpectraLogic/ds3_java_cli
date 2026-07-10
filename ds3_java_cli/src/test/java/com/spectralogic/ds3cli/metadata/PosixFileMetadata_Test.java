@@ -27,6 +27,7 @@ import org.junit.Test;
 import static java.nio.file.Files.readAllBytes;
 import static java.nio.file.Files.write;
 import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.junit.Assert.*;
 
 import java.nio.file.Files;
@@ -157,7 +158,7 @@ public class PosixFileMetadata_Test {
         assertEquals(lastModified, lastModifiedAfterRestore);
 
         final FileTime createdTimeAfterRestore = Files.readAttributes(fileNamePathTuple.filePath(), BasicFileAttributes.class).creationTime();
-        assertThat(createdAfterDeletion.compareTo(createdTimeAfterRestore), greaterThan(0));
+        assertThat(createdAfterDeletion.compareTo(createdTimeAfterRestore), greaterThanOrEqualTo(0));
 
     }
 

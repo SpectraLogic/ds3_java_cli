@@ -25,7 +25,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
 import java.nio.file.attribute.UserPrincipalLookupService;
 import java.time.Instant;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
@@ -49,9 +49,7 @@ public class PosixFileMetadata implements FileMetadata {
     }
 
     private static FileTime makeLocalFileTime(final String metadataValue) {
-        final Instant timeReadBack = LocalDateTime.parse(metadataValue, DATE_TIME_FORMATTER).toInstant(ZoneOffset.UTC);
-        final LocalDateTime localDateTime = LocalDateTime.ofInstant(timeReadBack, ZoneId.systemDefault());
-        return FileTime.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
+        return FileTime.from(OffsetDateTime.parse(metadataValue, DATE_TIME_FORMATTER).toInstant());
     }
 
     private static UserPrincipalLookupService userPrincipalLookupService(final Path filePath) {
