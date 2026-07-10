@@ -51,11 +51,11 @@ public class GetObjectVersionsView extends TableView<GetObjectVersionsResult> {
 
         for (final S3Object version : versions) {
             final String[] arrayEntry = new String[this.columnCount];
-            arrayEntry[0] = nullGuard(version.getId());
+            arrayEntry[0] = nullGuard(version.getBucketId());
             arrayEntry[1] = nullGuard(version.getName());
             arrayEntry[2] = nullGuardFromDate(version.getCreationDate(), DATE_FORMAT);
             arrayEntry[3] = nullGuard(version.getLatest());
-            arrayEntry[4] = nullGuard(version.getBucketId());
+            arrayEntry[4] = nullGuard(version.getId());
             contents.add(arrayEntry);
         }
 
